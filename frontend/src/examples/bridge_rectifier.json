@@ -1,0 +1,28 @@
+{
+  "components": [
+    { "id": "V1", "type": "AC Voltage", "position": { "x": 100, "y": 200 }, "value": "120V 60Hz", "rotation": 0, "symbolName": "AC Voltage" },
+    { "id": "BR1", "type": "Bridge Rectifier", "position": { "x": 300, "y": 200 }, "value": "1N4007", "rotation": 0, "symbolName": "Bridge Rectifier" },
+    { "id": "C1", "type": "Capacitor", "position": { "x": 500, "y": 200 }, "value": "1000u", "rotation": 0, "symbolName": "Capacitor" },
+    { "id": "R1", "type": "Resistor", "position": { "x": 700, "y": 200 }, "value": "100", "rotation": 0, "symbolName": "Resistor" },
+    { "id": "G1", "type": "Ground", "position": { "x": 100, "y": 300 }, "rotation": 0, "symbolName": "Ground" },
+    { "id": "G2", "type": "Ground", "position": { "x": 500, "y": 300 }, "rotation": 0, "symbolName": "Ground" },
+    { "id": "G3", "type": "Ground", "position": { "x": 700, "y": 300 }, "rotation": 0, "symbolName": "Ground" }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 100, "y": 150 }, { "x": 250, "y": 150 }, { "x": 250, "y": 200 }] },
+    { "id": "W2", "points": [{ "x": 350, "y": 150 }, { "x": 500, "y": 150 }] },
+    { "id": "W3", "points": [{ "x": 500, "y": 150 }, { "x": 700, "y": 150 }] },
+    { "id": "W4", "points": [{ "x": 100, "y": 250 }, { "x": 100, "y": 300 }] },
+    { "id": "W5", "points": [{ "x": 350, "y": 250 }, { "x": 500, "y": 250 }] },
+    { "id": "W6", "points": [{ "x": 500, "y": 250 }, { "x": 500, "y": 300 }] },
+    { "id": "W7", "points": [{ "x": 700, "y": 250 }, { "x": 700, "y": 300 }] }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 100, "y": 150 }, "type": "Voltage" },
+    { "id": "PRB2", "position": { "x": 500, "y": 150 }, "type": "Voltage" }
+  ],
+  "scale": 1,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": { "endTime": "50m", "step": "0.1m" }
+}

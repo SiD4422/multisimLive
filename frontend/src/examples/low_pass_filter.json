@@ -1,0 +1,22 @@
+{
+  "components": [
+    { "id": "V1", "type": "AC Voltage", "position": { "x": 100, "y": 150 }, "value": "1V", "rotation": 0, "symbolName": "AC Voltage" },
+    { "id": "R1", "type": "Resistor", "position": { "x": 200, "y": 100 }, "value": "1k", "rotation": 0, "symbolName": "Resistor" },
+    { "id": "C1", "type": "Capacitor", "position": { "x": 300, "y": 150 }, "value": "1u", "rotation": 0, "symbolName": "Capacitor" },
+    { "id": "G1", "type": "Ground", "position": { "x": 100, "y": 250 }, "rotation": 0, "symbolName": "Ground" },
+    { "id": "G2", "type": "Ground", "position": { "x": 300, "y": 250 }, "rotation": 0, "symbolName": "Ground" }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 100, "y": 100 }, { "x": 150, "y": 100 }] },
+    { "id": "W2", "points": [{ "x": 250, "y": 100 }, { "x": 300, "y": 100 }] },
+    { "id": "W3", "points": [{ "x": 100, "y": 200 }, { "x": 100, "y": 250 }] },
+    { "id": "W4", "points": [{ "x": 300, "y": 200 }, { "x": 300, "y": 250 }] }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 300, "y": 100 }, "type": "Voltage" }
+  ],
+  "scale": 1,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "ac",
+  "acSettings": { "fStart": "1", "fStop": "100k", "points": "100" }
+}

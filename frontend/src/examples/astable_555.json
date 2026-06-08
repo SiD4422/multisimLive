@@ -1,0 +1,28 @@
+{
+  "components": [
+    { "id": "V1", "type": "DC Voltage", "position": { "x": 100, "y": 200 }, "value": "5V", "rotation": 0, "symbolName": "DC Voltage" },
+    { "id": "U1", "type": "555 Timer", "position": { "x": 400, "y": 200 }, "value": "", "rotation": 0, "symbolName": "555 Timer" },
+    { "id": "R1", "type": "Resistor", "position": { "x": 250, "y": 100 }, "value": "10k", "rotation": 90, "symbolName": "Resistor" },
+    { "id": "R2", "type": "Resistor", "position": { "x": 250, "y": 250 }, "value": "100k", "rotation": 90, "symbolName": "Resistor" },
+    { "id": "C1", "type": "Capacitor", "position": { "x": 250, "y": 400 }, "value": "10u", "rotation": 90, "symbolName": "Capacitor" },
+    { "id": "G1", "type": "Ground", "position": { "x": 100, "y": 300 }, "rotation": 0, "symbolName": "Ground" },
+    { "id": "G2", "type": "Ground", "position": { "x": 250, "y": 500 }, "rotation": 0, "symbolName": "Ground" }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 100, "y": 150 }, { "x": 100, "y": 50 }, { "x": 400, "y": 50 }, { "x": 400, "y": 150 }] },
+    { "id": "W2", "points": [{ "x": 250, "y": 50 }, { "x": 250, "y": 100 }] },
+    { "id": "W3", "points": [{ "x": 250, "y": 150 }, { "x": 250, "y": 250 }] },
+    { "id": "W4", "points": [{ "x": 250, "y": 200 }, { "x": 350, "y": 200 }] },
+    { "id": "W5", "points": [{ "x": 250, "y": 300 }, { "x": 250, "y": 400 }] },
+    { "id": "W6", "points": [{ "x": 250, "y": 350 }, { "x": 350, "y": 350 }] },
+    { "id": "W7", "points": [{ "x": 250, "y": 450 }, { "x": 250, "y": 500 }] },
+    { "id": "W8", "points": [{ "x": 100, "y": 250 }, { "x": 100, "y": 300 }] }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 450, "y": 200 }, "type": "Voltage" }
+  ],
+  "scale": 1,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": { "endTime": "5s", "step": "10m" }
+}

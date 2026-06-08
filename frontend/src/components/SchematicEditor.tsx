@@ -1,0 +1,717 @@
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+
+import { Stage, Layer, Line, Group, Text, Circle, Rect, Path, Arc } from 'react-konva';
+import { useSchematicStore, type Point } from '../store/useSchematicStore';
+import Ground from './symbols/Ground';
+import TextAnnotation from './symbols/TextAnnotation';
+import { VoltageProbe } from './symbols/VoltageProbe';
+import { CurrentProbe } from './symbols/CurrentProbe';
+import MultisimSymbol from './symbols/MultisimSymbol';
+import { getComponentPins } from '../utils/netlister';
+
+const SNAP_GRID = 10;
+const VISUAL_GRID = 45;
+
+export default function SchematicEditor() {
+  const { 
+    components, wires, addComponent, updateComponentPosition, 
+    selectedComponentId, setSelectedComponent, pendingComponent, setPendingComponent,
+    addWire, scale, setScale, stagePos, setStagePos, setIsConfigOpen,
+    selectedWireId, setSelectedWire, clearSelection,
+    deleteComponent, updateComponentRotation, copyComponent, flipComponent,
+    isPlaying
+  } = useSchematicStore();
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [dashOffset, setDashOffset] = useState(0);
+  const stageRef = useRef<any>(null);
+  
+  const dragStateRef = useRef<{ 
+    compId: string, 
+    startX: number, 
+    startY: number, 
+    attachedWires: { wireId: string, pointIndex: number, startX: number, startY: number }[] 
+  } | null>(null);
+
+  // Wiring state
+  const [wirePoints, setWirePoints] = useState<Point[] | null>(null);
+  const [mousePos, setMousePos] = useState<Point | null>(null);
+  // wireDir is now auto-computed from mouse movement — no longer stored as state
+  // We keep the Spacebar flip for manual override
+  const [wireDirOverride, setWireDirOverride] = useState<'auto' | 'h' | 'v'>('auto');
+
+  useEffect(() => {
+    const wrapper = document.getElementById('canvas-wrapper');
+    if (!wrapper) return;
+    
+    // Initial size
+    const initialWidth = wrapper.clientWidth;
+    const initialHeight = wrapper.clientHeight;
+    setDimensions({ width: initialWidth, height: initialHeight });
+    
+    const currentStagePos = useSchematicStore.getState().stagePos;
+    if (currentStagePos.x === 0 && currentStagePos.y === 0) {
+      useSchematicStore.getState().setStagePos({ x: initialWidth / 2, y: initialHeight / 2 });
+    }
+    
+    // Use ResizeObserver to detect when sidebars/flyouts push the width
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        setDimensions({ 
+          width: entry.contentRect.width, 
+          height: entry.contentRect.height 
+        });
+      }
+    });
+    
+    resizeObserver.observe(wrapper);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  // Animation Loop for Current Flow (Cosmetic)
+  useEffect(() => {
+    let animationFrameId: number;
+    let lastTime = performance.now();
+
+    const animate = (time: number) => {
+      if (isPlaying) {
+        const delta = time - lastTime;
+        // ~20 pixels per second flow rate
+        setDashOffset(prev => prev - (delta * 0.05));
+      }
+      lastTime = time;
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    if (isPlaying) {
+      lastTime = performance.now();
+      animationFrameId = requestAnimationFrame(animate);
+    } else {
+      setDashOffset(0);
+    }
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [isPlaying]);
+
+  // Handle Schematic Export
+  useEffect(() => {
+    const handleExport = () => {
+      if (stageRef.current) {
+        const dataURL = stageRef.current.toDataURL({ pixelRatio: 2 });
+        const link = document.createElement('a');
+        link.download = 'schematic_snapshot.png';
+        link.href = dataURL;
+        link.click();
+      }
+    };
+    window.addEventListener('export-schematic', handleExport);
+    return () => window.removeEventListener('export-schematic', handleExport);
+  }, []);
+
+  // Keyboard shortcuts (Escape to cancel/commit, Space to flip wire elbow)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (wirePoints && wirePoints.length > 1) {
+          addWire({ id: `W${Date.now()}`, points: wirePoints });
+        }
+        setWirePoints(null);
+        setPendingComponent(null);
+        setMousePos(null);
+      }
+      if (e.key === ' ') {
+        e.preventDefault();
+        // Cycle: auto → h → v → auto
+        setWireDirOverride(prev => prev === 'auto' ? 'h' : prev === 'h' ? 'v' : 'auto');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setPendingComponent, wirePoints, addWire]);
+
+  const handleWheel = (e: any) => {
+    e.evt.preventDefault();
+    const scaleBy = 1.1;
+    const stage = stageRef.current;
+    if (!stage) return;
+    
+    const oldScale = stage.scaleX();
+    const mousePointTo = {
+      x: stage.getPointerPosition().x / oldScale - stage.x() / oldScale,
+      y: stage.getPointerPosition().y / oldScale - stage.y() / oldScale,
+    };
+
+    const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
+    setScale(newScale);
+    setStagePos({
+      x: -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
+      y: -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
+    });
+  };
+
+  const handleMouseMove = (e: any) => {
+    if (!wirePoints && !pendingComponent) {
+      // Still update mousePos for generic preview if needed, but for performance, we might skip
+      // Actually we must skip to save React renders if not needed
+      return; 
+    }
+    const stage = stageRef.current;
+    if (!stage) return;
+    
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+    
+    const relativeX = (pointer.x - stage.x()) / scale;
+    const relativeY = (pointer.y - stage.y()) / scale;
+    
+    const x = Math.round(relativeX / SNAP_GRID) * SNAP_GRID;
+    const y = Math.round(relativeY / SNAP_GRID) * SNAP_GRID;
+    
+    setMousePos({ x, y });
+  };
+
+  const getPreviewPoints = () => {
+    if (!wirePoints || !mousePos) return [];
+    const last = wirePoints[wirePoints.length - 1];
+    const dx = Math.abs(mousePos.x - last.x);
+    const dy = Math.abs(mousePos.y - last.y);
+    
+    // Determine direction: go horizontal-first if moving more horizontally, else vertical-first
+    // Unless user has manually overridden with Spacebar
+    let goHFirst: boolean;
+    if (wireDirOverride === 'h') goHFirst = true;
+    else if (wireDirOverride === 'v') goHFirst = false;
+    else goHFirst = dx >= dy; // auto: go in dominant axis first
+    
+    let corner;
+    if (goHFirst) {
+      corner = { x: mousePos.x, y: last.y };
+    } else {
+      corner = { x: last.x, y: mousePos.y };
+    }
+    // If corner is same as start, just go straight
+    if (corner.x === last.x && corner.y === last.y) return [...wirePoints, mousePos];
+    // If corner is same as end, just go straight
+    if (corner.x === mousePos.x && corner.y === mousePos.y) return [...wirePoints, mousePos];
+    return [...wirePoints, corner, mousePos];
+  };
+
+  const handleStageMouseDown = (e: any) => {
+    // Right click cancels everything
+    if (e.evt.button === 2) {
+      setWirePoints(null);
+      setPendingComponent(null);
+      setMousePos(null);
+      return;
+    }
+
+    const currentPending = useSchematicStore.getState().pendingComponent;
+    if (currentPending && mousePos) {
+      const typeStr = currentPending.type;
+      
+      if (typeStr === 'ProbeVoltage' || typeStr === 'ProbeCurrent') {
+        const id = `PR${useSchematicStore.getState().probes.length + 1}`;
+        useSchematicStore.getState().addProbe({
+          id,
+          type: typeStr === 'ProbeVoltage' ? 'Voltage' : 'Current',
+          position: mousePos
+        });
+        setPendingComponent(null);
+        return;
+      }
+
+      let prefix = 'U'; // Fallback IC
+      if (typeStr === 'Resistor' || typeStr === 'Potentiometer' || typeStr === 'Load') prefix = 'R';
+      else if (typeStr === 'Capacitor') prefix = 'C';
+      else if (typeStr === 'Fuse') prefix = 'F';
+      else if (typeStr === 'Inductor') prefix = 'L';
+      else if (typeStr === 'Diode' || typeStr === 'DiodeZener' || typeStr === 'DiodeSchottky' || typeStr === 'LED' || typeStr === 'BridgeRectifier') prefix = 'D';
+      else if (typeStr === 'TransistorNPN' || typeStr === 'TransistorPNP' || typeStr === 'IGBT') prefix = 'Q';
+      else if (typeStr === 'MosfetN' || typeStr === 'MosfetP') prefix = 'M';
+      else if (typeStr === 'JFET') prefix = 'J';
+      else if (typeStr === 'SwitchSPST' || typeStr === 'SPDTSwitch' || typeStr === 'PushButton' || typeStr === 'Relay') prefix = 'S';
+      else if (typeStr.includes('Opamp') || typeStr.includes('Comparator')) prefix = 'U';
+      else if (typeStr === 'Timer555') prefix = 'A';
+      else if (typeStr.includes('Voltage') || (typeStr.includes('Source') && !typeStr.includes('Current')) || typeStr.includes('Phase') || typeStr.includes('Noise')) prefix = 'V';
+      else if (typeStr.includes('Current')) prefix = 'I';
+      else if (typeStr.startsWith('Transformer') || typeStr === 'Transformers') prefix = 'T';
+      else if (typeStr === 'CoupledInductors') prefix = 'K';
+      else if (typeStr === 'LosslessTransmissionLine') prefix = 'T';
+      else if (typeStr === 'LossyTransmissionLine') prefix = 'O';
+      else if (typeStr === 'Resistors') prefix = 'RN';
+      else if (typeStr === 'Ground') prefix = 'GND';
+
+      let nextNum = 1;
+      while (components.some(c => c.id === `${prefix}${nextNum}`)) {
+        nextNum++;
+      }
+
+      const defaultRotation = 0;
+
+      addComponent({
+        id: `${prefix}${nextNum}`,
+        type: typeStr,
+        position: mousePos,
+        value: currentPending.value,
+        rotation: defaultRotation
+      });
+      setPendingComponent(null);
+      return;
+    }
+
+    // Clicking on the stage background OR the paper/grid rect deselects everything
+    const targetName = e.target.getClassName?.() || '';
+    const isBackground = e.target === e.target.getStage() || targetName === 'Rect' || targetName === 'Line';
+    if (isBackground && !wirePoints) {
+      clearSelection();
+    }
+    
+    if (!wirePoints || !mousePos) return;
+    
+    const preview = getPreviewPoints();
+    const corner = preview[preview.length - 2];
+    
+    // Check if corner is essentially duplicate
+    const last = wirePoints[wirePoints.length - 1];
+    if (corner.x === last.x && corner.y === last.y) {
+       setWirePoints([...wirePoints, mousePos]);
+    } else {
+       setWirePoints([...wirePoints, corner, mousePos]);
+    }
+  };
+
+  const handleStageDoubleClick = (e: any) => {
+    if (wirePoints && wirePoints.length > 1) {
+      addWire({ id: `W${Date.now()}`, points: wirePoints });
+      setWirePoints(null);
+    }
+  };
+
+  const handleNodeClick = (e: any, pos: Point) => {
+    if (pendingComponent) return; // don't start wiring if placing
+    if (!wirePoints) {
+      // Start drawing
+      setWirePoints([pos]);
+      setWireDirOverride('auto');
+    } else {
+      // Finish drawing
+      const preview = getPreviewPoints();
+      preview[preview.length - 1] = pos;
+      
+      const cleaned: Point[] = [];
+      for (const p of preview) {
+        if (cleaned.length > 0) {
+          const last = cleaned[cleaned.length - 1];
+          if (last.x === p.x && last.y === p.y) continue;
+        }
+        cleaned.push(p);
+      }
+      
+      addWire({
+        id: `W${Date.now()}`,
+        points: cleaned
+      });
+      setWirePoints(null);
+      setMousePos(null);
+    }
+  };
+
+  // Background Grid and Paper limits
+  const gridLines = [];
+  const PAPER_WIDTH = 3000;
+  const PAPER_HEIGHT = 2000;
+  const paperX = -PAPER_WIDTH / 2;
+  const paperY = -PAPER_HEIGHT / 2;
+
+  for (let i = paperY; i <= paperY + PAPER_HEIGHT; i += VISUAL_GRID) {
+    gridLines.push(<Line key={`h${i}`} points={[paperX, i, paperX + PAPER_WIDTH, i]} stroke={i % (VISUAL_GRID * 5) === 0 ? "#e5e7eb" : "#f8fafc"} strokeWidth={i % (VISUAL_GRID * 5) === 0 ? 1.5 : 1} />);
+  }
+  for (let i = paperX; i <= paperX + PAPER_WIDTH; i += VISUAL_GRID) {
+    gridLines.push(<Line key={`v${i}`} points={[i, paperY, i, paperY + PAPER_HEIGHT]} stroke={i % (VISUAL_GRID * 5) === 0 ? "#e5e7eb" : "#f8fafc"} strokeWidth={i % (VISUAL_GRID * 5) === 0 ? 1.5 : 1} />);
+  }
+
+  const previewPath = getPreviewPoints();
+
+  const junctionDots: Point[] = React.useMemo(() => {
+    const dots = new Set<string>();
+    
+    // Helper to check if point p is on segment a-b
+    const isPointOnSegment = (p: Point, a: Point, b: Point) => {
+      const crossProduct = (p.y - a.y) * (b.x - a.x) - (p.x - a.x) * (b.y - a.y);
+      if (Math.abs(crossProduct) > 0.1) return false;
+      const dotProduct = (p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y);
+      if (dotProduct < 0) return false;
+      const squaredLength = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
+      if (dotProduct > squaredLength) return false;
+      return true;
+    };
+
+    wires.forEach((wire1, idx1) => {
+      if (!wire1.points || wire1.points.length === 0) return;
+      const endpoints = [wire1.points[0], wire1.points[wire1.points.length - 1]];
+      endpoints.forEach(ep => {
+        let touchesOther = false;
+        for (let i = 0; i < wires.length; i++) {
+          if (i === idx1) continue;
+          const wire2 = wires[i];
+          for (let j = 0; j < wire2.points.length - 1; j++) {
+            if (isPointOnSegment(ep, wire2.points[j], wire2.points[j+1])) {
+              touchesOther = true;
+              break;
+            }
+          }
+          if (touchesOther) break;
+        }
+        if (touchesOther) {
+          dots.add(`${ep.x},${ep.y}`);
+        }
+      });
+    });
+
+    return Array.from(dots).map(d => {
+      const [x, y] = d.split(',').map(Number);
+      return { x, y };
+    });
+  }, [wires]);
+
+  const renderComponent = (comp: any, isPreview = false) => {
+    const sharedProps = {
+      component: comp,
+      selected: !isPreview && selectedComponentId === comp.id,
+      onSelect: () => {
+        if (!isPreview) {
+          setSelectedComponent(comp.id);
+          setIsConfigOpen(true);
+        }
+      },
+      onDragStart: (e: any) => {
+        if (isPreview) return;
+        setSelectedComponent(comp.id);
+        setIsConfigOpen(true);
+
+        const pins = getComponentPins(comp);
+        const attachedWires: { wireId: string, pointIndex: number, startX: number, startY: number }[] = [];
+        
+        const stateWires = useSchematicStore.getState().wires;
+        pins.forEach(pin => {
+          const pinP = pin.p;
+          if (!pinP) return;
+          stateWires.forEach(wire => {
+            if (wire.points.length > 0) {
+              const first = wire.points[0];
+              const last = wire.points[wire.points.length - 1];
+              if (Math.abs(first.x - pinP.x) < 2 && Math.abs(first.y - pinP.y) < 2) {
+                attachedWires.push({ wireId: wire.id, pointIndex: 0, startX: first.x, startY: first.y });
+              }
+              if (Math.abs(last.x - pinP.x) < 2 && Math.abs(last.y - pinP.y) < 2) {
+                attachedWires.push({ wireId: wire.id, pointIndex: wire.points.length - 1, startX: last.x, startY: last.y });
+              }
+            }
+          });
+        });
+        
+        dragStateRef.current = {
+          compId: comp.id,
+          startX: comp.position.x,
+          startY: comp.position.y,
+          attachedWires
+        };
+      },
+      onDragMove: (e: any) => {
+        if (isPreview) return;
+        const x = Math.round(e.target.x() / SNAP_GRID) * SNAP_GRID;
+        const y = Math.round(e.target.y() / SNAP_GRID) * SNAP_GRID;
+        e.target.position({ x, y });
+        
+        const dragInfo = dragStateRef.current;
+        if (dragInfo && dragInfo.compId === comp.id) {
+          const dx = x - dragInfo.startX;
+          const dy = y - dragInfo.startY;
+          
+          if (dragInfo.attachedWires.length > 0) {
+            const wireUpdates: { id: string, points: Point[] }[] = [];
+            const stateWires = useSchematicStore.getState().wires;
+            const updatesByWire = new Map<string, { id: string, points: Point[] }>();
+            
+            dragInfo.attachedWires.forEach((aw: any) => {
+              if (!updatesByWire.has(aw.wireId)) {
+                const w = stateWires.find(ws => ws.id === aw.wireId);
+                if (w) updatesByWire.set(aw.wireId, { id: w.id, points: [...w.points] });
+              }
+              const update = updatesByWire.get(aw.wireId);
+              if (update) {
+                update.points[aw.pointIndex] = { x: aw.startX + dx, y: aw.startY + dy };
+              }
+            });
+            
+            useSchematicStore.getState().updateComponentAndWires(comp.id, { x, y }, Array.from(updatesByWire.values()));
+          }
+        }
+      },
+      onDragEnd: (e: any) => {
+        if (isPreview) return;
+        const x = Math.round(e.target.x() / SNAP_GRID) * SNAP_GRID;
+        const y = Math.round(e.target.y() / SNAP_GRID) * SNAP_GRID;
+        e.target.position({ x, y });
+        
+        const dragInfo = dragStateRef.current;
+        if (dragInfo && dragInfo.attachedWires.length > 0) {
+           useSchematicStore.getState().commitDrag();
+        } else {
+           updateComponentPosition(comp.id, { x, y });
+        }
+        dragStateRef.current = null;
+      },
+      onNodeClick: handleNodeClick,
+      isPreview
+    };
+
+    const textAnnotationProps = {
+      ...sharedProps,
+      updateComponentValue: useSchematicStore.getState().updateComponentValue
+    };
+
+    let el = null;
+    if (comp.type === 'TextAnnotation') {
+      el = <TextAnnotation key={comp.id} {...textAnnotationProps} />;
+    } else {
+      el = <MultisimSymbol key={comp.id} {...sharedProps} updateComponentValue={textAnnotationProps.updateComponentValue} />;
+    }
+
+    if (isPreview) {
+      return (
+        <Group key="preview-group" opacity={0.5} listening={false}>
+          {el}
+        </Group>
+      );
+    }
+    return (
+      <Group key={comp.id} onDblClick={() => { setSelectedComponent(comp.id); setIsConfigOpen(true); }}>
+        {el}
+      </Group>
+    );
+  };
+
+  // ── Floating 3-button action ring ─────────────────────────────────────────
+  // Buttons orbit the component center: Delete (top-left), Rotate (top-right), Copy (bottom-right)
+  const renderActionMenu = () => {
+    if (!selectedComponentId || pendingComponent || wirePoints) return null;
+    const comp = components.find(c => c.id === selectedComponentId);
+    if (!comp) return null;
+
+    const cx = comp.position.x;
+    const cy = comp.position.y;
+    const ORBIT = 52;  // distance from component center to button center
+    const R    = 14;   // button circle radius (small)
+
+    // Positions: top-left (-45°), top-right (+45°), bottom-right (+135°)
+    const positions = [
+      { angle: -135, id: 'delete',  color: '#fff1f2', border: '#f43f5e', iconColor: '#be123c', label: 'Del',
+        icon: 'M -5 -5 L 5 5 M 5 -5 L -5 5',
+        action: () => { deleteComponent(selectedComponentId); clearSelection(); } },
+      { angle: -45,  id: 'rotate',  color: '#f0fdf4', border: '#22c55e', iconColor: '#15803d', label: 'Rot',
+        icon: 'M 1 -6 A 6 6 0 1 1 -6 1 L -3.5 1 L -6 4.5 L -8.5 1 L -6 1 A 7.5 7.5 0 1 0 1 -7.5 Z',
+        action: () => {
+          const cur = comp.rotation || 0;
+          updateComponentRotation(selectedComponentId, (cur + 90) % 360);
+        } },
+      { angle: 45,   id: 'copy',    color: '#fdf4ff', border: '#a855f7', iconColor: '#7e22ce', label: 'Copy',
+        icon: 'M -3 -5 L 3 -5 L 5 -3 L 5 4 L -3 4 Z M -5 -3 L -5 6 L 3 6 L 3 4 L -3 4 L -3 -3 Z',
+        action: () => copyComponent(selectedComponentId) },
+    ];
+
+    return (
+      <Group listening={true}>
+        {/* Thin selection ring around the component */}
+        <Circle
+          x={cx} y={cy}
+          radius={ORBIT - R - 4}
+          stroke="#3b82f6" strokeWidth={1.5}
+          dash={[4, 4]} fill="transparent"
+          listening={false}
+        />
+        {positions.map(btn => {
+          const rad = (btn.angle * Math.PI) / 180;
+          const bx = cx + ORBIT * Math.cos(rad);
+          const by = cy + ORBIT * Math.sin(rad);
+          return (
+            <Group
+              key={btn.id}
+              x={bx} y={by}
+              onClick={(e) => { e.cancelBubble = true; btn.action(); }}
+              onTap={(e)   => { e.cancelBubble = true; btn.action(); }}
+            >
+              {/* Drop shadow */}
+              <Circle radius={R + 1.5} fill="rgba(0,0,0,0.12)" offsetY={1.5} listening={false} />
+              {/* Button fill */}
+              <Circle radius={R} fill={btn.color} stroke={btn.border} strokeWidth={1.5} />
+              {/* Icon */}
+              <Path data={btn.icon} fill="none" stroke={btn.iconColor} strokeWidth={1.5}
+                lineCap="round" lineJoin="round" listening={false} />
+            </Group>
+          );
+        })}
+      </Group>
+    );
+  };
+    return (
+      <div style={{
+        width: '100%', height: '100%', backgroundColor: '#a3a3a3', position: 'absolute',
+        cursor: wirePoints ? 'none' : pendingComponent ? 'crosshair' : 'grab'
+      }}>
+        {dimensions.width > 0 && (
+        <Stage 
+          width={dimensions.width} 
+          height={dimensions.height} 
+          scaleX={scale}
+          scaleY={scale}
+          x={stagePos.x}
+          y={stagePos.y}
+          draggable={!wirePoints && !pendingComponent}
+          onDragEnd={(e) => {
+            if (e.target === stageRef.current) {
+              setStagePos({ x: e.target.x(), y: e.target.y() });
+            }
+          }}
+          onWheel={handleWheel}
+          onMouseMove={handleMouseMove}
+          onMouseDown={handleStageMouseDown}
+          onDblClick={handleStageDoubleClick}
+          onContextMenu={(e) => e.evt.preventDefault()} 
+          ref={stageRef}
+          >
+          <Layer>
+            {/* Paper Background */}
+            <Rect 
+              x={paperX} 
+              y={paperY} 
+              width={PAPER_WIDTH} 
+              height={PAPER_HEIGHT} 
+              fill="#ffffff" 
+              shadowColor="#000"
+              shadowBlur={10}
+              shadowOpacity={0.15}
+              shadowOffset={{ x: 2, y: 5 }}
+            />
+            {gridLines}
+          </Layer>
+          <Layer>
+            {/* Committed Wires */}
+            {wires.map(wire => (
+              <Line 
+                key={wire.id}
+                points={wire.points.flatMap(p => [p.x, p.y])}
+                stroke={selectedWireId === wire.id ? "#3b82f6" : "#dc2626"}
+                strokeWidth={selectedWireId === wire.id ? 3 : 2}
+                dash={isPlaying ? [5, 10] : undefined}
+                dashOffset={dashOffset}
+                lineCap="round"
+                lineJoin="round"
+                hitStrokeWidth={20}
+                onClick={(e) => { e.cancelBubble = true; setSelectedWire(wire.id); }}
+                onMouseDown={(e) => {
+                  e.cancelBubble = true;
+                  if (!wirePoints && mousePos) {
+                    // Start branching from here
+                    setWirePoints([mousePos]);
+                    setWireDirOverride('auto');
+                  } else if (wirePoints && mousePos) {
+                    // Finish drawing on this wire
+                    const preview = getPreviewPoints();
+                    preview[preview.length - 1] = mousePos;
+                    
+                    const cleaned: Point[] = [];
+                    for (const p of preview) {
+                      if (cleaned.length > 0) {
+                        const last = cleaned[cleaned.length - 1];
+                        if (last.x === p.x && last.y === p.y) continue;
+                      }
+                      cleaned.push(p);
+                    }
+                    
+                    addWire({
+                      id: `W${Date.now()}`,
+                      points: cleaned
+                    });
+                    setWirePoints(null);
+                    setMousePos(null);
+                  }
+                }}
+              />
+            ))}
+
+            {/* Junction Dots */}
+            {junctionDots.map((dot, idx) => (
+              <Circle 
+                key={`jdot-${idx}`}
+                x={dot.x}
+                y={dot.y}
+                radius={4}
+                fill="#000"
+                listening={false}
+              />
+            ))}
+
+            {/* Active Drawing Wire — red dashed preview */}
+            {previewPath.length > 0 && (
+              <Line 
+                points={previewPath.flatMap(p => [p.x, p.y])}
+                stroke="#dc2626"
+                strokeWidth={2}
+                dash={[6, 4]}
+                lineCap="round"
+                lineJoin="round"
+                listening={false}
+              />
+            )}
+
+            {/* Crosshair cursor indicator at mouse position while wiring */}
+            {wirePoints && mousePos && (
+              <>
+                {/* Start node marker */}
+                <Circle
+                  x={wirePoints[wirePoints.length - 1].x}
+                  y={wirePoints[wirePoints.length - 1].y}
+                  radius={5}
+                  fill="#dc2626"
+                  opacity={0.7}
+                  listening={false}
+                />
+                {/* Crosshair at cursor */}
+                <Line points={[mousePos.x - 10, mousePos.y, mousePos.x + 10, mousePos.y]} stroke="#dc2626" strokeWidth={1.5} listening={false} />
+                <Line points={[mousePos.x, mousePos.y - 10, mousePos.x, mousePos.y + 10]} stroke="#dc2626" strokeWidth={1.5} listening={false} />
+                <Circle x={mousePos.x} y={mousePos.y} radius={4} stroke="#dc2626" strokeWidth={1.5} fill="transparent" listening={false} />
+              </>
+            )}
+
+            {/* Components */}
+            {components.map(comp => renderComponent(comp, false))}
+
+            {/* Floating action menu for selected component */}
+            {renderActionMenu()}
+            
+            {useSchematicStore.getState().probes.map(probe => (
+                probe.type === 'Current' ? (
+                  <CurrentProbe key={probe.id} id={probe.id} position={probe.position} />
+                ) : (
+                  <VoltageProbe key={probe.id} id={probe.id} position={probe.position} />
+                )
+              ))}
+
+            {/* Pending Component Preview */}
+            {pendingComponent && mousePos && (
+              renderComponent({
+                id: 'preview',
+                type: pendingComponent.type,
+                position: mousePos,
+                value: pendingComponent.value,
+                rotation: 0
+              }, true)
+            )}
+          </Layer>
+        </Stage>
+        )}
+      </div>
+    );
+  }
