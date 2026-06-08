@@ -213,7 +213,7 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     ];
   }
 
-  if (comp.type === 'TransistorNPN' || comp.type === 'TransistorPNP' || comp.type === 'MosfetN' || comp.type === 'MosfetP' || comp.type === 'JFET' || comp.type === 'IGBT') {
+  if (comp.type === 'TransistorNPN' || comp.type === 'TransistorPNP' || comp.type === 'MosfetN' || comp.type === 'MosfetP' || comp.type === 'JFET' || comp.type === 'IGBT' || comp.type === 'ThyristorSCR') {
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
@@ -240,6 +240,23 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
       { id: '2', gridNode: toGridNode({ x: comp.position.x + x2*cos - y2*sin, y: comp.position.y + x2*sin + y2*cos }), p: { x: comp.position.x + x2*cos - y2*sin, y: comp.position.y + x2*sin + y2*cos } }, // Right AC
       { id: '3', gridNode: toGridNode({ x: comp.position.x + x3*cos - y3*sin, y: comp.position.y + x3*sin + y3*cos }), p: { x: comp.position.x + x3*cos - y3*sin, y: comp.position.y + x3*sin + y3*cos } }, // Top +
       { id: '4', gridNode: toGridNode({ x: comp.position.x + x4*cos - y4*sin, y: comp.position.y + x4*sin + y4*cos }), p: { x: comp.position.x + x4*cos - y4*sin, y: comp.position.y + x4*sin + y4*cos } } // Bottom -
+    ];
+  }
+
+  if (comp.type === 'Optocoupler') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    // 4 pins: 1: Anode (left top), 2: Cathode (left bot), 3: Emitter (right bot), 4: Collector (right top)
+    const x1 = -45, y1 = -30;
+    const x2 = -45, y2 = 30;
+    const x3 = 45, y3 = 30;
+    const x4 = 45, y4 = -30;
+    return [
+      { id: '1', gridNode: toGridNode({ x: comp.position.x + x1*cos - y1*sin, y: comp.position.y + x1*sin + y1*cos }), p: { x: comp.position.x + x1*cos - y1*sin, y: comp.position.y + x1*sin + y1*cos } },
+      { id: '2', gridNode: toGridNode({ x: comp.position.x + x2*cos - y2*sin, y: comp.position.y + x2*sin + y2*cos }), p: { x: comp.position.x + x2*cos - y2*sin, y: comp.position.y + x2*sin + y2*cos } },
+      { id: '3', gridNode: toGridNode({ x: comp.position.x + x3*cos - y3*sin, y: comp.position.y + x3*sin + y3*cos }), p: { x: comp.position.x + x3*cos - y3*sin, y: comp.position.y + x3*sin + y3*cos } },
+      { id: '4', gridNode: toGridNode({ x: comp.position.x + x4*cos - y4*sin, y: comp.position.y + x4*sin + y4*cos }), p: { x: comp.position.x + x4*cos - y4*sin, y: comp.position.y + x4*sin + y4*cos } }
     ];
   }
 
@@ -925,6 +942,21 @@ S_dis DIS GND dis_gate GND SMOD555
       netlist += `X_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} IGBTMOD\n`;
       models.add(`.subckt IGBTMOD C G E\nM1 C G E E NMOSMOD\n.ends`);
       models.add(`.model NMOSMOD NMOS (LEVEL=1 VTO=2 KP=20m)`);
+    }
+    else if (comp.type === 'ThyristorSCR') {
+      const gNode = nodes[0] || '0';
+      const aNode = nodes[1] || '0';
+      const kNode = nodes[2] || '0';
+      netlist += `X_${comp.id} ${aNode} ${gNode} ${kNode} SCR_MODEL\n`;
+      models.add(`.SUBCKT SCR_MODEL A G K\nQ1 G N_internal A PNPMOD\nQ2 N_internal G K NPNMOD\n.MODEL PNPMOD PNP (BF=50)\n.MODEL NPNMOD NPN (BF=50)\n.ENDS`);
+    }
+    else if (comp.type === 'Optocoupler') {
+      const aNode = nodes[0] || '0';
+      const kNode = nodes[1] || '0';
+      const eNode = nodes[2] || '0';
+      const cNode = nodes[3] || '0';
+      netlist += `X_${comp.id} ${aNode} ${kNode} ${cNode} ${eNode} OPTO_MODEL\n`;
+      models.add(`.SUBCKT OPTO_MODEL A K C E\nV_measure A N1 0\nD1 N1 K DLED\n.MODEL DLED D (IS=1p N=2 RS=5 BV=5)\nF1 0 B V_measure 0.5\nQ1 C B E NPNMOD\n.MODEL NPNMOD NPN(BF=100)\nR_dummy B E 100k\n.ENDS`);
     }
     // --- NEW SWITCHES ---
     else if (comp.type === 'SPDTSwitch' || comp.type === 'Relay') {

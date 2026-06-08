@@ -199,6 +199,27 @@ export const IconBridgeRectifier = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
+export const IconThyristor = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M 2 12 L 8 12 M 16 12 L 22 12" stroke="#666" strokeWidth="1.5" />
+    <path d="M 8 6 L 8 18 L 16 12 Z" stroke="#666" strokeWidth="1.5" fill="none" strokeLinejoin="round" />
+    <path d="M 16 6 L 16 18" stroke="#666" strokeWidth="1.5" />
+    <path d="M 16 15 L 20 18" stroke="#666" strokeWidth="1.5" />
+  </svg>
+);
+
+export const IconOptocoupler = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="4" width="14" height="16" stroke="#666" strokeWidth="1.5" rx="1" />
+    <path d="M 2 7 L 5 7 M 2 17 L 5 17 M 19 7 L 22 7 M 19 17 L 22 17" stroke="#666" strokeWidth="1.5" />
+    <path d="M 7 8 L 9 8 L 9 16 L 7 16" stroke="#666" strokeWidth="1" />
+    <path d="M 7 10 L 10 12 L 7 14 Z M 10 10 L 10 14" stroke="#666" strokeWidth="1" fill="#666" />
+    <path d="M 11 12 L 13 12 M 11 14 L 13 14" stroke="#666" strokeWidth="1" strokeDasharray="1 1" />
+    <path d="M 17 8 L 15 8 L 15 16 L 17 16" stroke="#666" strokeWidth="1" />
+    <path d="M 15 10 L 13 12 L 15 14" stroke="#666" strokeWidth="1" />
+  </svg>
+);
+
 export const IconTransistor = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M 2 12 L 10 12 M 10 6 L 10 18 M 14 8 L 14 4 L 20 4 M 14 16 L 14 20 L 20 20" stroke="#666" strokeWidth="1.5" fill="none" />

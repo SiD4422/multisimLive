@@ -15,7 +15,7 @@ import {
   IconProbeVoltage, IconProbeCurrent,
   IconGround, IconConnector, IconJunction,
   IconACVoltage, IconDCVoltage, IconPulseVoltage, IconACCurrent, IconDCCurrent,
-  IconResistor, IconLoad, IconCapacitor, IconInductor, IconOpamp, IconOpamp3T, IconOpamp5T, IconComparator, IconTimer555, IconDiode, IconDiodeZener, IconDiodeLED, IconBridgeRectifier, IconTransistor, IconTransistorNPN, IconTransistorPNP, IconMosfetN, IconMosfetP, IconJFET, IconIGBT, IconSwitch,
+  IconResistor, IconLoad, IconCapacitor, IconInductor, IconOpamp, IconOpamp3T, IconOpamp5T, IconComparator, IconTimer555, IconDiode, IconDiodeZener, IconDiodeLED, IconBridgeRectifier, IconThyristor, IconOptocoupler, IconTransistor, IconTransistorNPN, IconTransistorPNP, IconMosfetN, IconMosfetP, IconJFET, IconIGBT, IconSwitch,
   IconPotentiometer, IconFuse, IconTransformers, IconTransformer1P1S, IconTransformer1P1S_CT, IconTransformer1P2S, IconTransformer2P1S, IconTransformer2P2S, IconCoupledInductors, 
   IconLossyTransmissionLine, IconLosslessTransmissionLine, IconResistorsPack,
   IconLogicGate, IconGateAND, IconGateOR, IconGateNOT, IconGateNAND, IconGateNOR, IconGateXOR
@@ -442,6 +442,10 @@ function Simulator() {
                 <IconSwitch size={24} />
               </div>
 
+              <div className={`sidebar-category ${activeCategory === 'power' ? 'active' : ''}`} onClick={(e) => { setActiveCategory(activeCategory === 'power' ? null : 'power'); setArrowTop(e.currentTarget.offsetTop + 30); }}>
+                <IconThyristor size={24} />
+              </div>
+
               <div className={`sidebar-category ${activeCategory === 'digital' ? 'active' : ''}`} onClick={(e) => { setActiveCategory(activeCategory === 'digital' ? null : 'digital'); setArrowTop(e.currentTarget.offsetTop + 30); }}>
                 <IconLogicGate size={24} active={activeCategory === 'digital'} />
               </div>
@@ -558,7 +562,6 @@ function Simulator() {
                         <div className="flyout-item" onClick={() => handleSelectComponent('DiodeZener', '1N4728A')}><IconDiodeZener size={28} /><span>Zener</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('DiodeSchottky', 'BAT54')}><IconDiode size={28} /><span>Schottky</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('LED', '')}><IconDiodeLED size={28} /><span>LED</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('BridgeRectifier', '')}><IconBridgeRectifier size={28} /><span>Bridge Rectifier</span></div>
                       </div>
                     </>
                   )}
@@ -585,6 +588,17 @@ function Simulator() {
                         <div className="flyout-item" onClick={() => handleSelectComponent('SPDTSwitch', '')}><IconSwitch size={28} /><span>SPDT Switch</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('PushButton', '')}><IconSwitch size={28} /><span>Push Button</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('Relay', '')}><IconSwitch size={28} /><span>Relay</span></div>
+                      </div>
+                    </>
+                  )}
+
+                  {activeCategory === 'power' && (
+                    <>
+                      <div className="flyout-header">Power & Opto</div>
+                      <div className="flyout-grid">
+                        <div className="flyout-item" onClick={() => handleSelectComponent('BridgeRectifier', '')}><IconBridgeRectifier size={28} /><span>Bridge Rectifier</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ThyristorSCR', '2N5060')}><IconThyristor size={28} /><span>SCR (Thyristor)</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Optocoupler', 'PC817')}><IconOptocoupler size={28} /><span>Optocoupler</span></div>
                       </div>
                     </>
                   )}
