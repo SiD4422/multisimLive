@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { generateNetlist } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
 
+// Atomic flag to clear graph on switch flip without race conditions
+export const shouldClearRef = { current: false };
+
 export interface Point {
   x: number;
   y: number;
@@ -44,12 +47,16 @@ interface SchematicState {
   selectedComponentId: string | null;
   selectedWireId: string | null;
   selectedProbeId: string | null;
+  selectedComponentIds: string[];
+  setSelectedComponentIds: (ids: string[]) => void;
+  toggleSelectedComponentId: (id: string) => void;
+  deleteSelectedComponents: () => void;
   pendingComponent: { type: string, value: string } | null;
   isConfigOpen: boolean;
-  
   // Simulation State
   isSimulating: boolean;
   simulationData: any[] | null;
+  opData: { node: string, value: number, unit: string }[] | null;
   simulationBuffer: any[] | null;
   simulationError: string | null;
   isPlaying: boolean;
@@ -57,11 +64,11 @@ interface SchematicState {
   playbackSpeed: number;
 
   // Analysis Mode
-  analysisMode: 'transient' | 'ac' | 'dc';
+  analysisMode: 'transient' | 'ac' | 'dc' | 'op';
   acSettings: { fStart: string; fStop: string; points: string };
   dcSettings: { source: string; start: string; stop: string; step: string };
   transientSettings: { endTime: string; step: string };
-  setAnalysisMode: (mode: 'transient' | 'ac' | 'dc') => void;
+  setAnalysisMode: (mode: 'transient' | 'ac' | 'dc' | 'op') => void;
   setAcSettings: (s: Partial<{ fStart: string; fStop: string; points: string }>) => void;
   setDcSettings: (s: Partial<{ source: string; start: string; stop: string; step: string }>) => void;
   setTransientSettings: (s: Partial<{ endTime: string; step: string }>) => void;
@@ -104,9 +111,13 @@ interface SchematicState {
   setScale: (scale: number | ((s: number) => number)) => void;
   setStagePos: (pos: Point) => void;
 
-  runSimulation: () => Promise<void>;
+  runSimulation: (isSilent?: boolean) => Promise<void>;
   stopSimulation: () => void;
   setIsPlaying: (isPlaying: boolean) => void;
+  setSimulationData: (data: any[] | null) => void;
+  setOpData: (data: { node: string, value: number, unit: string }[] | null) => void;
+  setSimulationBuffer: (data: any[] | null) => void;
+  setSimulationError: (error: string | null) => void;
   setPlaybackTime: (time: number | ((t: number) => number)) => void;
 }
 
@@ -121,14 +132,16 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
       selectedComponentId: null,
       selectedWireId: null,
       selectedProbeId: null,
+      selectedComponentIds: [],
       editingComponentId: null,
       pendingComponent: null,
       isConfigOpen: false,
       isSimulating: false,
-      simulationData: null,
-      simulationBuffer: null,
-      simulationError: null,
-      isPlaying: false,
+  simulationData: null,
+  opData: null,
+  simulationBuffer: null,
+  simulationError: null,
+  isPlaying: false,
       playbackTime: 0,
       playbackSpeed: 0.002,
 
@@ -252,7 +265,8 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
         isConfigOpen: false,      // Never auto-open settings on import
         isSimulating: false,
         simulationData: null,
-        simulationBuffer: null,   // Clear old simulation data
+        opData: null,
+        simulationBuffer: null,
         simulationError: null,
         isPlaying: false,         // Stop any playback
         playbackTime: 0,          // Reset playback head
@@ -280,7 +294,23 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
     future: []
   })),
 
-  clearSelection: () => set({ selectedComponentId: null, selectedWireId: null, selectedProbeId: null }),
+  clearSelection: () => set({ selectedComponentId: null, selectedWireId: null, selectedProbeId: null, selectedComponentIds: [] }),
+  setSelectedComponentIds: (ids) => set({ selectedComponentIds: ids }),
+  toggleSelectedComponentId: (id) => set(state => ({
+    selectedComponentIds: state.selectedComponentIds.includes(id)
+      ? state.selectedComponentIds.filter(x => x !== id)
+      : [...state.selectedComponentIds, id]
+  })),
+  deleteSelectedComponents: () => {
+    const { components, wires, probes, selectedComponentIds } = get();
+    const hist = { components, wires, probes };
+    set(state => ({
+      past: [...state.past.slice(-49), hist],
+      future: [],
+      components: state.components.filter(c => !state.selectedComponentIds.includes(c.id)),
+      selectedComponentIds: [],
+    }));
+  },
   setPendingComponent: (comp) => set({ pendingComponent: comp }),
   setIsConfigOpen: (isOpen) => set({ isConfigOpen: isOpen }),
   setSelectedComponent: (id) => set({ selectedComponentId: id, selectedWireId: null, selectedProbeId: null }),
@@ -309,11 +339,19 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
     future: []
   })),
 
-  updateComponentValue: (id, value) => set((state) => ({
-    components: state.components.map(c => c.id === id ? { ...c, value } : c),
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
-    future: []
-  })),
+  updateComponentValue: (id, value) => {
+    // If we're interacting with a switch, flag the graph to be cleared
+    const comp = get().components.find(c => c.id === id);
+    if (comp && (comp.type === 'SwitchSPST' || comp.type === 'PushButton')) {
+      shouldClearRef.current = true;
+    }
+    
+    set((state) => ({
+      components: state.components.map(c => c.id === id ? { ...c, value } : c),
+      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+      future: []
+    }));
+  },
 
   updateComponentRotation: (id, rotation) => set((state) => ({
     components: state.components.map(c => c.id === id ? { ...c, rotation } : c),
@@ -348,9 +386,11 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
   setDcSettings: (s) => set((state) => ({ dcSettings: { ...state.dcSettings, ...s } })),
   setTransientSettings: (s) => set((state) => ({ transientSettings: { ...state.transientSettings, ...s } })),
 
-  runSimulation: async () => {
+  runSimulation: async (isSilent = false) => {
     const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings } = get();
-    set({ isSimulating: true, simulationError: null, isPlaying: false, playbackTime: 0 });
+    if (!isSilent) {
+      set({ isSimulating: true, simulationError: null, isPlaying: false, playbackTime: 0 });
+    }
     try {
       let netlist = generateNetlist(components, wires, probes);
 
@@ -362,9 +402,11 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
       } else if (analysisMode === 'dc') {
         // .dc <source> <start> <stop> <step>
         analysisCmd = `.dc ${dcSettings.source} ${dcSettings.start} ${dcSettings.stop} ${dcSettings.step}`;
+      } else if (analysisMode === 'op') {
+        analysisCmd = `.op`;
       } else {
-        // Default transient
-        analysisCmd = `.tran ${transientSettings.step} ${transientSettings.endTime}`;
+        // Default transient (uic forces SPICE to skip initial DC operating point so oscillators can start)
+        analysisCmd = `.tran ${transientSettings.step} ${transientSettings.endTime} uic`;
       }
       netlist = netlist.replace(/^\.tran .+$/m, analysisCmd);
       // If no .tran was found, append the analysis command before .end
@@ -373,19 +415,41 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
       }
 
       console.log("Generated Netlist:\n" + netlist);
-      const data = await runSpiceSimulation(netlist);
+      const data = await runSpiceSimulation(netlist, isSilent);
       console.log("Simulation Result:", data);
 
       const isAcOrDc = analysisMode === 'ac' || analysisMode === 'dc';
-      set({
-        simulationBuffer: data,
-        simulationData: data,
-        isSimulating: false,
-        // AC/DC are static; transient shows all data immediately (playbackTime=Infinity shows full dataset)
-        isPlaying: !isAcOrDc && data.length > 0,
-        playbackTime: 0   // animation counter starts at 0, but Grapher uses Infinity guard below
+      set(state => {
+        // Feature 4: User fix 2 - clear on switch flip atomic check
+        let finalData = data;
+        if (shouldClearRef.current) {
+          finalData = []; // Clear the graph data visually
+          shouldClearRef.current = false;
+        }
+
+        // If it was an .op analysis, data is an array of op value objects. 
+        if (analysisMode === 'op' || (data as any).__plotType === 'op') {
+          return {
+            opData: finalData,
+            isSimulating: false,
+            isPlaying: false
+          };
+        }
+        
+        return {
+          simulationBuffer: finalData,
+          simulationData: finalData,
+          opData: null, // Clear op data if we did a regular simulation
+          isSimulating: false,
+          // Silent runs don't animate playback; they show full trace instantly
+          isPlaying: isSilent ? false : (!isAcOrDc && finalData.length > 0),
+          playbackTime: isSilent ? Infinity : 0
+        };
       });
     } catch (e: any) {
+      if (e.message === "CANCELLED_BY_NEW_JOB" || e.message === "ALREADY_SIMULATING") {
+        return; // Silently ignore cancelled jobs or double-clicks
+      }
       console.error("Simulation failed:", e);
       let errorMsg = e.message || "Simulation failed. See console for details.";
       if (errorMsg.includes("singular matrix")) {
@@ -401,7 +465,13 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
   
   setPlaybackTime: (timeOrFn) => set((state) => ({
     playbackTime: typeof timeOrFn === 'function' ? timeOrFn(state.playbackTime) : timeOrFn
-  }))
+  })),
+
+  setSimulationData: (data) => set({ simulationData: data }),
+  setOpData: (data) => set({ opData: data }),
+  setSimulationBuffer: (data) => set({ simulationBuffer: data }),
+  setSimulationError: (error) => set({ simulationError: error }),
+  togglePlayback: () => set((state) => ({ isPlaying: !state.isPlaying }))
 })
 );
 if (typeof window !== 'undefined') { (window as any).useSchematicStore = useSchematicStore; }

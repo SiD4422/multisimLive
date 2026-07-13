@@ -121,9 +121,44 @@ export default function KiCadSymbol({ component, symbolName, selected, onSelect,
         );
       })}
 
-      {/* Labels */}
-      <Text text={component.id} x={20} y={-30} fontSize={13} fontFamily="Inter" fill="#111" fontStyle="bold" rotation={-(component.rotation || 0)} />
-      <Text text={component.value || symbolName} x={20} y={10} fontSize={12} fontFamily="Inter" fill="#666" rotation={-(component.rotation || 0)} />
+      {/* Labels — counter-rotated and repositioned so they never overlap the symbol */}
+      {(() => {
+        const rot = component.rotation || 0;
+        const rad = rot * Math.PI / 180;
+        const cos = Math.cos(-rad);
+        const sin = Math.sin(-rad);
+
+        // World-space anchor: always place labels to the bottom-right of component
+        // These are world-space offsets from component center
+        const idWorldX = 36;
+        const idWorldY = -28;
+        const valWorldX = 36;
+        const valWorldY = -12;
+
+        // Rotate the world-space offset into the component's LOCAL space
+        // (because the Text is inside the rotated Group, so we must undo the group rotation)
+        const idLocalX  = idWorldX  * cos - idWorldY  * sin;
+        const idLocalY  = idWorldX  * sin + idWorldY  * cos;
+        const valLocalX = valWorldX * cos - valWorldY * sin;
+        const valLocalY = valWorldX * sin + valWorldY * cos;
+
+        return (
+          <>
+            <Text
+              text={component.id}
+              x={idLocalX} y={idLocalY}
+              fontSize={13} fontFamily="Inter" fill="#111" fontStyle="bold"
+              rotation={-rot}
+            />
+            <Text
+              text={component.value || symbolName}
+              x={valLocalX} y={valLocalY}
+              fontSize={12} fontFamily="Inter" fill="#666"
+              rotation={-rot}
+            />
+          </>
+        );
+      })()}
     </Group>
   );
 }

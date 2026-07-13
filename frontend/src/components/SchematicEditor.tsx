@@ -1,25 +1,29 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import { Stage, Layer, Line, Group, Text, Circle, Rect, Path, Arc } from 'react-konva';
-import { useSchematicStore, type Point } from '../store/useSchematicStore';
+import { useSchematicStore, type Point, type SchematicComponent } from '../store/useSchematicStore';
 import Ground from './symbols/Ground';
 import TextAnnotation from './symbols/TextAnnotation';
 import { VoltageProbe } from './symbols/VoltageProbe';
 import { CurrentProbe } from './symbols/CurrentProbe';
 import MultisimSymbol from './symbols/MultisimSymbol';
 import { getComponentPins } from '../utils/netlister';
+import { findOrthogonalPath } from '../utils/autoRouter';
+import { buildWireNodeMap, buildWireVoltageResult, voltageToStrokeWidth, getPointAlongPolyline } from '../utils/wireVoltageMap';
+import { computeWireCrossings } from '../utils/wireCrossings';
 
 const SNAP_GRID = 10;
 const VISUAL_GRID = 45;
 
 export default function SchematicEditor() {
-  const { 
+  const {
     components, wires, addComponent, updateComponentPosition, 
     selectedComponentId, setSelectedComponent, pendingComponent, setPendingComponent,
     addWire, scale, setScale, stagePos, setStagePos, setIsConfigOpen,
     selectedWireId, setSelectedWire, clearSelection,
     deleteComponent, updateComponentRotation, copyComponent, flipComponent,
-    isPlaying
+    isPlaying, simulationBuffer, playbackTime,
+    selectedComponentIds, setSelectedComponentIds, toggleSelectedComponentId, deleteSelectedComponents
   } = useSchematicStore();
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [dashOffset, setDashOffset] = useState(0);
@@ -32,12 +36,52 @@ export default function SchematicEditor() {
     attachedWires: { wireId: string, pointIndex: number, startX: number, startY: number }[] 
   } | null>(null);
 
-  // Wiring state
   const [wirePoints, setWirePoints] = useState<Point[] | null>(null);
   const [mousePos, setMousePos] = useState<Point | null>(null);
-  // wireDir is now auto-computed from mouse movement — no longer stored as state
-  // We keep the Spacebar flip for manual override
   const [wireDirOverride, setWireDirOverride] = useState<'auto' | 'h' | 'v'>('auto');
+  
+  const [autoRoutePath, setAutoRoutePath] = useState<Point[] | null>(null);
+  const lastAStarTime = useRef(0);
+  const lastAStarTarget = useRef<{x: number, y: number} | null>(null);
+
+  const [selectionBox, setSelectionBox] = useState<{sx: number, sy: number, ex: number, ey: number} | null>(null);
+  const shiftHeldRef = useRef(false);
+
+  // ── Voltage Heatmap ────────────────────────────────────────────────────────
+  // MEMO 1: Expensive schema-level net resolution — only recomputes on topology change
+  const wireNodeMap = useMemo(
+    () => buildWireNodeMap(wires, components as SchematicComponent[]),
+    [wires, components]
+  );
+
+  // MEMO 2: Cheap per-frame voltage lookup — recomputes on playback time
+  const { wireColorMap, wireVoltageMap, maxV } = useMemo(
+    () => buildWireVoltageResult(wireNodeMap, simulationBuffer, playbackTime),
+    [wireNodeMap, simulationBuffer, playbackTime]
+  );
+
+  // Dot animation phase (0..1, loops via requestAnimationFrame)
+  const [dotPhase, setDotPhase] = useState(0);
+  const dotAnimRef = useRef<number | null>(null);
+  const dotStartRef = useRef<number | null>(null);
+  const DOT_SPEED = 0.12; // full wire traversal per second
+
+  useEffect(() => {
+    if (!simulationBuffer || simulationBuffer.length === 0) {
+      if (dotAnimRef.current) cancelAnimationFrame(dotAnimRef.current);
+      setDotPhase(0);
+      return;
+    }
+    const animate = (ts: number) => {
+      if (dotStartRef.current === null) dotStartRef.current = ts;
+      const elapsed = (ts - dotStartRef.current) / 1000;
+      setDotPhase((elapsed * DOT_SPEED) % 1);
+      dotAnimRef.current = requestAnimationFrame(animate);
+    };
+    dotStartRef.current = null;
+    dotAnimRef.current = requestAnimationFrame(animate);
+    return () => { if (dotAnimRef.current) cancelAnimationFrame(dotAnimRef.current); };
+  }, [isPlaying, simulationBuffer]);
 
   useEffect(() => {
     const wrapper = document.getElementById('canvas-wrapper');
@@ -119,15 +163,31 @@ export default function SchematicEditor() {
         setWirePoints(null);
         setPendingComponent(null);
         setMousePos(null);
+        setAutoRoutePath(null);
       }
       if (e.key === ' ') {
         e.preventDefault();
         // Cycle: auto → h → v → auto
         setWireDirOverride(prev => prev === 'auto' ? 'h' : prev === 'h' ? 'v' : 'auto');
       }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const { selectedComponentIds } = useSchematicStore.getState();
+        if (selectedComponentIds.length > 1) {
+          e.stopPropagation();
+          useSchematicStore.getState().deleteSelectedComponents();
+        }
+      }
     };
+    const handleKeyUp = (e: KeyboardEvent) => { if (e.key === 'Shift') shiftHeldRef.current = false; };
+    const trackShiftDown = (e: KeyboardEvent) => { if (e.key === 'Shift') shiftHeldRef.current = true; };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('keydown', trackShiftDown, { capture: true });
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('keydown', trackShiftDown, { capture: true });
+    };
   }, [setPendingComponent, wirePoints, addWire]);
 
   const handleWheel = (e: any) => {
@@ -168,7 +228,28 @@ export default function SchematicEditor() {
     const x = Math.round(relativeX / SNAP_GRID) * SNAP_GRID;
     const y = Math.round(relativeY / SNAP_GRID) * SNAP_GRID;
     
-    setMousePos({ x, y });
+    if (!mousePos || mousePos.x !== x || mousePos.y !== y) {
+      setMousePos({ x, y });
+      
+      if (wirePoints && wirePoints.length > 0 && wireDirOverride === 'auto') {
+        const now = performance.now();
+        if (now - lastAStarTime.current > 32) { // roughly 30fps throttle
+          const lastWirePoint = wirePoints[wirePoints.length - 1];
+          if (!lastAStarTarget.current || lastAStarTarget.current.x !== x || lastAStarTarget.current.y !== y) {
+            const path = findOrthogonalPath(lastWirePoint, { x, y }, components as SchematicComponent[]);
+            setAutoRoutePath(path);
+            lastAStarTime.current = now;
+            lastAStarTarget.current = { x, y };
+          }
+        }
+      } else {
+        setAutoRoutePath(null);
+      }
+    }
+
+    if (selectionBox) {
+      setSelectionBox(prev => prev ? { ...prev, ex: x, ey: y } : null);
+    }
   };
 
   const getPreviewPoints = () => {
@@ -203,6 +284,7 @@ export default function SchematicEditor() {
       setWirePoints(null);
       setPendingComponent(null);
       setMousePos(null);
+      setAutoRoutePath(null);
       return;
     }
 
@@ -267,7 +349,13 @@ export default function SchematicEditor() {
       clearSelection();
     }
     
-    if (!wirePoints || !mousePos) return;
+    if (!wirePoints || !mousePos) {
+      // Start rubber-band selection if clicking on empty canvas
+      if (!wirePoints && !pendingComponent && mousePos && isBackground) {
+        setSelectionBox({ sx: mousePos.x, sy: mousePos.y, ex: mousePos.x, ey: mousePos.y });
+      }
+      return;
+    }
     
     const preview = getPreviewPoints();
     const corner = preview[preview.length - 2];
@@ -287,6 +375,22 @@ export default function SchematicEditor() {
       setWirePoints(null);
     }
   };
+
+  const handleStageMouseUp = useCallback(() => {
+    if (!selectionBox) return;
+    const minX = Math.min(selectionBox.sx, selectionBox.ex);
+    const maxX = Math.max(selectionBox.sx, selectionBox.ex);
+    const minY = Math.min(selectionBox.sy, selectionBox.ey);
+    const maxY = Math.max(selectionBox.sy, selectionBox.ey);
+    if (maxX - minX > 10 || maxY - minY > 10) {
+      const inside = components.filter(c =>
+        c.position.x >= minX && c.position.x <= maxX &&
+        c.position.y >= minY && c.position.y <= maxY
+      );
+      setSelectedComponentIds(inside.map(c => c.id));
+    }
+    setSelectionBox(null);
+  }, [selectionBox, components, setSelectedComponentIds]);
 
   const handleNodeClick = (e: any, pos: Point) => {
     if (pendingComponent) return; // don't start wiring if placing
@@ -375,14 +479,26 @@ export default function SchematicEditor() {
     });
   }, [wires]);
 
+  // ── Wire Crossing Jump Arcs ────────────────────────────────────────────────
+  // Recomputes only when wires or junctions change
+  const wireCrossings = React.useMemo(
+    () => computeWireCrossings(wires as any, junctionDots),
+    [wires, junctionDots]
+  );
+
   const renderComponent = (comp: any, isPreview = false) => {
     const sharedProps = {
       component: comp,
-      selected: !isPreview && selectedComponentId === comp.id,
+      selected: !isPreview && (selectedComponentId === comp.id || selectedComponentIds.includes(comp.id)),
       onSelect: () => {
         if (!isPreview) {
-          setSelectedComponent(comp.id);
-          setIsConfigOpen(true);
+          if (shiftHeldRef.current) {
+            toggleSelectedComponentId(comp.id);
+          } else {
+            setSelectedComponent(comp.id);
+            setSelectedComponentIds([]);
+            setIsConfigOpen(true);
+          }
         }
       },
       onDragStart: (e: any) => {
@@ -577,6 +693,7 @@ export default function SchematicEditor() {
           onWheel={handleWheel}
           onMouseMove={handleMouseMove}
           onMouseDown={handleStageMouseDown}
+          onMouseUp={handleStageMouseUp}
           onDblClick={handleStageDoubleClick}
           onContextMenu={(e) => e.evt.preventDefault()} 
           ref={stageRef}
@@ -598,48 +715,111 @@ export default function SchematicEditor() {
           </Layer>
           <Layer>
             {/* Committed Wires */}
-            {wires.map(wire => (
-              <Line 
-                key={wire.id}
-                points={wire.points.flatMap(p => [p.x, p.y])}
-                stroke={selectedWireId === wire.id ? "#3b82f6" : "#dc2626"}
-                strokeWidth={selectedWireId === wire.id ? 3 : 2}
-                dash={isPlaying ? [5, 10] : undefined}
-                dashOffset={dashOffset}
-                lineCap="round"
-                lineJoin="round"
-                hitStrokeWidth={20}
-                onClick={(e) => { e.cancelBubble = true; setSelectedWire(wire.id); }}
-                onMouseDown={(e) => {
-                  e.cancelBubble = true;
-                  if (!wirePoints && mousePos) {
-                    // Start branching from here
-                    setWirePoints([mousePos]);
-                    setWireDirOverride('auto');
-                  } else if (wirePoints && mousePos) {
-                    // Finish drawing on this wire
-                    const preview = getPreviewPoints();
-                    preview[preview.length - 1] = mousePos;
-                    
-                    const cleaned: Point[] = [];
-                    for (const p of preview) {
-                      if (cleaned.length > 0) {
-                        const last = cleaned[cleaned.length - 1];
-                        if (last.x === p.x && last.y === p.y) continue;
+            {wires.map(wire => {
+              const hasSimData = simulationBuffer && simulationBuffer.length > 0;
+              const heatColor = wireColorMap.get(wire.id);
+              const wireVoltage = wireVoltageMap.get(wire.id) ?? 0;
+              const strokeColor = selectedWireId === wire.id
+                ? '#3b82f6'
+                : (heatColor ?? '#dc2626');
+              const strokeW = selectedWireId === wire.id
+                ? 3
+                : (hasSimData && heatColor ? voltageToStrokeWidth(wireVoltage, maxV) : 2);
+
+              return (
+                <Group key={wire.id}>
+                <Line 
+                  points={wire.points.flatMap(p => [p.x, p.y])}
+                  stroke={strokeColor}
+                  strokeWidth={strokeW}
+                  dash={hasSimData && isPlaying ? [5, 10] : undefined}
+                  dashOffset={dashOffset}
+                  lineCap="round"
+                  lineJoin="round"
+                  hitStrokeWidth={20}
+                  onClick={(e) => { e.cancelBubble = true; setSelectedWire(wire.id); }}
+                  onMouseDown={(e) => {
+                    e.cancelBubble = true;
+                    if (!wirePoints && mousePos) {
+                      setWirePoints([mousePos]);
+                      setWireDirOverride('auto');
+                    } else if (wirePoints && mousePos) {
+                      const preview = getPreviewPoints();
+                      preview[preview.length - 1] = mousePos;
+                      const cleaned: Point[] = [];
+                      for (const p of preview) {
+                        if (cleaned.length > 0) {
+                          const last = cleaned[cleaned.length - 1];
+                          if (last.x === p.x && last.y === p.y) continue;
+                        }
+                        cleaned.push(p);
                       }
-                      cleaned.push(p);
+                      addWire({ id: `W${Date.now()}`, points: cleaned });
+                      setWirePoints(null);
+                      setMousePos(null);
                     }
+                  }}
+                />
+                {/* Current-flow dot — travels parametrically along the polyline */}
+                {hasSimData && wire.points.length >= 2 && (() => {
+                  const voltage = wireVoltageMap.get(wire.id) ?? 0;
+                  if (Math.abs(voltage) < 0.01) return null; // no dot on GND/dead nets
+                  // Direction: positive voltage → forward, negative → reverse
+                  const phase = voltage < 0 ? 1 - dotPhase : dotPhase;
+                  const pt = getPointAlongPolyline(wire.points, phase);
+                  return (
+                    <Circle
+                      key={`dot-${wire.id}`}
+                      x={pt.x}
+                      y={pt.y}
+                      radius={3}
+                      fill="#ffffff"
+                      stroke={strokeColor}
+                      strokeWidth={1}
+                      listening={false}
+                    />
+                  );
+                })()}
+
+                {/* Node Voltage Label (DMM style) */}
+                {hasSimData && wire.points.length > 0 && (() => {
+                  const voltage = wireVoltageMap.get(wire.id) ?? 0;
+                  if (Math.abs(voltage) < 0.01) return null; // Skip ground/dead nets to avoid clutter
+                  
+                  const midPt = getPointAlongPolyline(wire.points, 0.5);
+                  const vStr = Math.abs(voltage) >= 1000 ? `${(voltage/1000).toPrecision(3)}kV` 
+                    : Math.abs(voltage) < 0.1 ? `${(voltage*1000).toPrecision(3)}mV`
+                    : `${voltage.toPrecision(3)}V`;
                     
-                    addWire({
-                      id: `W${Date.now()}`,
-                      points: cleaned
-                    });
-                    setWirePoints(null);
-                    setMousePos(null);
-                  }
-                }}
-              />
-            ))}
+                  // Calculate dynamic width based on string length to look nice
+                  const boxW = vStr.length * 6 + 10;
+                  
+                  return (
+                    <Group key={`vlbl-${wire.id}`} x={midPt.x} y={midPt.y - 12} listening={false}>
+                      <Rect
+                        x={-boxW/2} y={-8}
+                        width={boxW} height={16}
+                        fill="rgba(255, 255, 255, 0.9)"
+                        cornerRadius={4}
+                        stroke={strokeColor}
+                        strokeWidth={1}
+                      />
+                      <Text
+                        text={vStr}
+                        x={-boxW/2} y={-5}
+                        width={boxW}
+                        align="center"
+                        fontSize={10}
+                        fontFamily="Inter, monospace"
+                        fontStyle="bold"
+                        fill={strokeColor}
+                      />
+                    </Group>
+                  );
+                })()}
+              </Group>
+            );
+            })}
 
             {/* Junction Dots */}
             {junctionDots.map((dot, idx) => (
@@ -652,6 +832,40 @@ export default function SchematicEditor() {
                 listening={false}
               />
             ))}
+
+            {/* Wire Crossing Jump Arcs — rendered after junction dots so they appear on top */}
+            {wireCrossings.map((cross, idx) => (
+              <Group key={`xing-${idx}`} x={cross.x} y={cross.y} rotation={cross.angle} listening={false}>
+                {/* White eraser to break the wire behind */}
+                <Circle radius={6} fill="#f8f8f2" stroke="none" listening={false} />
+                {/* Schematic bridge arc */}
+                <Arc
+                  innerRadius={0}
+                  outerRadius={6}
+                  angle={180}
+                  rotationDeg={180}
+                  stroke="#dc2626"
+                  strokeWidth={2}
+                  fill="transparent"
+                  listening={false}
+                />
+              </Group>
+            ))}
+
+            {/* Rubber-band selection rectangle */}
+            {selectionBox && (
+              <Rect
+                x={Math.min(selectionBox.sx, selectionBox.ex)}
+                y={Math.min(selectionBox.sy, selectionBox.ey)}
+                width={Math.abs(selectionBox.ex - selectionBox.sx)}
+                height={Math.abs(selectionBox.ey - selectionBox.sy)}
+                fill="rgba(59,130,246,0.07)"
+                stroke="#3b82f6"
+                strokeWidth={1}
+                dash={[6, 4]}
+                listening={false}
+              />
+            )}
 
             {/* Active Drawing Wire — red dashed preview */}
             {previewPath.length > 0 && (

@@ -1,4 +1,4 @@
-import { Group, Path, Text, Circle, Line } from 'react-konva';
+import { Group, Path, Text, Circle, Line, Rect } from 'react-konva';
 import type { SchematicComponent } from '../../store/useSchematicStore';
 
 interface SourceSymbolProps {
@@ -116,8 +116,49 @@ export default function SourceSymbol({ component, selected, onSelect, onDragMove
         onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}
       />
       
-      <Text text={component.id} x={15} y={-30} fontSize={13} fontFamily="Inter" fill="#111" fontStyle="bold" />
-      <Text text={component.value || ""} x={10} y={20} fontSize={12} fontFamily="Inter" fill="#666" />
+      {/* Labels — positioned clear of the circle body (radius=15 at centerX=30) */}
+      {(() => {
+        // Build clean reference designator from the raw id
+        const rawId = component.id;
+        const type = component.type;
+        const prefixMap: Record<string, string> = {
+          DCSource: 'V', ACSource: 'V', ClockVoltage: 'V', PulseVoltage: 'V',
+          StepVoltage: 'V', AMVoltage: 'V', FMVoltage: 'V', NoiseVoltage: 'V', ChirpVoltage: 'V',
+          DCCurrentSource: 'I', ACCurrentSource: 'I',
+        };
+        const prefix = prefixMap[type] || 'V';
+        const digits = rawId.replace(/\D/g, '') || '1';
+        const refDes = /^[a-zA-Z]{1,3}\d+$/.test(rawId)
+          ? rawId.toUpperCase()
+          : `${prefix}${digits}`;
+        const valText = component.value || '';
+
+        // Label sits above circle top (centerY - radius - gap)
+        // circle top ≈ y = -15, so label at y = -15 - 16 = -31
+        const labelY = -31;
+        const valueY = centerY + radius + 7;  // just below circle bottom
+
+        return (
+          <>
+            {rawId !== 'preview' && (
+              <Group x={5} y={labelY}>
+                <Rect x={-3} y={-1} width={refDes.length * 8 + 6} height={15}
+                  fill="rgba(255,255,255,0.85)" cornerRadius={3} listening={false} />
+                <Text text={refDes} x={0} y={0} fontSize={13}
+                  fontFamily="Inter, Arial, sans-serif" fill="#1a1a2e" fontStyle="bold" />
+              </Group>
+            )}
+            {valText.length > 0 && (
+              <Group x={5} y={valueY}>
+                <Rect x={-3} y={-1} width={valText.length * 7 + 6} height={14}
+                  fill="rgba(255,255,255,0.82)" cornerRadius={3} listening={false} />
+                <Text text={valText} x={0} y={0} fontSize={12}
+                  fontFamily="Inter, Arial, sans-serif" fill="#555" />
+              </Group>
+            )}
+          </>
+        );
+      })()}
     </Group>
   );
 }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Play, Square } from 'lucide-react';
+import { Play, Square, AlertTriangle } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
 
-export function SimulationControls() {
+export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] }) {
   const isSimulating = useSchematicStore(state => state.isSimulating);
   const isPlaying = useSchematicStore(state => state.isPlaying);
   const playbackTime = useSchematicStore(state => state.playbackTime);
@@ -55,7 +55,7 @@ export function SimulationControls() {
   }, [isPlaying, hasData, maxTime, playbackSpeed, setPlaybackTime, stopSimulation]);
 
   return (
-    <div className="flex items-center gap-3 mr-6">
+    <div className="flex items-center gap-3 mr-6 shrink-0">
       {/* Run / Stop button */}
       <div 
         className={`flex items-center gap-2 cursor-pointer ${
@@ -81,11 +81,29 @@ export function SimulationControls() {
         <span className="text-base font-semibold">
           {isSimulating ? 'Simulating...' : isPlaying ? 'Stop' : 'Run'}
         </span>
+        {drcIssues.length > 0 && !isPlaying && !isSimulating && (
+          <div className="relative group flex items-center ml-1">
+            <div className="bg-amber-500 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold text-white shadow-sm border border-amber-400 cursor-help animate-pulse">
+              !
+            </div>
+            {/* Tooltip / Popover */}
+            <div className="absolute top-full mt-2 right-0 w-64 bg-white rounded-lg shadow-xl border border-gray-200 p-3 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[1000] text-left">
+              <div className="flex items-center gap-2 text-amber-600 font-bold mb-2">
+                <AlertTriangle size={16} /> Pre-Flight Warnings
+              </div>
+              <ul className="text-sm text-gray-700 list-disc pl-4 space-y-1">
+                {drcIssues.map((issue, idx) => (
+                  <li key={idx}>{issue}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Time counter — always visible when simulation data exists */}
       {hasData && (
-        <div className="text-white font-mono text-base bg-black bg-opacity-40 px-3 py-1 rounded border border-white border-opacity-20">
+        <div className="text-white font-mono text-base bg-black bg-opacity-40 px-3 py-1 rounded border border-white border-opacity-20 whitespace-nowrap">
           <span className="text-xs text-gray-300 mr-1">t =</span>
           {playbackTime >= 1e-3
             ? `${(playbackTime * 1000).toFixed(3)} ms`

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { getSpiceNodeForPoint } from '../utils/netlister';
+import { computeFFT } from '../utils/fftAnalyzer';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer, Brush, ReferenceLine
 } from 'recharts';
-import { Activity, Download, Crosshair, Table2 } from 'lucide-react';
+import { Activity, Download, Crosshair, Table2, BarChart2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { generateCSV } from '../utils/csvExport';
 
@@ -16,6 +17,32 @@ const COLORS = [
 const OSC_COLORS = [
   '#00ffff', '#39ff14', '#ff00ff', '#ffff00', '#ff4500', '#00bfff'
 ];
+
+// 🔧 Helpers 🔧
+
+function formatTraceName(t: string): string {
+  if (t.startsWith('v(')) {
+    const node = t.match(/v\(([^)]+)\)/i)?.[1] || '';
+    if (node && !isNaN(Number(node))) return `Node ${node} Voltage`;
+    if (node) return `${node.toUpperCase()} Voltage`;
+    return t;
+  }
+  if (t.startsWith('i(')) {
+    const comp = t.match(/i\(([^)]+)\)/i)?.[1] || '';
+    if (comp.startsWith('v_')) {
+      return `${comp.replace('v_', '').toUpperCase()} Current`;
+    }
+    if (comp.includes('.x_')) {
+      const subComp = comp.match(/x_([a-z0-9]+)/i)?.[1] || '';
+      if (subComp) return `${subComp.toUpperCase()} Current`;
+    }
+    if (comp.startsWith('x_')) {
+       return `${comp.replace('x_','').toUpperCase()} Current`;
+    }
+    return `${comp.toUpperCase()} Current`;
+  }
+  return t;
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -45,6 +72,101 @@ const LoadingSpinner = () => (
   </div>
 );
 
+const MeasurementsPanel = ({ data, traces, plotType }: { data: any[], traces: string[], plotType: string }) => {
+  if (plotType !== 'transient' || !data || data.length < 2 || traces.length === 0) return null;
+
+  const measurements = traces.map(trace => {
+    let min = Infinity;
+    let max = -Infinity;
+    
+    // Pass 1: Find min, max and time-weighted mean (User Bug 1)
+    let sumVdt = 0;
+    let totalT_mean = 0;
+    for (let i = 1; i < data.length; i++) {
+      const v1 = data[i-1][trace];
+      const v2 = data[i][trace];
+      const t1 = data[i-1].time;
+      const t2 = data[i].time;
+      if (v1 === undefined || v2 === undefined || t1 === undefined || t2 === undefined) continue;
+      
+      const dt = t2 - t1;
+      sumVdt += 0.5 * (v1 + v2) * dt;
+      totalT_mean += dt;
+      
+      if (v1 < min) min = v1;
+      if (v1 > max) max = v1;
+    }
+    // Also check last point for min/max
+    if (data.length > 0) {
+      const vLast = data[data.length - 1][trace];
+      if (vLast !== undefined) {
+        if (vLast < min) min = vLast;
+        if (vLast > max) max = vLast;
+      }
+    }
+    
+    const mean = totalT_mean > 0 ? sumVdt / totalT_mean : 0;
+    
+    // Pass 2: Calculate RMS and find zero crossings based on the correct mean
+    let sumSqInt = 0;
+    let crossings: number[] = [];
+    
+    for (let i = 1; i < data.length; i++) {
+      const v1 = data[i-1][trace];
+      const v2 = data[i][trace];
+      const t1 = data[i-1].time;
+      const t2 = data[i].time;
+      if (v1 === undefined || v2 === undefined || t1 === undefined || t2 === undefined) continue;
+      
+      const dt = t2 - t1;
+      sumSqInt += 0.5 * (v1 * v1 + v2 * v2) * dt;
+      
+      // Positive-going crossing of the mean
+      if (v1 <= mean && v2 > mean) {
+        const fraction = (mean - v1) / (v2 - v1);
+        crossings.push(t1 + fraction * dt);
+      }
+    }
+    
+    const totalT = data.length > 1 ? data[data.length - 1].time - data[0].time : 0;
+    const rms = totalT > 0 ? Math.sqrt(sumSqInt / totalT) : 0;
+    const pkpk = max === -Infinity ? 0 : max - min;
+    
+    let freqStr = 'N/A';
+    if (crossings.length >= 2) {
+      // User Bug 2: Average over all crossings
+      const numPeriods = crossings.length - 1;
+      const totalPeriodTime = crossings[crossings.length - 1] - crossings[0];
+      if (totalPeriodTime > 0) {
+        const avgPeriod = totalPeriodTime / numPeriods;
+        freqStr = formatHz(1 / avgPeriod);
+      }
+    } else {
+      freqStr = 'DC';
+    }
+
+    return { trace, min, max, pkpk, rms, freqStr };
+  });
+
+  return (
+    <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur border border-gray-200 rounded shadow-lg overflow-hidden flex flex-col pointer-events-auto z-10 text-xs">
+      <div className="bg-gray-100 px-3 py-1.5 border-b border-gray-200 font-bold text-gray-700 flex justify-between">
+        <span>Measurements</span>
+      </div>
+      <div className="flex flex-row overflow-x-auto p-2 gap-4">
+        {measurements.map((m, idx) => (
+          <div key={m.trace} className="flex flex-col min-w-[120px] bg-gray-50 border border-gray-200 rounded p-2">
+            <span className="font-bold mb-1 border-b pb-1 truncate" style={{color: COLORS[idx % COLORS.length]}}>{m.trace}</span>
+            <div className="flex justify-between"><span>Vpp:</span> <span className="font-mono">{fmtNum(m.pkpk)}V</span></div>
+            <div className="flex justify-between"><span>RMS:</span> <span className="font-mono">{fmtNum(m.rms)}V</span></div>
+            <div className="flex justify-between"><span>Freq:</span> <span className="font-mono">{m.freqStr}</span></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const ErrorView = ({ error }: { error: string }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-8 pl-[80px] overflow-y-auto">
     <div className="flex flex-col items-center text-center max-w-2xl w-full">
@@ -69,7 +191,105 @@ const EmptyView = () => (
   </div>
 );
 
-// ── Bode Plot ─────────────────────────────────────────────────────────────────
+// ── FFT Spectrum Plot ─────────────────────────────────────────────────────────
+
+function FftPlot({ simulationBuffer, traces, isOscilloscope }: {
+  simulationBuffer: any[];
+  traces: string[];
+  isOscilloscope: boolean;
+}) {
+  const colors = isOscilloscope ? OSC_COLORS : COLORS;
+  const bg = isOscilloscope ? '#001100' : '#fff';
+  const gridColor = isOscilloscope ? '#003300' : '#e5e7eb';
+  const textColor = isOscilloscope ? '#00ff00' : '#6b7280';
+
+  const fftData = useMemo(() => {
+    if (!simulationBuffer || simulationBuffer.length < 4) return [];
+    // Each trace gets its own FFT, merged into one row array keyed by frequency
+    const times = simulationBuffer.map((r: any) => r.time as number);
+    const allBins: Record<string, number>[] = [];
+
+    // Use first trace's frequencies as the base x-axis
+    const firstTrace = traces[0];
+    if (!firstTrace) return [];
+
+    const firstValues = simulationBuffer.map((r: any) => (r[firstTrace] ?? 0) as number);
+    const firstBins = computeFFT(times, firstValues);
+    if (firstBins.length === 0) return [];
+
+    // Build rows using first trace's frequency grid
+    firstBins.forEach(bin => {
+      allBins.push({ frequency: bin.frequency, [firstTrace]: bin.db });
+    });
+
+    // Add other traces, matching by index
+    traces.slice(1).forEach(trace => {
+      const vals = simulationBuffer.map((r: any) => (r[trace] ?? 0) as number);
+      const bins = computeFFT(times, vals);
+      bins.forEach((bin, i) => {
+        if (allBins[i]) allBins[i][trace] = bin.db;
+      });
+    });
+
+    return allBins;
+  }, [simulationBuffer, traces]);
+
+  if (fftData.length === 0) {
+    return (
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: bg }}>
+        <div style={{ textAlign: 'center', color: textColor, opacity: 0.5 }}>
+          <BarChart2 size={40} style={{ margin: '0 auto 8px' }} />
+          <p style={{ fontSize: 13 }}>Run a transient simulation to see FFT spectrum</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: bg, padding: 8 }}>
+      <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: textColor, marginBottom: 4, paddingLeft: 40 }}>
+        Frequency Spectrum (dBV)
+      </p>
+      <div style={{ position: 'absolute', top: 28, left: 0, right: 0, bottom: 0 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={fftData} margin={{ top: 5, right: 20, left: 20, bottom: 30 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+            <XAxis
+              dataKey="frequency"
+              type="number"
+              scale="log"
+              domain={['dataMin', 'dataMax']}
+              tickFormatter={formatHz}
+              tick={{ fill: textColor, fontSize: 11 }}
+              label={{ value: 'Frequency (Hz)', position: 'insideBottom', offset: -15, fill: textColor, fontSize: 12 }}
+            />
+            <YAxis
+              domain={['auto', 'auto']}
+              tick={{ fill: textColor, fontSize: 11 }}
+              label={{ value: 'dBV', angle: -90, position: 'insideLeft', fill: textColor, fontSize: 12 }}
+            />
+            <Tooltip
+              labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
+              formatter={(val: any, name: any) => [fmtNum(val as number) + ' dBV', name]}
+              contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
+            />
+            <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
+            {traces.map((t, i) => (
+              <Line
+                key={t} name={t} type="monotone" dataKey={t}
+                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 2 : 1.5}
+                isAnimationActive={false}
+                style={isOscilloscope ? { filter: `drop-shadow(0px 0px 3px ${colors[i % colors.length]})` } : undefined}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ── ErrorView ─────────────────────────────────────────────────────────────────
 
 function BodePlot({ data, traces, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB }: { 
   data: any[]; traces: string[]; isOscilloscope: boolean;
@@ -121,6 +341,21 @@ function BodePlot({ data, traces, isOscilloscope, isCursorMode, cursorA, setCurs
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
             {isCursorMode && cursorA && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+            {/* -3dB reference line: at maxDb - 3 */}
+            {dbTraces.length > 0 && (() => {
+              const allDbVals = data.flatMap(row => dbTraces.map(t => row[t] ?? -Infinity));
+              const maxDbVal = Math.max(...allDbVals.filter(v => isFinite(v)));
+              if (!isFinite(maxDbVal)) return null;
+              return (
+                <ReferenceLine
+                  y={maxDbVal - 3}
+                  stroke="#f59e0b"
+                  strokeDasharray="5 4"
+                  strokeWidth={1.5}
+                  label={{ value: '-3dB', position: 'right', fill: '#f59e0b', fontSize: 11, fontWeight: 700 }}
+                />
+              );
+            })()}
             {dbTraces.map((t, i) => (
               <Line key={t} name={t.replace('_db', '')} type="monotone" dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} style={isOscilloscope ? { filter: `drop-shadow(0px 0px 4px ${colors[i % colors.length]})` } : undefined} />
@@ -287,7 +522,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
               {isCursorMode && cursorA && <ReferenceLine x={cursorA.time} stroke="#ff0000" strokeWidth={2} />}
               {isCursorMode && cursorB && <ReferenceLine x={cursorB.time} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
               {traces.map((traceName, idx) => {
-                const displayName = probeMap[traceName] || traceName.replace('_', '(') + ')';
+                const displayName = probeMap[traceName] || formatTraceName(traceName);
                 return (
                   <Line key={traceName} name={displayName} type="monotone" dataKey={traceName}
                     stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} style={isOscilloscope ? { filter: `drop-shadow(0px 0px 4px ${colors[idx % colors.length]})` } : undefined} />
@@ -320,6 +555,7 @@ export default function Grapher() {
   
   const [isOscilloscope, setIsOscilloscope] = useState(false);
   const [isCursorMode, setIsCursorMode] = useState(false);
+  const [showFft, setShowFft] = useState(false);
   const [cursorA, setCursorA] = useState<any>(null);
   const [cursorB, setCursorB] = useState<any>(null);
   
@@ -374,14 +610,20 @@ export default function Grapher() {
       ? [simulationBuffer[0]]
       : activeData;
 
-    return visible.map(row => {
-      const newRow: any = {};
-      Object.keys(row).forEach(k => {
-        const safeKey = k.replace(/\(/g, '_').replace(/\)/g, '');
-        newRow[safeKey] = row[k];
+    return visible
+      .filter(row => {
+        // Guard: log(0) = -Infinity → crashes Recharts log scale on XAxis
+        if (plotType === 'ac') return row.frequency > 0;
+        return true;
+      })
+      .map(row => {
+        const newRow: any = {};
+        Object.keys(row).forEach(k => {
+          const safeKey = k.replace(/\(/g, '_').replace(/\)/g, '');
+          newRow[safeKey] = row[k];
+        });
+        return newRow;
       });
-      return newRow;
-    });
   }, [simulationBuffer, playbackTime, isPlaying]);
 
 
@@ -422,7 +664,13 @@ export default function Grapher() {
 
     // Transient
     const timeKey = 'time';
-    const valueKeys = allKeys.filter(k => k !== timeKey);
+    let valueKeys = allKeys.filter(k => k !== timeKey);
+
+    // Filter out internal SPICE sub-circuit nodes (e.g. x_u1.latch, x_u1.ref_lo)
+    // These are implementation details the user never needs to see.
+    const userKeys = valueKeys.filter(k => !k.includes('.'));
+    if (userKeys.length > 0) valueKeys = userKeys;
+
     if (probes.length > 0) {
       const probedKeys = Object.keys(probeMap).filter(k => valueKeys.includes(k));
       if (probedKeys.length > 0) return { traces: probedKeys, sweepKey: timeKey };
@@ -441,7 +689,12 @@ export default function Grapher() {
 
   const cursorProps = { isCursorMode, cursorA, setCursorA, cursorB, setCursorB };
 
-  if (plotType === 'ac') {
+  // FFT view overrides the normal plot for transient mode
+  if (showFft && plotType === 'transient') {
+    PlotComponent = (
+      <FftPlot simulationBuffer={simulationBuffer!} traces={traces} isOscilloscope={isOscilloscope} />
+    );
+  } else if (plotType === 'ac') {
     PlotComponent = <BodePlot data={formattedData} traces={traces} isOscilloscope={isOscilloscope} {...cursorProps} />;
   } else if (plotType === 'dc') {
     PlotComponent = <DcSweepPlot data={formattedData} traces={traces} sweepKey={sweepKey} isOscilloscope={isOscilloscope} {...cursorProps} />;
@@ -533,7 +786,7 @@ export default function Grapher() {
               const ay = cursorA ? cursorA[t] : null;
               const by = cursorB ? cursorB[t] : null;
               const dy = (ay !== null && by !== null) ? Math.abs(by - ay) : null;
-              const displayName = probeMap[t] || t.replace('_', '(') + ')';
+              const displayName = probeMap[t] || formatTraceName(t);
               return (
                 <tr key={t}>
                   <td className="pr-2 truncate max-w-[80px]" title={displayName}>{displayName}</td>
@@ -557,6 +810,20 @@ export default function Grapher() {
 
       {/* Fixed-height toolbar at top */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: TOOLBAR_H, display: 'flex', alignItems: 'center', gap: 16, padding: '0 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', zIndex: 5 }}>
+        {/* FFT toggle — only shown for transient */}
+        {plotType === 'transient' && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }} title="FFT Spectrum Analyzer">
+            <div style={{ position: 'relative', width: 36, height: 20, flexShrink: 0 }}>
+              <input type="checkbox" style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} checked={showFft} onChange={() => setShowFft(!showFft)} />
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10, background: showFft ? '#8b5cf6' : '#d1d5db', transition: 'background 0.2s' }} />
+              <div style={{ position: 'absolute', top: 2, left: showFft ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 4, color: showFft ? '#8b5cf6' : '#6b7280' }}>
+              <BarChart2 size={13} /> FFT
+            </span>
+          </label>
+        )}
+
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }} title="Measurement Cursors">
           <div style={{ position: 'relative', width: 36, height: 20, flexShrink: 0 }}>
             <input type="checkbox" style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} checked={isCursorMode} onChange={() => { setIsCursorMode(!isCursorMode); setCursorA(null); setCursorB(null); }} />
@@ -592,6 +859,7 @@ export default function Grapher() {
       {/* Chart area: positioned exactly below toolbar with explicit pixel height */}
       <div style={{ position: 'absolute', top: TOOLBAR_H, left: 0, right: 0, bottom: 0 }}>
         {chartAreaHeight > 0 && PlotComponent}
+        <MeasurementsPanel data={formattedData} traces={traces} plotType={plotType} />
       </div>
     </div>
   );

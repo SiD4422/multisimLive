@@ -89,7 +89,7 @@ body {
   align-items: center;
   z-index: 50;
   position: absolute;
-  top: 16px;
+  top: 36px;
   left: 16px;
   height: max-content;
   box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
@@ -390,7 +390,10 @@ body {
 }
 
 .analysis-tabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background-color: #e5e7eb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   overflow: hidden;
@@ -398,14 +401,17 @@ body {
 }
 
 .analysis-tab {
-  flex: 1;
-  padding: 10px 12px;
-  font-size: 14px;
+  padding: 8px 10px;
+  font-size: 13px;
   font-weight: 600;
   background-color: #fff;
   color: #4b5563;
   border: none;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .analysis-tab.active {
   background-color: #16a34a;

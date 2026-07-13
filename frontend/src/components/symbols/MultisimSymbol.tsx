@@ -1,7 +1,30 @@
-import { Group, Path, Circle, Line, Text } from 'react-konva';
+import { Group, Path, Circle, Line, Text, Rect } from 'react-konva';
 import type { SchematicComponent } from '../../store/useSchematicStore';
 import { useSchematicStore } from '../../store/useSchematicStore';
 import { InteractiveSlider } from './InteractiveSlider';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Format a raw component id (e.g. "r1", "cap3") into a tidy reference designator */
+function formatRefDes(id: string, type: string): string {
+  // If it already looks like R1 / C2 / U3 just titlecase the first char
+  if (/^[a-zA-Z]{1,3}\d+$/.test(id)) return id.toUpperCase();
+  // Map type → prefix
+  const prefixMap: Record<string, string> = {
+    Resistor: 'R', Potentiometer: 'R', Load: 'R', Fuse: 'F',
+    Capacitor: 'C', Inductor: 'L',
+    Diode: 'D', LED: 'D', DiodeZener: 'D', DiodeSchottky: 'D',
+    TransistorNPN: 'Q', TransistorPNP: 'Q', MosfetN: 'Q', MosfetP: 'Q',
+    Timer555: 'U', Opamp: 'U', Opamp5: 'U', Comparator: 'U', Opamps: 'U',
+    SwitchSPST: 'S', SPDTSwitch: 'S', PushButton: 'S',
+    DCSource: 'V', ACSource: 'V', ClockVoltage: 'V',
+    Ground: 'GND',
+  };
+  const prefix = prefixMap[type] || 'U';
+  // Extract trailing digits if any
+  const digits = id.replace(/\D/g, '') || '1';
+  return `${prefix}${digits}`;
+}
 
 interface MultisimSymbolProps {
   component: SchematicComponent;
@@ -23,8 +46,8 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
   let lines: { points: number[] }[] = [];
   let pins: { x: number, y: number }[] = [];
   let texts: { text: string, x: number, y: number, size?: number, fill?: string }[] = [];
-  let labelOffset = { x: 15, y: -25 };
-  let valueOffset = { x: 15, y: 15 };
+  let labelOffset = { x: 10, y: -32 };   // above symbol
+  let valueOffset = { x: 10, y: 20 };    // below symbol
 
   // --- PASSIVES ---
   if (type === 'Resistor' || type === 'Potentiometer') {
@@ -89,6 +112,43 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       valueOffset = { x: 15, y: 15 };
     }
     pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+  }
+  // --- SCR / THYRISTOR ---
+  else if (type === 'ThyristorSCR') {
+    // Diode body: anode → cathode
+    paths.push({ data: "M 20 8 L 36 0 L 20 -8 Z", fill: strokeColor }); // Triangle (anode side)
+    lines.push({ points: [36, 8, 36, -8] });  // Cathode bar
+    lines.push({ points: [0, 0, 20, 0] });    // Anode lead
+    lines.push({ points: [36, 0, 55, 0] });   // Cathode lead
+    // Gate: angled line from cathode bar downward
+    lines.push({ points: [36, 8, 55, 20] });  // Gate wire diagonal
+    lines.push({ points: [55, 20, 55, 28] }); // Gate lead down
+    pins = [{ x: 0, y: 0 }, { x: 55, y: 0 }, { x: 55, y: 28 }];
+    labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 25 };
+  }
+  // --- OPTOCOUPLER ---
+  else if (type === 'Optocoupler') {
+    // Outer box
+    paths.push({ data: "M -20 -30 L 40 -30 L 40 30 L -20 30 Z", fill: "#fff" });
+    // LED on left side
+    paths.push({ data: "M -10 -20 L -2 -12 L -10 -4 Z", fill: strokeColor }); // LED triangle
+    lines.push({ points: [-2, -20, -2, -4] }); // LED cathode bar
+    lines.push({ points: [-30, -20, -10, -20] }); // Anode lead
+    lines.push({ points: [-30, -4, -2, -4] });  // Cathode lead
+    // Light arrows going right
+    paths.push({ data: "M 4 -16 L 12 -10 M 12 -10 L 9 -10 M 12 -10 L 12 -13", fill: "transparent" });
+    paths.push({ data: "M 4 -12 L 12 -6 M 12 -6 L 9 -6 M 12 -6 L 12 -9", fill: "transparent" });
+    // Phototransistor on right side
+    lines.push({ points: [20, -20, 20, 20] }); // Base vertical line
+    lines.push({ points: [20, -16, 30, -20] }); // Collector angle
+    lines.push({ points: [30, -20, 30, -30] }); // Collector lead
+    lines.push({ points: [20, 16, 30, 20] }); // Emitter angle
+    lines.push({ points: [30, 20, 30, 30] }); // Emitter lead
+    paths.push({ data: "M 27 12 L 28 17 L 24 17 Z", fill: strokeColor }); // NPN arrow out
+    // External leads
+    pins = [{ x: -30, y: -20 }, { x: -30, y: -4 }, { x: 30, y: 30 }, { x: 30, y: -30 }];
+    labelOffset = { x: 45, y: -35 };
+    valueOffset = { x: 45, y: 35 };
   }
   else if (type === 'BridgeRectifier') {
     paths.push({ data: "M 40 -40 L 0 0 L 40 40 L 80 0 Z", fill: "transparent" });
@@ -158,15 +218,22 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
   }
   else if (type.includes('Voltage') || type.includes('Current') || type === 'DCCurrent' || type.includes('Noise') || type.includes('Source')) {
-    circles.push({ x: 30, y: 0, r: 18, fill: "#fff" }); // Exact radius 18
+    circles.push({ x: 30, y: 0, r: 18, fill: "#fff" }); // Circle body
     lines.push({ points: [0, 0, 12, 0] });
     lines.push({ points: [48, 0, 60, 0] });
     pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
     
     if (type === 'DCCurrent' || type.includes('Current')) {
+      // Arrow pointing right (DC current direction)
       paths.push({ data: "M 20 0 L 40 0 M 36 -4 L 40 0 L 36 4", fill: "transparent" });
+    } else if (type === 'PulseVoltage' || type === 'ClockVoltage' || type === 'StepVoltage' || type === 'PulseCurrent' || type === 'ClockCurrent' || type === 'StepCurrent') {
+      // Square/pulse wave for pulse/clock/step sources
+      paths.push({ data: "M 22 4 L 22 -4 L 27 -4 L 27 4 L 32 4 L 32 -4 L 37 -4 L 37 4", fill: "transparent" });
+      lines.push({ points: [30, -15, 30, -9] }); // + Vertical
+      lines.push({ points: [27, -12, 33, -12] }); // + Horizontal
+      lines.push({ points: [27, 12, 33, 12] }); // - Horizontal
     } else if (type === 'ACSource' || type.includes('Voltage') || type.includes('Noise')) {
-      // Exact AC Sines and Terminals (Using Q and T for Konva compatibility)
+      // Sine wave for AC/voltage sources
       paths.push({ data: "M 24 0 Q 27 -6 30 0 T 36 0", fill: "transparent" });
       lines.push({ points: [30, -15, 30, -9] }); // + Vertical
       lines.push({ points: [27, -12, 33, -12] }); // + Horizontal
@@ -227,10 +294,30 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     valueOffset = { x: 40, y: 15 };
   }
   // --- GROUND ---
-  else if (type === 'Ground' || type === 'Junction') {
+  else if (type === 'Ground') {
     paths.push({ data: "M 0 0 L 0 10 M -12 10 L 12 10 M -8 14 L 8 14 M -4 18 L 4 18", fill: "transparent" });
     pins = [{ x: 0, y: 0 }];
     labelOffset = { x: 15, y: 5 };
+  }
+  // --- JUNCTION (T-junction dot) ---
+  else if (type === 'Junction') {
+    // A junction is a T-connection node — cross lines with a dot
+    lines.push({ points: [-12, 0, 12, 0] }); // Horizontal through-line
+    lines.push({ points: [0, 0, 0, 12] });    // Downward stem
+    circles.push({ x: 0, y: 0, r: 4, fill: strokeColor }); // Junction dot
+    pins = [{ x: -12, y: 0 }, { x: 12, y: 0 }, { x: 0, y: 12 }];
+    labelOffset = { x: 15, y: -15 };
+  }
+  // --- CONNECTOR ---
+  else if (type === 'Connector') {
+    // Simple 2-pin connector block
+    paths.push({ data: "M 10 -10 L 30 -10 L 30 10 L 10 10 Z", fill: "#fff" }); // Box body
+    lines.push({ points: [0, 0, 10, 0] });  // Left lead
+    lines.push({ points: [30, 0, 40, 0] }); // Right lead
+    circles.push({ x: 18, y: 0, r: 3, fill: strokeColor }); // Pin dot left
+    circles.push({ x: 24, y: 0, r: 3, fill: strokeColor }); // Pin dot right
+    pins = [{ x: 0, y: 0 }, { x: 40, y: 0 }];
+    labelOffset = { x: 5, y: -22 };
   }
   // --- TRANSMISSION LINES ---
   else if (type === 'LosslessTransmissionLine' || type === 'LossyTransmissionLine') {
@@ -295,13 +382,22 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
   }
   // --- SWITCHES ---
   else if (type === 'SwitchSPST' || type === 'PushButton') {
+    const isClosed = component.value !== 'Open';
     paths.push({ data: "M 0 0 L 15 0 M 45 0 L 60 0", fill: "transparent" });
     circles.push({ x: 17, y: 0, r: 2, fill: "transparent" });
     circles.push({ x: 43, y: 0, r: 2, fill: "transparent" });
     if (type === 'PushButton') {
-      paths.push({ data: "M 17 -10 L 43 -10 M 30 -10 L 30 -15 M 25 -15 L 35 -15", fill: "transparent" }); // Button top
+      if (isClosed) {
+        paths.push({ data: "M 17 0 L 43 0 M 30 0 L 30 -10 M 25 -10 L 35 -10", fill: "transparent" }); // Closed button
+      } else {
+        paths.push({ data: "M 17 -10 L 43 -10 M 30 -10 L 30 -15 M 25 -15 L 35 -15", fill: "transparent" }); // Open button top
+      }
     } else {
-      paths.push({ data: "M 17 -3 L 40 -12", fill: "transparent" }); // open lever
+      if (isClosed) {
+        paths.push({ data: "M 17 0 L 43 0", fill: "transparent" }); // Closed lever
+      } else {
+        paths.push({ data: "M 17 -3 L 40 -12", fill: "transparent" }); // Open lever
+      }
     }
     pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
   }
@@ -431,6 +527,147 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }];
     labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 17 };
   }
+  // --- VOLTAGE REGULATORS ---
+  else if (type === 'VoltageRegulator7805' || type === 'VoltageRegulator7812' || type === 'VoltageRegulatorLM317') {
+    paths.push({ data: "M 10 -15 L 50 -15 L 50 15 L 10 15 Z", fill: "#fff" });
+    lines.push({ points: [0, 0, 10, 0] }); // IN
+    lines.push({ points: [30, 15, 30, 25] }); // GND/ADJ
+    lines.push({ points: [50, 0, 60, 0] }); // OUT
+    texts.push({ text: 'IN', x: 12, y: -5, size: 9, fill: '#333' });
+    texts.push({ text: 'OUT', x: 33, y: -5, size: 9, fill: '#333' });
+    texts.push({ text: type === 'VoltageRegulatorLM317' ? 'ADJ' : 'GND', x: 20, y: 5, size: 9, fill: '#333' });
+    pins = [{ x: 0, y: 0 }, { x: 30, y: 25 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -30 };
+  }
+  // --- 7-SEGMENT DISPLAY ---
+  else if (type === 'SevenSegment') {
+    paths.push({ data: "M 5 -25 L 55 -25 L 55 25 L 5 25 Z", fill: "#fff" });
+    // Simplify drawing to digital 8 inside
+    paths.push({ data: "M 15 -20 L 40 -20 M 14 -19 L 14 -3 M 41 -19 L 41 -3 M 15 -2 L 40 -2 M 14 -1 L 14 17 M 41 -1 L 41 17 M 15 18 L 40 18", fill: "transparent", stroke: strokeColor });
+    circles.push({ x: 45, y: 18, r: 2, fill: strokeColor });
+    lines.push({ points: [30, -25, 30, -35] }); // Anode
+    lines.push({ points: [30, 25, 30, 35] }); // Cathode
+    pins = [{ x: 30, y: -35 }, { x: 30, y: 35 }];
+    labelOffset = { x: 60, y: -20 };
+  }
+  // --- CRYSTAL OSCILLATOR ---
+  else if (type === 'CrystalOscillator') {
+    lines.push({ points: [0, 0, 20, 0] }); // Left lead
+    lines.push({ points: [20, -8, 20, 8] }); // Left plate
+    paths.push({ data: "M 23 -6 L 29 -6 L 29 6 L 23 6 Z", fill: "transparent" }); // Crystal
+    lines.push({ points: [32, -8, 32, 8] }); // Right plate
+    lines.push({ points: [32, 0, 60, 0] }); // Right lead
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -25 };
+  }
+  // --- PHOTODIODE ---
+  else if (type === 'Photodiode') {
+    paths.push({ data: "M 23 8 L 36 0 L 23 -8 Z", fill: strokeColor });
+    lines.push({ points: [36, 8, 36, -8] });
+    lines.push({ points: [0, 0, 23, 0] });
+    lines.push({ points: [36, 0, 60, 0] });
+    // Light arrows pointing IN
+    paths.push({ data: "M 15 -18 L 22 -12 M 22 -12 L 18 -12 M 22 -12 L 22 -16", fill: "transparent" });
+    paths.push({ data: "M 20 -20 L 27 -14 M 27 -14 L 23 -14 M 27 -14 L 27 -18", fill: "transparent" });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -35 };
+  }
+  // --- PHOTOTRANSISTOR ---
+  else if (type === 'Phototransistor') {
+    lines.push({ points: [15, -12, 15, 12] }); // Base vertical
+    lines.push({ points: [15, -8, 25, -13] }); // Collector angle
+    lines.push({ points: [25, -13, 25, -20] }); // Collector lead
+    lines.push({ points: [15, 8, 25, 13] }); // Emitter angle
+    lines.push({ points: [25, 13, 25, 20] }); // Emitter lead
+    // NO base wire.
+    paths.push({ data: "M 22 8 L 23 12 L 19 13 Z", fill: strokeColor }); // arrow out
+    // Light arrows pointing IN
+    paths.push({ data: "M 0 -8 L 10 -2 M 10 -2 L 6 -2 M 10 -2 L 10 -6", fill: "transparent" });
+    paths.push({ data: "M 5 -12 L 15 -6 M 15 -6 L 11 -6 M 15 -6 L 15 -10", fill: "transparent" });
+    pins = [{ x: 25, y: -20 }, { x: 25, y: 20 }];
+    labelOffset = { x: 40, y: -20 };
+  }
+  // --- DIP-14 ---
+  else if (type === 'DIP14') {
+    paths.push({ data: "M 15 -40 L 45 -40 L 45 40 L 15 40 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -40 A 5 5 0 0 0 35 -40", fill: "transparent" }); // Notch
+    // 7 pins left
+    for (let i=0; i<7; i++) {
+      let py = -30 + i * 10;
+      lines.push({ points: [0, py, 15, py] });
+      texts.push({ text: `${i+1}`, x: 18, y: py - 4, size: 8, fill: '#333' });
+      pins.push({ x: 0, y: py });
+    }
+    // 7 pins right
+    for (let i=0; i<7; i++) {
+      let py = 30 - i * 10;
+      lines.push({ points: [45, py, 60, py] });
+      texts.push({ text: `${i+8}`, x: 36, y: py - 4, size: 8, fill: '#333' });
+      pins.push({ x: 60, y: py });
+    }
+    labelOffset = { x: 20, y: -50 };
+  }
+  // --- TRIAC ---
+  else if (type === 'TRIAC') {
+    paths.push({ data: "M 20 -8 L 36 0 L 20 8 Z", fill: strokeColor });
+    paths.push({ data: "M 40 8 L 24 0 L 40 -8 Z", fill: strokeColor });
+    lines.push({ points: [36, 8, 36, -8] });
+    lines.push({ points: [24, 8, 24, -8] });
+    lines.push({ points: [0, 0, 20, 0] });
+    lines.push({ points: [40, 0, 60, 0] });
+    lines.push({ points: [45, 10, 45, 20] }); // Gate
+    lines.push({ points: [36, 8, 45, 10] }); // Gate wire
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }, { x: 45, y: 20 }];
+    labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 25 };
+  }
+  // --- DIAC ---
+  else if (type === 'DIAC') {
+    paths.push({ data: "M 20 -8 L 36 0 L 20 8 Z", fill: strokeColor });
+    paths.push({ data: "M 40 8 L 24 0 L 40 -8 Z", fill: strokeColor });
+    lines.push({ points: [36, 8, 36, -8] });
+    lines.push({ points: [24, 8, 24, -8] });
+    lines.push({ points: [0, 0, 20, 0] });
+    lines.push({ points: [40, 0, 60, 0] });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -25 };
+  }
+  // --- DARLINGTON ---
+  else if (type === 'Darlington') {
+    circles.push({ x: 20, y: 0, r: 18, fill: "transparent" });
+    // Q1
+    lines.push({ points: [10, -8, 10, 2] });
+    lines.push({ points: [10, -5, 16, -8] });
+    lines.push({ points: [16, -8, 20, -18] });
+    lines.push({ points: [10, -1, 16, 2] });
+    paths.push({ data: "M 14 0 L 16 3 L 12 2 Z", fill: strokeColor }); // arrow out
+    // Q2
+    lines.push({ points: [16, 2, 16, 12] });
+    lines.push({ points: [16, 5, 22, 2] });
+    lines.push({ points: [22, 2, 25, -12] });
+    lines.push({ points: [16, 9, 22, 12] });
+    paths.push({ data: "M 20 10 L 22 13 L 18 12 Z", fill: strokeColor }); // arrow out
+    // Connection
+    lines.push({ points: [0, 0, 10, -3] }); // Base
+    lines.push({ points: [20, -18, 25, -18] }); // Collector tie
+    lines.push({ points: [25, -18, 25, -20] }); // Collector
+    lines.push({ points: [25, -12, 25, -18] });
+    lines.push({ points: [22, 12, 25, 20] }); // Emitter
+    pins = [{ x: 0, y: 0 }, { x: 25, y: -20 }, { x: 25, y: 20 }];
+    labelOffset = { x: 45, y: -20 };
+  }
+  // --- CURRENT MIRROR ---
+  else if (type === 'CurrentMirror') {
+    paths.push({ data: "M 5 -15 L 55 -15 L 55 15 L 5 15 Z", fill: "#fff" });
+    texts.push({ text: 'I-Mirror', x: 10, y: -4, size: 10, fill: '#333' });
+    lines.push({ points: [0, 0, 5, 0] }); // IN
+    lines.push({ points: [30, -25, 30, -15] }); // VCC
+    lines.push({ points: [55, 0, 60, 0] }); // OUT
+    // Small arrows
+    paths.push({ data: "M 0 5 L 4 5 L 2 8 Z", fill: strokeColor });
+    paths.push({ data: "M 60 5 L 56 5 L 58 8 Z", fill: strokeColor });
+    pins = [{ x: 0, y: 0 }, { x: 30, y: -25 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -30 };
+  }
   // --- FALLBACK ---
   else {
     paths.push({ data: "M 0 0 L 15 0 M 15 -10 L 45 -10 L 45 10 L 15 10 Z M 45 0 L 60 0", fill: "#fff" });
@@ -446,6 +683,15 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       onDragMove={onDragMove}
       onDragEnd={onDragEnd}
       onMouseDown={(e) => {
+        if (type === 'SwitchSPST' || type === 'PushButton') {
+          e.cancelBubble = true;
+          const isClosed = component.value !== 'Open';
+          const newVal = isClosed ? 'Open' : 'Closed';
+          if (updateComponentValue) updateComponentValue(component.id, newVal);
+          // Auto-rerun simulation silently so graph updates immediately
+          setTimeout(() => useSchematicStore.getState().runSimulation(true), 50);
+          return;
+        }
         if (onSelect) onSelect();
       }}
     >
@@ -497,42 +743,214 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
           );
         })}
 
-        {/* Component ID Label - Orbits component but stays upright */}
-        {component.id !== 'preview' && (
-          <Group x={labelOffset.x * 1.5} y={labelOffset.y * 1.5} rotation={-(component.rotation || 0)}>
-            <Text text={component.id} x={0} y={0} fontSize={16} fontFamily="Inter" fill="#111" fontStyle="bold" />
-          </Group>
-        )}
+        {/* Labels — counter-rotated with readable background pills */}
+        {(() => {
+          const rot = component.rotation || 0;
+          const rad = rot * Math.PI / 180;
+          const cos = Math.cos(-rad);
+          const sin = Math.sin(-rad);
 
-        {/* Component Value Label - Orbits component but stays upright */}
-        <Group x={valueOffset.x * 1.5} y={valueOffset.y * 1.5} rotation={-(component.rotation || 0)}>
-          <Text text={component.value || ""} x={0} y={0} fontSize={14} fontFamily="Inter" fill="#666" />
-        </Group>
+          const idX = labelOffset.x * 1.5;
+          const idY = labelOffset.y * 1.5;
+          const valX = valueOffset.x * 1.5;
+          const valY = valueOffset.y * 1.5;
 
-        {/* Interactive Slider for Potentiometer */}
-        {type === 'Potentiometer' && (
-          <Group rotation={-(component.rotation || 0)} x={-45} y={-65}>
-            <InteractiveSlider
-              min={100}
-              max={parseFloat((component.value || '10k').replace('k','000').replace('M','000000').replace('m','0.001')) || 10000}
-              value={(() => {
-                const v = component.value || '10k';
-                if (v.endsWith('M')) return parseFloat(v) * 1e6;
-                if (v.endsWith('k')) return parseFloat(v) * 1e3;
-                if (v.endsWith('m')) return parseFloat(v) * 1e-3;
-                return parseFloat(v) || 10000;
-              })()}
-              width={100}
-              onChange={(newVal) => {
-                let display = '';
-                if (newVal >= 1e6) display = `${(newVal / 1e6).toPrecision(3)}Meg`;
-                else if (newVal >= 1e3) display = `${(newVal / 1e3).toPrecision(3)}k`;
-                else display = `${newVal.toPrecision(3)}`;
-                useSchematicStore.getState().updateComponentValue(component.id, display);
-              }}
-            />
-          </Group>
-        )}
+          const idLocalX = idX * cos - idY * sin;
+          const idLocalY = idX * sin + idY * cos;
+          const valLocalX = valX * cos - valY * sin;
+          const valLocalY = valX * sin + valY * cos;
+
+          // Clean reference designator (e.g. R1, C2, U1)
+          const refDes = (component as any).label || formatRefDes(component.id, type);
+          const valText = component.value || '';
+
+          // Check LED glow from simulation
+          const simBuffer = useSchematicStore.getState().simulationBuffer;
+          const isLED = type === 'LED';
+          let ledGlowColor: string | null = null;
+          if (isLED && simBuffer && simBuffer.length > 0) {
+            const ledCurrentKey = Object.keys(simBuffer[0]).find(k =>
+              k.toLowerCase().includes(`d_${component.id.toLowerCase()}`)
+            );
+            if (ledCurrentKey) {
+              const avgCurrent = simBuffer.reduce((sum: number, row: any) => sum + Math.abs(row[ledCurrentKey] || 0), 0) / simBuffer.length;
+              if (avgCurrent > 0.005) {
+                // Pick color based on value label
+                const v = (component.value || '').toLowerCase();
+                if (v.includes('red')) ledGlowColor = '#ff2222';
+                else if (v.includes('green')) ledGlowColor = '#22ff44';
+                else if (v.includes('blue')) ledGlowColor = '#2244ff';
+                else if (v.includes('yellow') || v.includes('amber')) ledGlowColor = '#ffcc00';
+                else if (v.includes('white')) ledGlowColor = '#ffffff';
+                else ledGlowColor = '#ff4400'; // default orange-red
+              }
+            }
+          }
+
+          // ── Overload Warning (Resistor / Fuse) ──
+          // Rated power threshold: 0.25W for standard 1/4-watt resistors
+          let overloaded = false;
+          if ((type === 'Resistor' || type === 'Fuse' || type === 'Load') && simBuffer && simBuffer.length > 0) {
+            // Parse resistance from component.value
+            const rStr = (component.value || '1k').replace(/Meg/gi, 'e6').replace(/k/gi, 'e3').replace(/m/gi, 'e-3');
+            const R = parseFloat(rStr) || 1000;
+            // Find any voltage keys that reference this component
+            const compId = component.id.toLowerCase();
+            const vKeys = Object.keys(simBuffer[0]).filter(k =>
+              k.startsWith('v(') && k.toLowerCase().includes(compId)
+            );
+            if (vKeys.length > 0) {
+              const avgV = simBuffer.reduce((s: number, row: any) => s + Math.abs(row[vKeys[0]] || 0), 0) / simBuffer.length;
+              const power = (avgV * avgV) / R;
+              if (power > 0.25) overloaded = true;
+            }
+          }
+
+          // ── Relay Coil Activation ──
+          let relayActive = false;
+          if (type === 'Relay' && simBuffer && simBuffer.length > 0) {
+            const coilKey = Object.keys(simBuffer[0]).find(k =>
+              k.toLowerCase().includes(`k_${component.id.toLowerCase()}`)
+              || k.toLowerCase().includes(`i(v_${component.id.toLowerCase()}`)
+            );
+            if (coilKey) {
+              const avgI = simBuffer.reduce((s: number, row: any) => s + Math.abs(row[coilKey] || 0), 0) / simBuffer.length;
+              if (avgI > 0.01) relayActive = true;
+            }
+          }
+
+          return (
+            <>
+              {/* LED glow overlay */}
+              {ledGlowColor && (
+                <Circle
+                  x={45} y={0}
+                  radius={22}
+                  fill={ledGlowColor}
+                  opacity={0.35}
+                  shadowColor={ledGlowColor}
+                  shadowBlur={20}
+                  shadowOpacity={0.9}
+                  listening={false}
+                />
+              )}
+
+              {/* Overload glow + warning badge */}
+              {overloaded && (
+                <>
+                  <Circle
+                    x={30} y={0}
+                    radius={20}
+                    fill="#ff4400"
+                    opacity={0.22}
+                    shadowColor="#ff4400"
+                    shadowBlur={18}
+                    shadowOpacity={0.8}
+                    listening={false}
+                  />
+                  <Group x={48} y={-18} listening={false}>
+                    <Circle radius={9} fill="#ef4444" />
+                    <Text text="!" x={-3} y={-7} fontSize={13} fontStyle="bold" fill="#fff" />
+                  </Group>
+                </>
+              )}
+
+              {/* Relay activated indicator */}
+              {relayActive && (
+                <Group x={30} y={-22} listening={false}>
+                  <Rect x={-14} y={-8} width={28} height={14} fill="#10b981" cornerRadius={4} opacity={0.9} />
+                  <Text text="ON" x={-10} y={-6} fontSize={11} fontStyle="bold" fill="#fff" fontFamily="Inter, sans-serif" />
+                </Group>
+              )}
+
+              {/* Reference Designator label pill */}
+              {component.id !== 'preview' && (
+                <Group x={idLocalX} y={idLocalY} rotation={-rot}>
+                  <Rect
+                    x={-3} y={-12}
+                    width={refDes.length * 8 + 6} height={16}
+                    fill="rgba(255,255,255,0.82)"
+                    cornerRadius={3}
+                    listening={false}
+                  />
+                  <Text
+                    text={refDes}
+                    x={0} y={-11}
+                    fontSize={13}
+                    fontFamily="Inter, Arial, sans-serif"
+                    fill="#1a1a2e"
+                    fontStyle="bold"
+                  />
+                </Group>
+              )}
+
+              {/* Value label pill */}
+              {valText.length > 0 && (
+                <Group x={valLocalX} y={valLocalY} rotation={-rot}>
+                  <Rect
+                    x={-3} y={-11}
+                    width={valText.length * 7 + 6} height={15}
+                    fill="rgba(255,255,255,0.78)"
+                    cornerRadius={3}
+                    listening={false}
+                  />
+                  <Text
+                    text={valText}
+                    x={0} y={-10}
+                    fontSize={12}
+                    fontFamily="Inter, Arial, sans-serif"
+                    fill="#555"
+                  />
+                </Group>
+              )}
+            </>
+          );
+        })()}
+
+        {/* Interactive Slider for Potentiometer — live simulation on drag */}
+        {type === 'Potentiometer' && (() => {
+          // Build a stable debounced runner for live drag
+          const debouncedRun = (() => {
+            let timer: ReturnType<typeof setTimeout>;
+            return () => {
+              clearTimeout(timer);
+              timer = setTimeout(() => useSchematicStore.getState().runSimulation(true), 200);
+            };
+          })();
+          return (
+            <Group rotation={-(component.rotation || 0)} x={-45} y={-65}>
+              <InteractiveSlider
+                min={100}
+                max={parseFloat((component.value || '10k').replace('k','000').replace('M','000000').replace('m','0.001')) || 10000}
+                value={(() => {
+                  const v = component.value || '10k';
+                  if (v.endsWith('M')) return parseFloat(v) * 1e6;
+                  if (v.endsWith('k')) return parseFloat(v) * 1e3;
+                  if (v.endsWith('m')) return parseFloat(v) * 1e-3;
+                  return parseFloat(v) || 10000;
+                })()}
+                width={100}
+                onChange={(newVal) => {
+                  let display = '';
+                  if (newVal >= 1e6) display = `${(newVal / 1e6).toPrecision(3)}Meg`;
+                  else if (newVal >= 1e3) display = `${(newVal / 1e3).toPrecision(3)}k`;
+                  else display = `${newVal.toPrecision(3)}`;
+                  useSchematicStore.getState().updateComponentValue(component.id, display);
+                  debouncedRun(); // live graph update while dragging
+                }}
+                onChangeEnd={(newVal) => {
+                  let display = '';
+                  if (newVal >= 1e6) display = `${(newVal / 1e6).toPrecision(3)}Meg`;
+                  else if (newVal >= 1e3) display = `${(newVal / 1e3).toPrecision(3)}k`;
+                  else display = `${newVal.toPrecision(3)}`;
+                  useSchematicStore.getState().updateComponentValue(component.id, display);
+                  // Immediate final re-run on release
+                  setTimeout(() => useSchematicStore.getState().runSimulation(true), 20);
+                }}
+              />
+            </Group>
+          );
+        })()}
       </Group>
     </Group>
   );

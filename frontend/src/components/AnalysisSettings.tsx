@@ -51,13 +51,13 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
         <div style={{ marginBottom: '20px' }}>
           <label className="input-label">Analysis Type</label>
           <div className="analysis-tabs">
-            {(['transient', 'ac', 'dc'] as const).map(m => (
+            {(['transient', 'ac', 'dc', 'op'] as const).map(m => (
               <button
                 key={m}
                 onClick={() => setAnalysisMode(m)}
                 className={`analysis-tab ${analysisMode === m ? 'active' : ''}`}
               >
-                {m === 'transient' ? '⏱ Transient' : m === 'ac' ? '〜 AC Sweep' : '📈 DC Sweep'}
+                {m === 'transient' ? '⏱ Transient' : m === 'ac' ? '〜 AC Sweep' : m === 'dc' ? '📈 DC Sweep' : '⚡ Operating Point (.op)'}
               </button>
             ))}
           </div>
@@ -170,18 +170,10 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
             ? '💡 Use Hz, kHz, Meg (e.g. "1 → 1Meg"). Place a voltage probe to see the Bode plot.'
             : analysisMode === 'dc'
             ? '💡 Source name must match a source ID in your circuit (e.g. V1).'
+            : analysisMode === 'op'
+            ? '💡 Calculates the steady-state DC voltage at every node and current through sources. No graphs are generated.'
             : '💡 Use s, ms, µs units (e.g. "10ms", "0.01ms"). Step defaults to end÷1000.'}
         </p>
-      </div>
-
-      {/* Footer */}
-      <div style={{ padding: '16px 24px', backgroundColor: '#f9fafb', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end', marginTop: 'auto' }}>
-        <button
-          onClick={onClose}
-          style={{ backgroundColor: '#16a34a', color: 'white', padding: '10px 24px', borderRadius: '8px', fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
-        >
-          Done
-        </button>
       </div>
     </div>
   );
