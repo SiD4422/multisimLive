@@ -414,7 +414,7 @@ function Simulator() {
       )}
 
       {/* Top Header */}
-      <header className="header-top relative">
+      <header className="header-top relative" style={{ zIndex: 10 }}>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <Link to="/" title="Back to Home">
@@ -456,70 +456,151 @@ function Simulator() {
           )}
         </div>
 
-        <div className="flex items-center gap-4">
-          <div title="Example Library"><BookOpen size={24} className="cursor-pointer opacity-70 hover:opacity-100 text-blue-500" onClick={() => setIsLibraryOpen(true)} /></div>
-          <div className="w-px h-6 bg-gray-300 mx-1"></div>
-          <div title="Load Circuit"><FolderOpen size={24} className="cursor-pointer opacity-70 hover:opacity-100" onClick={handleLoadClick} /></div>
-          <div title="Save to File"><Save size={24} className="cursor-pointer opacity-70 hover:opacity-100" onClick={handleSave} /></div>
-          <div title="Share Link"><Share size={24} className="cursor-pointer opacity-70 hover:opacity-100" onClick={handleShare} /></div>
-          <div title="Snapshot Schematic (PNG)"><Camera size={24} className="cursor-pointer opacity-70 hover:opacity-100 text-green-500" onClick={() => window.dispatchEvent(new CustomEvent('export-schematic'))} /></div>
-          <div title="My Circuit Library" style={{ position: 'relative' }}>
-            <Save size={24} className="cursor-pointer opacity-70 hover:opacity-100 text-purple-500" onClick={() => setIsMyCktOpen(true)} />
-          </div>
-
-          <div title="Fullscreen"><Maximize size={24} className="cursor-pointer opacity-70 hover:opacity-100" onClick={toggleFullScreen} /></div>
-          <HelpCircle size={24} className="cursor-pointer opacity-70 hover:opacity-100" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {/* Divider */}
+          <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
+          {[
+            { icon: <BookOpen size={16}/>, label: 'Example Library', action: () => setIsLibraryOpen(true), color: undefined },
+            { icon: <FolderOpen size={16}/>, label: 'Load Circuit', action: handleLoadClick, color: undefined },
+            { icon: <Save size={16}/>, label: 'Save to File', action: handleSave, color: undefined },
+            { icon: <Share size={16}/>, label: 'Share Link', action: handleShare, color: undefined },
+            { icon: <Camera size={16}/>, label: 'Snapshot (PNG)', action: () => window.dispatchEvent(new CustomEvent('export-schematic')), color: '#4ade96' },
+          ].map(({ icon, label, action, color }) => (
+            <button
+              key={label}
+              title={label}
+              onClick={action}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '32px', height: '32px',
+                background: 'transparent',
+                border: '1px solid transparent',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                color: color || 'rgba(255,255,255,0.65)',
+                transition: 'all 0.12s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = color || '#fff'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = color || 'rgba(255,255,255,0.65)'; }}
+            >
+              {icon}
+            </button>
+          ))}
+          <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
+          <button
+            title="Fullscreen"
+            onClick={toggleFullScreen}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '32px', height: '32px', background: 'transparent',
+              border: '1px solid transparent', borderRadius: '6px',
+              cursor: 'pointer', color: 'rgba(255,255,255,0.65)', transition: 'all 0.12s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}
+          >
+            <Maximize size={16}/>
+          </button>
         </div>
       </header>
 
       {/* Toolbar */}
       <div className="header-bottom">
-        <div 
-          className="flex items-center justify-center cursor-pointer mr-4 opacity-80 hover:opacity-100"
-          onClick={() => {
-            setIsSidebarOpen(!isSidebarOpen);
-            if (isSidebarOpen) setActiveCategory(null);
+        {/* Toggle sidebar */}
+        <button
+          title="Toggle Component Palette"
+          onClick={() => { setIsSidebarOpen(!isSidebarOpen); if (isSidebarOpen) setActiveCategory(null); }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '32px', height: '32px', background: 'transparent',
+            border: '1px solid transparent', borderRadius: '6px',
+            cursor: 'pointer', color: 'rgba(255,255,255,0.7)', flexShrink: 0,
+            transition: 'all 0.12s ease', marginRight: '8px',
           }}
-          title="Toggle Palette"
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
         >
-          {isSidebarOpen ? <PanelLeftClose size={24} /> : <PanelLeftOpen size={24} />}
+          {isSidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+        </button>
+
+        {/* Mode badge */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '4px',
+          padding: '3px 10px', borderRadius: '4px',
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.8)',
+          letterSpacing: '0.04em', marginRight: '8px', cursor: 'default',
+          userSelect: 'none',
+        }}>
+          Interactive
         </div>
-        <div className="flex items-center gap-2 mr-6 cursor-pointer opacity-80 hover:opacity-100">
-          <span className="text-lg">Interactive ▼</span>
-        </div>
-        
+
         <SimulationControls drcIssues={drcIssues} />
-        <div className={`tab ${activeView === 'schematic' ? 'active' : ''}`} onClick={() => setActiveView('schematic')}>
-          <MousePointer2 size={24} className="mr-2" /> Schematic
-        </div>
-        <div className={`tab ${activeView === 'grapher' ? 'active' : ''}`} onClick={() => { setActiveView('grapher'); setActiveCategory(null); }}>
-          Grapher
-        </div>
-        <div className={`tab ${activeView === 'split' ? 'active' : ''}`} onClick={() => { setActiveView('split'); setActiveCategory(null); }}>
-          Split
-        </div>
-        <div className="flex items-center gap-4" style={{ marginLeft: 'auto' }}>
-          <div className="cursor-pointer opacity-80 hover:opacity-100">
-            <Settings size={24} onClick={() => setIsConfigOpen(!isConfigOpen)} />
+
+        {/* View tabs */}
+        <div style={{ display: 'flex', marginLeft: '8px', gap: '2px' }}>
+          <div className={`tab ${activeView === 'schematic' ? 'active' : ''}`} onClick={() => setActiveView('schematic')}>
+            <MousePointer2 size={14} /> Schematic
           </div>
+          <div className={`tab ${activeView === 'grapher' ? 'active' : ''}`} onClick={() => { setActiveView('grapher'); setActiveCategory(null); }}>
+            Grapher
+          </div>
+          <div className={`tab ${activeView === 'split' ? 'active' : ''}`} onClick={() => { setActiveView('split'); setActiveCategory(null); }}>
+            Split
+          </div>
+        </div>
+
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <button
+            title="Simulation Settings"
+            onClick={() => setIsConfigOpen(!isConfigOpen)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '32px', height: '32px', background: isConfigOpen ? 'rgba(255,255,255,0.15)' : 'transparent',
+              border: '1px solid transparent', borderRadius: '6px',
+              cursor: 'pointer', color: 'rgba(255,255,255,0.7)', transition: 'all 0.12s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = isConfigOpen ? 'rgba(255,255,255,0.15)' : 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
+          >
+            <Settings size={16} />
+          </button>
         </div>
       </div>
 
       <div className="main-area">
         {simulationError && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-0 w-full z-50 absolute top-[110px] left-0 shadow-md">
-            <div className="flex justify-between items-start">
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50,
+            background: 'linear-gradient(to right, #fef2f2, #fff5f5)',
+            borderBottom: '1px solid #fca5a5',
+            padding: '10px 16px',
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px',
+            boxShadow: '0 2px 8px rgba(220,38,38,0.1)',
+            animation: 'fadeIn 0.15s ease',
+          }}>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flex: 1 }}>
+              <AlertTriangle size={16} style={{ color: '#dc2626', flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <p className="font-bold">Simulation Error</p>
-                <p className="whitespace-pre-wrap">{simulationError}</p>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: '13px', color: '#991b1b', marginBottom: '2px' }}>
+                  Simulation failed — check your circuit
+                </p>
+                <p style={{ margin: 0, fontSize: '12px', color: '#b91c1c', whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+                  {simulationError}
+                </p>
               </div>
-              <button 
-                onClick={() => useSchematicStore.setState({ simulationError: null })}
-                className="text-red-700 hover:bg-red-200 p-1 rounded"
-              >
-                <X size={20} />
-              </button>
             </div>
+            <button
+              onClick={() => useSchematicStore.setState({ simulationError: null })}
+              style={{
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                color: '#b91c1c', padding: '2px', borderRadius: '4px',
+                display: 'flex', alignItems: 'center', flexShrink: 0,
+              }}
+            >
+              <X size={16} />
+            </button>
           </div>
         )}
         <div className="main-content">
