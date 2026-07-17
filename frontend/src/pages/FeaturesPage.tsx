@@ -1,145 +1,163 @@
-import { Zap, Layers, Share2, Activity, Download, Globe, FileCode, CheckCircle2 } from 'lucide-react';
-import simulatorGraphImg from '../assets/user_graph.png';
-import simulatorCanvasImg from '../assets/user_canvas.png';
+import { Zap, Activity, Download, Globe, CheckCircle2, Waves, Sliders, LineChart, Code, Layers, MousePointer2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+const C = {
+  bgApp: '#f9fafb',
+  bgCard: '#ffffff',
+  textPrimary: '#1f2937',
+  textSecondary: '#4b5563',
+  border: '#e5e7eb',
+  primary: '#16a34a',
+  primaryHover: '#15803d',
+  primaryLight: '#dcfce7',
+};
 
 export default function FeaturesPage() {
+  const navigate = useNavigate();
+
   return (
-    <div className="features-page" style={{ paddingTop: '2rem', paddingBottom: '6rem', backgroundColor: '#f9fafb' }}>
-      
-      {/* HEADER */}
-      <section className="section-header" style={{ marginBottom: '3rem', padding: '0 2rem' }}>
-        <h1 style={{ fontSize: '3rem', color: '#111827', marginBottom: '1rem', fontWeight: 700 }}>
-          Advanced Features & Capabilities
-        </h1>
-        <p style={{ color: '#4b5563', fontSize: '1.25rem', maxWidth: '800px', margin: '0 auto' }}>
-          MultiSym live is a premium, free online circuit simulator. Discover how our web-based SPICE engine outpaces the competition in speed, usability, and design.
-        </p>
-      </section>
-
-      {/* COMPETITIVE ADVANTAGE */}
-      <section style={{ maxWidth: '1200px', margin: '0 auto 5rem', padding: '0 2rem' }}>
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '1rem', padding: '3rem', border: '1px solid #e5e7eb', boxShadow: '0 10px 25px -5px rgba(22, 163, 74, 0.05)' }}>
-          <h2 style={{ color: '#15803d', fontSize: '2rem', marginBottom: '1.5rem' }}>How We Stand Out</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-            <div>
-              <h3 style={{ color: '#111827', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 color="#16a34a" size={20} /> Zero Installation
-              </h3>
-              <p style={{ color: '#4b5563', lineHeight: 1.6 }}>Unlike traditional desktop software that requires massive downloads and licenses, MultiSym live runs 100% in your browser. Perfect for Chromebooks, Mac, and Windows.</p>
-            </div>
-            <div>
-              <h3 style={{ color: '#111827', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 color="#16a34a" size={20} /> Modern Intuitive UI
-              </h3>
-              <p style={{ color: '#4b5563', lineHeight: 1.6 }}>Say goodbye to clunky, outdated interfaces from the 90s. We offer a sleek, dark/light mode adaptable schematic capture tool designed for the modern engineer.</p>
-            </div>
-            <div>
-              <h3 style={{ color: '#111827', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CheckCircle2 color="#16a34a" size={20} /> Uncompromised Accuracy
-              </h3>
-              <p style={{ color: '#4b5563', lineHeight: 1.6 }}>Our electronic circuit analysis relies on industry-standard SPICE mathematical models, ensuring your lab results match your online simulation.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* INTERACTIVE SHOWCASE IMAGES */}
-      <section style={{ maxWidth: '1200px', margin: '0 auto 5rem', padding: '0 2rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '3rem' }}>
-          
-          <div className="image-showcase" style={{ 
-              borderRadius: '1rem', overflow: 'hidden', cursor: 'pointer',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-              transition: 'transform 0.4s ease, box-shadow 0.4s ease',
-              border: '1px solid #e5e7eb'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-10px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(22, 163, 74, 0.25)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.1)';
-            }}
-          >
-            <div style={{ padding: '1rem', background: '#f3f4f6', borderBottom: '1px solid #e5e7eb' }}>
-              <h3 style={{ margin: 0, color: '#111827', fontSize: '1.25rem' }}>Modern Schematic Editor</h3>
-            </div>
-            <img src={simulatorGraphImg} alt="Simulator Canvas Mockup" style={{ width: '100%', display: 'block', objectFit: 'cover', height: '300px' }} />
-          </div>
-
-          <div className="image-showcase" style={{ 
-              borderRadius: '1rem', overflow: 'hidden', cursor: 'pointer',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-              transition: 'transform 0.4s ease, box-shadow 0.4s ease',
-              border: '1px solid #e5e7eb'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-10px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(59, 130, 246, 0.25)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.1)';
-            }}
-          >
-            <div style={{ padding: '1rem', background: '#f3f4f6', borderBottom: '1px solid #e5e7eb' }}>
-              <h3 style={{ margin: 0, color: '#111827', fontSize: '1.25rem' }}>Real-Time Oscilloscope</h3>
-            </div>
-            <img src={simulatorCanvasImg} alt="Simulator Graph Mockup" style={{ width: '100%', display: 'block', objectFit: 'cover', height: '300px' }} />
-          </div>
-
-        </div>
-      </section>
-
-      {/* CORE FEATURES GRID */}
-      <section className="features-grid" style={{ padding: '0 2rem' }}>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: C.bgApp,
+      padding: '80px 20px 80px',
+      color: C.textPrimary,
+      fontFamily: "'Outfit', sans-serif",
+    }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         
-        {/* Feature 1 */}
-        <div className="feature-card">
-          <div className="feature-icon"><Zap size={24} /></div>
-          <h3>WebAssembly SPICE Engine</h3>
-          <p>Experience real-time electronic circuit simulation. Our engine compiles industry-standard NGSPICE into WebAssembly, delivering lightning-fast Transient, AC, and DC analysis directly in your browser without any server latency.</p>
+        {/* HEADER */}
+        <div style={{ textAlign: 'center', marginBottom: 60 }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 64, height: 64, borderRadius: 16,
+            background: C.primaryLight, color: C.primary, marginBottom: 24,
+          }}>
+            <Zap size={32} />
+          </div>
+          <h1 style={{ fontSize: '3.5rem', fontWeight: 800, margin: '0 0 20px', letterSpacing: '-1.5px', color: '#111827' }}>
+            Next-Gen Circuit Simulation
+          </h1>
+          <p style={{ fontSize: '1.25rem', color: C.textSecondary, maxWidth: 700, margin: '0 auto', lineHeight: 1.6 }}>
+            MultiSimLab brings the power of industry-standard SPICE simulation directly to your browser. Experience desktop-grade circuit design without the desktop.
+          </p>
         </div>
 
-        {/* Feature 2 */}
-        <div className="feature-card">
-          <div className="feature-icon"><Layers size={24} /></div>
-          <h3>Massive Component Library</h3>
-          <p>Design complex schematics with over 60+ fully functional components. Our library includes passive elements, NPN/PNP transistors, MOSFETs, Op-Amps (like the LM741), 555 Timers, logic gates, and custom transformers.</p>
+        {/* BENTO BOX GRID */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '24px',
+          gridAutoRows: 'minmax(250px, auto)'
+        }}>
+          
+          {/* Bento Item 1: Large Feature */}
+          <div style={{
+            backgroundColor: C.primary, color: '#fff', padding: '40px', borderRadius: 24, 
+            gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            position: 'relative', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(22, 163, 74, 0.2)'
+          }}>
+            <div style={{ position: 'relative', zIndex: 2, maxWidth: 600 }}>
+              <h2 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '20px' }}>100% Client-Side SPICE</h2>
+              <p style={{ fontSize: '1.2rem', lineHeight: 1.6, opacity: 0.9 }}>
+                Powered by a compiled WebAssembly version of Ngspice. No servers, no latency, no waiting. Your browser executes complex mathematical component models in real-time.
+              </p>
+            </div>
+            <Activity size={300} color="#15803d" style={{ position: 'absolute', right: '-50px', bottom: '-50px', opacity: 0.3 }} />
+          </div>
+
+          {/* Bento Item 2 */}
+          <div style={{
+            backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`,
+            transition: 'transform 0.3s, box-shadow 0.3s', cursor: 'default',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+          }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}>
+            <div style={{ width: 48, height: 48, backgroundColor: '#f3e8ff', color: '#9333ea', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <LineChart size={24} />
+            </div>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '12px' }}>Live Oscilloscope</h3>
+            <p style={{ color: C.textSecondary, lineHeight: 1.6 }}>Toggle 'Scope Mode' on the grapher to experience a dark-themed, neon-trace digital oscilloscope complete with point-and-click measurement cursors.</p>
+          </div>
+
+          {/* Bento Item 3 */}
+          <div style={{
+            backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`,
+            transition: 'transform 0.3s, box-shadow 0.3s', cursor: 'default',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+          }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}>
+            <div style={{ width: 48, height: 48, backgroundColor: '#e0f2fe', color: '#0284c7', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <Waves size={24} />
+            </div>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '12px' }}>AC & DC Sweeps</h3>
+            <p style={{ color: C.textSecondary, lineHeight: 1.6 }}>Sweep frequency ranges for Bode plots, or sweep DC voltages to analyze transistor characteristics and I-V curves instantly.</p>
+          </div>
+
+          {/* Bento Item 4 */}
+          <div style={{
+            backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`,
+            transition: 'transform 0.3s, box-shadow 0.3s', cursor: 'default',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+          }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}>
+            <div style={{ width: 48, height: 48, backgroundColor: '#fef3c7', color: '#d97706', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <Layers size={24} />
+            </div>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '12px' }}>Extensive Library</h3>
+            <p style={{ color: C.textSecondary, lineHeight: 1.6 }}>From basic RLC components to complex Transformers, Op-Amps, MOSFETs, and Diodes. Build exactly what you need without limitations.</p>
+          </div>
+
+          {/* Bento Item 5: Double Width */}
+          <div style={{
+            backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`,
+            gridColumn: 'auto / span 2', display: 'flex', gap: '24px', alignItems: 'center',
+            transition: 'transform 0.3s, box-shadow 0.3s', cursor: 'default',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+          }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ width: 48, height: 48, backgroundColor: C.primaryLight, color: C.primary, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                <MousePointer2 size={24} />
+              </div>
+              <h3 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '12px' }}>Drag & Drop Interface</h3>
+              <p style={{ color: C.textSecondary, lineHeight: 1.6, fontSize: '1.1rem' }}>
+                Say goodbye to clunky 90s interfaces. MultiSimLab offers a sleek, intuitive drag-and-drop schematic canvas that snaps to grid and makes wiring a breeze.
+              </p>
+            </div>
+            <div style={{ flex: 1, backgroundColor: '#f1f5f9', borderRadius: 16, height: '100%', minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #cbd5e1' }}>
+              <span style={{ color: '#94a3b8', fontWeight: 600 }}>Interactive Canvas Preview</span>
+            </div>
+          </div>
+
+          {/* Bento Item 6 */}
+          <div style={{
+            backgroundColor: '#111827', color: '#fff', padding: '32px', borderRadius: 24,
+            transition: 'transform 0.3s, box-shadow 0.3s', cursor: 'default',
+            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)'
+          }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}>
+            <div style={{ width: 48, height: 48, backgroundColor: '#374151', color: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <Code size={24} />
+            </div>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '12px' }}>Raw Netlists</h3>
+            <p style={{ color: '#9ca3af', lineHeight: 1.6 }}>The 'Code' panel updates your raw SPICE netlist in real-time as you draw, allowing you to learn the underlying engine.</p>
+          </div>
+
         </div>
 
-        {/* Feature 3 */}
-        <div className="feature-card">
-          <div className="feature-icon"><Activity size={24} /></div>
-          <h3>Interactive Grapher & Oscilloscope</h3>
-          <p>Visualize voltage and current with our built-in split-screen graphing tool. Drop interactive probes onto wires to instantly plot waveforms, zoom into microsecond details, and analyze frequency responses.</p>
+        {/* CTA */}
+        <div style={{ textAlign: 'center', marginTop: 80 }}>
+          <button 
+            onClick={() => navigate('/simulator')}
+            style={{
+              backgroundColor: C.primary, color: '#fff', padding: '16px 40px',
+              borderRadius: '50px', fontSize: '1.25rem', fontWeight: 700,
+              border: 'none', cursor: 'pointer', boxShadow: '0 10px 20px -5px rgba(22,163,74,0.4)',
+              transition: 'transform 0.2s, box-shadow 0.2s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 25px -5px rgba(22,163,74,0.5)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(22,163,74,0.4)'; }}
+          >
+            Start Simulating Free
+          </button>
         </div>
 
-        {/* Feature 4 */}
-        <div className="feature-card">
-          <div className="feature-icon"><Download size={24} /></div>
-          <h3>Export Graphs & Netlists</h3>
-          <p>Need data for a university lab report? Export your waveform data directly to CSV format. You can also view and export the raw SPICE Netlist to integrate with external desktop tools seamlessly.</p>
-        </div>
-
-        {/* Feature 5 */}
-        <div className="feature-card">
-          <div className="feature-icon"><Share2 size={24} /></div>
-          <h3>Cloud Save & Share Links</h3>
-          <p>Collaboration made easy. Click "Share" to generate a unique URL containing your fully compressed schematic. Send it to peers, students, or professors so they can instantly view and simulate your design.</p>
-        </div>
-
-        {/* Feature 6 */}
-        <div className="feature-card">
-          <div className="feature-icon"><FileCode size={24} /></div>
-          <h3>Local JSON Backups</h3>
-          <p>Maintain total ownership of your work. Save your circuit designs as lightweight JSON files directly to your local hard drive, and load them back into the simulator anytime, even offline.</p>
-        </div>
-
-      </section>
-
-      {/* SEO KEYWORDS (Hidden from UI but present in DOM for crawlers if needed, though best integrated into text. Integrated heavily above.) */}
+      </div>
     </div>
   );
 }

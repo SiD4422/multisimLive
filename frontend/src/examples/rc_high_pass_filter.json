@@ -1,8 +1,8 @@
 {
   "components": [
     { "id": "V1", "type": "ACSource", "position": { "x": 100, "y": 150 }, "value": "1V 1kHz", "rotation": 90 },
-    { "id": "R1", "type": "Resistor", "position": { "x": 150, "y": 150 }, "value": "1k", "rotation": 0 },
-    { "id": "C1", "type": "Capacitor", "position": { "x": 280, "y": 150 }, "value": "1u", "rotation": 90 },
+    { "id": "C1", "type": "Capacitor", "position": { "x": 150, "y": 150 }, "value": "1u", "rotation": 0 },
+    { "id": "R1", "type": "Resistor", "position": { "x": 280, "y": 150 }, "value": "1k", "rotation": 90 },
     { "id": "G1", "type": "Ground", "position": { "x": 100, "y": 280 }, "rotation": 0 },
     { "id": "G2", "type": "Ground", "position": { "x": 280, "y": 280 }, "rotation": 0 }
   ],
@@ -18,5 +18,5 @@
   "scale": 1,
   "stagePos": { "x": 0, "y": 0 },
   "analysisMode": "ac",
-  "acSettings": { "fStart": "1", "fStop": "100k", "points": "100" }
+  "acSettings": { "fStart": "10", "fStop": "1Meg", "points": "100" }
 }

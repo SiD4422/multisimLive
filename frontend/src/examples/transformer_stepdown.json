@@ -1,0 +1,79 @@
+{
+  "components": [
+    {
+      "id": "V1",
+      "type": "ACSource",
+      "position": { "x": 150, "y": 200 },
+      "value": "120V 60Hz",
+      "rotation": 90
+    },
+    {
+      "id": "TR1",
+      "type": "Transformer1P1S",
+      "position": { "x": 300, "y": 200 },
+      "value": "10:1",
+      "rotation": 0
+    },
+    {
+      "id": "R1",
+      "type": "Resistor",
+      "position": { "x": 500, "y": 200 },
+      "value": "100",
+      "rotation": 90
+    },
+    {
+      "id": "G1",
+      "type": "Ground",
+      "position": { "x": 150, "y": 290 },
+      "rotation": 0
+    },
+    {
+      "id": "G2",
+      "type": "Ground",
+      "position": { "x": 500, "y": 290 },
+      "rotation": 0
+    }
+  ],
+  "wires": [
+    {
+      "id": "W1",
+      "points": [
+        { "x": 150, "y": 200 },
+        { "x": 150, "y": 155 },
+        { "x": 300, "y": 155 }
+      ]
+    },
+    {
+      "id": "W2",
+      "points": [
+        { "x": 150, "y": 290 },
+        { "x": 300, "y": 290 },
+        { "x": 300, "y": 245 }
+      ]
+    },
+    {
+      "id": "W3",
+      "points": [
+        { "x": 390, "y": 155 },
+        { "x": 500, "y": 155 },
+        { "x": 500, "y": 200 }
+      ]
+    },
+    {
+      "id": "W4",
+      "points": [
+        { "x": 390, "y": 245 },
+        { "x": 500, "y": 245 },
+        { "x": 500, "y": 290 }
+      ]
+    }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 150, "y": 200 }, "type": "Voltage" },
+    { "id": "PRB2", "position": { "x": 500, "y": 200 }, "type": "Voltage" }
+  ],
+  "scale": 0.8,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": { "endTime": "50m", "step": "0.1m" }
+}

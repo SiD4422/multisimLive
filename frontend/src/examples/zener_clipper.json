@@ -1,0 +1,23 @@
+{
+  "components": [
+    { "id": "V1", "type": "ACSource", "position": { "x": 100, "y": 100 }, "value": "5V 1kHz", "rotation": 90 },
+    { "id": "R1", "type": "Resistor", "position": { "x": 190, "y": 100 }, "value": "1k", "rotation": 0 },
+    { "id": "D1", "type": "DiodeZener", "position": { "x": 320, "y": 190 }, "value": "5.1V", "rotation": 270 },
+    { "id": "G1", "type": "Ground", "position": { "x": 100, "y": 200 }, "rotation": 0 },
+    { "id": "G2", "type": "Ground", "position": { "x": 320, "y": 200 }, "rotation": 0 }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 100, "y": 100 }, { "x": 190, "y": 100 }] },
+    { "id": "W2", "points": [{ "x": 280, "y": 100 }, { "x": 320, "y": 100 }] },
+    { "id": "W3", "points": [{ "x": 100, "y": 190 }, { "x": 100, "y": 200 }] },
+    { "id": "W4", "points": [{ "x": 320, "y": 190 }, { "x": 320, "y": 200 }] }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 100, "y": 100 }, "type": "Voltage" },
+    { "id": "PRB2", "position": { "x": 320, "y": 100 }, "type": "Voltage" }
+  ],
+  "scale": 1,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": { "endTime": "5m", "step": "0.01m" }
+}

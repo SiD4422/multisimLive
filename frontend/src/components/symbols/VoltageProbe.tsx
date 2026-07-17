@@ -19,20 +19,26 @@ export const VoltageProbe: React.FC<VoltageProbeProps> = ({ id, position }) => {
   let valueDisplay = "V: --";
   
   if (simulationBuffer && simulationBuffer.length > 0) {
-    // Find the current point based on playbackTime
-    const activeData = simulationBuffer.filter((row: any) => row.time <= playbackTime);
-    const lastPoint = activeData.length > 0 ? activeData[activeData.length - 1] : simulationBuffer[0];
+    const isAc = (simulationBuffer as any).__plotType === 'ac';
     
-    const key1 = `v(${spiceNode})`;
-    const key2 = `V(${spiceNode})`;
-    if (lastPoint[key1] !== undefined) {
-      const val = lastPoint[key1];
-      valueDisplay = `V: ${val.toFixed(3)} V`;
-    } else if (lastPoint[key2] !== undefined) {
-      const val = lastPoint[key2];
-      valueDisplay = `V: ${val.toFixed(3)} V`;
-    } else if (spiceNode === '0') {
-      valueDisplay = "V: 0.000 V";
+    if (isAc) {
+      valueDisplay = "V: (AC)";
+    } else {
+      // Find the current point based on playbackTime
+      const activeData = simulationBuffer.filter((row: any) => row.time <= playbackTime);
+      const lastPoint = activeData.length > 0 ? activeData[activeData.length - 1] : simulationBuffer[0];
+      
+      const key1 = `v(${spiceNode})`;
+      const key2 = `V(${spiceNode})`;
+      if (lastPoint[key1] !== undefined) {
+        const val = lastPoint[key1];
+        valueDisplay = `V: ${val.toFixed(3)} V`;
+      } else if (lastPoint[key2] !== undefined) {
+        const val = lastPoint[key2];
+        valueDisplay = `V: ${val.toFixed(3)} V`;
+      } else if (spiceNode === '0') {
+        valueDisplay = "V: 0.000 V";
+      }
     }
   } else if (spiceNode === '0') {
     valueDisplay = "V: 0.000 V"; // Ground is always 0

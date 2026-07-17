@@ -227,9 +227,9 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
-    const dx2 = 37.5; // 25 * 1.5
-    const dy2 = -30;  // -20 * 1.5
-    const dy3 = 30;   // 20 * 1.5
+    const dx2 = 57;   // 38 * 1.5
+    const dy2 = -45;  // -30 * 1.5
+    const dy3 = 45;   // 30 * 1.5
     return [
       { id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } }, // Base/Gate
       { id: '2', gridNode: toGridNode({ x: comp.position.x + dx2*cos - dy2*sin, y: comp.position.y + dx2*sin + dy2*cos }), p: { x: comp.position.x + dx2*cos - dy2*sin, y: comp.position.y + dx2*sin + dy2*cos } }, // Collector/Drain
@@ -241,9 +241,9 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
-    const dx2 = 37.5; // 25 * 1.5
-    const dy2 = -30;  // -20 * 1.5
-    const dy3 = 30;   // 20 * 1.5
+    const dx2 = 57;   // 38 * 1.5
+    const dy2 = -45;  // -30 * 1.5
+    const dy3 = 45;   // 30 * 1.5
     return [
       { id: '1', gridNode: toGridNode({ x: comp.position.x + dx2*cos - dy2*sin, y: comp.position.y + dx2*sin + dy2*cos }), p: { x: comp.position.x + dx2*cos - dy2*sin, y: comp.position.y + dx2*sin + dy2*cos } }, // Collector
       { id: '2', gridNode: toGridNode({ x: comp.position.x + dx2*cos - dy3*sin, y: comp.position.y + dx2*sin + dy3*cos }), p: { x: comp.position.x + dx2*cos - dy3*sin, y: comp.position.y + dx2*sin + dy3*cos } } // Emitter
@@ -816,23 +816,44 @@ export function generateNetlist(components: SchematicComponent[], wires: Wire[],
       const val = (comp.value || "1mH").replace('H', '');
       netlist += `L_${comp.id} ${nodes[0]} ${nodes[1]} ${val}\n`;
     }
-    else if (comp.type === 'Diode') {
-      const val = comp.value || "1N4148";
-      netlist += `D_${comp.id} ${nodes[0]} ${nodes[1]} ${val}\n`;
-      models.add(`.model 1N4148 D (IS=2.52n RS=0.568 N=1.752 CJO=4p M=0.4 tt=20n IKF=54.5m BV=100 IBV=100u)`);
-    }
+      else if (comp.type === 'Diode') {
+        const rawVal = (comp.value || "1N4148").toUpperCase();
+        
+        const diodeModels: Record<string, string> = {
+          '1N4148': '.model 1N4148 D (IS=2.52n RS=0.568 N=1.752 CJO=4p M=0.4 tt=20n IKF=54.5m BV=100 IBV=100u)',
+          '1N4001': '.model 1N4001 D (IS=14.11n RS=0.0336 N=1.98 CJO=51.17p M=0.2762 VJ=0.3905 tt=4.761u BV=50 IBV=10u)',
+          '1N4004': '.model 1N4004 D (IS=14.11n RS=0.0336 N=1.98 CJO=51.17p M=0.2762 VJ=0.3905 tt=4.761u BV=400 IBV=10u)',
+          '1N4007': '.model 1N4007 D (IS=14.11n RS=0.0336 N=1.98 CJO=51.17p M=0.2762 VJ=0.3905 tt=4.761u BV=1000 IBV=10u)'
+        };
+        
+        const modelKey = Object.keys(diodeModels).find(k => rawVal.includes(k)) || '1N4148';
+        const usedModelName = modelKey;
+        const modelDef = diodeModels[modelKey] || diodeModels['1N4148'];
+
+        netlist += `D_${comp.id} ${nodes[0]} ${nodes[1]} ${usedModelName}\n`;
+        models.add(modelDef);
+      }
     else if (comp.type === 'TransistorNPN') {
-      // Q_NPN_BCE pins: 1=B, 2=C, 3=E in KiCad ? Wait, let's look at pins:
-      // Typically SPICE expects: Qname C B E model
-      // In KiCad Q_NPN_BCE: pin1=B, pin2=C, pin3=E. Let's assume order from KiCad is B, C, E.
-      // So SPICE expects nodes: C(1) B(0) E(2)
-      const cNode = nodes[1] || '0';
-      const bNode = nodes[0] || '0';
-      const eNode = nodes[2] || '0';
-      const val = comp.value || "2N3904";
-      netlist += `Q_${comp.id} ${cNode} ${bNode} ${eNode} ${val}\n`;
-      models.add(`.model 2N3904 NPN (IS=1E-14 VAF=100 BF=300 IKF=0.4 XTB=1.5 BR=4 CJC=4E-12 CJE=8E-12 TR=250E-9 TF=350E-12 ITF=1 VTF=2 XTF=3)`);
-    }
+        const cNode = nodes[1] || '0';
+        const bNode = nodes[0] || '0';
+        const eNode = nodes[2] || '0';
+        const rawVal = (comp.value || '2N3904').toUpperCase();
+        
+        const npnModels: Record<string, string> = {
+          '2N3904': '.model 2N3904 NPN (IS=1E-14 VAF=100 BF=300 IKF=0.4 XTB=1.5 BR=4 CJC=4E-12 CJE=8E-12 TR=250E-9 TF=350E-12 ITF=1 VTF=2 XTF=3)',
+          'BC547':  '.model BC547 NPN (IS=1.8E-14 VAF=80 BF=400 IKF=0.1 XTB=1.5 BR=4 CJC=4E-12 CJE=8E-12 TR=250E-9 TF=350E-12)',
+          'BC548':  '.model BC548 NPN (IS=1.8E-14 VAF=80 BF=400 IKF=0.1 XTB=1.5 BR=4 CJC=4E-12 CJE=8E-12 TR=250E-9 TF=350E-12)',
+          'BC549':  '.model BC549 NPN (IS=1.8E-14 VAF=80 BF=500 IKF=0.1 XTB=1.5 BR=4 CJC=4E-12 CJE=8E-12 TR=250E-9 TF=350E-12)',
+          '2N2222': '.model 2N2222 NPN (IS=1E-14 VAF=74 BF=400 IKF=0.3 XTB=1.5 BR=6 CJC=8E-12 CJE=25E-12 TR=10E-9 TF=0.5E-9)'
+        };
+        
+        const modelKey = Object.keys(npnModels).find(k => rawVal.includes(k)) || '2N3904';
+        const usedModelName = modelKey;
+        const modelDef = npnModels[modelKey] || npnModels['2N3904'];
+        
+        netlist += `Q_${comp.id} ${cNode} ${bNode} ${eNode} ${usedModelName}\n`;
+        models.add(modelDef);
+      }
     else if (comp.type === 'SwitchSPST') {
       const isClosed = comp.value !== 'Open';
       const rVal = isClosed ? '1m' : '1G';
@@ -1432,3 +1453,5 @@ export function getSpiceNodeForPoint(p: Point, components: SchematicComponent[],
   if (netIndex !== -1) return netIdMap.get(netIndex) ?? `NC_${gridNode.replace(',', '_')}`;
   return `NC_${gridNode.replace(',', '_')}`;
 }
+
+// Trigger HMR 2

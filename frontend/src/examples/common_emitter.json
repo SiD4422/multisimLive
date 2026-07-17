@@ -1,0 +1,29 @@
+{
+  "components": [
+    { "id": "Vcc", "type": "DCSource",      "position": { "x": 80,  "y": 100 }, "value": "12V",      "rotation": 90 },
+    { "id": "Vin", "type": "ACSource",      "position": { "x": 80,  "y": 250 }, "value": "10mV 1kHz","rotation": 90 },
+    { "id": "C1",  "type": "Capacitor",     "position": { "x": 130, "y": 250 }, "value": "10uF",     "rotation": 0 },
+    { "id": "RB",  "type": "Resistor",      "position": { "x": 250, "y": 140 }, "value": "1Meg",     "rotation": 90 },
+    { "id": "RC",  "type": "Resistor",      "position": { "x": 337, "y": 80 },  "value": "1.5k",     "rotation": 90 },
+    { "id": "Q1",  "type": "TransistorNPN", "position": { "x": 280, "y": 250 }, "value": "2N3904",   "rotation": 0 },
+    { "id": "G1",  "type": "Ground",        "position": { "x": 80,  "y": 190 }, "rotation": 0 },
+    { "id": "G2",  "type": "Ground",        "position": { "x": 80,  "y": 340 }, "rotation": 0 },
+    { "id": "G3",  "type": "Ground",        "position": { "x": 337, "y": 295 }, "rotation": 0 }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 80, "y": 100 }, { "x": 80, "y": 40 }, { "x": 337, "y": 40 }, { "x": 337, "y": 80 }] },
+    { "id": "W_BIAS_TOP", "points": [{ "x": 250, "y": 140 }, { "x": 250, "y": 40 }] },
+    { "id": "W_BIAS_BOT", "points": [{ "x": 250, "y": 230 }, { "x": 250, "y": 250 }] },
+    { "id": "W2", "points": [{ "x": 80, "y": 250 }, { "x": 130, "y": 250 }] },
+    { "id": "W3", "points": [{ "x": 220, "y": 250 }, { "x": 280, "y": 250 }] },
+    { "id": "W4", "points": [{ "x": 337, "y": 170 }, { "x": 337, "y": 205 }] }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 80,  "y": 250 }, "type": "Voltage" },
+    { "id": "PRB2", "position": { "x": 337, "y": 205 }, "type": "Voltage" }
+  ],
+  "scale": 1.0,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": { "endTime": "5m", "step": "0.01m" }
+}

@@ -291,12 +291,19 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope }: {
 
 // ── ErrorView ─────────────────────────────────────────────────────────────────
 
-function BodePlot({ data, traces, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB }: { 
-  data: any[]; traces: string[]; isOscilloscope: boolean;
+function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB }: { 
+  data: any[]; traces: string[]; probeMap: Record<string, string>; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: any; setCursorA: any; cursorB: any; setCursorB: any;
 }) {
   const dbTraces = traces.filter(t => t.endsWith('_db'));
   const phaseTraces = traces.filter(t => t.endsWith('_phase'));
+
+  const getDisplayName = (name: string) => {
+    const baseName = name.replace(/_db$|_phase$/, '');
+    // Try to find the original mapped probe name
+    const pk = Object.keys(probeMap).find(k => k.toLowerCase().includes(baseName.toLowerCase()) || baseName.toLowerCase().includes(k.toLowerCase()));
+    return pk ? probeMap[pk] : formatTraceName(baseName);
+  };
 
   const commonChartProps = {
     data,
@@ -335,7 +342,7 @@ function BodePlot({ data, traces, isOscilloscope, isCursorMode, cursorA, setCurs
             <YAxis label={{ value: 'dB', angle: -90, position: 'insideLeft', fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
             <Tooltip
               labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
-              formatter={(val: any, name: any) => [fmtNum(val as number) + ' dB', (name as string).replace('_db', '')]}
+              formatter={(val: any, name: any) => [fmtNum(val as number) + ' dB', name]}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
@@ -357,7 +364,7 @@ function BodePlot({ data, traces, isOscilloscope, isCursorMode, cursorA, setCurs
               );
             })()}
             {dbTraces.map((t, i) => (
-              <Line key={t} name={t.replace('_db', '')} type="monotone" dataKey={t}
+              <Line key={t} name={getDisplayName(t)} type="monotone" dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} style={isOscilloscope ? { filter: `drop-shadow(0px 0px 4px ${colors[i % colors.length]})` } : undefined} />
             ))}
           </LineChart>
@@ -376,14 +383,14 @@ function BodePlot({ data, traces, isOscilloscope, isCursorMode, cursorA, setCurs
             <YAxis label={{ value: 'Phase (°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
             <Tooltip
               labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
-              formatter={(val: any, name: any) => [fmtNum(val as number) + '°', (name as string).replace('_phase', '')]}
+              formatter={(val: any, name: any) => [fmtNum(val as number) + '°', name]}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
             {isCursorMode && cursorA && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {phaseTraces.map((t, i) => (
-              <Line key={t} name={t.replace('_phase', '') + ' phase'} type="monotone" dataKey={t}
+              <Line key={t} name={getDisplayName(t) + ' phase'} type="monotone" dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} strokeDasharray="5 3" isAnimationActive={false} style={isOscilloscope ? { filter: `drop-shadow(0px 0px 4px ${colors[i % colors.length]})` } : undefined} />
             ))}
           </LineChart>
@@ -632,6 +639,9 @@ export default function Grapher() {
     if (formattedData.length === 0) return { traces: [], sweepKey: 'time' };
 
     const allKeys = Object.keys(formattedData[0]);
+    console.log('GRAPHER DATA KEYS:', allKeys);
+    console.log('GRAPHER DATA [0]:', formattedData[0]);
+
     const plotType = (simulationBuffer as any)?.__plotType || 'transient';
 
     if (plotType === 'ac') {
@@ -641,8 +651,11 @@ export default function Grapher() {
       // Filter to probed nodes only if probes placed
       if (probes.length > 0) {
         const probedDbKeys = dbKeys.filter(k => {
-          const baseName = k.replace('_db', '');
-          return Object.keys(probeMap).some(pk => pk.includes(baseName) || baseName.includes(pk));
+          const baseName = k.replace('_db', '').toLowerCase();
+          return Object.keys(probeMap).some(pk => {
+            const pkl = pk.toLowerCase();
+            return pkl.includes(baseName) || baseName.includes(pkl);
+          });
         });
         if (probedDbKeys.length > 0) {
           const probedPhaseKeys = probedDbKeys.map(k => k.replace('_db', '_phase')).filter(k => phaseKeys.includes(k));
@@ -695,7 +708,7 @@ export default function Grapher() {
       <FftPlot simulationBuffer={simulationBuffer!} traces={traces} isOscilloscope={isOscilloscope} />
     );
   } else if (plotType === 'ac') {
-    PlotComponent = <BodePlot data={formattedData} traces={traces} isOscilloscope={isOscilloscope} {...cursorProps} />;
+    PlotComponent = <BodePlot data={formattedData} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} {...cursorProps} />;
   } else if (plotType === 'dc') {
     PlotComponent = <DcSweepPlot data={formattedData} traces={traces} sweepKey={sweepKey} isOscilloscope={isOscilloscope} {...cursorProps} />;
   } else {

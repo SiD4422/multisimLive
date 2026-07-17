@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
 /* ============================================================
    MultiSimLab Design System — v2.0
    ============================================================
@@ -9,7 +10,7 @@
    - Unified color palette with semantic meaning
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
+
 
 /* ── Design Tokens ─────────────────────────────────────────── */
 :root {
@@ -690,3 +691,5 @@ body {
 
 .animate-fadeIn     { animation: fadeIn 0.15s ease; }
 .animate-slideInRight { animation: slideInRight 0.15s ease; }
+
+

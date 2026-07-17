@@ -248,7 +248,10 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
 
   importState: (jsonStr) => {
     try {
-      const data = JSON.parse(jsonStr);
+      let data = JSON.parse(jsonStr);
+      if (data && data.default) {
+        data = data.default;
+      }
       set({
         components: data.components || [],
         wires: data.wires || [],
@@ -405,8 +408,8 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
       } else if (analysisMode === 'op') {
         analysisCmd = `.op`;
       } else {
-        // Default transient (uic forces SPICE to skip initial DC operating point so oscillators can start)
-        analysisCmd = `.tran ${transientSettings.step} ${transientSettings.endTime} uic`;
+        // Default transient (without uic so SPICE calculates initial DC operating point, crucial for amplifiers)
+        analysisCmd = `.tran ${transientSettings.step} ${transientSettings.endTime}`;
       }
       netlist = netlist.replace(/^\.tran .+$/m, analysisCmd);
       // If no .tran was found, append the analysis command before .end

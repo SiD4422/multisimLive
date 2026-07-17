@@ -19,26 +19,31 @@ export const CurrentProbe: React.FC<CurrentProbeProps> = ({ id, position }) => {
   let currentDisplay = "A: --";
   
   if (simulationBuffer && simulationBuffer.length > 0) {
-    const activeData = simulationBuffer.filter((row: any) => row.time <= playbackTime);
-    const lastPoint = activeData.length > 0 ? activeData[activeData.length - 1] : simulationBuffer[0];
-    
-    // Try all key variants
-    const val = lastPoint[currentKey1] ?? lastPoint[currentKey2] ?? lastPoint[currentKey3];
-    if (val !== undefined) {
-      // Show absolute value of current with correct unit
-      const absVal = Math.abs(val);
-      if (absVal === 0) {
-        currentDisplay = `A: 0.000 A`;
-      } else if (absVal >= 1 || absVal === 0) {
-        currentDisplay = `A: ${val.toFixed(4)} A`;
-      } else if (absVal >= 0.001) {
-        currentDisplay = `A: ${(val * 1000).toFixed(3)} mA`;
-      } else {
-        currentDisplay = `A: ${val.toExponential(3)} A`;
-      }
+    const isAc = (simulationBuffer as any).__plotType === 'ac';
+    if (isAc) {
+      currentDisplay = "A: (AC)";
     } else {
-      // Debug: log all available keys so we can see what ngspice actually returned
-      console.log('[CurrentProbe] Available keys:', Object.keys(lastPoint), 'Looking for:', currentKey1);
+      const activeData = simulationBuffer.filter((row: any) => row.time <= playbackTime);
+      const lastPoint = activeData.length > 0 ? activeData[activeData.length - 1] : simulationBuffer[0];
+      
+      // Try all key variants
+      const val = lastPoint[currentKey1] ?? lastPoint[currentKey2] ?? lastPoint[currentKey3];
+      if (val !== undefined) {
+        // Show absolute value of current with correct unit
+        const absVal = Math.abs(val);
+        if (absVal === 0) {
+          currentDisplay = `A: 0.000 A`;
+        } else if (absVal >= 1 || absVal === 0) {
+          currentDisplay = `A: ${val.toFixed(4)} A`;
+        } else if (absVal >= 0.001) {
+          currentDisplay = `A: ${(val * 1000).toFixed(3)} mA`;
+        } else {
+          currentDisplay = `A: ${val.toExponential(3)} A`;
+        }
+      } else {
+        // Debug: log all available keys so we can see what ngspice actually returned
+        console.log('[CurrentProbe] Available keys:', Object.keys(lastPoint), 'Looking for:', currentKey1);
+      }
     }
   }
 

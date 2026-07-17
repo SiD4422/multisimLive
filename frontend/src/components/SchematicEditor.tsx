@@ -429,10 +429,10 @@ export default function SchematicEditor() {
   const paperY = -PAPER_HEIGHT / 2;
 
   for (let i = paperY; i <= paperY + PAPER_HEIGHT; i += VISUAL_GRID) {
-    gridLines.push(<Line key={`h${i}`} points={[paperX, i, paperX + PAPER_WIDTH, i]} stroke={i % (VISUAL_GRID * 5) === 0 ? "#e5e7eb" : "#f8fafc"} strokeWidth={i % (VISUAL_GRID * 5) === 0 ? 1.5 : 1} />);
+    gridLines.push(<Line key={`h${i}`} points={[paperX, i, paperX + PAPER_WIDTH, i]} stroke={i % (VISUAL_GRID * 5) === 0 ? "#cbd5e1" : "#e2e8f0"} strokeWidth={i % (VISUAL_GRID * 5) === 0 ? 1.5 : 1} />);
   }
   for (let i = paperX; i <= paperX + PAPER_WIDTH; i += VISUAL_GRID) {
-    gridLines.push(<Line key={`v${i}`} points={[i, paperY, i, paperY + PAPER_HEIGHT]} stroke={i % (VISUAL_GRID * 5) === 0 ? "#e5e7eb" : "#f8fafc"} strokeWidth={i % (VISUAL_GRID * 5) === 0 ? 1.5 : 1} />);
+    gridLines.push(<Line key={`v${i}`} points={[i, paperY, i, paperY + PAPER_HEIGHT]} stroke={i % (VISUAL_GRID * 5) === 0 ? "#cbd5e1" : "#e2e8f0"} strokeWidth={i % (VISUAL_GRID * 5) === 0 ? 1.5 : 1} />);
   }
 
   const previewPath = getPreviewPoints();
@@ -705,7 +705,7 @@ export default function SchematicEditor() {
               y={paperY} 
               width={PAPER_WIDTH} 
               height={PAPER_HEIGHT} 
-              fill="#ffffff" 
+              fill="#fbfaf6" 
               shadowColor="#000"
               shadowBlur={10}
               shadowOpacity={0.15}
@@ -843,7 +843,7 @@ export default function SchematicEditor() {
                   innerRadius={0}
                   outerRadius={6}
                   angle={180}
-                  rotationDeg={180}
+                  rotation={180}
                   stroke="#dc2626"
                   strokeWidth={2}
                   fill="transparent"

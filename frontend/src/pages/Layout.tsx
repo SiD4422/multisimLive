@@ -28,7 +28,7 @@ export default function Layout() {
           <Link to="/features" className="nav-link" onClick={closeMenu}>Features</Link>
           <Link to="/circuits" className="nav-link" onClick={closeMenu}>Circuits</Link>
           <Link to="/procedure" className="nav-link" onClick={closeMenu}>Procedure</Link>
-          <button className="nav-link" onClick={() => { closeMenu(); alert('Help & Resources coming soon!'); }}>Resources</button>
+          <Link to="/resources" className="nav-link" onClick={closeMenu}>Resources</Link>
           
           <Link to="/simulator" className="cta-button" onClick={closeMenu}>
             Launch Simulator

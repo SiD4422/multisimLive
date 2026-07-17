@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage';
 import FeaturesPage from './pages/FeaturesPage';
 import CircuitsPage from './pages/CircuitsPage';
 import ProcedurePage from './pages/ProcedurePage';
+import ResourcesPage from './pages/ResourcesPage';
 import Simulator from './pages/Simulator';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/circuits" element={<CircuitsPage />} />
           <Route path="/procedure" element={<ProcedurePage />} />
+          <Route path="/resources" element={<ResourcesPage />} />
         </Route>
         
         {/* Isolated Fullscreen Simulator */}

@@ -1,0 +1,23 @@
+{
+  "components": [
+    { "id": "V1", "type": "DCSource", "position": { "x": 100, "y": 100 }, "value": "12V", "rotation": 90 },
+    { "id": "R1", "type": "Resistor", "position": { "x": 200, "y": 100 }, "value": "10k", "rotation": 90 },
+    { "id": "R2", "type": "Resistor", "position": { "x": 200, "y": 200 }, "value": "5k", "rotation": 90 },
+    { "id": "G1", "type": "Ground", "position": { "x": 100, "y": 200 }, "rotation": 0 },
+    { "id": "G2", "type": "Ground", "position": { "x": 200, "y": 300 }, "rotation": 0 }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 100, "y": 100 }, { "x": 200, "y": 100 }] },
+    { "id": "W2", "points": [{ "x": 100, "y": 190 }, { "x": 100, "y": 200 }] },
+    { "id": "W3", "points": [{ "x": 200, "y": 190 }, { "x": 200, "y": 200 }] },
+    { "id": "W4", "points": [{ "x": 200, "y": 290 }, { "x": 200, "y": 300 }] }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 100, "y": 100 }, "type": "Voltage" },
+    { "id": "PRB2", "position": { "x": 200, "y": 190 }, "type": "Voltage" }
+  ],
+  "scale": 1,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "dc",
+  "dcSettings": { "source": "V_V1", "start": "0", "stop": "12", "step": "0.1" }
+}

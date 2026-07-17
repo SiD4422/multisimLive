@@ -24,7 +24,7 @@ async function initNgspice() {
   initPromise = new Promise(async (resolve, reject) => {
     try {
       ngspiceInstance = await createNgspiceModule({
-        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@o.z/ngspice-wasm@0.0.0/${file}`,
+        locateFile: (file: string) => `/${file}`,
         print: (text: string) => console.log('[SPICE Worker]', text),
         printErr: (text: string) => {
           console.error('[SPICE Worker ERR]', text);
@@ -63,8 +63,8 @@ function parseRawFile(rawStr: string): any[] {
 
     if (line.startsWith('Plotname:')) {
       const pn = line.split(':')[1].trim().toLowerCase();
-      if (pn.includes('ac') || pn.includes('frequency')) plotType = 'ac';
-      else if (pn.includes('dc')) plotType = 'dc';
+      if (pn.includes('ac analysis') || pn.includes('frequency')) plotType = 'ac';
+      else if (pn.includes('dc transfer characteristic') || pn.includes('dc')) plotType = 'dc';
       else if (pn.includes('operating point')) plotType = 'op';
       else plotType = 'transient';
     }
@@ -98,12 +98,13 @@ function parseRawFile(rawStr: string): any[] {
         } else {
           pointData[xVarName] = parseFloat(valStr);
         }
+        pointData.__parsedVars = 1;
         data.push(pointData);
       } else {
         const currentData = data[data.length - 1];
         if (!currentData) continue;
 
-        const currentVarIndex = Object.keys(currentData).length;
+        const currentVarIndex = currentData.__parsedVars || 1;
 
         if (isComplex && line.includes(',')) {
           const varDef = variables[currentVarIndex];
@@ -118,12 +119,14 @@ function parseRawFile(rawStr: string): any[] {
             currentData[`${safeName}_db`] = db;
             currentData[`${safeName}_phase`] = phase;
             currentData[`${safeName}_mag`] = magnitude;
+            currentData.__parsedVars++;
           }
         } else {
           parts.forEach((val) => {
-            const idx = Object.keys(currentData).length;
+            const idx = currentData.__parsedVars || 1;
             if (idx < variables.length) {
               currentData[variables[idx].name] = parseFloat(val);
+              currentData.__parsedVars = idx + 1;
             }
           });
         }
@@ -257,6 +260,10 @@ self.addEventListener('message', async (e: MessageEvent) => {
     }
 
     const data = parseRawFile(outputRaw);
+
+    if (data.length === 0) {
+      throw new Error("Simulation produced no data points. The circuit might have a floating node, missing Ground, or a singular matrix.");
+    }
 
     // Pass back to main thread
     self.postMessage({ id, type: 'SUCCESS', data, __plotType: (data as any).__plotType, __isComplex: (data as any).__isComplex, __variables: (data as any).__variables });

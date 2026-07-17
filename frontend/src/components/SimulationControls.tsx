@@ -7,6 +7,7 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
   const isPlaying = useSchematicStore(state => state.isPlaying);
   const playbackTime = useSchematicStore(state => state.playbackTime);
   const playbackSpeed = useSchematicStore(state => state.playbackSpeed);
+  const analysisMode = useSchematicStore(state => state.analysisMode);
   const simulationBuffer = useSchematicStore(state => state.simulationBuffer);
   const runSimulation = useSchematicStore(state => state.runSimulation);
   const stopSimulation = useSchematicStore(state => state.stopSimulation);
@@ -31,9 +32,8 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
       
       setPlaybackTime(prev => {
         const nextTime = prev + dtSimSec;
-        if (nextTime >= maxTime) {
-          stopSimulation();
-          return maxTime;
+        if (nextTime >= maxTime && maxTime > 0) {
+          return nextTime % maxTime;
         }
         return nextTime;
       });
@@ -101,14 +101,16 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
         )}
       </div>
 
-      {/* Time counter — always visible when simulation data exists */}
-      {hasData && (
-        <div className="text-white font-mono text-base bg-black bg-opacity-40 px-3 py-1 rounded border border-white border-opacity-20 whitespace-nowrap">
-          <span className="text-xs text-gray-300 mr-1">t =</span>
-          {playbackTime >= 1e-3
-            ? `${(playbackTime * 1000).toFixed(3)} ms`
-            : `${(playbackTime * 1e6).toFixed(1)} µs`}
-          <span className="text-gray-400 text-xs ml-1">
+      {/* Time counter - always visible when simulation data exists, but ONLY for transient analysis */}
+      {hasData && analysisMode === 'transient' && (
+        <div className="text-white font-mono text-sm bg-[rgba(0,0,0,0.3)] px-3 py-1.5 rounded-md border border-[rgba(255,255,255,0.1)] whitespace-nowrap ml-2 shadow-inner">
+          <span className="text-[rgba(255,255,255,0.5)] mr-1.5 font-semibold">t =</span>
+          <span className="font-medium">
+            {playbackTime >= 1e-3
+              ? `${(playbackTime * 1000).toFixed(3)} ms`
+              : `${(playbackTime * 1e6).toFixed(1)} µs`}
+          </span>
+          <span className="text-[rgba(255,255,255,0.4)] ml-1.5 font-medium">
             / {maxTime >= 1e-3 ? `${(maxTime * 1000).toFixed(0)} ms` : `${(maxTime * 1e6).toFixed(0)} µs`}
           </span>
         </div>

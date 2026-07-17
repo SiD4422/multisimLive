@@ -1,0 +1,60 @@
+{
+  "components": [
+    {
+      "id": "V1",
+      "type": "PulseVoltage",
+      "position": { "x": 100, "y": 150 },
+      "value": "0 5 1u 1n 1n 0.5m 1m",
+      "rotation": 90
+    },
+    {
+      "id": "R1",
+      "type": "Resistor",
+      "position": { "x": 150, "y": 150 },
+      "value": "10k",
+      "rotation": 0
+    },
+    {
+      "id": "C1",
+      "type": "Capacitor",
+      "position": { "x": 280, "y": 150 },
+      "value": "10n",
+      "rotation": 90
+    },
+    {
+      "id": "G1",
+      "type": "Ground",
+      "position": { "x": 100, "y": 240 },
+      "rotation": 0
+    },
+    {
+      "id": "G2",
+      "type": "Ground",
+      "position": { "x": 280, "y": 240 },
+      "rotation": 0
+    }
+  ],
+  "wires": [
+    {
+      "id": "W1",
+      "points": [
+        { "x": 100, "y": 150 },
+        { "x": 150, "y": 150 }
+      ]
+    },
+    {
+      "id": "W2",
+      "points": [
+        { "x": 240, "y": 150 },
+        { "x": 280, "y": 150 }
+      ]
+    }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 280, "y": 150 }, "type": "Voltage" }
+  ],
+  "scale": 1.0,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": { "endTime": "5m", "step": "0.001m" }
+}
