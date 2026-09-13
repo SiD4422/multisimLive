@@ -510,7 +510,7 @@ function Simulator() {
             <Link to="/" title="Back to Home">
               <Logo style={{ width: '280px', height: '90px', marginTop: '-28px', marginBottom: '-12px' }} />
             </Link>
-            <span style={{ fontSize: '10px' }} className="border border-green-700 text-green-300 px-1.5 py-0 rounded-full ml-1 whitespace-nowrap">Beta Testing</span>
+            <span style={{ fontSize: '10px', transform: 'translateY(-8px)' }} className="border border-green-700 text-green-300 px-1.5 py-0 rounded-full ml-1 whitespace-nowrap">Beta Testing</span>
           </div>
           
           <nav style={{ display: 'flex', gap: '20px', borderLeft: '1px solid #374151', paddingLeft: '20px' }}>
