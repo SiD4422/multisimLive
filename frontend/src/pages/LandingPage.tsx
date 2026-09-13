@@ -82,7 +82,7 @@ export default function LandingPage() {
           </div>
 
           <h1>
-            The Modern<br />
+            Free Online<br />
             <span>Circuit Simulator.</span>
           </h1>
           <p>
