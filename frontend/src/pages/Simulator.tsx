@@ -513,7 +513,7 @@ function Simulator() {
             <span style={{ fontSize: '10px' }} className="border border-green-700 text-green-300 px-1.5 py-0 rounded-full ml-1 whitespace-nowrap">Beta Testing</span>
           </div>
           
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '1px solid #374151', paddingLeft: '20px', height: '30px' }}>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '20px', height: '30px' }}>
              <Link to="/" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Home</Link>
              <Link to="/features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</Link>
              <Link to="/circuits" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Circuits</Link>
