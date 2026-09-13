@@ -1,0 +1,127 @@
+﻿{
+    "components":  [
+                       {
+                           "id":  "V1",
+                           "type":  "ACSource",
+                           "position":  {
+                                            "x":  100,
+                                            "y":  150
+                                        },
+                           "value":  "1V 1kHz",
+                           "rotation":  90
+                       },
+                       {
+                           "id":  "R1",
+                           "type":  "Resistor",
+                           "position":  {
+                                            "x":  150,
+                                            "y":  150
+                                        },
+                           "value":  "1k",
+                           "rotation":  0
+                       },
+                       {
+                           "id":  "C1",
+                           "type":  "Capacitor",
+                           "position":  {
+                                            "x":  280,
+                                            "y":  150
+                                        },
+                           "value":  "1u",
+                           "rotation":  90
+                       },
+                       {
+                           "id":  "G1",
+                           "type":  "Ground",
+                           "position":  {
+                                            "x":  100,
+                                            "y":  280
+                                        },
+                           "rotation":  0
+                       },
+                       {
+                           "id":  "G2",
+                           "type":  "Ground",
+                           "position":  {
+                                            "x":  280,
+                                            "y":  280
+                                        },
+                           "rotation":  0
+                       }
+                   ],
+    "wires":  [
+                  {
+                      "id":  "W1",
+                      "points":  [
+                                     {
+                                         "x":  100,
+                                         "y":  150
+                                     },
+                                     {
+                                         "x":  150,
+                                         "y":  150
+                                     }
+                                 ]
+                  },
+                  {
+                      "id":  "W2",
+                      "points":  [
+                                     {
+                                         "x":  240,
+                                         "y":  150
+                                     },
+                                     {
+                                         "x":  280,
+                                         "y":  150
+                                     }
+                                 ]
+                  },
+                  {
+                      "id":  "W3",
+                      "points":  [
+                                     {
+                                         "x":  100,
+                                         "y":  240
+                                     },
+                                     {
+                                         "x":  100,
+                                         "y":  280
+                                     }
+                                 ]
+                  },
+                  {
+                      "id":  "W4",
+                      "points":  [
+                                     {
+                                         "x":  280,
+                                         "y":  240
+                                     },
+                                     {
+                                         "x":  280,
+                                         "y":  280
+                                     }
+                                 ]
+                  }
+              ],
+    "probes":  [
+                   {
+                       "id":  "PRB1",
+                       "position":  {
+                                        "x":  280,
+                                        "y":  150
+                                    },
+                       "type":  "Voltage"
+                   }
+               ],
+    "scale":  1,
+    "stagePos":  {
+                     "x":  0,
+                     "y":  0
+                 },
+    "analysisMode":  "ac",
+    "acSettings":  {
+                       "fStart":  "1",
+                       "fStop":  "100k",
+                       "points":  "100"
+                   }
+}

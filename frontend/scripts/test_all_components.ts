@@ -3,7 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { componentDescriptions } from '../src/utils/ComponentDescriptions.js';
 import { generateNetlist, getComponentPins } from '../src/utils/netlister.js';
-import { runSpiceSimulation } from '../src/utils/spiceEngine.js';
+// Use the Node.js-compatible WASM runner instead of the browser Web Worker runner
+import { runSpiceSimulationNode as runSpiceSimulation } from './nodeSpiceRunner.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

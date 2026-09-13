@@ -211,12 +211,67 @@ export const componentDescriptions: Record<string, ComponentMetadata> = {
     parameters: "No value needed."
   },
   
+  // Digital Logic
+  DigitalSwitch: {
+    title: "Digital Switch (0/1)",
+    category: "Digital",
+    description: "A logic switch that toggles the output between 0V (Logic LOW) and 5V (Logic HIGH). Clicking the switch flips its state.",
+    parameters: "Set value to '1' for HIGH, or '0' for LOW.",
+    default: "0"
+  },
+  GateAND: { title: "AND Gate", category: "Digital", description: "Outputs HIGH only if all inputs are HIGH. (5V logic)", parameters: "No value needed." },
+  GateOR: { title: "OR Gate", category: "Digital", description: "Outputs HIGH if at least one input is HIGH. (5V logic)", parameters: "No value needed." },
+  GateNOT: { title: "NOT Gate (Inverter)", category: "Digital", description: "Outputs the inverse of the input. (5V logic)", parameters: "No value needed." },
+  GateNAND: { title: "NAND Gate", category: "Digital", description: "Outputs LOW only if all inputs are HIGH. (5V logic)", parameters: "No value needed." },
+  GateNOR: { title: "NOR Gate", category: "Digital", description: "Outputs LOW if at least one input is HIGH. (5V logic)", parameters: "No value needed." },
+  GateXOR: { title: "XOR Gate", category: "Digital", description: "Outputs HIGH if inputs are different. (5V logic)", parameters: "No value needed." },
+  DFlipFlop: { title: "D Flip-Flop", category: "Digital", description: "A D-type data latch. Captures the value of the D-input on the rising edge of the clock.", parameters: "No value needed." },
+  JKFlipFlop: { title: "JK Flip-Flop", category: "Digital", description: "A standard JK edge-triggered flip-flop.", parameters: "No value needed." },
+  Lamp: { title: "Indicator Lamp", category: "Digital", description: "A visual light bulb that glows when voltage exceeds 2.5V.", parameters: "No value needed." },
+  SevenSegment: { title: "7-Segment Display", category: "Digital", description: "A standard common-cathode 7-segment LED display. Inputs A-G light up corresponding segments when HIGH (>2.5V).", parameters: "No value needed." },
+
   // Default fallback
   Default: {
     title: "Component",
     category: "Unknown",
     description: "A schematic component.",
     parameters: "Enter standard value if applicable."
+  },
+  OpampLM358: {
+    title: "LM358 Op-Amp",
+    category: "Analog ICs",
+    description: "The LM358 is a popular dual op-amp with rail-to-rail output. Operates from 3V–32V single supply. Common in amplifier, comparator, and signal conditioning circuits. Has 5 pins: IN+, IN−, VCC, VEE, OUT.",
+    parameters: "Label value (e.g. 'LM358'). Connect VCC (+supply) and VEE (−supply or GND) pins."
+  },
+  OpampTL071: {
+    title: "TL071 JFET Op-Amp",
+    category: "Analog ICs",
+    description: "The TL071 is a low-noise, JFET-input op-amp with extremely high input impedance (10TΩ). Ideal for audio, active filters, and instrumentation. Very low input bias current minimizes errors. Has 5 pins: IN+, IN−, VCC, VEE, OUT.",
+    parameters: "Label value (e.g. 'TL071'). Connect VCC to +15V and VEE to −15V for best performance."
+  },
+  SchmittTrigger: {
+    title: "Schmitt Trigger",
+    category: "Analog ICs",
+    description: "A comparator with hysteresis. Switches HIGH when input exceeds the upper threshold and stays HIGH until input falls below the lower threshold. Eliminates noise-induced false triggering. Used in debouncing, square-wave oscillators, and wave-shaping.",
+    parameters: "Format: 'Vth_high/Vth_low'. Example: '3.3/1.7' triggers at 3.3V rising and 1.7V falling."
+  },
+  VCSwitch: {
+    title: "Voltage-Controlled Switch",
+    category: "Analog ICs",
+    description: "A switch whose open/closed state is controlled by a voltage applied to CTRL+ and CTRL- pins. When (CTRL+ − CTRL-) exceeds the threshold, the switch closes (RON=1mΩ). Otherwise it opens (ROFF=1GΩ). Models relay coils, analog multiplexers, and signal routing.",
+    parameters: "Enter the control voltage threshold in Volts. Example: '2.5' closes when CTRL+ − CTRL- > 2.5V."
+  },
+  VCCS: {
+    title: "VCCS (Voltage-Controlled Current Source)",
+    category: "Analog ICs",
+    description: "An ideal transconductance element. Output current (OUT+ → OUT-) = transconductance Gm × input voltage (IN+ − IN-). Used to model transistor transconductance, Gm-C filters, and sensor-to-current converters.",
+    parameters: "Enter transconductance in Siemens. Example: '0.001' = 1 mS → 1 mA output per 1V input differential."
+  },
+  InstAmp: {
+    title: "Instrumentation Amplifier (INA-style)",
+    category: "Analog ICs",
+    description: "A precision differential amplifier with very high input impedance and programmable gain. Output = Gain × (IN+ − IN−) + VREF. Used for Wheatstone bridges, ECG/EEG biosignals, and precision measurement where the common-mode voltage must be rejected.",
+    parameters: "Enter the numeric gain. Example: '100' means Vout = 100 × (VIN+ − VIN-) + VREF."
   }
 };
 

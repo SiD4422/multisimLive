@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useSchematicStore } from '../store/useSchematicStore';
 import { getSpiceNodeForPoint } from '../utils/netlister';
 import { computeFFT } from '../utils/fftAnalyzer';
+import { parseSpiceError } from '../utils/spiceErrorParser';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer, Brush, ReferenceLine
@@ -167,23 +168,87 @@ const MeasurementsPanel = ({ data, traces, plotType }: { data: any[], traces: st
   );
 };
 
-const ErrorView = ({ error }: { error: string }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-8 pl-[80px] overflow-y-auto">
-    <div className="flex flex-col items-center text-center max-w-2xl w-full">
-      <svg className="w-16 h-16 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-      </svg>
-      <h3 className="text-xl font-bold text-red-600 mb-4">Simulation Failed</h3>
-      <div className="w-full bg-red-100 p-4 rounded text-left overflow-x-auto border border-red-200">
-        <pre className="text-sm font-mono text-red-800 whitespace-pre-wrap">{error}</pre>
+const ErrorView = ({ error }: { error: string }) => {
+  const smart = parseSpiceError(error);
+  const [showRaw, setShowRaw] = React.useState(false);
+
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 overflow-y-auto">
+      <div className="flex flex-col max-w-2xl w-full">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-bold text-red-700">{smart.title}</h3>
+        </div>
+
+        {/* Message */}
+        <p className="text-sm text-gray-700 mb-4 leading-relaxed">{smart.message}</p>
+
+        {/* Hints */}
+        {smart.hints.length > 0 && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-amber-700 mb-2">Possible Causes</p>
+            <ul className="space-y-1">
+              {smart.hints.map((hint, i) => (
+                <li key={i} className="text-sm text-amber-900 flex items-start gap-2">
+                  <span className="mt-0.5 flex-shrink-0">•</span>
+                  <span>{hint}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Fix Steps */}
+        {smart.fixSteps.length > 0 && (
+          <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-blue-700 mb-2">How to Fix</p>
+            <ol className="space-y-1 list-decimal list-inside">
+              {smart.fixSteps.map((step, i) => (
+                <li key={i} className="text-sm text-blue-900">{step}</li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {/* Offending node/model badge */}
+        {(smart.offendingNode || smart.offendingModel) && (
+          <div className="mb-4 flex items-center gap-2 text-xs text-gray-500">
+            <span>Affected:</span>
+            {smart.offendingNode && (
+              <span className="font-mono bg-gray-100 border border-gray-300 px-2 py-0.5 rounded text-red-700">
+                node: {smart.offendingNode}
+              </span>
+            )}
+            {smart.offendingModel && (
+              <span className="font-mono bg-gray-100 border border-gray-300 px-2 py-0.5 rounded text-red-700">
+                model: {smart.offendingModel}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Raw error toggle */}
+        <button
+          onClick={() => setShowRaw(!showRaw)}
+          className="text-xs text-gray-400 hover:text-gray-600 underline text-left mb-2"
+        >
+          {showRaw ? '▲ Hide raw ngspice output' : '▼ Show raw ngspice output'}
+        </button>
+        {showRaw && (
+          <div className="bg-gray-900 rounded p-3 overflow-x-auto">
+            <pre className="text-xs font-mono text-red-300 whitespace-pre-wrap">{error}</pre>
+          </div>
+        )}
       </div>
-      <p className="mt-6 text-sm text-gray-500 bg-white p-3 rounded shadow-sm border">
-        <strong className="text-gray-700">Tip:</strong> Ensure your circuit has a <strong>Ground</strong> reference and no disconnected wires.
-      </p>
     </div>
-  </div>
-);
+  );
+};
 
 const EmptyView = () => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 text-gray-500">

@@ -3,6 +3,7 @@ import { useSchematicStore } from '../store/useSchematicStore';
 import { X, Info, Zap, Settings, Activity, ActivitySquare, Timer, Waves, SlidersHorizontal } from 'lucide-react';
 import { getComponentMetadata } from '../utils/ComponentDescriptions';
 import { AnalysisSettings } from './AnalysisSettings';
+import { componentDisplayValue, normalizeValue, validateValue, COMPONENT_UNITS } from '../utils/valueFormatter';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -116,6 +117,7 @@ export const ComponentInspectorPanel: React.FC = () => {
 
   const [designator, setDesignator] = useState('');
   const [fields, setFields] = useState<any>({});
+  const [valueError, setValueError] = useState<string | null>(null);
 
   const activeComponent = components.find(c => c.id === selectedComponentId);
 
@@ -125,6 +127,7 @@ export const ComponentInspectorPanel: React.FC = () => {
       setActiveTab('properties');
       setDesignator(activeComponent.id || '');
       setFields(parseValue(activeComponent.type, activeComponent.value || ''));
+      setValueError(null);
     }
   }, [activeComponent?.id]);
 
@@ -184,14 +187,57 @@ export const ComponentInspectorPanel: React.FC = () => {
       );
     }
 
+    // Simple single-value component — add normalize-on-blur, validation, and display hint
+    const isSimpleType = !!COMPONENT_UNITS[activeComponent.type];
+    const displayHint = isSimpleType && fields.main
+      ? componentDisplayValue(fields.main, activeComponent.type)
+      : null;
+    const showHint = displayHint && displayHint !== fields.main;
+
     return (
-      <InputGroup
-        label="Value / Parameter"
-        value={fields.main || ''}
-        onChange={(v: string) => updateField('main', v)}
-        placeholder={DEFAULT_VALUES[activeComponent.type] ? `Default: ${DEFAULT_VALUES[activeComponent.type]}` : 'e.g. 1k, 5V, 10u'}
-        icon={Settings}
-      />
+      <div className="flex flex-col gap-1 mb-3">
+        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+          <Settings size={12} className="text-blue-500" />
+          Value / Parameter
+        </label>
+        <input
+          type="text"
+          value={fields.main || ''}
+          onChange={(v) => {
+            updateField('main', v.target.value);
+            if (isSimpleType) {
+              const result = validateValue(v.target.value, activeComponent.type);
+              setValueError(result.valid ? null : (result.error ?? null));
+            }
+          }}
+          onBlur={() => {
+            if (isSimpleType && fields.main) {
+              const normalized = normalizeValue(fields.main, activeComponent.type);
+              if (normalized !== fields.main) {
+                updateField('main', normalized);
+              }
+              const result = validateValue(normalized || fields.main, activeComponent.type);
+              setValueError(result.valid ? null : (result.error ?? null));
+            }
+          }}
+          placeholder={DEFAULT_VALUES[activeComponent.type] ? `Default: ${DEFAULT_VALUES[activeComponent.type]}` : 'e.g. 1k, 5V, 10u'}
+          className={`w-full border rounded-md px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 transition-colors shadow-sm ${
+            valueError
+              ? 'border-red-400 focus:border-red-500 focus:ring-red-400'
+              : 'border-gray-300 focus:border-blue-500 focus:ring-blue-400'
+          }`}
+        />
+        {valueError && (
+          <p style={{ fontSize: '11px', color: '#ef4444', margin: '2px 0 0 0', lineHeight: 1.4 }}>
+            ⚠ {valueError}
+          </p>
+        )}
+        {!valueError && showHint && (
+          <p style={{ fontSize: '11px', color: '#6b7280', margin: '2px 0 0 0', fontFamily: 'monospace' }}>
+            = {displayHint}
+          </p>
+        )}
+      </div>
     );
   };
 
@@ -252,8 +298,15 @@ export const ComponentInspectorPanel: React.FC = () => {
             <>
               {/* Component Info */}
               <div style={{ backgroundColor: '#eff6ff', borderRadius: '10px', padding: '14px', marginBottom: '14px', borderLeft: '4px solid #3b82f6' }}>
-                <div style={{ display: 'inline-block', padding: '2px 8px', backgroundColor: '#dbeafe', color: '#1d4ed8', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', borderRadius: '4px', marginBottom: '8px' }}>
-                  {meta?.category}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'inline-block', padding: '2px 8px', backgroundColor: '#dbeafe', color: '#1d4ed8', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', borderRadius: '4px' }}>
+                    {meta?.category}
+                  </div>
+                  {COMPONENT_UNITS[activeComponent.type] && activeComponent.value && (
+                    <div style={{ display: 'inline-block', padding: '2px 8px', backgroundColor: '#f0fdf4', color: '#15803d', fontSize: '10px', fontWeight: 700, borderRadius: '4px', fontFamily: 'monospace' }}>
+                      {componentDisplayValue(activeComponent.value, activeComponent.type)}
+                    </div>
+                  )}
                 </div>
                 <h2 style={{ fontSize: '16px', fontWeight: 900, color: '#111827', margin: '0 0 6px 0' }}>{meta?.title}</h2>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>

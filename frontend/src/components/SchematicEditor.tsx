@@ -6,6 +6,7 @@ import Ground from './symbols/Ground';
 import TextAnnotation from './symbols/TextAnnotation';
 import { VoltageProbe } from './symbols/VoltageProbe';
 import { CurrentProbe } from './symbols/CurrentProbe';
+import { DigitalProbe } from './symbols/DigitalProbe';
 import MultisimSymbol from './symbols/MultisimSymbol';
 import { getComponentPins } from '../utils/netlister';
 import { findOrthogonalPath } from '../utils/autoRouter';
@@ -45,6 +46,10 @@ export default function SchematicEditor() {
   const lastAStarTarget = useRef<{x: number, y: number} | null>(null);
 
   const [selectionBox, setSelectionBox] = useState<{sx: number, sy: number, ex: number, ey: number} | null>(null);
+  // Right-click context menu for wire deletion
+  const [wireContextMenu, setWireContextMenu] = useState<{ wireId: string; x: number; y: number } | null>(null);
+  // Hovered pin for glow effect during wire drawing
+  const [hoveredPinPos, setHoveredPinPos] = useState<Point | null>(null);
   const shiftHeldRef = useRef(false);
 
   // ── Voltage Heatmap ────────────────────────────────────────────────────────
@@ -212,8 +217,6 @@ export default function SchematicEditor() {
 
   const handleMouseMove = (e: any) => {
     if (!wirePoints && !pendingComponent) {
-      // Still update mousePos for generic preview if needed, but for performance, we might skip
-      // Actually we must skip to save React renders if not needed
       return; 
     }
     const stage = stageRef.current;
@@ -230,6 +233,24 @@ export default function SchematicEditor() {
     
     if (!mousePos || mousePos.x !== x || mousePos.y !== y) {
       setMousePos({ x, y });
+      
+      // Pin hover glow: find nearest pin within 20px when drawing a wire
+      if (wirePoints) {
+        let nearest: Point | null = null;
+        let nearestDist = 20;
+        for (const comp of components) {
+          const pins = getComponentPins(comp as SchematicComponent);
+          for (const pin of pins) {
+            const px = pin.p?.x ?? 0;
+            const py = pin.p?.y ?? 0;
+            const d = Math.sqrt((x - px) ** 2 + (y - py) ** 2);
+            if (d < nearestDist) { nearestDist = d; nearest = { x: px, y: py }; }
+          }
+        }
+        setHoveredPinPos(nearest);
+      } else {
+        setHoveredPinPos(null);
+      }
       
       if (wirePoints && wirePoints.length > 0 && wireDirOverride === 'auto') {
         const now = performance.now();
@@ -292,11 +313,14 @@ export default function SchematicEditor() {
     if (currentPending && mousePos) {
       const typeStr = currentPending.type;
       
-      if (typeStr === 'ProbeVoltage' || typeStr === 'ProbeCurrent') {
+      if (typeStr === 'ProbeVoltage' || typeStr === 'ProbeCurrent' || typeStr === 'ProbeDigital') {
         const id = `PR${useSchematicStore.getState().probes.length + 1}`;
+        let probeType = 'Voltage';
+        if (typeStr === 'ProbeCurrent') probeType = 'Current';
+        if (typeStr === 'ProbeDigital') probeType = 'Digital';
         useSchematicStore.getState().addProbe({
           id,
-          type: typeStr === 'ProbeVoltage' ? 'Voltage' : 'Current',
+          type: probeType,
           position: mousePos
         });
         setPendingComponent(null);
@@ -347,6 +371,7 @@ export default function SchematicEditor() {
     const isBackground = e.target === e.target.getStage() || targetName === 'Rect' || targetName === 'Line';
     if (isBackground && !wirePoints) {
       clearSelection();
+      setWireContextMenu(null); // dismiss context menu on background click
     }
     
     if (!wirePoints || !mousePos) {
@@ -422,18 +447,28 @@ export default function SchematicEditor() {
   };
 
   // Background Grid and Paper limits
-  const gridLines = [];
   const PAPER_WIDTH = 3000;
   const PAPER_HEIGHT = 2000;
   const paperX = -PAPER_WIDTH / 2;
   const paperY = -PAPER_HEIGHT / 2;
 
-  for (let i = paperY; i <= paperY + PAPER_HEIGHT; i += VISUAL_GRID) {
-    gridLines.push(<Line key={`h${i}`} points={[paperX, i, paperX + PAPER_WIDTH, i]} stroke={i % (VISUAL_GRID * 5) === 0 ? "#cbd5e1" : "#e2e8f0"} strokeWidth={i % (VISUAL_GRID * 5) === 0 ? 1.5 : 1} />);
+  // Dot grid — one circle per intersection (much cheaper visually than line grid)
+  const gridDots: React.ReactNode[] = [];
+  for (let gy = paperY; gy <= paperY + PAPER_HEIGHT; gy += VISUAL_GRID) {
+    for (let gx = paperX; gx <= paperX + PAPER_WIDTH; gx += VISUAL_GRID) {
+      const isMainDot = (Math.abs(gy) % (VISUAL_GRID * 5) < 1) && (Math.abs(gx) % (VISUAL_GRID * 5) < 1);
+      gridDots.push(
+        <Circle
+          key={`d${gx},${gy}`}
+          x={gx} y={gy}
+          radius={isMainDot ? 2 : 1}
+          fill={isMainDot ? '#b0b8c8' : '#ccd5e0'}
+          listening={false}
+        />
+      );
+    }
   }
-  for (let i = paperX; i <= paperX + PAPER_WIDTH; i += VISUAL_GRID) {
-    gridLines.push(<Line key={`v${i}`} points={[i, paperY, i, paperY + PAPER_HEIGHT]} stroke={i % (VISUAL_GRID * 5) === 0 ? "#cbd5e1" : "#e2e8f0"} strokeWidth={i % (VISUAL_GRID * 5) === 0 ? 1.5 : 1} />);
-  }
+
 
   const previewPath = getPreviewPoints();
 
@@ -711,7 +746,8 @@ export default function SchematicEditor() {
               shadowOpacity={0.15}
               shadowOffset={{ x: 2, y: 5 }}
             />
-            {gridLines}
+            {gridDots}
+
           </Layer>
           <Layer>
             {/* Committed Wires */}
@@ -738,6 +774,15 @@ export default function SchematicEditor() {
                   lineJoin="round"
                   hitStrokeWidth={20}
                   onClick={(e) => { e.cancelBubble = true; setSelectedWire(wire.id); }}
+                  onContextMenu={(e) => {
+                    e.evt.preventDefault();
+                    e.cancelBubble = true;
+                    const stage = stageRef.current;
+                    if (!stage) return;
+                    const pos = stage.getPointerPosition();
+                    if (!pos) return;
+                    setWireContextMenu({ wireId: wire.id, x: pos.x, y: pos.y });
+                  }}
                   onMouseDown={(e) => {
                     e.cancelBubble = true;
                     if (!wirePoints && mousePos) {
@@ -899,19 +944,41 @@ export default function SchematicEditor() {
               </>
             )}
 
+            {/* Pin Snap Glow — bright green pulsing ring when wire is near a pin */}
+            {wirePoints && hoveredPinPos && (
+              <>
+                <Circle
+                  x={hoveredPinPos.x} y={hoveredPinPos.y}
+                  radius={9}
+                  fill="rgba(34,197,94,0.18)"
+                  stroke="#22c55e"
+                  strokeWidth={2.5}
+                  listening={false}
+                />
+                <Circle
+                  x={hoveredPinPos.x} y={hoveredPinPos.y}
+                  radius={4}
+                  fill="#22c55e"
+                  listening={false}
+                />
+              </>
+            )}
+
             {/* Components */}
             {components.map(comp => renderComponent(comp, false))}
 
             {/* Floating action menu for selected component */}
             {renderActionMenu()}
             
-            {useSchematicStore.getState().probes.map(probe => (
-                probe.type === 'Current' ? (
-                  <CurrentProbe key={probe.id} id={probe.id} position={probe.position} />
-                ) : (
-                  <VoltageProbe key={probe.id} id={probe.id} position={probe.position} />
-                )
-              ))}
+            {useSchematicStore.getState().probes.map(probe => {
+                if (probe.type === 'Current') {
+                  return <CurrentProbe key={probe.id} id={probe.id} position={probe.position} />;
+                } else if (probe.type === 'Digital') {
+                  return <DigitalProbe key={probe.id} id={probe.id} position={probe.position} />;
+                } else {
+                  return <VoltageProbe key={probe.id} id={probe.id} position={probe.position} />;
+                }
+              })}
 
             {/* Pending Component Preview */}
             {pendingComponent && mousePos && (
@@ -925,6 +992,66 @@ export default function SchematicEditor() {
             )}
           </Layer>
         </Stage>
+        )}
+
+        {/* Wire right-click context menu */}
+        {wireContextMenu && (
+          <div
+            style={{
+              position: 'absolute',
+              left: wireContextMenu.x,
+              top: wireContextMenu.y,
+              background: '#fff',
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+              zIndex: 1000,
+              minWidth: 160,
+              overflow: 'hidden',
+            }}
+            onMouseLeave={() => setWireContextMenu(null)}
+          >
+            <div style={{ padding: '6px 0', fontSize: 13 }}>
+              <button
+                onClick={() => {
+                  useSchematicStore.getState().deleteWire(wireContextMenu.wireId);
+                  setWireContextMenu(null);
+                }}
+                style={{
+                  width: '100%', textAlign: 'left', padding: '8px 14px',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#fef2f2')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                  <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                </svg>
+                Delete Wire
+              </button>
+              <button
+                onClick={() => {
+                  useSchematicStore.getState().setSelectedWire(wireContextMenu.wireId);
+                  setWireContextMenu(null);
+                }}
+                style={{
+                  width: '100%', textAlign: 'left', padding: '8px 14px',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#374151', display: 'flex', alignItems: 'center', gap: 8,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#f3f4f6')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                Select Wire
+              </button>
+            </div>
+          </div>
         )}
       </div>
     );

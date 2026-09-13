@@ -28,10 +28,10 @@ export const IconProbeVA = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-export const IconProbeDigital = ({ size = 24 }: { size?: number }) => (
+export const IconProbeDigital = ({ size = 24, active = false }: { size?: number, active?: boolean }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="14" cy="10" r="8" fill="#10b981" />
-    <text x="14" y="10" fontSize="7.5" fill="#fff" textAnchor="middle" dominantBaseline="central" fontWeight="bold">0/1</text>
+    <circle cx="14" cy="10" r="7" fill={active ? "#fff" : "#10b981"} stroke={active ? "#10b981" : "none"} strokeWidth="1.5" />
+    <text x="14" y="10" fontSize="7" fill={active ? "#10b981" : "#fff"} textAnchor="middle" dominantBaseline="central" fontWeight="bold">0/1</text>
     <ProbePin />
   </svg>
 );
@@ -490,6 +490,37 @@ export const IconGateXOR = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
+export const IconDFlipFlop = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="4" width="16" height="24" stroke="#555" strokeWidth="1.6" fill="white" />
+    <text x="11" y="11" fontSize="6" fill="#555" fontWeight="bold">D</text>
+    <text x="19" y="11" fontSize="6" fill="#555" fontWeight="bold">Q</text>
+    <text x="18" y="25" fontSize="6" fill="#555" fontWeight="bold">Q'</text>
+    <path d="M 8 20 L 11 22 L 8 24" stroke="#555" strokeWidth="1.6" fill="none" />
+    <path d="M 2 8 L 8 8 M 2 22 L 8 22 M 24 8 L 30 8 M 24 22 L 30 22" stroke="#555" strokeWidth="1.6" />
+  </svg>
+);
+
+export const IconJKFlipFlop = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="4" width="16" height="24" stroke="#555" strokeWidth="1.6" fill="white" />
+    <text x="11" y="11" fontSize="6" fill="#555" fontWeight="bold">J</text>
+    <text x="11" y="25" fontSize="6" fill="#555" fontWeight="bold">K</text>
+    <text x="19" y="11" fontSize="6" fill="#555" fontWeight="bold">Q</text>
+    <text x="18" y="25" fontSize="6" fill="#555" fontWeight="bold">Q'</text>
+    <path d="M 8 14 L 11 16 L 8 18" stroke="#555" strokeWidth="1.6" fill="none" />
+    <path d="M 2 8 L 8 8 M 2 16 L 8 16 M 2 24 L 8 24 M 24 8 L 30 8 M 24 24 L 30 24" stroke="#555" strokeWidth="1.6" />
+  </svg>
+);
+
+export const IconLamp = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="16" cy="16" r="10" stroke="#555" strokeWidth="1.6" fill="#fef08a" />
+    <path d="M 12 21 L 16 14 L 20 21" stroke="#555" strokeWidth="1.6" fill="none" />
+    <path d="M 16 26 L 16 30 M 16 2 L 16 6" stroke="#555" strokeWidth="1.6" />
+  </svg>
+);
+
 export const IconCrystal = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <line x1="8" y1="8" x2="8" y2="16" stroke="#666" strokeWidth="1.5" />
@@ -563,5 +594,78 @@ export const IconCurrentMirror = ({ size = 24 }: { size?: number }) => (
     <rect x="4" y="6" width="16" height="12" rx="1" fill="white" stroke="#666" strokeWidth="1.5" />
     <path d="M 6 12 L 10 12 M 14 12 L 18 12 M 12 6 L 12 10" stroke="#666" strokeWidth="1.5" />
     <path d="M 12 10 L 10 8 M 12 10 L 14 8" stroke="#666" strokeWidth="1" />
+  </svg>
+);
+
+export const IconOpampLM358 = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 60 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="10,6 50,22 10,38" fill="white" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="0" y1="14" x2="10" y2="14" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="0" y1="30" x2="10" y2="30" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="50" y1="22" x2="60" y2="22" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="35" y1="16" x2="35" y2="6" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="35" y1="28" x2="35" y2="38" stroke="#4b5563" strokeWidth="1.5"/>
+    <text x="13" y="24" fontSize="7" fill="#374151" fontWeight="bold" fontFamily="monospace">LM358</text>
+  </svg>
+);
+
+export const IconOpampTL071 = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 60 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="10,6 50,22 10,38" fill="white" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="0" y1="14" x2="10" y2="14" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="0" y1="30" x2="10" y2="30" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="50" y1="22" x2="60" y2="22" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="35" y1="16" x2="35" y2="6" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="35" y1="28" x2="35" y2="38" stroke="#4b5563" strokeWidth="1.5"/>
+    <text x="13" y="24" fontSize="7" fill="#374151" fontWeight="bold" fontFamily="monospace">TL071</text>
+  </svg>
+);
+
+export const IconSchmittTrigger = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 60 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="10,6 50,22 10,38" fill="white" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="0" y1="14" x2="10" y2="14" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="0" y1="30" x2="10" y2="30" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="50" y1="22" x2="60" y2="22" stroke="#4b5563" strokeWidth="1.5"/>
+    <path d="M 18 24 L 22 24 L 22 18 L 28 18 L 28 24 L 32 24 L 32 18 L 36 18" stroke="#4b5563" strokeWidth="1.2" fill="none"/>
+  </svg>
+);
+
+export const IconVCSwitch = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 60 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0" y1="20" x2="14" y2="20" stroke="#4b5563" strokeWidth="1.5"/>
+    <circle cx="16" cy="20" r="2" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="16" y1="18" x2="44" y2="10" stroke="#4b5563" strokeWidth="1.5"/>
+    <circle cx="44" cy="20" r="2" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="46" y1="20" x2="60" y2="20" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="30" y1="5" x2="30" y2="14" stroke="#4b5563" strokeWidth="1.2"/>
+    <text x="24" y="5" fontSize="7" fill="#4b5563" fontFamily="monospace">VC</text>
+  </svg>
+);
+
+export const IconVCCS = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 60 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="0" y1="14" x2="14" y2="14" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="0" y1="30" x2="14" y2="30" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="14" y1="14" x2="14" y2="30" stroke="#4b5563" strokeWidth="1.5"/>
+    <circle cx="42" cy="22" r="13" fill="white" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="42" y1="13" x2="42" y2="31" stroke="#4b5563" strokeWidth="1.5"/>
+    <path d="M 39 17 L 42 13 L 45 17" stroke="#4b5563" strokeWidth="1.2" fill="none"/>
+    <line x1="42" y1="9" x2="42" y2="2" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="42" y1="35" x2="42" y2="42" stroke="#4b5563" strokeWidth="1.5"/>
+    <text x="26" y="25" fontSize="7" fill="#4b5563" fontFamily="monospace">Gm</text>
+  </svg>
+);
+
+export const IconInstAmp = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 70 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="16" y="6" width="38" height="36" fill="white" rx="2" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="0" y1="16" x2="16" y2="16" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="0" y1="32" x2="16" y2="32" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="54" y1="24" x2="70" y2="24" stroke="#4b5563" strokeWidth="1.5"/>
+    <line x1="35" y1="6" x2="35" y2="0" stroke="#4b5563" strokeWidth="1.5"/>
+    <text x="20" y="28" fontSize="9" fill="#374151" fontWeight="bold" fontFamily="monospace">INA</text>
+    <text x="2" y="18" fontSize="7" fill="#4b5563">+</text>
+    <text x="2" y="34" fontSize="7" fill="#4b5563">−</text>
   </svg>
 );

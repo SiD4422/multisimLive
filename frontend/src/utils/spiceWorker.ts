@@ -202,9 +202,83 @@ function translateSpiceError(raw: string): string {
   return `⚠️ Simulation error: ${raw.split('\n')[0].substring(0, 120)}`;
 }
 
+// Helper: detect convergence-class failures that are worth retrying
+function isConvergenceError(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return m.includes('convergence') || m.includes('no convergence') ||
+         m.includes('gmin') || m.includes('itl4') || m.includes('singular');
+}
+
+// Helper: inject / replace .options line just before the .control block
+function injectRelaxedOptions(netlist: string): string {
+  const relaxed = '.options RELTOL=0.01 ABSTOL=1e-10 GMIN=1e-10 TRTOL=7';
+  // Remove any existing .options line
+  const withoutOptions = netlist.replace(/^\.options\b.*$/gim, '');
+  // Insert just before the first .control line
+  if (withoutOptions.toLowerCase().includes('.control')) {
+    return withoutOptions.replace(/^(\.control\b)/im, `${relaxed}\n$1`);
+  }
+  // Fallback: prepend
+  return `${relaxed}\n${withoutOptions}`;
+}
+
+// Core: run ngspice on the given full netlist string and return parsed data.
+// Throws on any failure.
+async function runNgspice(fullNetlist: string): Promise<any[]> {
+  ngspiceInstance.FS.writeFile("/circuit.cir", fullNetlist);
+  try { ngspiceInstance.FS.mkdir("/proc"); } catch(e){}
+  ngspiceInstance.FS.writeFile("/proc/meminfo", "MemTotal:       16384000 kB\nMemFree:         8192000 kB\nMemAvailable:    8192000 kB\n");
+
+  const args = ["ngspice", "-b", "/circuit.cir"];
+  const stack = ngspiceInstance.__emscripten_stack_get_current
+    ? ngspiceInstance.__emscripten_stack_get_current()
+    : ngspiceInstance.stackSave();
+
+  try {
+    const ptrs: number[] = [];
+    for (const arg of args) {
+      const strPtr = ngspiceInstance.__emscripten_stack_alloc(arg.length + 1);
+      ngspiceInstance.stringToUTF8(arg, strPtr, arg.length + 1);
+      ptrs.push(strPtr);
+    }
+    const argv = ngspiceInstance.__emscripten_stack_alloc(args.length * 4);
+    for (let i = 0; i < args.length; i++) {
+      ngspiceInstance.HEAP32[(argv >> 2) + i] = ptrs[i];
+    }
+    ngspiceInstance._main(args.length, argv);
+  } catch(err: any) {
+    if (err.name === "ExitStatus" && err.status === 0) {
+      // success path
+    } else {
+      throw err;
+    }
+  } finally {
+    if (ngspiceInstance.__emscripten_stack_restore) {
+      ngspiceInstance.__emscripten_stack_restore(stack);
+    } else if (ngspiceInstance.stackRestore) {
+      ngspiceInstance.stackRestore(stack);
+    }
+  }
+
+  let outputRaw: string;
+  try {
+    outputRaw = ngspiceInstance.FS.readFile("/output.raw", { encoding: "utf8" });
+  } catch(err) {
+    throw new Error("No output.raw found. Simulation may have failed or singular matrix encountered.");
+  }
+
+  const data = parseRawFile(outputRaw);
+  if (data.length === 0) {
+    throw new Error("Simulation produced no data points. The circuit might have a floating node, missing Ground, or a singular matrix.");
+  }
+  return data;
+}
+
 self.addEventListener('message', async (e: MessageEvent) => {
   const { id, netlist } = e.data;
   if (!id || !netlist) return;
+
+  let originalError: string | null = null;
 
   try {
     await initNgspice();
@@ -213,60 +287,47 @@ self.addEventListener('message', async (e: MessageEvent) => {
     if (!fullNetlist.startsWith("Circuit") && !fullNetlist.startsWith("*")) {
       fullNetlist = "Circuit\n" + fullNetlist;
     }
-
     fullNetlist += `\n.control\nrun\nset filetype=ascii\nwrite /output.raw\n.endc\n`;
 
-    ngspiceInstance.FS.writeFile("/circuit.cir", fullNetlist);
-    try { ngspiceInstance.FS.mkdir("/proc"); } catch(e){}
-    ngspiceInstance.FS.writeFile("/proc/meminfo", "MemTotal:       16384000 kB\nMemFree:         8192000 kB\nMemAvailable:    8192000 kB\n");
-
-    const args = ["ngspice", "-b", "/circuit.cir"];
-    const stack = ngspiceInstance.__emscripten_stack_get_current
-      ? ngspiceInstance.__emscripten_stack_get_current()
-      : ngspiceInstance.stackSave();
-
-    let outputRaw = "";
+    // ── Attempt 1: standard simulation ──────────────────────────────────
+    let data: any[];
     try {
-      const ptrs: number[] = [];
-      for (const arg of args) {
-        const strPtr = ngspiceInstance.__emscripten_stack_alloc(arg.length + 1);
-        ngspiceInstance.stringToUTF8(arg, strPtr, arg.length + 1);
-        ptrs.push(strPtr);
+      data = await runNgspice(fullNetlist);
+      // Success — send result normally
+      self.postMessage({ id, type: 'SUCCESS', data, __plotType: (data as any).__plotType, __isComplex: (data as any).__isComplex, __variables: (data as any).__variables });
+      return;
+    } catch (err1: any) {
+      originalError = err1.message || String(err1);
+      // Only retry on convergence-class errors
+      if (!isConvergenceError(originalError!)) {
+        throw err1;
       }
-      const argv = ngspiceInstance.__emscripten_stack_alloc(args.length * 4);
-      for (let i = 0; i < args.length; i++) {
-        ngspiceInstance.HEAP32[(argv >> 2) + i] = ptrs[i];
-      }
-      
-      ngspiceInstance._main(args.length, argv);
-    } catch(err: any) {
-      if (err.name === "ExitStatus" && err.status === 0) {
-        // success
-      } else {
-        throw err;
-      }
-    } finally {
-      if (ngspiceInstance.__emscripten_stack_restore) {
-        ngspiceInstance.__emscripten_stack_restore(stack);
-      } else if (ngspiceInstance.stackRestore) {
-        ngspiceInstance.stackRestore(stack);
-      }
+      console.warn('[SPICE Worker] Convergence failure detected — retrying with relaxed tolerances…');
     }
 
+    // ── Attempt 2: relaxed tolerances ───────────────────────────────────
+    // Re-initialize ngspice for a fresh instance (required by Emscripten design)
+    ngspiceInstance = null;
+    await initNgspice();
+
+    const relaxedNetlist = injectRelaxedOptions(fullNetlist);
     try {
-      outputRaw = ngspiceInstance.FS.readFile("/output.raw", { encoding: "utf8" });
-    } catch(err) {
-      throw new Error("No output.raw found. Simulation may have failed or singular matrix encountered.");
+      data = await runNgspice(relaxedNetlist);
+      // Retry success — send with warning
+      self.postMessage({
+        id,
+        type: 'SUCCESS',
+        data,
+        __plotType: (data as any).__plotType,
+        __isComplex: (data as any).__isComplex,
+        __variables: (data as any).__variables,
+        __warning: 'Simulation converged with relaxed tolerances. Results may be slightly less accurate.',
+      });
+    } catch (err2: any) {
+      // Both attempts failed — report original error with hint
+      const hint = '\n\nTip: Try adding a small resistor (1Ω–10Ω) in series with voltage sources, or check for floating nodes.';
+      self.postMessage({ id, type: 'ERROR', error: translateSpiceError(originalError!) + hint });
     }
-
-    const data = parseRawFile(outputRaw);
-
-    if (data.length === 0) {
-      throw new Error("Simulation produced no data points. The circuit might have a floating node, missing Ground, or a singular matrix.");
-    }
-
-    // Pass back to main thread
-    self.postMessage({ id, type: 'SUCCESS', data, __plotType: (data as any).__plotType, __isComplex: (data as any).__isComplex, __variables: (data as any).__variables });
   } catch (error: any) {
     self.postMessage({ id, type: 'ERROR', error: translateSpiceError(error.message || String(error)) });
   } finally {

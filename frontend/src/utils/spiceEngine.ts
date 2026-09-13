@@ -1,15 +1,10 @@
 // spiceEngine.ts
+import type { SpiceJob, SpiceResult } from './spiceTypes';
 
 let currentJobId = 0;
-let pendingJob: { 
-  id: number; 
-  resolve: (data: any) => void; 
-  reject: (err: any) => void;
-  worker: Worker;
-  timeoutId: ReturnType<typeof setTimeout>;
-} | null = null;
+let pendingJob: SpiceJob | null = null;
 
-export async function runSpiceSimulation(netlist: string, isSilent = false): Promise<any[]> {
+export async function runSpiceSimulation(netlist: string, isSilent = false): Promise<SpiceResult> {
   if (pendingJob) {
     if (!isSilent) {
       throw new Error("ALREADY_SIMULATING"); // Prevent double-click from killing active job
@@ -24,7 +19,7 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
   currentJobId++;
   const id = currentJobId;
   
-  return new Promise((resolve, reject) => {
+  return new Promise<SpiceResult>((resolve, reject) => {
     // Create a completely fresh worker for every run.
     // This prevents ngspice-wasm from crashing or hanging due to stale C-state or global scope pollution on subsequent runs.
     const worker = new Worker(new URL('./spiceWorker.ts', import.meta.url), { type: 'module' });
@@ -39,15 +34,23 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
       reject(new Error('Simulation timed out. The WASM engine took too long to respond. Please try again.'));
     }, 60000);
 
-    worker.onmessage = (e) => {
-      const { id: incomingId, type, data, error, __plotType, __isComplex, __variables } = e.data;
+    worker.onmessage = (e: MessageEvent) => {
+      const { id: incomingId, type, data, error, __plotType, __isComplex, __variables } = e.data as {
+        id: number;
+        type: 'SUCCESS' | 'ERROR';
+        data: SpiceResult;
+        error: string;
+        __plotType?: string;
+        __isComplex?: boolean;
+        __variables?: unknown[];
+      };
       if (pendingJob && pendingJob.id === incomingId) {
         clearTimeout(pendingJob.timeoutId);
         if (type === 'SUCCESS') {
           // Re-attach the hidden properties needed by Grapher
-          if (__plotType) (data as any).__plotType = __plotType;
-          if (__isComplex !== undefined) (data as any).__isComplex = __isComplex;
-          if (__variables) (data as any).__variables = __variables;
+          if (__plotType) (data as SpiceResult).__plotType = __plotType as SpiceResult['__plotType'];
+          if (__isComplex !== undefined) (data as SpiceResult).__isComplex = __isComplex;
+          if (__variables) (data as SpiceResult).__variables = __variables as SpiceResult['__variables'];
           
           pendingJob.resolve(data);
         } else {
@@ -58,7 +61,7 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
       }
     };
     
-    worker.onerror = (e) => {
+    worker.onerror = (e: ErrorEvent) => {
       console.error("Worker error:", e);
       if (pendingJob && pendingJob.id === id) {
         clearTimeout(pendingJob.timeoutId);

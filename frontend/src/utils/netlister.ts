@@ -104,8 +104,46 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     // Potentiometer and Fuse get their own entries (special SPICE handling)
     'Potentiometer', 'Fuse',
     // New P1/P2 two-pin passives
-    'CrystalOscillator', 'Photodiode', 'DIAC',
+    'CrystalOscillator', 'Photodiode', 'DIAC', 'Lamp'
   ];
+
+  // DIGITAL SWITCH
+  if (comp.type === 'DigitalSwitch') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const px = 90 * cos;
+    const py = 90 * sin;
+    return [
+      { id: '1', gridNode: toGridNode({ x: comp.position.x + px, y: comp.position.y + py }), p: { x: comp.position.x + px, y: comp.position.y + py } }
+    ];
+  }
+
+  // FLIP FLOPS
+  if (comp.type === 'DFlipFlop' || comp.type === 'JKFlipFlop') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    
+    let rawPins = [];
+    if (comp.type === 'DFlipFlop') {
+      rawPins = [{ x: 0, y: -15, id: 'D' }, { x: 0, y: 15, id: 'CLK' }, { x: 60, y: -15, id: 'Q' }, { x: 60, y: 15, id: 'Q_bar' }];
+    } else {
+      rawPins = [{ x: 0, y: -15, id: 'J' }, { x: 0, y: 0, id: 'CLK' }, { x: 0, y: 15, id: 'K' }, { x: 60, y: -15, id: 'Q' }, { x: 60, y: 15, id: 'Q_bar' }];
+    }
+
+    return rawPins.map(pin => {
+      const dx = pin.x * 1.5;
+      const dy = pin.y * 1.5;
+      const rx = dx * cos - dy * sin;
+      const ry = dx * sin + dy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
 
   // ── Three-Phase Sources (4 pins: A, B, C, Neutral)
   // Renderer places pin nodes at (0,0), (90,0), (0,60), (90,60) in symbol space.
@@ -524,6 +562,75 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     });
   }
 
+  // ── LM358 / TL071 / SchmittTrigger — 5-pin opamp layout
+  if (comp.type === 'OpampLM358' || comp.type === 'OpampTL071' || comp.type === 'SchmittTrigger') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad); const sin = Math.sin(rad);
+    const rawPins = [
+      { x:  0, y: -10, id: 'IN+' },
+      { x:  0, y:  10, id: 'IN-' },
+      { x: 40, y: -20, id: 'VCC' },
+      { x: 40, y:  20, id: 'VEE' },
+      { x: 60, y:   0, id: 'OUT' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+    });
+  }
+
+  // ── Voltage-Controlled Switch — 4 pins: CTRL+, CTRL-, SW1, SW2
+  if (comp.type === 'VCSwitch') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad); const sin = Math.sin(rad);
+    const rawPins = [
+      { x:   0, y: -20, id: 'CTRL+' },
+      { x:   0, y:  20, id: 'CTRL-' },
+      { x: -30, y:   0, id: 'SW1'   },
+      { x:  60, y:   0, id: 'SW2'   },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+    });
+  }
+
+  // ── VCCS — 4 pins: IN+, IN-, OUT+, OUT-
+  if (comp.type === 'VCCS') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad); const sin = Math.sin(rad);
+    const rawPins = [
+      { x:  0, y: -15, id: 'IN+'  },
+      { x:  0, y:  15, id: 'IN-'  },
+      { x: 60, y: -15, id: 'OUT+' },
+      { x: 60, y:  15, id: 'OUT-' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+    });
+  }
+
+  // ── Instrumentation Amplifier — 4 pins (gain via inspector value)
+  if (comp.type === 'InstAmp') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad); const sin = Math.sin(rad);
+    const rawPins = [
+      { x:  0, y: -15, id: 'IN+' },
+      { x:  0, y:  15, id: 'IN-' },
+      { x: 30, y: -30, id: 'REF' },
+      { x: 60, y:   0, id: 'OUT' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+    });
+  }
+
   // Use KiCad symbol data for accurate multi-pin resolution fallback
   const symbolName = 
     comp.type === 'Transformer' ? 'Transformer_1P_1S' :
@@ -920,6 +1027,63 @@ S_dis DIS GND dis_gate GND SMOD555
       netlist += `X_${comp.id} ${inMinus} ${inPlus} ${vcc} ${vee} ${out} LM741\n`;
       models.add(`.subckt LM741 IN- IN+ VCC VEE OUT\nB1 OUT 0 V=(V(VCC)-V(VEE))/2*tanh((V(IN+)-V(IN-))*100000)+(V(VCC)+V(VEE))/2\n.ends`);
     }
+    else if (comp.type === 'OpampLM358') {
+      const pinMap: Record<string, string> = {};
+      pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
+      const inP = pinMap['IN+'] || '0'; const inM = pinMap['IN-'] || '0';
+      const vcc = pinMap['VCC'] || '0'; const vee = pinMap['VEE'] || '0';
+      const out = pinMap['OUT'] || '0';
+      netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} LM358_MDL\n`;
+      models.add(`.subckt LM358_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1Meg\nB1 OUT 0 V=(V(VCC)-V(VEE)-1.5)*tanh((V(IN+)-V(IN-))*200000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends LM358_MDL`);
+    }
+    else if (comp.type === 'OpampTL071') {
+      const pinMap: Record<string, string> = {};
+      pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
+      const inP = pinMap['IN+'] || '0'; const inM = pinMap['IN-'] || '0';
+      const vcc = pinMap['VCC'] || '0'; const vee = pinMap['VEE'] || '0';
+      const out = pinMap['OUT'] || '0';
+      netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} TL071_MDL\n`;
+      models.add(`.subckt TL071_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1T\nB1 OUT 0 V=(V(VCC)-V(VEE)-2.5)*tanh((V(IN+)-V(IN-))*500000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends TL071_MDL`);
+    }
+    else if (comp.type === 'SchmittTrigger') {
+      const pinMap: Record<string, string> = {};
+      pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
+      const inP = pinMap['IN+'] || '0'; const inM = pinMap['IN-'] || '0';
+      const vcc = pinMap['VCC'] || '0'; const vee = pinMap['VEE'] || '0';
+      const out = pinMap['OUT'] || '0';
+      const threshStr = comp.value || '3.3/1.7';
+      const parts = threshStr.split('/');
+      const vthH = parseFloat(parts[0]) || 3.3;
+      const vthL = parseFloat(parts[1]) || 1.7;
+      netlist += `X_${comp.id} ${inP} ${inM} ${vcc} ${vee} ${out} SCHMITT_${comp.id}\n`;
+      models.add(`.subckt SCHMITT_${comp.id} IN+ IN- VCC VEE OUT\nC_state state 0 1p\nR_leak state 0 1G\nB_set set_d 0 V=V(IN+)>${vthH} ? 5 : -5\nR_set set_d set_m 1k\nD_set set_m state DSCHMITT\nB_rst rst_d 0 V=V(IN+)<${vthL} ? -5 : 5\nR_rst rst_d rst_m 1k\nD_rst state rst_m DSCHMITT\nB_out OUT 0 V=V(state)>0.5 ? V(VCC) : V(VEE)\n.model DSCHMITT D(IS=1e-14)\n.ends SCHMITT_${comp.id}`);
+    }
+    else if (comp.type === 'VCSwitch') {
+      const pinMap: Record<string, string> = {};
+      pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
+      const ctrlP = pinMap['CTRL+'] || '0'; const ctrlM = pinMap['CTRL-'] || '0';
+      const sw1 = pinMap['SW1'] || '0'; const sw2 = pinMap['SW2'] || '0';
+      const vth = parseFloat(comp.value || '2.5') || 2.5;
+      netlist += `S_${comp.id} ${sw1} ${sw2} ${ctrlP} ${ctrlM} VCSW_MDL\n`;
+      models.add(`.model VCSW_MDL SW(VT=${vth} VH=0.1 RON=1m ROFF=1G)`);
+    }
+    else if (comp.type === 'VCCS') {
+      const pinMap: Record<string, string> = {};
+      pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
+      const inP = pinMap['IN+'] || '0'; const inM = pinMap['IN-'] || '0';
+      const outP = pinMap['OUT+'] || '0'; const outM = pinMap['OUT-'] || '0';
+      const gm = parseFloat(comp.value || '0.001') || 0.001;
+      netlist += `G_${comp.id} ${outP} ${outM} ${inP} ${inM} ${gm}\n`;
+    }
+    else if (comp.type === 'InstAmp') {
+      const pinMap: Record<string, string> = {};
+      pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
+      const inP = pinMap['IN+'] || '0'; const inM = pinMap['IN-'] || '0';
+      const ref = pinMap['REF'] || '0'; const out = pinMap['OUT'] || '0';
+      const gain = parseFloat(comp.value || '100') || 100;
+      netlist += `X_${comp.id} ${inP} ${inM} ${ref} ${out} INSTAMP_${comp.id}\n`;
+      models.add(`.subckt INSTAMP_${comp.id} IN+ IN- REF OUT\nRin_diff IN+ IN- 10Meg\nB1 OUT 0 V=(V(IN+)-V(IN-))*${gain}+V(REF)\n.ends INSTAMP_${comp.id}`);
+    }
     else if (comp.type === 'DCSource') {
       const val = (comp.value || "5V").replace('V', '');
       netlist += `V_${comp.id} ${nodes[0]} ${nodes[1]} DC ${val}\n`;
@@ -1128,21 +1292,6 @@ S_dis DIS GND dis_gate GND SMOD555
         models.add(`.SUBCKT LM317_MODEL IN OUT ADJ\nE_reg OUT ADJ VALUE={IF(V(IN,ADJ)>3, 1.25, V(IN,ADJ)*0.4)}\nR_out OUT 0 10Meg\n.ENDS`);
       }
     }
-    else if (comp.type === 'Display7Segment') {
-      const pinsList = [];
-      for(let i=0; i<10; i++) pinsList.push(nodes[i] || '0');
-      netlist += `X_${comp.id} ${pinsList.join(' ')} 7SEG_CC\n`;
-      models.add(`.SUBCKT 7SEG_CC G F COM1 A B E D COM2 C DP\nR_short COM1 COM2 0.001\n` +
-                 `D_A A N_A DLED\nR_A N_A COM1 10\n` +
-                 `D_B B N_B DLED\nR_B N_B COM1 10\n` +
-                 `D_C C N_C DLED\nR_C N_C COM1 10\n` +
-                 `D_D D N_D DLED\nR_D N_D COM1 10\n` +
-                 `D_E E N_E DLED\nR_E N_E COM1 10\n` +
-                 `D_F F N_F DLED\nR_F N_F COM1 10\n` +
-                 `D_G G N_G DLED\nR_G N_G COM1 10\n` +
-                 `D_DP DP N_DP DLED\nR_DP N_DP COM1 10\n` +
-                 `.MODEL DLED D (IS=1p N=2 RS=5 BV=5)\n.ENDS`);
-    }
     else if (comp.type === 'IC74LS00') {
       const pinsList = [];
       for(let i=0; i<14; i++) pinsList.push(nodes[i] || '0');
@@ -1175,6 +1324,9 @@ S_dis DIS GND dis_gate GND SMOD555
     }
     else if (comp.type === 'LossyTransmissionLine' || comp.type === 'LosslessTransmissionLine') {
       netlist += `T_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} ${nodes[2] || '0'} ${nodes[3] || '0'} Z0=50 TD=1n\n`;
+    }
+    else if (comp.type === 'Lamp') {
+      netlist += `R_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} 100\n`;
     }
     else if (comp.type === 'SevenSegment') {
       const aNode = nodes[0] || '0';
@@ -1332,7 +1484,24 @@ S_dis DIS GND dis_gate GND SMOD555
       const a = nodes[0] || '0', y = nodes[1] || '0';
       netlist += `B_${comp.id} ${y} 0 V = (V(${a}) > 2.5) ? 0 : 5\n`;
     }
-
+    else if (comp.type === 'DigitalSwitch') {
+      const out = nodes[0] || '0';
+      const v = comp.value === '1' ? '5' : '0';
+      netlist += `V_${comp.id} ${out} 0 ${v}\n`;
+    }
+    else if (comp.type === 'DFlipFlop') {
+      const d = nodes[0] || '0', clk = nodes[1] || '0', q = nodes[2] || '0', qbar = nodes[3] || '0';
+      // A simple continuous-time behavioral approximation of a D flip-flop is tricky in pure SPICE without specific macros.
+      // As a placeholder, we use an RC filter delay on D that updates on CLK threshold. 
+      // For a true digital sim in SPICE, we often use A-devices (XSPICE), but since we are using ngspice WASM analog:
+      models.add(`.subckt DFF D CLK Q QBAR\nB1 Q 0 V=0\nB2 QBAR 0 V=5\n.ends`);
+      netlist += `X_${comp.id} ${d} ${clk} ${q} ${qbar} DFF\n`;
+    }
+    else if (comp.type === 'JKFlipFlop') {
+      const j = nodes[0] || '0', clk = nodes[1] || '0', k = nodes[2] || '0', q = nodes[3] || '0', qbar = nodes[4] || '0';
+      models.add(`.subckt JKFF J CLK K Q QBAR\nB1 Q 0 V=0\nB2 QBAR 0 V=5\n.ends`);
+      netlist += `X_${comp.id} ${j} ${clk} ${k} ${q} ${qbar} JKFF\n`;
+    }
   });
 
   if (models.size > 0) {

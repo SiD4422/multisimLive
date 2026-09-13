@@ -433,7 +433,8 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
         // If it was an .op analysis, data is an array of op value objects. 
         if (analysisMode === 'op' || (data as any).__plotType === 'op') {
           return {
-            opData: finalData,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            opData: finalData as any,
             isSimulating: false,
             isPlaying: false
           };

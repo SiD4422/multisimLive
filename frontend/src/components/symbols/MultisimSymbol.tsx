@@ -16,9 +16,14 @@ function formatRefDes(id: string, type: string): string {
     Diode: 'D', LED: 'D', DiodeZener: 'D', DiodeSchottky: 'D',
     TransistorNPN: 'Q', TransistorPNP: 'Q', MosfetN: 'Q', MosfetP: 'Q',
     Timer555: 'U', Opamp: 'U', Opamp5: 'U', Comparator: 'U', Opamps: 'U',
-    SwitchSPST: 'S', SPDTSwitch: 'S', PushButton: 'S',
+    OpampLM358: 'U', OpampTL071: 'U', SchmittTrigger: 'U', InstAmp: 'U',
+    VCSwitch: 'S', VCCS: 'G',
+    SwitchSPST: 'S', SPDTSwitch: 'S', PushButton: 'S', DigitalSwitch: 'S',
     DCSource: 'V', ACSource: 'V', ClockVoltage: 'V',
     Ground: 'GND',
+    GateAND: 'U', GateOR: 'U', GateNOT: 'U', GateNAND: 'U', GateNOR: 'U', GateXOR: 'U',
+    DFlipFlop: 'U', JKFlipFlop: 'U',
+    SevenSegment: 'DS', Lamp: 'DS',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -42,12 +47,12 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
   const type = component.type;
   
   let paths: { data: string, fill?: string, stroke?: string }[] = [];
-  let circles: { x: number, y: number, r: number, fill?: string }[] = [];
+  let circles: { x: number, y: number, r: number, fill?: string, stroke?: string }[] = [];
   let lines: { points: number[] }[] = [];
   let pins: { x: number, y: number }[] = [];
   let texts: { text: string, x: number, y: number, size?: number, fill?: string }[] = [];
-  let labelOffset = { x: 10, y: -32 };   // above symbol
-  let valueOffset = { x: 10, y: 20 };    // below symbol
+  let labelOffset = { x: 30, y: -35 };   // above symbol (centered)
+  let valueOffset = { x: 30, y: 35 };    // below symbol (centered)
 
   // --- PASSIVES ---
   if (type === 'Resistor' || type === 'Potentiometer') {
@@ -329,7 +334,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     labelOffset = { x: 20, y: -25 };
   }
   // --- OPAMPS & ANALOG ---
-  else if (type.includes('Opamp') || type === 'Comparator') {
+  else if (type.includes('Opamp') || type === 'Comparator' || type === 'OpampLM358' || type === 'OpampTL071') {
     paths.push({ data: "M 10 -20 L 50 0 L 10 20 Z", fill: "#fff" });
     // Inverting / Non-Inverting (+ on top, - on bottom)
     paths.push({ data: "M 0 -10 L 10 -10 M 13 -10 L 17 -10 M 15 -12 L 15 -8", fill: "transparent" }); // Non-inverting (+)
@@ -338,7 +343,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     paths.push({ data: "M 50 0 L 60 0", fill: "transparent" });
     pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 60, y: 0 }];
     
-    if (type === 'Opamp5') {
+    if (type === 'Opamp5' || type === 'OpampLM358' || type === 'OpampTL071') {
       paths.push({ data: "M 40 -5 L 40 -20 M 40 5 L 40 20", fill: "transparent" });
       pins.push({ x: 40, y: -20 }, { x: 40, y: 20 });
     }
@@ -346,9 +351,81 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     if (type === 'Comparator') {
       paths.push({ data: "M 25 -5 L 35 0 L 25 5", fill: "transparent" });
     }
+
+    // Model label inside symbol body
+    if (type === 'OpampLM358') texts.push({ text: 'LM358', x: 12, y: -2, size: 8 });
+    if (type === 'OpampTL071') texts.push({ text: 'TL071', x: 12, y: -2, size: 8 });
     
     labelOffset = { x: 20, y: -35 };
     valueOffset = { x: 20, y: 25 };
+  }
+  // --- SCHMITT TRIGGER ---
+  else if (type === 'SchmittTrigger') {
+    paths.push({ data: "M 10 -20 L 50 0 L 10 20 Z", fill: "#fff" });
+    // Hysteresis symbol inside (square-wave loop)
+    paths.push({ data: "M 18 2 L 22 2 L 22 -4 L 28 -4 L 28 2 L 34 2 L 34 -4 L 38 -4", fill: "transparent" });
+    // Input leads with +/-
+    paths.push({ data: "M 0 -10 L 10 -10 M 13 -10 L 17 -10 M 15 -12 L 15 -8", fill: "transparent" });
+    paths.push({ data: "M 0 10 L 10 10 M 13 10 L 17 10", fill: "transparent" });
+    // Output
+    paths.push({ data: "M 50 0 L 60 0", fill: "transparent" });
+    // VCC/VEE supply stubs
+    paths.push({ data: "M 40 -5 L 40 -20 M 40 5 L 40 20", fill: "transparent" });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 40, y: -20 }, { x: 40, y: 20 }, { x: 60, y: 0 }];
+    labelOffset = { x: 20, y: -35 };
+    valueOffset = { x: 20, y: 25 };
+  }
+  // --- VOLTAGE-CONTROLLED SWITCH ---
+  else if (type === 'VCSwitch') {
+    // Control port (left, vertical bar)
+    paths.push({ data: "M 0 -20 L 20 -20 M 0 20 L 20 20 M 20 -20 L 20 20", fill: "transparent" });
+    texts.push({ text: '+', x: 3, y: -24, size: 10 });
+    texts.push({ text: '−', x: 3, y: 13, size: 12 });
+    // Switch contacts
+    paths.push({ data: "M -30 0 L -15 0 M 45 0 L 60 0", fill: "transparent" });
+    circles.push({ x: -13, y: 0, r: 2, fill: "transparent" });
+    circles.push({ x: 43, y: 0, r: 2, fill: "transparent" });
+    paths.push({ data: "M -13 -3 L 40 -12", fill: "transparent" }); // open lever
+    texts.push({ text: 'VC', x: 22, y: -17, size: 9 });
+    pins = [{ x: 0, y: -20 }, { x: 0, y: 20 }, { x: -30, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 10, y: -45 };
+  }
+  // --- VCCS ---
+  else if (type === 'VCCS') {
+    // Input port (left, vertical line)
+    paths.push({ data: "M 0 -15 L 15 -15 M 0 15 L 15 15 M 15 -15 L 15 15", fill: "transparent" });
+    texts.push({ text: '+', x: 2, y: -19, size: 10 });
+    texts.push({ text: '−', x: 2, y: 9, size: 12 });
+    // Output current source (right circle + arrow)
+    circles.push({ x: 45, y: 0, r: 15, fill: "#fff" });
+    paths.push({ data: "M 45 -8 L 45 8", fill: "transparent" });
+    paths.push({ data: "M 42 -3 L 45 -8 L 48 -3", fill: "transparent" });
+    // Output leads
+    paths.push({ data: "M 45 -15 L 45 -25 M 45 15 L 45 25", fill: "transparent" });
+    texts.push({ text: 'Gm', x: 36, y: -3, size: 9 });
+    // Connection lines from left port to right circle
+    paths.push({ data: "M 15 -15 L 30 -15 L 30 -15 M 15 15 L 30 15 L 30 15", fill: "transparent" });
+    pins = [{ x: 0, y: -15 }, { x: 0, y: 15 }, { x: 45, y: -25 }, { x: 45, y: 25 }];
+    labelOffset = { x: 10, y: -45 };
+    valueOffset = { x: 10, y: 35 };
+  }
+  // --- INSTRUMENTATION AMPLIFIER ---
+  else if (type === 'InstAmp') {
+    // Body rectangle
+    paths.push({ data: "M 15 -30 L 55 -30 L 55 30 L 15 30 Z", fill: "#fff" });
+    texts.push({ text: 'INA', x: 22, y: -3, size: 12 });
+    // IN+, IN- leads
+    paths.push({ data: "M 0 -15 L 15 -15 M 0 15 L 15 15", fill: "transparent" });
+    texts.push({ text: '+', x: 3, y: -20, size: 10 });
+    texts.push({ text: '−', x: 3, y: 10, size: 12 });
+    // REF lead (top)
+    paths.push({ data: "M 35 -30 L 35 -45", fill: "transparent" });
+    texts.push({ text: 'REF', x: 22, y: -41, size: 9 });
+    // OUT lead (right)
+    paths.push({ data: "M 55 0 L 70 0", fill: "transparent" });
+    pins = [{ x: 0, y: -15 }, { x: 0, y: 15 }, { x: 35, y: -45 }, { x: 70, y: 0 }];
+    labelOffset = { x: 25, y: -60 };
+    valueOffset = { x: 25, y: 35 };
   }
   else if (type === 'Timer555') {
     paths.push({ data: "M 0 -50 L 80 -50 L 80 50 L 0 50 Z", fill: "#fff" });
@@ -527,6 +604,55 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }];
     labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 17 };
   }
+  // --- FLIP FLOPS ---
+  else if (type === 'DFlipFlop') {
+    paths.push({ data: "M 10 -25 L 50 -25 L 50 25 L 10 25 Z", fill: "#fff" });
+    texts.push({ text: 'D', x: 15, y: -15, size: 10, fill: '#333' });
+    texts.push({ text: 'Q', x: 40, y: -15, size: 10, fill: '#333' });
+    texts.push({ text: 'Q\'', x: 40, y: 15, size: 10, fill: '#333' });
+    paths.push({ data: "M 10 10 L 15 15 L 10 20", fill: "transparent" }); // Clock triangle
+    lines.push({ points: [0, -15, 10, -15] }); // D
+    lines.push({ points: [0, 15, 10, 15] }); // CLK
+    lines.push({ points: [50, -15, 60, -15] }); // Q
+    lines.push({ points: [50, 15, 60, 15] }); // Q'
+    pins = [{ x: 0, y: -15 }, { x: 0, y: 15 }, { x: 60, y: -15 }, { x: 60, y: 15 }];
+    labelOffset = { x: 15, y: -40 }; valueOffset = { x: 15, y: 30 };
+  }
+  else if (type === 'JKFlipFlop') {
+    paths.push({ data: "M 10 -25 L 50 -25 L 50 25 L 10 25 Z", fill: "#fff" });
+    texts.push({ text: 'J', x: 15, y: -15, size: 10, fill: '#333' });
+    texts.push({ text: 'K', x: 15, y: 15, size: 10, fill: '#333' });
+    texts.push({ text: 'Q', x: 40, y: -15, size: 10, fill: '#333' });
+    texts.push({ text: 'Q\'', x: 40, y: 15, size: 10, fill: '#333' });
+    paths.push({ data: "M 10 -5 L 15 0 L 10 5", fill: "transparent" }); // Clock triangle
+    lines.push({ points: [0, -15, 10, -15] }); // J
+    lines.push({ points: [0, 0, 10, 0] }); // CLK
+    lines.push({ points: [0, 15, 10, 15] }); // K
+    lines.push({ points: [50, -15, 60, -15] }); // Q
+    lines.push({ points: [50, 15, 60, 15] }); // Q'
+    pins = [{ x: 0, y: -15 }, { x: 0, y: 0 }, { x: 0, y: 15 }, { x: 60, y: -15 }, { x: 60, y: 15 }];
+    labelOffset = { x: 15, y: -40 }; valueOffset = { x: 15, y: 30 };
+  }
+  // --- LAMP ---
+  else if (type === 'Lamp') {
+    const isOn = component.value === '1'; // Natively we will use value for status, or purely visual
+    circles.push({ x: 30, y: 0, r: 15, fill: isOn ? "#fef08a" : "#fff", stroke: strokeColor });
+    paths.push({ data: "M 20 10 L 30 -5 L 40 10", fill: "transparent" });
+    paths.push({ data: "M 30 -5 Q 30 -15 25 -10", fill: "transparent" }); // filament
+    lines.push({ points: [0, 0, 15, 0] });
+    lines.push({ points: [45, 0, 60, 0] });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -25 };
+  }
+  // --- DIGITAL SWITCH ---
+  else if (type === 'DigitalSwitch') {
+    const isHigh = component.value === '1';
+    paths.push({ data: "M 0 -15 L 40 -15 L 40 15 L 0 15 Z", fill: isHigh ? "#ecfdf5" : "#f3f4f6" });
+    texts.push({ text: isHigh ? '1' : '0', x: 20, y: -6, size: 16, fill: isHigh ? '#10b981' : '#6b7280' });
+    lines.push({ points: [40, 0, 60, 0] }); // Output pin
+    pins = [{ x: 60, y: 0 }];
+    labelOffset = { x: 0, y: -30 };
+  }
   // --- VOLTAGE REGULATORS ---
   else if (type === 'VoltageRegulator7805' || type === 'VoltageRegulator7812' || type === 'VoltageRegulatorLM317') {
     paths.push({ data: "M 10 -15 L 50 -15 L 50 15 L 10 15 Z", fill: "#fff" });
@@ -683,10 +809,14 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       onDragMove={onDragMove}
       onDragEnd={onDragEnd}
       onMouseDown={(e) => {
-        if (type === 'SwitchSPST' || type === 'PushButton') {
+        if (type === 'SwitchSPST' || type === 'PushButton' || type === 'DigitalSwitch') {
           e.cancelBubble = true;
-          const isClosed = component.value !== 'Open';
-          const newVal = isClosed ? 'Open' : 'Closed';
+          let newVal = 'Closed';
+          if (type === 'DigitalSwitch') {
+            newVal = component.value === '1' ? '0' : '1';
+          } else {
+            newVal = component.value !== 'Open' ? 'Open' : 'Closed';
+          }
           if (updateComponentValue) updateComponentValue(component.id, newVal);
           // Auto-rerun simulation silently so graph updates immediately
           setTimeout(() => useSchematicStore.getState().runSimulation(true), 50);
@@ -746,19 +876,18 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
         {/* Labels — counter-rotated with readable background pills */}
         {(() => {
           const rot = component.rotation || 0;
-          const rad = rot * Math.PI / 180;
-          const cos = Math.cos(-rad);
-          const sin = Math.sin(-rad);
 
           const idX = labelOffset.x * 1.5;
           const idY = labelOffset.y * 1.5;
           const valX = valueOffset.x * 1.5;
           const valY = valueOffset.y * 1.5;
 
-          const idLocalX = idX * cos - idY * sin;
-          const idLocalY = idX * sin + idY * cos;
-          const valLocalX = valX * cos - valY * sin;
-          const valLocalY = valX * sin + valY * cos;
+          // The labels orbit with the component's rotation to avoid overlapping geometry,
+          // but the text itself stays upright because of the rotation={-rot} on the label Group.
+          const idLocalX = idX;
+          const idLocalY = idY;
+          const valLocalX = valX;
+          const valLocalY = valY;
 
           // Clean reference designator (e.g. R1, C2, U1)
           const refDes = (component as any).label || formatRefDes(component.id, type);
@@ -867,7 +996,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               {component.id !== 'preview' && (
                 <Group x={idLocalX} y={idLocalY} rotation={-rot}>
                   <Rect
-                    x={-3} y={-12}
+                    x={-(refDes.length * 8 + 6) / 2} y={-12}
                     width={refDes.length * 8 + 6} height={16}
                     fill="rgba(255,255,255,0.82)"
                     cornerRadius={3}
@@ -875,11 +1004,12 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
                   />
                   <Text
                     text={refDes}
-                    x={0} y={-11}
+                    x={-(refDes.length * 8) / 2} y={-11}
                     fontSize={13}
                     fontFamily="Inter, Arial, sans-serif"
                     fill="#1a1a2e"
                     fontStyle="bold"
+                    align="center"
                   />
                 </Group>
               )}
@@ -888,7 +1018,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               {valText.length > 0 && (
                 <Group x={valLocalX} y={valLocalY} rotation={-rot}>
                   <Rect
-                    x={-3} y={-11}
+                    x={-(valText.length * 7 + 6) / 2} y={-11}
                     width={valText.length * 7 + 6} height={15}
                     fill="rgba(255,255,255,0.78)"
                     cornerRadius={3}
@@ -896,10 +1026,11 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
                   />
                   <Text
                     text={valText}
-                    x={0} y={-10}
+                    x={-(valText.length * 7) / 2} y={-10}
                     fontSize={12}
                     fontFamily="Inter, Arial, sans-serif"
                     fill="#555"
+                    align="center"
                   />
                 </Group>
               )}

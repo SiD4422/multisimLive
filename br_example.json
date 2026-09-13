@@ -1,0 +1,148 @@
+﻿{
+    "components":  [
+                       {
+                           "id":  "V1",
+                           "type":  "ACSource",
+                           "position":  {
+                                            "x":  150,
+                                            "y":  50
+                                        },
+                           "value":  "120V 60Hz",
+                           "rotation":  90
+                       },
+                       {
+                           "id":  "BR1",
+                           "type":  "BridgeRectifier",
+                           "position":  {
+                                            "x":  300,
+                                            "y":  200
+                                        },
+                           "value":  "1N4007",
+                           "rotation":  0
+                       },
+                       {
+                           "id":  "C1",
+                           "type":  "Capacitor",
+                           "position":  {
+                                            "x":  550,
+                                            "y":  110
+                                        },
+                           "value":  "1000u",
+                           "rotation":  90
+                       },
+                       {
+                           "id":  "R1",
+                           "type":  "Resistor",
+                           "position":  {
+                                            "x":  650,
+                                            "y":  110
+                                        },
+                           "value":  "100",
+                           "rotation":  90
+                       },
+                       {
+                           "id":  "G2",
+                           "type":  "Ground",
+                           "position":  {
+                                            "x":  550,
+                                            "y":  200
+                                        },
+                           "rotation":  0
+                       },
+                       {
+                           "id":  "G3",
+                           "type":  "Ground",
+                           "position":  {
+                                            "x":  650,
+                                            "y":  200
+                                        },
+                           "rotation":  0
+                       },
+                       {
+                           "id":  "G4",
+                           "type":  "Ground",
+                           "position":  {
+                                            "x":  360,
+                                            "y":  290
+                                        },
+                           "rotation":  0
+                       }
+                   ],
+    "wires":  [
+                  {
+                      "id":  "W1",
+                      "points":  [
+                                     {
+                                         "x":  150,
+                                         "y":  140
+                                     },
+                                     {
+                                         "x":  150,
+                                         "y":  200
+                                     },
+                                     {
+                                         "x":  270,
+                                         "y":  200
+                                     }
+                                 ]
+                  },
+                  {
+                      "id":  "W2",
+                      "points":  [
+                                     {
+                                         "x":  150,
+                                         "y":  50
+                                     },
+                                     {
+                                         "x":  450,
+                                         "y":  50
+                                     },
+                                     {
+                                         "x":  450,
+                                         "y":  200
+                                     }
+                                 ]
+                  },
+                  {
+                      "id":  "W3",
+                      "points":  [
+                                     {
+                                         "x":  360,
+                                         "y":  110
+                                     },
+                                     {
+                                         "x":  650,
+                                         "y":  110
+                                     }
+                                 ]
+                  }
+              ],
+    "probes":  [
+                   {
+                       "id":  "PRB1",
+                       "position":  {
+                                        "x":  150,
+                                        "y":  50
+                                    },
+                       "type":  "Voltage"
+                   },
+                   {
+                       "id":  "PRB2",
+                       "position":  {
+                                        "x":  550,
+                                        "y":  110
+                                    },
+                       "type":  "Voltage"
+                   }
+               ],
+    "scale":  1,
+    "stagePos":  {
+                     "x":  0,
+                     "y":  0
+                 },
+    "analysisMode":  "transient",
+    "transientSettings":  {
+                              "endTime":  "50m",
+                              "step":  "0.1m"
+                          }
+}

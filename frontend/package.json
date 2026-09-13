@@ -23,6 +23,7 @@
     "react-konva-utils": "^2.0.0",
     "react-router-dom": "^7.16.0",
     "recharts": "^3.8.1",
+    "uplot": "^1.6.32",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

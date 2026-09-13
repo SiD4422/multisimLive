@@ -43,7 +43,7 @@ export interface WireVoltageResult {
  */
 export function buildWireVoltageResult(
   wireNodeMap: Map<string, string>,
-  simulationBuffer: any[] | null,
+  simulationBuffer: Record<string, number>[] | null,
   playbackTime: number
 ): WireVoltageResult {
   const wireColorMap = new Map<string, string>();
@@ -54,13 +54,13 @@ export function buildWireVoltageResult(
   }
 
   // Find the data row matching current playback time
-  let row: any;
+  let row: Record<string, number>;
   if (playbackTime === Infinity) {
     row = simulationBuffer[simulationBuffer.length - 1];
   } else {
     row = simulationBuffer[0];
     for (let i = simulationBuffer.length - 1; i >= 0; i--) {
-      if (simulationBuffer[i].time <= playbackTime) {
+      if ((simulationBuffer[i].time ?? 0) <= playbackTime) {
         row = simulationBuffer[i];
         break;
       }
@@ -73,7 +73,7 @@ export function buildWireVoltageResult(
   let maxV = 0;
   for (const key of Object.keys(row)) {
     if (key.startsWith('v(') || key.startsWith('V(')) {
-      const v = Math.abs(row[key]);
+      const v = Math.abs(row[key] ?? 0);
       if (v > maxV) maxV = v;
     }
   }
@@ -84,8 +84,7 @@ export function buildWireVoltageResult(
     if (spiceNode !== '0') {
       const key1 = `v(${spiceNode})`;
       const key2 = `V(${spiceNode})`;
-      if (row[key1] !== undefined) voltage = row[key1];
-      else if (row[key2] !== undefined) voltage = row[key2];
+      voltage = row[key1] ?? row[key2] ?? 0;
     }
     wireVoltageMap.set(wireId, voltage);
     wireColorMap.set(wireId, voltageToColor(voltage, maxV));
@@ -158,7 +157,7 @@ export function getPointAlongPolyline(points: Point[], t: number): Point {
 
   // Clamp t
   const tClamped = Math.max(0, Math.min(1, t));
-  let target = tClamped * totalLength;
+  const target = tClamped * totalLength;
 
   // Walk segments until we find where target distance falls
   let accumulated = 0;

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 
 import { Link } from 'react-router-dom';
 import LZString from 'lz-string';
-import { Play, MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, LayoutGrid, HelpCircle, Share, Maximize, Activity, PanelLeftClose, PanelLeftOpen, FileCode, Zap, CircleDot, ChevronRight, X, Search, FolderOpen, Save, CheckCircle2, AlertTriangle, BookOpen, Camera, Sparkles } from 'lucide-react';
+import { Play, MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, LayoutGrid, HelpCircle, Share, Maximize, Activity, PanelLeftClose, PanelLeftOpen, FileCode, Zap, CircleDot, ChevronRight, X, Search, FolderOpen, Save, CheckCircle2, AlertTriangle, BookOpen, Camera, Sparkles, Upload, Download, Copy } from 'lucide-react';
+import { importSpiceNetlist, looksLikeSpiceNetlist } from '../utils/spiceImporter';
 import SchematicEditor from '../components/SchematicEditor';
 import Grapher from '../components/Grapher';
 import { ComponentInspectorPanel } from '../components/ComponentInspectorPanel';
@@ -23,7 +24,9 @@ import {
   IconLossyTransmissionLine, IconLosslessTransmissionLine, IconResistorsPack,
   IconLogicGate, IconGateAND, IconGateOR, IconGateNOT, IconGateNAND, IconGateNOR, IconGateXOR,
   IconVoltageRegulator, Icon7Segment, IconCrystal, IconPhotodiode, IconPhototransistor,
-  IconDIP14, IconTriac, IconDiac, IconDarlington, IconCurrentMirror
+  IconDIP14, IconTriac, IconDiac, IconDarlington, IconCurrentMirror,
+  IconDFlipFlop, IconJKFlipFlop, IconLamp,
+  IconOpampLM358, IconOpampTL071, IconSchmittTrigger, IconVCSwitch, IconVCCS, IconInstAmp
 } from '../components/icons/MultisimIcons';
 import { Logo } from '../components/icons/Logo';
 import '../index.css';
@@ -69,6 +72,7 @@ function Simulator() {
   } = useSchematicStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cirFileInputRef = useRef<HTMLInputElement>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [circuitName, setCircuitName] = useState('Untitled Circuit');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -79,6 +83,8 @@ function Simulator() {
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const [isMyCktOpen, setIsMyCktOpen] = useState(false);
+  const [lastSimMs, setLastSimMs] = useState<number | null>(null);
+  const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
   const stageRef = useRef<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
@@ -117,14 +123,21 @@ function Simulator() {
     { label: 'PMOS', type: 'MosfetP', value: 'BSS84' },
     { label: 'JFET N', type: 'JFET', value: 'J201' },
     { label: 'IGBT', type: 'IGBT', value: 'FGA25N120' },
-    { label: 'Opamp', type: 'Opamp', value: 'LM741' },
+    { label: 'Opamp', type: 'Opamp', value: 'LM324' },
     { label: '5-Terminal Opamp', type: 'Opamp5', value: 'LM741' },
+    { label: 'LM358 Op-Amp', type: 'OpampLM358', value: 'LM358' },
+    { label: 'TL071 Op-Amp', type: 'OpampTL071', value: 'TL071' },
+    { label: 'Schmitt Trigger', type: 'SchmittTrigger', value: '3.3/1.7' },
+    { label: 'Voltage-Controlled Switch', type: 'VCSwitch', value: '2.5' },
+    { label: 'VCCS', type: 'VCCS', value: '0.001' },
+    { label: 'Instrumentation Amp', type: 'InstAmp', value: '100' },
     { label: 'Comparator', type: 'Comparator', value: 'LM311' },
     { label: '555 Timer', type: 'Timer555', value: 'NE555' },
     { label: 'SPST Switch', type: 'SwitchSPST', value: 'SW1' },
     { label: 'SPDT Switch', type: 'SPDTSwitch', value: '' },
     { label: 'Push Button', type: 'PushButton', value: '' },
     { label: 'Relay', type: 'Relay', value: '' },
+    { label: 'Digital Switch', type: 'DigitalSwitch', value: '0' },
     { label: '7805 Regulator', type: 'VoltageRegulator7805', value: '' },
     { label: '7812 Regulator', type: 'VoltageRegulator7812', value: '' },
     { label: 'LM317 Regulator', type: 'VoltageRegulatorLM317', value: '' },
@@ -136,10 +149,14 @@ function Simulator() {
     { label: 'NAND Gate', type: 'GateNAND', value: '' },
     { label: 'NOR Gate', type: 'GateNOR', value: '' },
     { label: 'XOR Gate', type: 'GateXOR', value: '' },
+    { label: 'D Flip-Flop', type: 'DFlipFlop', value: '' },
+    { label: 'JK Flip-Flop', type: 'JKFlipFlop', value: '' },
     { label: '7-Segment Display', type: 'SevenSegment', value: '' },
+    { label: 'Indicator Lamp', type: 'Lamp', value: '' },
     { label: 'Crystal Oscillator', type: 'CrystalOscillator', value: '16MHz' },
     { label: 'Voltage Probe', type: 'ProbeVoltage', value: '' },
     { label: 'Current Probe', type: 'ProbeCurrent', value: '' },
+    { label: 'Digital Probe', type: 'ProbeDigital', value: '' },
   ];
 
   const generateDesc = (label: string, type: string) => {
@@ -175,6 +192,9 @@ function Simulator() {
       case 'GateAND': return <IconGateAND {...props} />;
       case 'GateOR': return <IconGateOR {...props} />;
       case 'GateNOT': return <IconGateNOT {...props} />;
+      case 'DFlipFlop': return <IconDFlipFlop {...props} />;
+      case 'JKFlipFlop': return <IconJKFlipFlop {...props} />;
+      case 'Lamp': return <IconLamp {...props} />;
       case 'Potentiometer': return <IconPotentiometer {...props} />;
       case 'BridgeRectifier': return <IconBridgeRectifier {...props} />;
       default: return <IconResistor {...props} />; // Fallback icon
@@ -297,9 +317,60 @@ function Simulator() {
 
   const handleExportNetlist = () => {
     const netlist = generateNetlist(components, wires, useSchematicStore.getState().probes);
-    console.log("=== SPICE NETLIST ===");
-    console.log(netlist);
-    alert("Netlist printed to browser console!\n\n" + netlist);
+    const blob = new Blob([netlist], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${circuitName || 'circuit'}.cir`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('SPICE netlist exported as .cir file!', 'success');
+  };
+
+  const handleCopyNetlist = async () => {
+    const netlist = generateNetlist(components, wires, useSchematicStore.getState().probes);
+    try {
+      await navigator.clipboard.writeText(netlist);
+      showToast('SPICE netlist copied to clipboard!', 'success');
+    } catch {
+      showToast('Could not copy to clipboard — check browser permissions.', 'warning');
+    }
+  };
+
+  const handleImportCirClick = () => {
+    if (cirFileInputRef.current) cirFileInputRef.current.click();
+  };
+
+  const handleCirFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (!text) return;
+      if (!looksLikeSpiceNetlist(text)) {
+        showToast('This file does not look like a valid SPICE netlist (.cir). Try a JSON circuit file instead.', 'warning');
+        return;
+      }
+      const result = importSpiceNetlist(text);
+      // Build a minimal state JSON and import it
+      const stateJson = JSON.stringify({
+        components: result.components,
+        wires: [],
+        probes: [],
+        stagePos: { x: 400, y: 300 },
+        scale: 0.8,
+      });
+      importState(stateJson);
+      const msg = result.warnings.length > 0
+        ? `Imported ${result.componentCount} components. Note: ${result.warnings[0]}`
+        : `Imported ${result.componentCount} components from SPICE netlist. Wires are not reconstructed — please connect pins manually.`;
+      showToast(msg, result.warnings.length > 0 ? 'warning' : 'success');
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const handleSelectComponent = (type: string, value: string) => {
@@ -371,6 +442,17 @@ function Simulator() {
     }
   };
 
+  // Track simulation duration for the status bar
+  const simStartRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (isSimulating) {
+      simStartRef.current = Date.now();
+    } else if (simStartRef.current !== null) {
+      setLastSimMs(Date.now() - simStartRef.current);
+      simStartRef.current = null;
+    }
+  }, [isSimulating]);
+
   return (
     <div className="app-container">
       {/* Hidden File Input for Loading Circuits */}
@@ -380,6 +462,14 @@ function Simulator() {
         style={{ display: 'none' }} 
         ref={fileInputRef}
         onChange={handleFileChange}
+      />
+      {/* Hidden File Input for Importing SPICE .cir Netlists */}
+      <input
+        type="file"
+        accept=".cir,.sp,.net,.spice,.spi"
+        style={{ display: 'none' }}
+        ref={cirFileInputRef}
+        onChange={handleCirFileChange}
       />
 
       {/* Example Library Modal */}
@@ -461,10 +551,13 @@ function Simulator() {
           <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
           {[
             { icon: <BookOpen size={16}/>, label: 'Example Library', action: () => setIsLibraryOpen(true), color: undefined },
-            { icon: <FolderOpen size={16}/>, label: 'Load Circuit', action: handleLoadClick, color: undefined },
-            { icon: <Save size={16}/>, label: 'Save to File', action: handleSave, color: undefined },
+            { icon: <FolderOpen size={16}/>, label: 'Load Circuit (.json)', action: handleLoadClick, color: undefined },
+            { icon: <Save size={16}/>, label: 'Save Circuit (.json)', action: handleSave, color: undefined },
             { icon: <Share size={16}/>, label: 'Share Link', action: handleShare, color: undefined },
             { icon: <Camera size={16}/>, label: 'Snapshot (PNG)', action: () => window.dispatchEvent(new CustomEvent('export-schematic')), color: '#4ade96' },
+            { icon: <Upload size={16}/>, label: 'Import SPICE Netlist (.cir)', action: handleImportCirClick, color: '#60a5fa' },
+            { icon: <Download size={16}/>, label: 'Export SPICE Netlist (.cir)', action: handleExportNetlist, color: '#60a5fa' },
+            { icon: <Copy size={16}/>, label: 'Copy Netlist to Clipboard', action: handleCopyNetlist, color: '#60a5fa' },
           ].map(({ icon, label, action, color }) => (
             <button
               key={label}
@@ -500,6 +593,20 @@ function Simulator() {
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}
           >
             <Maximize size={16}/>
+          </button>
+          <button
+            title="Keyboard Shortcuts"
+            onClick={() => setIsShortcutModalOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '32px', height: '32px', background: 'transparent',
+              border: '1px solid transparent', borderRadius: '6px',
+              cursor: 'pointer', color: 'rgba(255,255,255,0.65)', transition: 'all 0.12s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}
+          >
+            <HelpCircle size={16}/>
           </button>
         </div>
       </header>
@@ -893,13 +1000,18 @@ function Simulator() {
 
                   {activeCategory === 'analog' && (
                     <>
-                      <div className="flyout-header">Analog</div>
+                      <div className="flyout-header">Analog ICs</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Opamp', 'LM324')}><IconOpamp3T size={28} /><span>3 Terminal Opamp</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Opamp5', 'LM741')}><IconOpamp5T size={28} /><span>5 Terminal Opamp</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Comparator', 'LM311')}><IconComparator size={28} /><span>Ideal Comparator</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Opamp', 'LM324')}><IconOpamp3T size={28} /><span>Ideal Op-Amp</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Opamp5', 'LM741')}><IconOpamp5T size={28} /><span>LM741</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('OpampLM358', 'LM358')}><IconOpampLM358 size={28} /><span>LM358</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('OpampTL071', 'TL071')}><IconOpampTL071 size={28} /><span>TL071</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Comparator', 'LM311')}><IconComparator size={28} /><span>Comparator</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('SchmittTrigger', '3.3/1.7')}><IconSchmittTrigger size={28} /><span>Schmitt Trigger</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('VCSwitch', '2.5')}><IconVCSwitch size={28} /><span>VC Switch</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('VCCS', '0.001')}><IconVCCS size={28} /><span>VCCS</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('InstAmp', '100')}><IconInstAmp size={28} /><span>Inst. Amp</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('Timer555', 'NE555')}><IconTimer555 size={28} /><span>555 Timer</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Opamps', '')}><IconOpamp3T size={28} /><span>Opamps...</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('CurrentMirror', '')}><IconCurrentMirror size={28} /><span>Current Mirror</span></div>
                       </div>
                     </>
@@ -940,6 +1052,7 @@ function Simulator() {
                       <div className="flyout-grid">
                         <div className="flyout-item" onClick={() => handleSelectComponent('SwitchSPST', 'SW1')}><IconSwitch size={28} /><span>SPST Switch</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('SPDTSwitch', '')}><IconSwitch size={28} /><span>SPDT Switch</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DigitalSwitch', '0')}><IconSwitch size={28} /><span>Digital Switch (0/1)</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('PushButton', '')}><IconSwitch size={28} /><span>Push Button</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('Relay', '')}><IconSwitch size={28} /><span>Relay</span></div>
                       </div>
@@ -972,8 +1085,11 @@ function Simulator() {
                         <div className="flyout-item" onClick={() => handleSelectComponent('GateNAND', '')}><IconGateNAND size={28} /><span>NAND</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('GateNOR', '')}><IconGateNOR size={28} /><span>NOR</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('GateXOR', '')}><IconGateXOR size={28} /><span>XOR</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DFlipFlop', '')}><IconDFlipFlop size={28} /><span>D Flip-Flop</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('JKFlipFlop', '')}><IconJKFlipFlop size={28} /><span>JK Flip-Flop</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('DIP14', '')}><IconDIP14 size={28} /><span>DIP-14 IC</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('SevenSegment', '')}><Icon7Segment size={28} /><span>7-Segment Display</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Lamp', '')}><IconLamp size={28} /><span>Indicator Lamp</span></div>
                       </div>
                     </>
                   )}
@@ -1032,6 +1148,65 @@ function Simulator() {
       </div>
 
       {/* AnalysisSettings is shown as a modal via the gear icon — no bottom panel */}
+
+      {/* Status Bar */}
+      <div style={{
+        height: '24px',
+        background: '#064a2d',
+        color: 'rgba(255,255,255,0.75)',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 12px',
+        fontSize: '11px',
+        fontFamily: 'monospace',
+        gap: '16px',
+        flexShrink: 0,
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        userSelect: 'none',
+      }}>
+        <span>Components: {components.length}</span>
+        <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
+        <span>Wires: {wires.length}</span>
+        <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
+        <span>Last Sim: {lastSimMs !== null ? `${lastSimMs}ms` : '—'}</span>
+      </div>
+
+      {/* Keyboard Shortcuts Modal */}
+      {isShortcutModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setIsShortcutModalOpen(false)}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, maxWidth: 480, width: '90%', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>⌨️ Keyboard Shortcuts</h2>
+              <button onClick={() => setIsShortcutModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#6b7280' }}>×</button>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <tbody>
+                {[
+                  ['Space', 'Flip wire direction (H ↔ V)'],
+                  ['Escape', 'Cancel wire / component placement'],
+                  ['Delete / Backspace', 'Delete selected component or wire'],
+                  ['Ctrl + R', 'Rotate selected component 90°'],
+                  ['Ctrl + Z', 'Undo'],
+                  ['Ctrl + Y', 'Redo'],
+                  ['Ctrl + C', 'Copy selected component'],
+                  ['Scroll wheel', 'Zoom in / out on canvas'],
+                  ['Right-click', 'Cancel wire drawing'],
+                  ['Double-click wire', 'Finish wire segment'],
+                ].map(([key, desc]) => (
+                  <tr key={key} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '6px 12px 6px 0', fontFamily: 'monospace', background: 'none' }}>
+                      <kbd style={{ background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 4, padding: '2px 6px', fontSize: 11 }}>{key}</kbd>
+                    </td>
+                    <td style={{ padding: '6px 0', color: '#374151' }}>{desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
