@@ -506,7 +506,7 @@ function Simulator() {
       {/* Top Header */}
       <header className="header-top relative" style={{ zIndex: 10 }}>
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" style={{ marginLeft: '-12px' }}>
             <Link to="/" title="Back to Home" className="flex items-center">
               <Logo style={{ width: '250px', height: '52px', transform: 'scale(1.3)', transformOrigin: 'left center' }} />
             </Link>
