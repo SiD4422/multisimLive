@@ -507,13 +507,13 @@ function Simulator() {
       <header className="header-top relative" style={{ zIndex: 10 }}>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <Link to="/" title="Back to Home">
-              <Logo style={{ width: '280px', height: '90px', marginTop: '-28px', marginBottom: '-12px' }} />
+            <Link to="/" title="Back to Home" className="flex items-center">
+              <Logo style={{ width: '250px', height: '52px' }} />
             </Link>
-            <span style={{ fontSize: '10px', transform: 'translateY(-8px)' }} className="border border-green-700 text-green-300 px-1.5 py-0 rounded-full ml-1 whitespace-nowrap">Beta Testing</span>
+            <span style={{ fontSize: '10px' }} className="border border-green-700 text-green-300 px-1.5 py-0 rounded-full ml-1 whitespace-nowrap">Beta Testing</span>
           </div>
           
-          <nav style={{ display: 'flex', gap: '20px', borderLeft: '1px solid #374151', paddingLeft: '20px' }}>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '20px', borderLeft: '1px solid #374151', paddingLeft: '20px', height: '30px' }}>
              <Link to="/" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Home</Link>
              <Link to="/features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</Link>
              <Link to="/circuits" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Circuits</Link>
