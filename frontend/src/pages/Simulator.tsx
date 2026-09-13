@@ -508,7 +508,7 @@ function Simulator() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <Link to="/" title="Back to Home" className="flex items-center">
-              <Logo style={{ width: '250px', height: '52px' }} />
+              <Logo style={{ width: '250px', height: '52px', transform: 'scale(1.3)', transformOrigin: 'left center' }} />
             </Link>
             <span style={{ fontSize: '10px' }} className="border border-green-700 text-green-300 px-1.5 py-0 rounded-full ml-1 whitespace-nowrap">Beta Testing</span>
           </div>
