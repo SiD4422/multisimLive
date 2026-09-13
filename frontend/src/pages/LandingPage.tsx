@@ -33,7 +33,7 @@ export default function LandingPage() {
         .lp button{font-family:inherit;cursor:pointer;background:none;border:0;}
         .lp-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);}
         .lp-header-inner{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;max-width:100%;margin:0 auto;position:relative;}
-        .lp-logo img{height:85px;object-fit:contain;}
+        .lp-logo img{height:110px;object-fit:contain;}
         .lp-nav-links{display:flex;align-items:center;gap:34px;}
         .lp-nav-links a{font-size:15px;font-weight:500;color:#334155;transition:color .15s;}
         .lp-nav-links a:hover{color:var(--green-700);}
