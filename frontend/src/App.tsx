@@ -14,9 +14,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Marketing / Landing Pages with Navbar & Footer */}
+        {/* Standalone Landing Page with its own header */}
+        <Route path="/" element={<LandingPage />} />
+
+        {/* Marketing Pages with shared Navbar & Footer */}
         <Route element={<Layout />}>
-          <Route path="/" element={<LandingPage />} />
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/circuits" element={<CircuitsPage />} />
           <Route path="/procedure" element={<ProcedurePage />} />
