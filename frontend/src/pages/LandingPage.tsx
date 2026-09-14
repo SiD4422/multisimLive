@@ -62,8 +62,8 @@ export default function LandingPage() {
   button{font:inherit;cursor:pointer;background:none;border:none;color:inherit;}
   ul{list-style:none;margin:0;padding:0;}
   h1,h2,h3,p,blockquote,figure{margin:0;}
-  .container{max-width:var(--container);margin:0 auto;padding:0 20px;}
-  @media(min-width:640px){.container{padding:0 32px;}}
+  .msl-container{max-width:var(--container);margin:0 auto;padding:0 20px;}
+  @media(min-width:640px){.msl-container{padding:0 32px;}}
   :focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:4px;}
   @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}}
 
@@ -71,15 +71,15 @@ export default function LandingPage() {
   .skip-link:focus{left:0;}
 
   /* ---------- Buttons & shared bits ---------- */
-  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;padding:11px 18px;border-radius:var(--radius-sm);white-space:nowrap;transition:transform .15s ease,filter .15s ease,background .15s ease,border-color .15s ease;}
-  .btn svg{width:16px;height:16px;}
+  .msl-btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;padding:11px 18px;border-radius:var(--radius-sm);white-space:nowrap;transition:transform .15s ease,filter .15s ease,background .15s ease,border-color .15s ease;}
+  .msl-btn svg{width:16px;height:16px;}
   .btn-ghost{color:var(--ink);border:1px solid var(--line);background:var(--surface);}
   .btn-ghost:hover{border-color:var(--mint-deep);background:var(--mint);}
-  .btn-primary{color:#fff;background:linear-gradient(180deg,var(--green) 0%,var(--green-dark) 100%);box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,.2);}
-  .btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px);}
-  .btn-text{color:var(--ink);font-weight:600;padding:11px 4px;border-bottom:2px solid transparent;}
-  .btn-text:hover{border-color:var(--mint-deep);}
-  .btn-lg{padding:15px 24px;font-size:15.5px;border-radius:12px;}
+  .msl-btn-primary{color:#fff;background:linear-gradient(180deg,var(--green) 0%,var(--green-dark) 100%);box-shadow:var(--shadow-md),inset 0 1px 0 rgba(255,255,255,.2);}
+  .msl-btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px);}
+  .msl-btn-text{color:var(--ink);font-weight:600;padding:11px 4px;border-bottom:2px solid transparent;}
+  .msl-btn-text:hover{border-color:var(--mint-deep);}
+  .msl-btn-lg{padding:15px 24px;font-size:15.5px;border-radius:12px;}
   .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:var(--radius-sm);border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);flex:none;transition:color .15s ease,border-color .15s ease;}
   .icon-btn:hover{color:var(--ink);border-color:var(--mint-deep);}
   .theme-toggle .icon-sun{display:none;}
@@ -87,9 +87,9 @@ export default function LandingPage() {
   html[data-theme="dark"] .theme-toggle .icon-sun{display:block;}
 
   /* ---------- Header ---------- */
-  .site-header{position:sticky;top:0;z-index:80;background:var(--header-bg);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--line);}
-  .nav-row{display:flex;align-items:center;gap:28px;height:76px;}
-  .brand{display:flex;align-items:center;gap:11px;flex:none;}
+  .msl-site-header{position:sticky;top:0;z-index:80;background:var(--header-bg);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--line);}
+  .msl-nav-row{display:flex;align-items:center;gap:28px;height:76px;}
+  .msl-brand{display:flex;align-items:center;gap:11px;flex:none;}
   .brand-mark{width:32px;height:32px;flex:none;}
   .brand-text{display:flex;flex-direction:column;line-height:1.05;}
   .brand-name{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:-.01em;}
@@ -97,11 +97,11 @@ export default function LandingPage() {
   .brand-name .n2{color:var(--green-dark);}
   .brand-tag{font-size:9px;letter-spacing:.15em;color:var(--muted);font-weight:600;margin-top:2px;}
 
-  .nav-links{display:flex;align-items:center;gap:26px;flex:1;}
-  .nav-links a{font-size:14.5px;font-weight:500;color:var(--ink-soft);padding:8px 1px;position:relative;transition:color .15s ease;}
-  .nav-links a:hover{color:var(--ink);}
-  .nav-links a.active{color:var(--ink);}
-  .nav-links a.active::after{content:"";position:absolute;left:0;right:0;bottom:1px;height:2px;background:var(--green);border-radius:2px;}
+  .msl-nav-links{display:flex;align-items:center;gap:26px;flex:1;}
+  .msl-nav-links a{font-size:14.5px;font-weight:500;color:var(--ink-soft);padding:8px 1px;position:relative;transition:color .15s ease;}
+  .msl-nav-links a:hover{color:var(--ink);}
+  .msl-nav-links a.active{color:var(--ink);}
+  .msl-nav-links a.active::after{content:"";position:absolute;left:0;right:0;bottom:1px;height:2px;background:var(--green);border-radius:2px;}
 
   .nav-actions{display:flex;align-items:center;gap:12px;flex:none;}
   .search-box{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:9px 11px;width:230px;color:var(--muted);}
@@ -122,47 +122,47 @@ export default function LandingPage() {
   .mobile-panel .mp-links a.active{color:var(--green-dark);}
   .mobile-panel .search-box{width:100%;margin-bottom:14px;}
   .mobile-panel .mp-actions{display:flex;gap:10px;}
-  .mobile-panel .mp-actions .btn{flex:1;justify-content:center;}
+  .mobile-panel .mp-actions .msl-btn{flex:1;justify-content:center;}
 
   @media(max-width:1180px){
     .nav-actions .search-box{width:180px;}
   }
   @media(max-width:940px){
-    .nav-links,.nav-actions .search-box,.nav-actions .btn-ghost,.nav-actions .btn-primary{display:none;}
+    .msl-nav-links,.nav-actions .search-box,.nav-actions .btn-ghost,.nav-actions .msl-btn-primary{display:none;}
     .hamburger{display:flex;}
   }
 
   /* ---------- Hero ---------- */
-  .hero{position:relative;padding:56px 0 88px;overflow:hidden;
+  .msl-hero{position:relative;padding:56px 0 88px;overflow:hidden;
     background:
       radial-gradient(1100px 620px at 12% -12%, rgba(15,169,104,.09), transparent 60%),
       radial-gradient(820px 520px at 104% 6%, rgba(15,169,104,.07), transparent 55%),
       var(--paper);
   }
-  .hero::before{
+  .msl-hero::before{
     content:"";position:absolute;inset:0;pointer-events:none;
     background-image:linear-gradient(var(--line) 1px, transparent 1px),linear-gradient(90deg, var(--line) 1px, transparent 1px);
     background-size:54px 54px;opacity:.55;
     -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,.5), transparent 78%);
     mask-image:linear-gradient(to bottom, rgba(0,0,0,.5), transparent 78%);
   }
-  .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(340px,440px) minmax(0,1fr);gap:56px;align-items:center;}
-  @media(max-width:1180px){.hero-grid{grid-template-columns:1fr;gap:64px;}}
+  .msl-hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(340px,440px) minmax(0,1fr);gap:56px;align-items:center;}
+  @media(max-width:1180px){.msl-hero-grid{grid-template-columns:1fr;gap:64px;}}
 
-  .badge{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:var(--mint);border:1px solid var(--mint-deep);color:var(--green-dark);font-size:12px;font-weight:700;letter-spacing:.02em;}
-  .badge svg{width:13px;height:13px;}
+  .msl-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:var(--mint);border:1px solid var(--mint-deep);color:var(--green-dark);font-size:12px;font-weight:700;letter-spacing:.02em;}
+  .msl-badge svg{width:13px;height:13px;}
 
-  .hero h1{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em;font-size:clamp(2.35rem,3.6vw + 1.2rem,3.55rem);line-height:1.08;margin:22px 0 20px;color:var(--ink);}
-  .hero h1 .accent{color:var(--green-dark);}
-  .hero .lede{font-size:17px;line-height:1.7;color:var(--ink-soft);max-width:46ch;margin:0 0 32px;}
-  .hero-ctas{display:flex;align-items:center;gap:18px;margin-bottom:44px;flex-wrap:wrap;}
+  .msl-hero h1{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em;font-size:clamp(2.35rem,3.6vw + 1.2rem,3.55rem);line-height:1.08;margin:22px 0 20px;color:var(--ink);}
+  .msl-hero h1 .accent{color:var(--green-dark);}
+  .msl-hero .lede{font-size:17px;line-height:1.7;color:var(--ink-soft);max-width:46ch;margin:0 0 32px;}
+  .msl-hero-ctas{display:flex;align-items:center;gap:18px;margin-bottom:44px;flex-wrap:wrap;}
 
   .benefits{display:grid;grid-template-columns:repeat(2,1fr);gap:26px 28px;max-width:460px;}
-  .benefit{display:flex;gap:12px;align-items:flex-start;}
-  .benefit .chip{width:38px;height:38px;flex:none;border-radius:var(--radius-xs);background:var(--mint);display:flex;align-items:center;justify-content:center;color:var(--green-dark);}
-  .benefit .chip svg{width:19px;height:19px;}
-  .benefit h4{font-size:14.5px;font-weight:700;color:var(--ink);margin:0 0 2px;}
-  .benefit p{font-size:12.5px;color:var(--muted);line-height:1.45;}
+  .msl-benefit{display:flex;gap:12px;align-items:flex-start;}
+  .msl-benefit .chip{width:38px;height:38px;flex:none;border-radius:var(--radius-xs);background:var(--mint);display:flex;align-items:center;justify-content:center;color:var(--green-dark);}
+  .msl-benefit .chip svg{width:19px;height:19px;}
+  .msl-benefit h4{font-size:14.5px;font-weight:700;color:var(--ink);margin:0 0 2px;}
+  .msl-benefit p{font-size:12.5px;color:var(--muted);line-height:1.45;}
 
   /* ---------- Simulator hero mock ---------- */
   .sim-stage{position:relative;}
@@ -252,12 +252,12 @@ export default function LandingPage() {
 
   /* ---------- Trust ---------- */
   .trust{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface);}
-  .trust-inner{display:flex;justify-content:space-between;align-items:center;gap:44px;padding:38px 0;flex-wrap:wrap;}
-  @media(max-width:860px){.trust-inner{flex-direction:column;align-items:flex-start;}}
-  .trust-label{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin:0 0 18px;}
-  .trust-logos{display:flex;gap:32px;flex-wrap:wrap;}
-  .trust-logos li{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:600;color:var(--ink-soft);}
-  .trust-logos svg{width:19px;height:19px;color:var(--muted);flex:none;}
+  .msl-trust-inner{display:flex;justify-content:space-between;align-items:center;gap:44px;padding:38px 0;flex-wrap:wrap;}
+  @media(max-width:860px){.msl-trust-inner{flex-direction:column;align-items:flex-start;}}
+  .msl-trust-label{font-size:11px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin:0 0 18px;}
+  .msl-trust-logos{display:flex;gap:32px;flex-wrap:wrap;}
+  .msl-trust-logos li{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:600;color:var(--ink-soft);}
+  .msl-trust-logos svg{width:19px;height:19px;color:var(--muted);flex:none;}
   .testimonial{max-width:360px;position:relative;padding-left:22px;border-left:2px solid var(--mint-deep);flex:none;}
   .testimonial p{font-size:15.5px;color:var(--ink);font-weight:500;line-height:1.5;margin:0 0 8px;}
   .testimonial cite{font-size:13px;color:var(--muted);font-style:normal;}
@@ -271,22 +271,22 @@ export default function LandingPage() {
     -webkit-mask-image:radial-gradient(ellipse 70% 70% at 30% 20%, black, transparent 72%);
     mask-image:radial-gradient(ellipse 70% 70% at 30% 20%, black, transparent 72%);
   }
-  .features-inner{position:relative;z-index:1;}
-  .features-head{max-width:600px;margin-bottom:60px;}
+  .msl-features-inner{position:relative;z-index:1;}
+  .msl-features-head{max-width:600px;margin-bottom:60px;}
   .features-dark h2{font-family:var(--font-display);font-weight:700;letter-spacing:-.01em;font-size:clamp(1.9rem,2.6vw + 1rem,2.5rem);color:#fff;}
-  .feature-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.12);}
-  @media(max-width:860px){.feature-grid{grid-template-columns:repeat(2,1fr);}}
-  @media(max-width:560px){.feature-grid{grid-template-columns:1fr;}}
+  .msl-feature-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.12);}
+  @media(max-width:860px){.msl-feature-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:560px){.msl-feature-grid{grid-template-columns:1fr;}}
   .feature-item{padding:28px 26px 32px 0;border-right:1px solid rgba(255,255,255,.12);}
-  .feature-grid > .feature-item:nth-child(4){border-right:0;}
+  .msl-feature-grid > .feature-item:nth-child(4){border-right:0;}
   @media(max-width:860px){
     .feature-item{border-right:1px solid rgba(255,255,255,.12);padding-right:20px;}
-    .feature-grid > .feature-item:nth-child(2n){border-right:0;}
-    .feature-grid > .feature-item:nth-child(n+3){border-top:1px solid rgba(255,255,255,.12);padding-top:28px;}
+    .msl-feature-grid > .feature-item:nth-child(2n){border-right:0;}
+    .msl-feature-grid > .feature-item:nth-child(n+3){border-top:1px solid rgba(255,255,255,.12);padding-top:28px;}
   }
   @media(max-width:560px){
     .feature-item{border-right:0 !important;padding:26px 0;border-bottom:1px solid rgba(255,255,255,.12);}
-    .feature-grid > .feature-item:nth-child(n+3){border-top:0;padding-top:26px;}
+    .msl-feature-grid > .feature-item:nth-child(n+3){border-top:0;padding-top:26px;}
     .feature-item:last-child{border-bottom:0;}
   }
   .feature-item .ico{width:32px;height:32px;color:var(--green-light);margin-bottom:20px;}
@@ -294,14 +294,14 @@ export default function LandingPage() {
   .feature-item p{font-size:13.5px;color:#93A99F;line-height:1.5;}
 
   /* ---------- Footer ---------- */
-  .site-footer{background:var(--forest-950);border-top:1px solid rgba(255,255,255,.08);padding:36px 0;color:#7E958B;font-size:13px;}
-  .footer-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px;}
-  @media(max-width:640px){.footer-row{flex-direction:column;align-items:flex-start;}}
-  .footer-brand{display:flex;align-items:center;gap:8px;color:#EAF6EF;font-family:var(--font-display);font-weight:700;font-size:14.5px;}
-  .footer-brand svg{width:20px;height:20px;}
-  .footer-links{display:flex;gap:22px;flex-wrap:wrap;}
-  .footer-links a{color:#93A99F;transition:color .15s ease;}
-  .footer-links a:hover{color:#fff;}
+  .msl-site-footer{background:var(--forest-950);border-top:1px solid rgba(255,255,255,.08);padding:36px 0;color:#7E958B;font-size:13px;}
+  .msl-footer-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px;}
+  @media(max-width:640px){.msl-footer-row{flex-direction:column;align-items:flex-start;}}
+  .msl-footer-brand{display:flex;align-items:center;gap:8px;color:#EAF6EF;font-family:var(--font-display);font-weight:700;font-size:14.5px;}
+  .msl-footer-brand svg{width:20px;height:20px;}
+  .msl-footer-links{display:flex;gap:22px;flex-wrap:wrap;}
+  .msl-footer-links a{color:#93A99F;transition:color .15s ease;}
+  .msl-footer-links a:hover{color:#fff;}
 
 `}</style>
 
@@ -318,19 +318,13 @@ export default function LandingPage() {
       <a className="skip-link" href="#main">Skip to content</a>
 
       {/* ─── NAVBAR: ORIGINAL DESIGN WITH OLD LOGO ─── */}
-      <header className="site-header">
-        <div className="container nav-row">
-          <Link className="brand" to="/" aria-label="NodeSim home">
-            <svg className="brand-mark" viewBox="0 0 30 30" fill="none" aria-hidden="true">
-              <path d="M4 22 L11 10 L16 18 L26 4" stroke="#16a34a" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="26" cy="4" r="3" fill="#16a34a"/>
-            </svg>
-            <span className="brand-text">
-              <span className="brand-name"><span className="n1">Node</span><span className="n2">Sim</span></span>
-            </span>
+      <header className="msl-site-header">
+        <div className="msl-container msl-nav-row">
+          <Link className="msl-brand" to="/" aria-label="NodeSim home" style={{ textDecoration: 'none' }}>
+            <img src="/logo_main.png" alt="NodeSim Logo" style={{ height: '54px', objectFit: 'contain', mixBlendMode: 'multiply', margin: '-10px 0' }} />
           </Link>
 
-          <nav className="nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
+          <nav className="msl-nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
             <Link to="/" className="active">Home</Link>
             <Link to="/features">Features</Link>
             <Link to="/circuits">Circuits</Link>
@@ -339,7 +333,7 @@ export default function LandingPage() {
           </nav>
 
           <div className="nav-actions">
-            <Link to="/simulator" className="btn btn-primary">
+            <Link to="/simulator" className="msl-btn msl-btn-primary">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7L7 5Z"/></svg>
               Launch Simulator
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -369,18 +363,18 @@ export default function LandingPage() {
             <Link to="/resources">Resources</Link>
           </div>
           <div className="mp-actions">
-            <Link className="btn btn-primary" to="/simulator">Launch Simulator</Link>
+            <Link className="msl-btn msl-btn-primary" to="/simulator">Launch Simulator</Link>
           </div>
         </div>
       </header>
 
       {/* ─── PASTE ALL BODY CONTENT FROM HTML FILE HERE ─── */}
       <main id="main">
-        <section className="hero" id="top">
-          <div className="container hero-grid">
+        <section className="msl-hero" id="top">
+          <div className="msl-container msl-hero-grid">
 
-            <div className="hero-copy">
-              <span className="badge">
+            <div className="msl-hero-copy">
+              <span className="msl-badge">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>
                 FREE&nbsp;•&nbsp;OPEN SOURCE&nbsp;•&nbsp;NO ACCOUNT NEEDED
               </span>
@@ -389,29 +383,29 @@ export default function LandingPage() {
 
               <p className="lede">A modern, browser-based circuit simulator powered by ngspice. Build circuits, run simulations, and visualize results — all in one seamless workspace.</p>
 
-              <div className="hero-ctas">
-                <Link className="btn btn-primary btn-lg" to="/simulator">
+              <div className="msl-hero-ctas">
+                <Link className="msl-btn msl-btn-primary msl-btn-lg" to="/simulator">
                   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7L7 5Z"/></svg>
                   Launch Simulator
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </Link>
-                <Link className="btn btn-text" to="/features">Explore Features</Link>
+                <Link className="msl-btn msl-btn-text" to="/features">Explore Features</Link>
               </div>
 
               <div className="benefits">
-                <div className="benefit">
+                <div className="msl-benefit">
                   <span className="chip"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span>
                   <div><h4>100% Free</h4><p>No paywalls</p></div>
                 </div>
-                <div className="benefit">
+                <div className="msl-benefit">
                   <span className="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg></span>
                   <div><h4>No Account</h4><p>Start instantly</p></div>
                 </div>
-                <div className="benefit">
+                <div className="msl-benefit">
                   <span className="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8M12 3.6c2.5 2.6 2.5 15.4 0 17M12 3.6c-2.5 2.6-2.5 15.4 0 17"/></svg></span>
                   <div><h4>Browser Based</h4><p>Works offline</p></div>
                 </div>
-                <div className="benefit">
+                <div className="msl-benefit">
                   <span className="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="7" y="7" width="10" height="10" rx="1.6"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/></svg></span>
                   <div><h4>Powered by ngspice</h4><p>Real engineering. Real results.</p></div>
                 </div>
@@ -562,10 +556,10 @@ export default function LandingPage() {
         </section>
 
         <section className="trust">
-          <div className="container trust-inner">
+          <div className="msl-container msl-trust-inner">
             <div>
-              <p className="trust-label">Trusted by learners, educators &amp; engineers</p>
-              <ul className="trust-logos">
+              <p className="msl-trust-label">Trusted by learners, educators &amp; engineers</p>
+              <ul className="msl-trust-logos">
                 <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 12v4.5c0 1.5 2.7 3 6 3s6-1.5 6-3V12"/></svg>Students</li>
                 <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/><path d="M4 5.5v15"/></svg>Educators</li>
                 <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>Hobbyists</li>
@@ -581,11 +575,11 @@ export default function LandingPage() {
         </section>
 
         <section className="features-dark" id="features">
-          <div className="container features-inner">
-            <div className="features-head">
+          <div className="msl-container msl-features-inner">
+            <div className="msl-features-head">
               <h2>Everything you need for circuit simulation.</h2>
             </div>
-            <div className="feature-grid">
+            <div className="msl-feature-grid">
               <div className="feature-item">
                 <svg className="ico" viewBox="0 0 34 34" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 24 19 11a2.8 2.8 0 0 1 4 4L10 28H6v-4Z"/><circle cx="24" cy="6" r="2" fill="currentColor" stroke="none"/></svg>
                 <h3>Intuitive Editor</h3>
@@ -611,13 +605,13 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="site-footer">
-        <div className="container footer-row">
-          <div className="footer-brand">
+      <footer className="msl-site-footer">
+        <div className="msl-container msl-footer-row">
+          <div className="msl-footer-brand">
             <svg viewBox="0 0 34 34" aria-hidden="true"><path d="M8 27 L8 7 L26 27 L26 7" fill="none" stroke="url(#nGrad)" strokeWidth="4.4" strokeLinecap="round" strokeLinejoin="round"/><circle cx="8" cy="7" r="2.5" fill="url(#nGrad)"/><circle cx="8" cy="27" r="2.5" fill="url(#nGrad)"/><circle cx="26" cy="7" r="2.5" fill="url(#nGrad)"/><circle cx="26" cy="27" r="2.5" fill="url(#nGrad)"/></svg>
             NodeSim
           </div>
-          <ul className="footer-links">
+          <ul className="msl-footer-links">
             <li><Link to="/features">Features</Link></li>
             <li><Link to="/circuits">Circuits</Link></li>
             <li><a href="#">Learn</a></li>
