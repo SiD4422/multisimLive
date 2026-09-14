@@ -167,7 +167,8 @@ export default function LandingPage() {
         .hero h1{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em;font-size:clamp(2.35rem,3.6vw + 1.2rem,3.55rem);line-height:1.08;margin:22px 0 20px;color:var(--ink);}
         .hero h1 .accent{color:var(--green-dark);}
         .hero .lede{font-size:17px;line-height:1.7;color:var(--ink-soft);max-width:46ch;margin:0 0 32px;}
-        .hero-ctas{display:flex;align-items:center;gap:18px;margin-bottom:44px;flex-wrap:wrap;}
+        .hero-copy { text-align: left; }
+        .hero-ctas{display:flex;align-items:center;justify-content:flex-start;gap:18px;margin-bottom:44px;flex-wrap:wrap;}
 
         .benefits{display:grid;grid-template-columns:repeat(2,1fr);gap:26px 28px;max-width:460px;}
         .benefit{display:flex;gap:12px;align-items:flex-start;}
@@ -177,15 +178,15 @@ export default function LandingPage() {
         .benefit p{font-size:12.5px;color:var(--muted);line-height:1.45;}
 
         /* ---------- Simulator hero mock ---------- */
-        .sim-stage{position:relative;}
+        .sim-stage{position:relative; margin-top: -40px;}
         .sim-glow{position:absolute;top:-10%;right:-8%;width:92%;height:110%;background:radial-gradient(circle at 60% 40%,rgba(15,169,104,.32),transparent 62%);filter:blur(46px);z-index:0;}
         .float-pill{position:absolute;display:flex;align-items:center;gap:8px;background:var(--panel-dark);color:#EAF6EF;padding:9px 14px;border-radius:12px;font-size:12px;font-weight:600;box-shadow:var(--shadow-md);border:1px solid rgba(255,255,255,.08);z-index:3;}
         .float-pill svg{width:15px;height:15px;color:var(--green-light);flex:none;}
         .pill-top{top:-22px;right:8%;}
         .hand-note{position:absolute;display:flex;gap:8px;font-family:var(--font-hand);font-weight:600;color:var(--green-dark);font-size:22px;line-height:1.15;z-index:3;}
         .hand-note svg{color:var(--green-dark);flex:none;}
-        .note-top{top:-92px;right:26%;text-align:right;flex-direction:row-reverse;}
-        .note-bottom{bottom:-58px;left:2%;align-items:flex-start;}
+        .note-top{top:-92px;right:26%;text-align:right;flex-direction:row-reverse;color:var(--green-dark);}
+        .note-bottom{bottom:-58px;left:2%;align-items:flex-start;color:var(--green-dark);}
         @media(max-width:560px){.float-pill,.hand-note{display:none;}}
 
         .sim-frame{
