@@ -37,7 +37,7 @@ export default function LandingPage() {
           --font-body:'Inter',ui-sans-serif,sans-serif;
           --font-mono:'IBM Plex Mono',ui-monospace,monospace;
           --font-hand:'Caveat',cursive;
-          --container: 1600px;
+          --container:1320px;
         }
         html[data-theme="dark"]{
           --paper:#0A1310;
@@ -307,38 +307,7 @@ export default function LandingPage() {
         .footer-links a{color:#93A99F;transition:color .15s ease;}
         .footer-links a:hover{color:#fff;}
 
-        /* ─── ORIGINAL NAVBAR OVERRIDES ─── */
-        /* These override the site-header styles to match our existing navbar exactly */
-        .site-header { position:sticky; top:0; z-index:80; background:rgba(255,255,255,.86); backdrop-filter:blur(14px); border-bottom:1px solid #E2EAE5; }
-        .nav-row { display:flex; align-items:center; gap:0; height:72px; max-width:1600px; margin:0 auto; padding:0 32px; }
-        .brand { display:flex; align-items:center; gap:12px; flex:none; text-decoration:none; color:inherit; }
-        .brand-mark { width:30px; height:30px; flex:none; }
-        .brand-text { display:flex; flex-direction:column; line-height:1; }
-        .brand-name { font-family:'Inter',sans-serif; font-weight:800; font-size:22px; letter-spacing:-0.02em; }
-        .brand-name .n1 { color:#0B1220; }
-        .brand-name .n2 { color:#16a34a; }
-        .brand-tag { font-size:9.5px; font-weight:700; letter-spacing:.18em; color:#8a9aa8; margin-top:3px; }
-        .nav-links { display:flex; align-items:center; gap:36px; flex:1; margin-left:48px; }
-        .nav-links a { font-size:15.5px; font-weight:500; color:#334155; text-decoration:none; transition:color .15s; }
-        .nav-links a:hover, .nav-links a.active { color:#15803d; }
-        .nav-links a.active::after { display:none; }
-        .nav-actions { display:flex; align-items:center; gap:12px; margin-left:auto; }
-        /* Hide search, theme toggle, sign-in from nav-actions — we only show the launch button */
-        .search-box { display:none !important; }
-        .icon-btn { display:none !important; }
-        .btn-ghost.nav-signin { display:none !important; }
-        /* Launch button as green pill */
-        .nav-actions .btn-primary { background:#16a34a; color:#fff; padding:12px 22px; border-radius:999px; font-size:15px; font-weight:700; display:inline-flex; align-items:center; gap:8px; border:none; box-shadow:0 6px 18px -5px rgba(22,163,74,.5); transition:background .15s; }
-        .nav-actions .btn-primary:hover { background:#15803d; }
-        /* Mobile hamburger - show only on small screens */
-        .hamburger { display:none; }
-        @media(max-width:900px) {
-          .nav-links { display:none !important; }
-          .hamburger { display:flex !important; }
-        }
-        @media(max-width:640px) {
-          .nav-row { padding:0 18px; }
-        }
+        /* Removed broken CSS overrides */
       `}</style>
 
       {/* SVG gradient definition */}
@@ -353,9 +322,9 @@ export default function LandingPage() {
 
       <a className="skip-link" href="#main">Skip to content</a>
 
-      {/* ─── NAVBAR: EXACT ORIGINAL DESIGN ─── */}
+      {/* ─── NAVBAR: ORIGINAL DESIGN WITH OLD LOGO ─── */}
       <header className="site-header">
-        <div className="nav-row">
+        <div className="container nav-row">
           <Link className="brand" to="/" aria-label="NodeSim home">
             <svg className="brand-mark" viewBox="0 0 30 30" fill="none" aria-hidden="true">
               <path d="M4 22 L11 10 L16 18 L26 4" stroke="#16a34a" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -363,11 +332,11 @@ export default function LandingPage() {
             </svg>
             <span className="brand-text">
               <span className="brand-name"><span className="n1">Node</span><span className="n2">Sim</span></span>
-              <span className="brand-tag">CIRCUITS MADE SIMPLE</span>
             </span>
           </Link>
 
-          <nav className="nav-links" aria-label="Primary">
+          <nav className="nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
+            <a href="#top" className="active">Home</a>
             <Link to="/features">Features</Link>
             <Link to="/circuits">Circuits</Link>
             <a href="#how-to-use">How to Use</a>
@@ -398,6 +367,7 @@ export default function LandingPage() {
 
         <div className="mobile-panel" id="mobilePanel">
           <div className="mp-links">
+            <a href="#top" className="active">Home</a>
             <Link to="/features">Features</Link>
             <Link to="/circuits">Circuits</Link>
             <a href="#how-to-use">How to Use</a>
