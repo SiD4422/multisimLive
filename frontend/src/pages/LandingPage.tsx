@@ -386,7 +386,7 @@ export default function LandingPage() {
 
               <h1>Design. Simulate.<br />Understand. <span className="accent">Faster.</span></h1>
 
-              <p className="lede">A modern, browser-based circuit simulator powered by ngspice. Build circuits, run simulations, and visualize results — all in one seamless workspace.</p>
+              <p className="lede">Professional circuit simulation, directly in your browser. No installation. No license headache. No heavy desktop software. Just simulate.</p>
 
               <div className="msl-hero-ctas">
                 <Link className="msl-btn msl-btn-primary msl-btn-lg" to="/simulator">
@@ -562,27 +562,27 @@ export default function LandingPage() {
 
         <section className="trust">
           <div className="msl-container msl-trust-inner">
-            <div>
-              <p className="msl-trust-label">Trusted by learners, educators &amp; engineers</p>
+            <div style={{ flex: 1 }}>
+              <p className="msl-trust-label">Proof of Performance</p>
               <ul className="msl-trust-logos">
-                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 12v4.5c0 1.5 2.7 3 6 3s6-1.5 6-3V12"/></svg>Students</li>
-                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/><path d="M4 5.5v15"/></svg>Educators</li>
-                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg>Hobbyists</li>
-                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M9 3h6M10 3v6.5L4.7 18a2 2 0 0 0 1.7 3h11.2a2 2 0 0 0 1.7-3L14 9.5V3"/></svg>Researchers</li>
-                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="8" width="18" height="11" rx="1.6"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg>Professionals</li>
+                <li><span style={{color: '#16a34a'}}>~42ms</span> Avg Simulation Time</li>
+                <li><span style={{color: '#16a34a'}}>100%</span> Client-Side Execution</li>
+                <li><span style={{color: '#16a34a'}}>0</span> Server Roundtrips</li>
               </ul>
             </div>
-            <blockquote className="testimonial">
-              <p>"Finally, a circuit simulator that just works in the browser."</p>
-              <cite>— Engineering Student</cite>
-            </blockquote>
+            <div style={{ flex: 1, paddingLeft: '40px', borderLeft: '1px solid var(--gray-edge)' }}>
+              <p className="msl-trust-label">The SPICE Moat</p>
+              <p style={{ fontSize: '15px', color: 'var(--ink)', fontWeight: 500, lineHeight: 1.5, margin: '0 0 8px' }}>
+                NodeSim compiles the industry-standard <strong style={{color: '#16a34a'}}>ngspice engine into WebAssembly</strong>. You get desktop-grade accuracy directly in your browser tab.
+              </p>
+            </div>
           </div>
         </section>
 
         <section className="features-dark" id="features">
           <div className="msl-container msl-features-inner">
             <div className="msl-features-head">
-              <h2>Everything you need for circuit simulation.</h2>
+              <h2>Why engineers choose NodeSim</h2>
             </div>
             
             <div style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01))', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '40px', marginBottom: '48px', display: 'flex', flexWrap: 'wrap', gap: '40px', alignItems: 'center' }}>
@@ -618,26 +618,36 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="msl-feature-grid">
-              <div className="feature-item">
-                <svg className="ico" viewBox="0 0 34 34" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 24 19 11a2.8 2.8 0 0 1 4 4L10 28H6v-4Z"/><circle cx="24" cy="6" r="2" fill="currentColor" stroke="none"/></svg>
-                <h3>Intuitive Editor</h3>
-                <p>Draw circuits with ease using a clean drag-and-drop schematic canvas.</p>
+            <div className="msl-feature-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px 24px', borderTop: 'none' }}>
+              <div className="feature-item" style={{ border: 'none', padding: 0 }}>
+                <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                <h3>Instant</h3>
+                <p>No installation. Start simulating immediately.</p>
               </div>
-              <div className="feature-item">
-                <svg className="ico" viewBox="0 0 34 34" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 20h5l3-11 5 20 3-11h10"/><circle cx="12" cy="9" r="2" fill="currentColor" stroke="none"/><circle cx="17" cy="29" r="2" fill="currentColor" stroke="none"/></svg>
-                <h3>Real Simulations</h3>
-                <p>Run accurate SPICE simulations powered by the ngspice engine.</p>
+              <div className="feature-item" style={{ border: 'none', padding: 0 }}>
+                <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <h3>SPICE-powered</h3>
+                <p>Accurate circuit simulation powered by a professional SPICE engine.</p>
               </div>
-              <div className="feature-item">
-                <svg className="ico" viewBox="0 0 34 34" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 27V19M15 27V13M22 27V17M30 27V7"/><path d="M6 19 15 13 22 17 30 7" strokeDasharray="1 4.2"/><circle cx="6" cy="19" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="2" fill="currentColor" stroke="none"/><circle cx="22" cy="17" r="2" fill="currentColor" stroke="none"/><circle cx="30" cy="7" r="2" fill="currentColor" stroke="none"/></svg>
-                <h3>Powerful Analysis</h3>
-                <p>DC, AC, Transient and more — visualize results the instant they finish.</p>
+              <div className="feature-item" style={{ border: 'none', padding: 0 }}>
+                <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <h3>Runs anywhere</h3>
+                <p>Windows. macOS. Linux. Chromebook.</p>
               </div>
-              <div className="feature-item">
-                <svg className="ico" viewBox="0 0 34 34" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 25 17 8 26 25 8 25Z"/><circle cx="8" cy="25" r="2.6" fill="currentColor" stroke="none"/><circle cx="26" cy="25" r="2.6" fill="currentColor" stroke="none"/><circle cx="17" cy="8" r="2.6" fill="currentColor" stroke="none"/></svg>
-                <h3>Learn &amp; Share</h3>
-                <p>Explore example circuits and share your designs with anyone, instantly.</p>
+              <div className="feature-item" style={{ border: 'none', padding: 0 }}>
+                <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                <h3>Shareable</h3>
+                <p>Send a circuit to anyone with a single link.</p>
+              </div>
+              <div className="feature-item" style={{ border: 'none', padding: 0 }}>
+                <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <h3>Analyze</h3>
+                <p>Inspect waveforms, voltages, currents and simulation results.</p>
+              </div>
+              <div className="feature-item" style={{ border: 'none', padding: 0 }}>
+                <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <h3>Built for learning</h3>
+                <p>Understand what's happening—not just whether it works.</p>
               </div>
             </div>
           </div>
