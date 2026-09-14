@@ -37,7 +37,7 @@ export default function LandingPage() {
           --font-body:'Inter',ui-sans-serif,sans-serif;
           --font-mono:'IBM Plex Mono',ui-monospace,monospace;
           --font-hand:'Caveat',cursive;
-          --container:1320px;
+          --container: 1600px;
         }
         html[data-theme="dark"]{
           --paper:#0A1310;
@@ -310,7 +310,7 @@ export default function LandingPage() {
         /* ─── ORIGINAL NAVBAR OVERRIDES ─── */
         /* These override the site-header styles to match our existing navbar exactly */
         .site-header { position:sticky; top:0; z-index:80; background:rgba(255,255,255,.86); backdrop-filter:blur(14px); border-bottom:1px solid #E2EAE5; }
-        .nav-row { display:flex; align-items:center; gap:0; height:72px; max-width:1320px; margin:0 auto; padding:0 32px; }
+        .nav-row { display:flex; align-items:center; gap:0; height:72px; max-width:1600px; margin:0 auto; padding:0 32px; }
         .brand { display:flex; align-items:center; gap:12px; flex:none; text-decoration:none; color:inherit; }
         .brand-mark { width:30px; height:30px; flex:none; }
         .brand-text { display:flex; flex-direction:column; line-height:1; }
