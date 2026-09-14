@@ -1,0 +1,17 @@
+# NodeSim
+
+> A modern, browser-based circuit simulator powered by ngspice.
+
+NodeSim is a free alternative to NI Multisim. Design, build, and run professional SPICE circuit simulations entirely in your browser without an account.
+
+## Features
+- Real-time SPICE simulation powered by ngspice WASM
+- DC Sweep, AC Sweep, and Transient Analysis
+- Oscilloscope and grapher with interactive cursors
+- Example circuits for students (555 timers, op-amps, logic gates)
+
+## Links
+- [Simulator](https://nodesimapp.com/simulator)
+- [Example Circuits](https://nodesimapp.com/circuits)
+- [Features](https://nodesimapp.com/features)
+- [How to Use](https://nodesimapp.com/procedure)

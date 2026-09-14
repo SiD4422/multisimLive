@@ -584,6 +584,40 @@ export default function LandingPage() {
             <div className="msl-features-head">
               <h2>Everything you need for circuit simulation.</h2>
             </div>
+            
+            <div style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01))', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '40px', marginBottom: '48px', display: 'flex', flexWrap: 'wrap', gap: '40px', alignItems: 'center' }}>
+              <div style={{ flex: '1 1 300px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'rgba(74, 222, 128, 0.1)', color: '#4ade80', borderRadius: 999, fontSize: 13, fontWeight: 700, marginBottom: 16 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+                  NEW IN NODESIM
+                </div>
+                <h3 style={{ fontSize: 26, color: '#fff', marginBottom: 16, fontFamily: 'var(--font-display)', fontWeight: 700 }}>
+                  Your Personal AI Engineering Tutor
+                </h3>
+                <p style={{ color: '#93A99F', fontSize: 15, lineHeight: 1.6, marginBottom: 24 }}>
+                  Stuck on a lab assignment? Don't understand how a specific component affects the output? NodeSim includes a powerful AI explainer powered by Google Gemini. It analyzes your live SPICE netlist and explains circuit behavior, formulas, and operating points instantly.
+                </p>
+                <Link to="/simulator" className="msl-btn" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '10px 20px', borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+                  Try the AI Explainer
+                </Link>
+              </div>
+              <div style={{ flex: '1 1 300px', background: 'var(--forest-950)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', padding: 20, boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ height: 12, background: 'rgba(255,255,255,0.1)', borderRadius: 4, width: '40%', marginBottom: 8 }}></div>
+                    <div style={{ height: 12, background: 'rgba(255,255,255,0.1)', borderRadius: 4, width: '90%', marginBottom: 8 }}></div>
+                    <div style={{ height: 12, background: 'rgba(255,255,255,0.1)', borderRadius: 4, width: '75%' }}></div>
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(74, 222, 128, 0.05)', borderLeft: '2px solid #4ade80', padding: '12px 16px', color: '#EAF6EF', fontSize: 13, lineHeight: 1.5, fontFamily: 'monospace' }}>
+                  "This is an astable 555 timer circuit. The frequency is determined by R1, R2, and C1. The output will oscillate at approximately 1.44 / ((R1 + 2*R2) * C1)."
+                </div>
+              </div>
+            </div>
+
             <div className="msl-feature-grid">
               <div className="feature-item">
                 <svg className="ico" viewBox="0 0 34 34" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 24 19 11a2.8 2.8 0 0 1 4 4L10 28H6v-4Z"/><circle cx="24" cy="6" r="2" fill="currentColor" stroke="none"/></svg>
