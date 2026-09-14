@@ -257,7 +257,7 @@ export function AiExplainerPanel({ isOpen, onClose }: Props) {
         {!apiKey && (
           <p style={{ fontSize: 11, color: '#9ca3af', margin: '4px 0 0' }}>
             Get a free key at{' '}
-            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{ color: '#7c3aed' }}>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={{ color: '#7c3aed' }}>
               aistudio.google.com
             </a>
           </p>
