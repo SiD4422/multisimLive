@@ -321,7 +321,7 @@ export default function LandingPage() {
       <header className="msl-site-header">
         <div className="msl-container msl-nav-row">
           <Link className="msl-brand" to="/" aria-label="NodeSim home" style={{ textDecoration: 'none' }}>
-            <img src="/logo_main.png" alt="NodeSim Logo" style={{ height: '75px', objectFit: 'contain', mixBlendMode: 'multiply', margin: '-14px 0', marginLeft: '-15px' }} />
+            <img src="/logo_main.png" alt="NodeSim Logo" style={{ height: '75px', objectFit: 'contain', margin: '-14px 0', marginLeft: '-15px' }} />
           </Link>
 
           <nav className="msl-nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
