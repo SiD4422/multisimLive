@@ -14,7 +14,7 @@ export default function Layout() {
       {/* NAVBAR */}
       <nav className="navbar">
         <Link to="/" className="nav-brand" style={{ textDecoration: 'none' }}>
-          <img src="/logo_main.png" alt="NodeSim Logo" style={{ height: '60px', objectFit: 'contain' }} />
+          <img src="/logo_main.png" alt="NodeSim Logo" style={{ height: '75px', objectFit: 'contain', margin: '-14px 0', marginLeft: '-15px' }} />
         </Link>
         
         {/* Mobile Menu Toggle */}
