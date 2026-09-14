@@ -8,8 +8,8 @@ export default function FeedbackWidget() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
-  // TODO: We will replace this with your actual Formspree endpoint later!
-  const FORM_ENDPOINT = ""; 
+  // Formspree endpoint to send emails directly to the user
+  const FORM_ENDPOINT = "https://formspree.io/f/mwlkdawn"; 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
