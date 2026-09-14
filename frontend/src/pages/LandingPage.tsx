@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 export default function LandingPage() {
   return (
     <>
-      <style>
+      <style>{
+
   :root{
     --paper:#FBFEFC;
     --surface:#FFFFFF;
@@ -302,7 +303,8 @@ export default function LandingPage() {
   .footer-links{display:flex;gap:22px;flex-wrap:wrap;}
   .footer-links a{color:#93A99F;transition:color .15s ease;}
   .footer-links a:hover{color:#fff;}
-</style>
+
+}</style>
 
       {/* SVG gradient definition */}
       <svg width="0" height="0" style={{position:'absolute'}} aria-hidden="true">
