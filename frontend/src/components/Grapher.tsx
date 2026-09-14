@@ -344,7 +344,7 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope }: {
                 key={t} name={t} type="monotone" dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 2 : 1.5}
                 isAnimationActive={false}
-                style={isOscilloscope ? { filter: `drop-shadow(0px 0px 3px ${colors[i % colors.length]})` } : undefined}
+                
               />
             ))}
           </LineChart>
@@ -430,7 +430,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
             })()}
             {dbTraces.map((t, i) => (
               <Line key={t} name={getDisplayName(t)} type="monotone" dataKey={t}
-                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} style={isOscilloscope ? { filter: `drop-shadow(0px 0px 4px ${colors[i % colors.length]})` } : undefined} />
+                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
             ))}
           </LineChart>
         </ResponsiveContainer>
@@ -456,7 +456,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
             {isCursorMode && cursorB && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {phaseTraces.map((t, i) => (
               <Line key={t} name={getDisplayName(t) + ' phase'} type="monotone" dataKey={t}
-                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} strokeDasharray="5 3" isAnimationActive={false} style={isOscilloscope ? { filter: `drop-shadow(0px 0px 4px ${colors[i % colors.length]})` } : undefined} />
+                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} strokeDasharray="5 3" isAnimationActive={false}  />
             ))}
           </LineChart>
         </ResponsiveContainer>
@@ -507,7 +507,7 @@ function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cur
             {isCursorMode && cursorB && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {traces.map((t, i) => (
               <Line key={t} name={t} type="monotone" dataKey={t}
-                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} style={isOscilloscope ? { filter: `drop-shadow(0px 0px 4px ${colors[i % colors.length]})` } : undefined} />
+                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
             ))}
             <Brush
               dataKey={sweepKey}
@@ -597,7 +597,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
                 const displayName = probeMap[traceName] || formatTraceName(traceName);
                 return (
                   <Line key={traceName} name={displayName} type="monotone" dataKey={traceName}
-                    stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} style={isOscilloscope ? { filter: `drop-shadow(0px 0px 4px ${colors[idx % colors.length]})` } : undefined} />
+                    stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
                 );
               })}
               <Brush
@@ -678,17 +678,33 @@ export default function Grapher() {
       ? simulationBuffer
       : simulationBuffer.filter(row => row.time <= playbackTime);
 
-    const visible = activeData.length === 0 && simulationBuffer.length > 0
-      ? [simulationBuffer[0]]
-      : activeData;
+      const visible = activeData.length === 0 && simulationBuffer.length > 0
+        ? [simulationBuffer[0]]
+        : activeData;
 
-    return visible
-      .filter(row => {
-        // Guard: log(0) = -Infinity → crashes Recharts log scale on XAxis
+      let processed = visible.filter(row => {
+        // Guard: log(0) = -Infinity -> crashes Recharts log scale on XAxis
         if (plotType === 'ac') return row.frequency > 0;
         return true;
-      })
-      .map(row => {
+      });
+
+      // 🚀 PERFORMANCE FIX: Recharts lags heavily with thousands of SVG nodes.
+      // We decimate the dataset to a maximum of ~800 points to keep 60FPS rendering.
+      const MAX_POINTS = 800;
+      if (processed.length > MAX_POINTS) {
+        const step = Math.ceil(processed.length / MAX_POINTS);
+        const decimated = [];
+        for (let i = 0; i < processed.length; i += step) {
+          decimated.push(processed[i]);
+        }
+        // Ensure the last data point is always drawn
+        if (decimated[decimated.length - 1] !== processed[processed.length - 1]) {
+          decimated.push(processed[processed.length - 1]);
+        }
+        processed = decimated;
+      }
+
+      return processed.map(row => {
         const newRow: any = {};
         Object.keys(row).forEach(k => {
           const safeKey = k.replace(/\(/g, '_').replace(/\)/g, '');
@@ -696,7 +712,7 @@ export default function Grapher() {
         });
         return newRow;
       });
-  }, [simulationBuffer, playbackTime, isPlaying]);
+    }, [simulationBuffer, playbackTime, isPlaying]);
 
 
   // Decide which traces to show
