@@ -1085,6 +1085,22 @@ function Simulator() {
                         <div className="flyout-item" onClick={() => handleSelectComponent('GateNAND', '')}><IconGateNAND size={28} /><span>NAND</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('GateNOR', '')}><IconGateNOR size={28} /><span>NOR</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('GateXOR', '')}><IconGateXOR size={28} /><span>XOR</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC04', '')}>
+                          <span className="flyout-icon">🔲</span>
+                          <div><div className="flyout-label">74HC04</div><div className="flyout-sub">Hex Inverter</div></div>
+                        </div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC00', '')}>
+                          <span className="flyout-icon">🔲</span>
+                          <div><div className="flyout-label">74HC00</div><div className="flyout-sub">Quad NAND</div></div>
+                        </div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC86', '')}>
+                          <span className="flyout-icon">🔲</span>
+                          <div><div className="flyout-label">74HC86</div><div className="flyout-sub">Quad XOR</div></div>
+                        </div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC138', '')}>
+                          <span className="flyout-icon">🔲</span>
+                          <div><div className="flyout-label">74HC138</div><div className="flyout-sub">3-to-8 Decoder</div></div>
+                        </div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('DFlipFlop', '')}><IconDFlipFlop size={28} /><span>D Flip-Flop</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('JKFlipFlop', '')}><IconJKFlipFlop size={28} /><span>JK Flip-Flop</span></div>
                         <div className="flyout-item" onClick={() => handleSelectComponent('DIP14', '')}><IconDIP14 size={28} /><span>DIP-14 IC</span></div>

@@ -250,6 +250,72 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
       };
     });
   }
+  if (comp.type === 'IC74HC04') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x: -15, y: 0, id: 'A' },
+      { x: 75, y: 0, id: 'Y' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+  if (comp.type === 'IC74HC00' || comp.type === 'IC74HC86') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x: -15, y: -10, id: 'A' },
+      { x: -15, y: 10, id: 'B' },
+      { x: 75, y: 0, id: 'Y' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+  if (comp.type === 'IC74HC138') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x: -15, y: -24, id: 'A' },
+      { x: -15, y: 0, id: 'B' },
+      { x: -15, y: 24, id: 'C' },
+      { x: 75, y: -24, id: 'Y0' },
+      { x: 75, y: -8, id: 'Y1' },
+      { x: 75, y: 8, id: 'Y2' },
+      { x: 75, y: 24, id: 'Y3' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
 
   if (twoPinHorizontal.includes(comp.type)) {
     const rad = (comp.rotation || 0) * Math.PI / 180;
@@ -355,7 +421,18 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
-    const rawPins = [{ x: 30, y: -35, id: 'A' }, { x: 30, y: 35, id: 'K' }];
+    // 8 pins: 7 segment inputs (A-G) on the left, 1 common cathode (K) at bottom
+    // Layout: left column for segments, right side for cathode
+    const rawPins = [
+      { x: -15, y: -45, id: 'A' },  // Segment A (top)
+      { x: -15, y: -30, id: 'B' },  // Segment B (top-right)
+      { x: -15, y: -15, id: 'C' },  // Segment C (bottom-right)
+      { x: -15, y:   0, id: 'D' },  // Segment D (bottom)
+      { x: -15, y:  15, id: 'E' },  // Segment E (bottom-left)
+      { x: -15, y:  30, id: 'F' },  // Segment F (top-left)
+      { x: -15, y:  45, id: 'G' },  // Segment G (middle)
+      { x:  75, y:   0, id: 'K' },  // Common Cathode
+    ];
     return rawPins.map(pin => {
       const sx = pin.x * 1.5; const sy = pin.y * 1.5;
       const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
@@ -1329,9 +1406,15 @@ S_dis DIS GND dis_gate GND SMOD555
       netlist += `R_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} 100\n`;
     }
     else if (comp.type === 'SevenSegment') {
-      const aNode = nodes[0] || '0';
-      const kNode = nodes[1] || '0';
-      netlist += `D_${comp.id} ${aNode} ${kNode} DLED\n`;
+      // 8 pins: nodes[0..6] = segments A-G inputs, nodes[7] = common cathode (K)
+      const kNode = nodes[7] || '0';
+      const segNames = ['a','b','c','d','e','f','g'];
+      segNames.forEach((seg, i) => {
+        const aNode = nodes[i] || '0';
+        // Each segment: series 330Ω resistor + LED diode to common cathode
+        netlist += `R_${comp.id}_${seg} ${aNode} seg_${comp.id}_${seg} 330\n`;
+        netlist += `D_${comp.id}_${seg} seg_${comp.id}_${seg} ${kNode} DLED\n`;
+      });
       models.add('.model DLED D(IS=1e-20 N=1.6 RS=5 BV=5)');
     }
     else if (comp.type === 'CrystalOscillator') {
@@ -1483,6 +1566,35 @@ S_dis DIS GND dis_gate GND SMOD555
     else if (comp.type === 'GateNOT') {
       const a = nodes[0] || '0', y = nodes[1] || '0';
       netlist += `B_${comp.id} ${y} 0 V = (V(${a}) > 2.5) ? 0 : 5\n`;
+    }
+    else if (comp.type === 'IC74HC04') {
+      // Hex inverter (NOT gate) behavioral model
+      netlist += `B_${comp.id} ${nodes[1]} 0 V = (V(${nodes[0]}) > 2.5) ? 0 : 5\n`;
+      netlist += `R_bias_${comp.id} ${nodes[1]} 0 1G\n`;
+    }
+    else if (comp.type === 'IC74HC00') {
+      // 2-input NAND behavioral model
+      netlist += `B_${comp.id} ${nodes[2]} 0 V = ((V(${nodes[0]}) > 2.5) && (V(${nodes[1]}) > 2.5)) ? 0 : 5\n`;
+      netlist += `R_bias_${comp.id} ${nodes[2]} 0 1G\n`;
+    }
+    else if (comp.type === 'IC74HC86') {
+      // 2-input XOR behavioral model
+      netlist += `B_${comp.id} ${nodes[2]} 0 V = ((V(${nodes[0]}) > 2.5) ^ (V(${nodes[1]}) > 2.5)) ? 5 : 0\n`;
+      netlist += `R_bias_${comp.id} ${nodes[2]} 0 1G\n`;
+    }
+    else if (comp.type === 'IC74HC138') {
+      // 3-to-8 decoder (simplified 3-to-4): A=nodes[0], B=nodes[1], C=nodes[2], Y0..Y3=nodes[3..6]
+      const a = `V(${nodes[0]})`;
+      const b = `V(${nodes[1]})`;
+      const c = `V(${nodes[2]})`;
+      const th = '2.5';
+      netlist += `B_${comp.id}_y0 ${nodes[3]} 0 V = ((${a} < ${th}) && (${b} < ${th}) && (${c} < ${th})) ? 5 : 0\n`;
+      netlist += `B_${comp.id}_y1 ${nodes[4]} 0 V = ((${a} > ${th}) && (${b} < ${th}) && (${c} < ${th})) ? 5 : 0\n`;
+      netlist += `B_${comp.id}_y2 ${nodes[5]} 0 V = ((${a} < ${th}) && (${b} > ${th}) && (${c} < ${th})) ? 5 : 0\n`;
+      netlist += `B_${comp.id}_y3 ${nodes[6]} 0 V = ((${a} > ${th}) && (${b} > ${th}) && (${c} < ${th})) ? 5 : 0\n`;
+      [nodes[3], nodes[4], nodes[5], nodes[6]].forEach((n, i) => {
+        netlist += `R_bias_${comp.id}_${i} ${n} 0 1G\n`;
+      });
     }
     else if (comp.type === 'DigitalSwitch') {
       const out = nodes[0] || '0';

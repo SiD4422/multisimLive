@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { getTouchPointer, getPinchState, type PinchState } from '../utils/touchAdapter';
 
 import { Stage, Layer, Line, Group, Text, Circle, Rect, Path, Arc } from 'react-konva';
 import { useSchematicStore, type Point, type SchematicComponent } from '../store/useSchematicStore';
@@ -299,6 +300,7 @@ export default function SchematicEditor() {
     return [...wirePoints, corner, mousePos];
   };
 
+
   const handleStageMouseDown = (e: any) => {
     // Right click cancels everything
     if (e.evt.button === 2) {
@@ -416,6 +418,62 @@ export default function SchematicEditor() {
     }
     setSelectionBox(null);
   }, [selectionBox, components, setSelectedComponentIds]);
+
+  // ── Touch / Pinch Support ──────────────────────────────────────────────────
+  const lastPinchRef = useRef<PinchState | null>(null);
+  const lastTouchRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handleTouchStart = useCallback((e: any) => {
+    const nativeEvt: TouchEvent = e.evt;
+    nativeEvt.preventDefault();
+    if (nativeEvt.touches.length === 2) {
+      lastPinchRef.current = getPinchState(nativeEvt.touches);
+      return;
+    }
+    const pointer = getTouchPointer(nativeEvt);
+    if (!pointer) return;
+    lastTouchRef.current = { x: pointer.clientX, y: pointer.clientY };
+    // Simulate mousedown on the stage
+    handleStageMouseDown(e);
+  }, [handleStageMouseDown]);
+
+  const handleTouchMove = useCallback((e: any) => {
+    const nativeEvt: TouchEvent = e.evt;
+    nativeEvt.preventDefault();
+
+    // Pinch-to-zoom
+    if (nativeEvt.touches.length === 2) {
+      const pinch = getPinchState(nativeEvt.touches);
+      if (!pinch || !lastPinchRef.current) return;
+      const pinchRatio = pinch.distance / lastPinchRef.current.distance;
+      const stage = stageRef.current;
+      if (!stage) return;
+      const oldScale = scale;
+      const newScale = Math.min(Math.max(oldScale * pinchRatio, 0.1), 5);
+      const centerX = pinch.centerX - stage.container().getBoundingClientRect().left;
+      const centerY = pinch.centerY - stage.container().getBoundingClientRect().top;
+      const mousePointTo = {
+        x: centerX / oldScale - stage.x() / oldScale,
+        y: centerY / oldScale - stage.y() / oldScale,
+      };
+      setScale(newScale);
+      setStagePos({
+        x: -(mousePointTo.x - centerX / newScale) * newScale,
+        y: -(mousePointTo.y - centerY / newScale) * newScale,
+      });
+      lastPinchRef.current = pinch;
+      return;
+    }
+
+    // Single-finger pan / wire drawing
+    handleMouseMove(e);
+  }, [scale, setScale, setStagePos, handleMouseMove]);
+
+  const handleTouchEnd = useCallback((e: any) => {
+    lastPinchRef.current = null;
+    lastTouchRef.current = null;
+    handleStageMouseUp();
+  }, [handleStageMouseUp]);
 
   const handleNodeClick = (e: any, pos: Point) => {
     if (pendingComponent) return; // don't start wiring if placing
@@ -730,7 +788,10 @@ export default function SchematicEditor() {
           onMouseDown={handleStageMouseDown}
           onMouseUp={handleStageMouseUp}
           onDblClick={handleStageDoubleClick}
-          onContextMenu={(e) => e.evt.preventDefault()} 
+          onContextMenu={(e) => e.evt.preventDefault()}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           ref={stageRef}
           >
           <Layer>

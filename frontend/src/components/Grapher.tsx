@@ -258,10 +258,11 @@ const EmptyView = () => (
 
 // ── FFT Spectrum Plot ─────────────────────────────────────────────────────────
 
-function FftPlot({ simulationBuffer, traces, isOscilloscope }: {
+function FftPlot({ simulationBuffer, traces, isOscilloscope, isDigitalMode }: {
   simulationBuffer: any[];
   traces: string[];
   isOscilloscope: boolean;
+  isDigitalMode?: boolean;
 }) {
   const colors = isOscilloscope ? OSC_COLORS : COLORS;
   const bg = isOscilloscope ? '#001100' : '#fff';
@@ -341,7 +342,7 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope }: {
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
             {traces.map((t, i) => (
               <Line
-                key={t} name={t} type="monotone" dataKey={t}
+                key={t} name={t} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 2 : 1.5}
                 isAnimationActive={false}
                 
@@ -356,9 +357,10 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope }: {
 
 // ── ErrorView ─────────────────────────────────────────────────────────────────
 
-function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB }: { 
+function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
   data: any[]; traces: string[]; probeMap: Record<string, string>; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: any; setCursorA: any; cursorB: any; setCursorB: any;
+  isDigitalMode?: boolean;
 }) {
   const dbTraces = traces.filter(t => t.endsWith('_db'));
   const phaseTraces = traces.filter(t => t.endsWith('_phase'));
@@ -419,7 +421,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
               const maxDbVal = Math.max(...allDbVals.filter(v => isFinite(v)));
               if (!isFinite(maxDbVal)) return null;
               return (
-                <ReferenceLine
+               <ReferenceLine
                   y={maxDbVal - 3}
                   stroke="#f59e0b"
                   strokeDasharray="5 4"
@@ -429,7 +431,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
               );
             })()}
             {dbTraces.map((t, i) => (
-              <Line key={t} name={getDisplayName(t)} type="monotone" dataKey={t}
+              <Line key={t} name={getDisplayName(t)} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
             ))}
           </LineChart>
@@ -455,7 +457,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
             {isCursorMode && cursorA && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {phaseTraces.map((t, i) => (
-              <Line key={t} name={getDisplayName(t) + ' phase'} type="monotone" dataKey={t}
+              <Line key={t} name={getDisplayName(t) + ' phase'} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} strokeDasharray="5 3" isAnimationActive={false}  />
             ))}
           </LineChart>
@@ -468,9 +470,10 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
 
 // ── DC Sweep Plot ─────────────────────────────────────────────────────────────
 
-function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB }: { 
+function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
   data: any[]; traces: string[]; sweepKey: string; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: any; setCursorA: any; cursorB: any; setCursorB: any;
+  isDigitalMode?: boolean;
 }) {
   const [brushRange, setBrushRange] = useState<{ start?: number; end?: number } | null>(null);
 
@@ -506,7 +509,7 @@ function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cur
             {isCursorMode && cursorA && <ReferenceLine x={cursorA[sweepKey]} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {traces.map((t, i) => (
-              <Line key={t} name={t} type="monotone" dataKey={t}
+              <Line key={t} name={t} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
             ))}
             <Brush
@@ -528,9 +531,10 @@ function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cur
 
 // ── Transient Plot ────────────────────────────────────────────────────────────
 
-function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB }: {
+function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: {
   data: any[]; traces: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: any; setCursorA: any; cursorB: any; setCursorB: any;
+  isDigitalMode?: boolean;
 }) {
   const [zoomDomain, setZoomDomain] = useState<[number | 'dataMin', number | 'dataMax']>(['dataMin', 'dataMax']);
   const [brushRange, setBrushRange] = useState<{ start?: number; end?: number } | null>(null);
@@ -596,7 +600,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
               {traces.map((traceName, idx) => {
                 const displayName = probeMap[traceName] || formatTraceName(traceName);
                 return (
-                  <Line key={traceName} name={displayName} type="monotone" dataKey={traceName}
+                  <Line key={traceName} name={displayName} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={traceName}
                     stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
                 );
               })}
@@ -626,6 +630,7 @@ export default function Grapher() {
   } = useSchematicStore();
   
   const [isOscilloscope, setIsOscilloscope] = useState(false);
+  const [isDigitalMode, setIsDigitalMode] = useState(false);
   const [isCursorMode, setIsCursorMode] = useState(false);
   const [showFft, setShowFft] = useState(false);
   const [cursorA, setCursorA] = useState<any>(null);
@@ -715,11 +720,26 @@ export default function Grapher() {
     }, [simulationBuffer, playbackTime, isPlaying]);
 
 
+  // When digital mode is active, snap all voltage values to 0 or 5
+  const displayData = useMemo(() => {
+    if (!isDigitalMode) return formattedData;
+    return formattedData.map(row => {
+      const snapped: any = {};
+      Object.keys(row).forEach(k => {
+        const v = row[k];
+        snapped[k] = typeof v === 'number' && k !== 'time' && k !== 'frequency'
+          ? (v > 2.5 ? 5 : 0)
+          : v;
+      });
+      return snapped;
+    });
+  }, [formattedData, isDigitalMode]);
+
   // Decide which traces to show
   const { traces, sweepKey } = useMemo(() => {
-    if (formattedData.length === 0) return { traces: [], sweepKey: 'time' };
+    if (displayData.length === 0) return { traces: [], sweepKey: 'time' };
 
-    const allKeys = Object.keys(formattedData[0]);
+    const allKeys = Object.keys(displayData[0]);
     console.log('GRAPHER DATA KEYS:', allKeys);
     console.log('GRAPHER DATA [0]:', formattedData[0]);
 
@@ -786,20 +806,21 @@ export default function Grapher() {
   // FFT view overrides the normal plot for transient mode
   if (showFft && plotType === 'transient') {
     PlotComponent = (
-      <FftPlot simulationBuffer={simulationBuffer!} traces={traces} isOscilloscope={isOscilloscope} />
+      <FftPlot simulationBuffer={simulationBuffer!} traces={traces} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} />
     );
   } else if (plotType === 'ac') {
-    PlotComponent = <BodePlot data={formattedData} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} {...cursorProps} />;
+    PlotComponent = <BodePlot data={displayData} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
   } else if (plotType === 'dc') {
-    PlotComponent = <DcSweepPlot data={formattedData} traces={traces} sweepKey={sweepKey} isOscilloscope={isOscilloscope} {...cursorProps} />;
+    PlotComponent = <DcSweepPlot data={displayData} traces={traces} sweepKey={sweepKey} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
   } else {
     PlotComponent = (
       <TransientPlot
-        data={formattedData}
+        data={displayData}
         traces={traces}
         probeMap={probeMap}
         playbackTime={playbackTime}
         isOscilloscope={isOscilloscope}
+        isDigitalMode={isDigitalMode}
         {...cursorProps}
       />
     );
@@ -939,6 +960,24 @@ export default function Grapher() {
             <Activity size={13} /> ∿Scope
           </span>
         </label>
+
+        <button
+          onClick={() => setIsDigitalMode(d => !d)}
+          title="Digital Mode — snaps waveforms to HIGH/LOW"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+            border: `1.5px solid ${isDigitalMode ? '#8b5cf6' : '#e5e7eb'}`,
+            background: isDigitalMode ? '#ede9fe' : 'transparent',
+            color: isDigitalMode ? '#7c3aed' : '#6b7280',
+            cursor: 'pointer',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="2 12 7 2 12 22 17 12 22 12"/>
+          </svg>
+          Digital
+        </button>
 
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <button onClick={handleExportPNG} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#374151' }} title="Download PNG">

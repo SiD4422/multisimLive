@@ -604,6 +604,73 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }];
     labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 17 };
   }
+  else if (type === 'IC74HC04') {
+    // DIP rectangle body
+    paths.push({ data: 'M 0 -12 L 60 -12 L 60 12 L 0 12 Z', fill: '#f0f4ff' });
+    texts.push({ text: '74HC04', x: 30, y: -4, size: 7 });
+    texts.push({ text: 'NOT', x: 30, y: 5, size: 6 });
+    lines.push({ points: [-15, 0, 0, 0] }); // left lead
+    lines.push({ points: [60, 0, 75, 0] }); // right lead
+    pins = [{ x: -15, y: 0 }, { x: 75, y: 0 }];
+    labelOffset = { x: 30, y: -25 };
+    valueOffset = { x: 30, y: 22 };
+  }
+  else if (type === 'IC74HC00') {
+    paths.push({ data: 'M 0 -18 L 60 -18 L 60 18 L 0 18 Z', fill: '#f0f4ff' });
+    texts.push({ text: '74HC00', x: 30, y: -6, size: 7 });
+    texts.push({ text: 'NAND', x: 30, y: 5, size: 6 });
+    lines.push({ points: [-15, -10, 0, -10] });
+    lines.push({ points: [-15, 10, 0, 10] });
+    lines.push({ points: [60, 0, 75, 0] });
+    texts.push({ text: 'A', x: -12, y: -17, size: 6 });
+    texts.push({ text: 'B', x: -12, y: 3, size: 6 });
+    texts.push({ text: 'Y', x: 64, y: -5, size: 6 });
+    pins = [{ x: -15, y: -10 }, { x: -15, y: 10 }, { x: 75, y: 0 }];
+    labelOffset = { x: 30, y: -32 };
+    valueOffset = { x: 30, y: 30 };
+  }
+  else if (type === 'IC74HC86') {
+    paths.push({ data: 'M 0 -18 L 60 -18 L 60 18 L 0 18 Z', fill: '#f0fff4' });
+    texts.push({ text: '74HC86', x: 30, y: -6, size: 7 });
+    texts.push({ text: 'XOR', x: 30, y: 5, size: 6 });
+    lines.push({ points: [-15, -10, 0, -10] });
+    lines.push({ points: [-15, 10, 0, 10] });
+    lines.push({ points: [60, 0, 75, 0] });
+    texts.push({ text: 'A', x: -12, y: -17, size: 6 });
+    texts.push({ text: 'B', x: -12, y: 3, size: 6 });
+    texts.push({ text: 'Y', x: 64, y: -5, size: 6 });
+    pins = [{ x: -15, y: -10 }, { x: -15, y: 10 }, { x: 75, y: 0 }];
+    labelOffset = { x: 30, y: -32 };
+    valueOffset = { x: 30, y: 30 };
+  }
+  else if (type === 'IC74HC138') {
+    paths.push({ data: 'M 0 -36 L 60 -36 L 60 36 L 0 36 Z', fill: '#fff0f4' });
+    texts.push({ text: '74HC138', x: 30, y: -20, size: 7 });
+    texts.push({ text: '3-to-4', x: 30, y: -10, size: 6 });
+    texts.push({ text: 'Decoder', x: 30, y: 0, size: 6 });
+    // Input leads (left side)
+    lines.push({ points: [-15, -24, 0, -24] });
+    lines.push({ points: [-15, 0, 0, 0] });
+    lines.push({ points: [-15, 24, 0, 24] });
+    // Output leads (right side)
+    lines.push({ points: [60, -24, 75, -24] });
+    lines.push({ points: [60, -8, 75, -8] });
+    lines.push({ points: [60, 8, 75, 8] });
+    lines.push({ points: [60, 24, 75, 24] });
+    texts.push({ text: 'A', x: -12, y: -31, size: 6 });
+    texts.push({ text: 'B', x: -12, y: -7, size: 6 });
+    texts.push({ text: 'C', x: -12, y: 17, size: 6 });
+    texts.push({ text: 'Y0', x: 62, y: -31, size: 6 });
+    texts.push({ text: 'Y1', x: 62, y: -15, size: 6 });
+    texts.push({ text: 'Y2', x: 62, y: 1, size: 6 });
+    texts.push({ text: 'Y3', x: 62, y: 17, size: 6 });
+    pins = [
+      { x: -15, y: -24 }, { x: -15, y: 0 }, { x: -15, y: 24 },
+      { x: 75, y: -24 }, { x: 75, y: -8 }, { x: 75, y: 8 }, { x: 75, y: 24 }
+    ];
+    labelOffset = { x: 30, y: -50 };
+    valueOffset = { x: 30, y: 50 };
+  }
   // --- FLIP FLOPS ---
   else if (type === 'DFlipFlop') {
     paths.push({ data: "M 10 -25 L 50 -25 L 50 25 L 10 25 Z", fill: "#fff" });
@@ -667,14 +734,25 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
   }
   // --- 7-SEGMENT DISPLAY ---
   else if (type === 'SevenSegment') {
-    paths.push({ data: "M 5 -25 L 55 -25 L 55 25 L 5 25 Z", fill: "#fff" });
-    // Simplify drawing to digital 8 inside
-    paths.push({ data: "M 15 -20 L 40 -20 M 14 -19 L 14 -3 M 41 -19 L 41 -3 M 15 -2 L 40 -2 M 14 -1 L 14 17 M 41 -1 L 41 17 M 15 18 L 40 18", fill: "transparent", stroke: strokeColor });
-    circles.push({ x: 45, y: 18, r: 2, fill: strokeColor });
-    lines.push({ points: [30, -25, 30, -35] }); // Anode
-    lines.push({ points: [30, 25, 30, 35] }); // Cathode
-    pins = [{ x: 30, y: -35 }, { x: 30, y: 35 }];
-    labelOffset = { x: 60, y: -20 };
+    // The SevenSegment is rendered as a special visual component below in JSX.
+    // We set up minimal data here; the actual rendering is done after the main
+    // return statement check below using early return.
+    // Pins: A-G on left (y: -45 to +45 step 15), K on right (y: 0)
+    lines.push({ points: [-15, -45, 0, -45] }); // A lead
+    lines.push({ points: [-15, -30, 0, -30] }); // B lead
+    lines.push({ points: [-15, -15, 0, -15] }); // C lead
+    lines.push({ points: [-15,   0, 0,   0] }); // D lead
+    lines.push({ points: [-15,  15, 0,  15] }); // E lead
+    lines.push({ points: [-15,  30, 0,  30] }); // F lead
+    lines.push({ points: [-15,  45, 0,  45] }); // G lead
+    lines.push({ points: [60,    0, 75,  0] }); // K lead
+    pins = [
+      { x: -15, y: -45 }, { x: -15, y: -30 }, { x: -15, y: -15 },
+      { x: -15, y:   0 }, { x: -15, y:  15 }, { x: -15, y:  30 },
+      { x: -15, y:  45 }, { x:  75, y:   0 },
+    ];
+    labelOffset = { x: 30, y: -85 };
+    valueOffset = { x: 30, y: 90 };
   }
   // --- CRYSTAL OSCILLATOR ---
   else if (type === 'CrystalOscillator') {
@@ -948,6 +1026,28 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
             }
           }
 
+          // ── 7-Segment Display Live Rendering ──
+          let segmentVoltages: boolean[] = [false, false, false, false, false, false, false];
+          if (type === 'SevenSegment' && simBuffer && simBuffer.length > 0) {
+            const lastRow = simBuffer[simBuffer.length - 1];
+            const compIdLow = component.id.toLowerCase();
+            // Try to find voltage at each segment node: seg_{id}_{a-g}
+            const segNames = ['a','b','c','d','e','f','g'];
+            segmentVoltages = segNames.map(seg => {
+              const nodeKey = Object.keys(lastRow).find(k =>
+                k.toLowerCase().includes(`seg_${compIdLow}_${seg}`) ||
+                k.toLowerCase().includes(`v(seg_${compIdLow}_${seg})`)
+              );
+              if (nodeKey) return (lastRow[nodeKey] || 0) > 1.5;
+              // Fallback: check input pin voltage
+              const pinKey = Object.keys(lastRow).find(k =>
+                k.toLowerCase().includes(compIdLow) && k.toLowerCase().includes(seg)
+              );
+              if (pinKey) return (lastRow[pinKey] || 0) > 2.5;
+              return false;
+            });
+          }
+
           return (
             <>
               {/* LED glow overlay */}
@@ -963,6 +1063,41 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
                   listening={false}
                 />
               )}
+
+              {/* 7-Segment Visual Display */}
+              {type === 'SevenSegment' && (() => {
+                // Segment definitions in symbol space (scaled 1.5x at render)
+                // Display body: x=0..60, y=-55..55
+                const ON = '#ff3300';
+                const OFF = '#330000';
+                const segs = segmentVoltages;
+                const SW = 6; // segment width
+                const SL = 22; // segment length
+                // Positions (in symbol units, will be scaled 1.5x):
+                // A=top, B=top-right, C=bottom-right, D=bottom, E=bottom-left, F=top-left, G=middle
+                return (
+                  <Group scaleX={1.5} scaleY={1.5}>
+                    {/* Display background */}
+                    <Rect x={0} y={-55} width={60} height={110} fill="#111" cornerRadius={4} />
+                    {/* Segment A - top horizontal */}
+                    <Rect x={8} y={-50} width={SL} height={SW} fill={segs[0] ? ON : OFF} cornerRadius={2} />
+                    {/* Segment B - top-right vertical */}
+                    <Rect x={32} y={-48} width={SW} height={SL} fill={segs[1] ? ON : OFF} cornerRadius={2} />
+                    {/* Segment C - bottom-right vertical */}
+                    <Rect x={32} y={-2} width={SW} height={SL} fill={segs[2] ? ON : OFF} cornerRadius={2} />
+                    {/* Segment D - bottom horizontal */}
+                    <Rect x={8} y={24} width={SL} height={SW} fill={segs[3] ? ON : OFF} cornerRadius={2} />
+                    {/* Segment E - bottom-left vertical */}
+                    <Rect x={2} y={-2} width={SW} height={SL} fill={segs[4] ? ON : OFF} cornerRadius={2} />
+                    {/* Segment F - top-left vertical */}
+                    <Rect x={2} y={-48} width={SW} height={SL} fill={segs[5] ? ON : OFF} cornerRadius={2} />
+                    {/* Segment G - middle horizontal */}
+                    <Rect x={8} y={-4} width={SL} height={SW} fill={segs[6] ? ON : OFF} cornerRadius={2} />
+                    {/* Decimal point */}
+                    <Rect x={42} y={24} width={SW} height={SW} fill={OFF} cornerRadius={2} />
+                  </Group>
+                );
+              })()}
 
               {/* Overload glow + warning badge */}
               {overloaded && (
