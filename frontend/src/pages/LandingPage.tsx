@@ -336,11 +336,11 @@ export default function LandingPage() {
           </Link>
 
           <nav className="nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
-            <a href="#top" className="active">Home</a>
+            <Link to="/" className="active">Home</Link>
             <Link to="/features">Features</Link>
             <Link to="/circuits">Circuits</Link>
-            <a href="#how-to-use">How to Use</a>
-            <a href="#resources">Resources</a>
+            <Link to="/procedure">How to Use</Link>
+            <Link to="/resources">Resources</Link>
           </nav>
 
           <div className="nav-actions">
@@ -367,11 +367,11 @@ export default function LandingPage() {
 
         <div className="mobile-panel" id="mobilePanel">
           <div className="mp-links">
-            <a href="#top" className="active">Home</a>
+            <Link to="/" className="active">Home</Link>
             <Link to="/features">Features</Link>
             <Link to="/circuits">Circuits</Link>
-            <a href="#how-to-use">How to Use</a>
-            <a href="#resources">Resources</a>
+            <Link to="/procedure">How to Use</Link>
+            <Link to="/resources">Resources</Link>
           </div>
           <div className="mp-actions">
             <Link className="btn btn-primary" to="/simulator">Launch Simulator</Link>
