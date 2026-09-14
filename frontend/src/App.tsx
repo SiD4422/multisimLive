@@ -6,6 +6,7 @@ import FeaturesPage from './pages/FeaturesPage';
 import CircuitsPage from './pages/CircuitsPage';
 import ProcedurePage from './pages/ProcedurePage';
 import ResourcesPage from './pages/ResourcesPage';
+import FeedbackWidget from './components/FeedbackWidget';
 
 // Lazy load the Simulator to prevent bundling 7MB WASM & Canvas on marketing pages
 const Simulator = lazy(() => import('./pages/Simulator'));
@@ -13,6 +14,7 @@ const Simulator = lazy(() => import('./pages/Simulator'));
 function App() {
   return (
     <BrowserRouter>
+      <FeedbackWidget />
       <Routes>
         {/* Standalone Landing Page with its own header */}
         <Route path="/" element={<LandingPage />} />
