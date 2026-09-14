@@ -37,8 +37,16 @@ export default function LandingPage() {
           --font-body:'Inter',ui-sans-serif,sans-serif;
           --font-mono:'IBM Plex Mono',ui-monospace,monospace;
           --font-hand:'Caveat',cursive;
-          --container: 100%;
+          --container: 1320px;
         }
+
+        /* ─── FORCE FULL BLEED ON SECTIONS TO BREAK OUT OF ANY WRAPPERS ─── */
+        .site-header, .hero, .trust, .features-dark, .site-footer {
+          width: 100vw !important;
+          max-width: 100vw !important;
+          margin-left: calc(-50vw + 50%) !important;
+        }
+
         html[data-theme="dark"]{
           --paper:#0A1310;
           --surface:#101B16;
@@ -68,7 +76,6 @@ export default function LandingPage() {
         h1,h2,h3,p,blockquote,figure{margin:0;}
         .container{max-width:var(--container);margin:0 auto;padding:0 20px;}
         @media(min-width:640px){.container{padding:0 32px;}}
-        @media(min-width:1440px){.container{padding:0 8%;}}
         :focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:4px;}
         @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}}
 
