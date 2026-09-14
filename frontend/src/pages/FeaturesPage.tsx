@@ -18,11 +18,19 @@ const COMPARISON = [
   { feature: 'Enterprise Support', us: 'Community / Open Source', them: 'Official NI support', usWin: false },
 ];
 
+import SEO from '../components/SEO';
+
 export default function FeaturesPage() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: C.bgApp, padding: '80px 20px', color: C.textPrimary, fontFamily: "'Inter', sans-serif" }}>
+    <>
+      <SEO 
+        title="Features | NodeSim Circuit Simulator" 
+        description="Explore the features of NodeSim. Built-in Gemini AI circuit explainer, real-time oscilloscope, wire voltage heatmaps, and more."
+        url="https://nodesimapp.com/features"
+      />
+      <div style={{ minHeight: '100vh', backgroundColor: C.bgApp, padding: '80px 20px', color: C.textPrimary, fontFamily: "'Inter', sans-serif" }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
 
         {/* HEADER */}
@@ -140,5 +148,6 @@ export default function FeaturesPage() {
 
       </div>
     </div>
+    </>
   );
 }

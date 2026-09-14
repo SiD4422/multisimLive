@@ -12,12 +12,20 @@ const C = {
   primaryLight: '#dcfce7',
 };
 
+import SEO from '../components/SEO';
+
 export default function ProcedurePage() {
   const navigate = useNavigate();
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: C.bgApp,
+    <>
+      <SEO 
+        title="How to Use NodeSim | Circuit Simulation Guide" 
+        description="Learn how to use NodeSim to design and simulate circuits in your browser. A step-by-step guide for students and engineers."
+        url="https://nodesimapp.com/procedure"
+      />
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: C.bgApp,
       padding: '80px 20px 80px',
       color: C.textPrimary,
       fontFamily: "'Outfit', sans-serif",
@@ -184,5 +192,6 @@ export default function ProcedurePage() {
 
       </div>
     </div>
+    </>
   );
 }

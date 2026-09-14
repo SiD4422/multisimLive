@@ -82,6 +82,8 @@ const DIFFICULTY_COLOR: Record<string, string> = {
   Advanced: '#dc2626',
 };
 
+import SEO from '../components/SEO';
+
 export default function CircuitsPage() {
   const navigate = useNavigate();
   const importState = useSchematicStore(s => s.importState);
@@ -105,9 +107,15 @@ export default function CircuitsPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: C.bgApp,
+    <>
+      <SEO 
+        title="Example Circuits | NodeSim" 
+        description="Browse our library of pre-built circuit templates including 555 timers, op-amps, filters, and rectifiers. Load them instantly into the NodeSim circuit simulator."
+        url="https://nodesimapp.com/circuits"
+      />
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: C.bgApp,
       padding: '80px 20px 60px',
       color: C.textPrimary,
       fontFamily: "'Outfit', sans-serif",
@@ -351,6 +359,7 @@ export default function CircuitsPage() {
         )}
       </div>
     </div>
+    </>
   );
 }
 

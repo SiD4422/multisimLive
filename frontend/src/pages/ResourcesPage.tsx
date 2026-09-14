@@ -13,13 +13,21 @@ const C = {
   primaryLight: '#dcfce7',
 };
 
+import SEO from '../components/SEO';
+
 export default function ResourcesPage() {
   const navigate = useNavigate();
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: C.bgApp,
+    <>
+      <SEO 
+        title="Resources & Documentation | NodeSim" 
+        description="Documentation, tutorials, and ngspice reference manuals for the NodeSim circuit simulator."
+        url="https://nodesimapp.com/resources"
+      />
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: C.bgApp,
       padding: '80px 20px 80px',
       color: C.textPrimary,
       fontFamily: "'Outfit', sans-serif",
@@ -154,5 +162,6 @@ export default function ResourcesPage() {
 
       </div>
     </div>
+    </>
   );
 }

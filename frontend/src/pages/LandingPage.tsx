@@ -1,8 +1,13 @@
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 export default function LandingPage() {
   return (
     <>
+      <SEO 
+        title="NodeSim | Free Online Circuit Simulator"
+        description="The modern, free alternative to NI Multisim. Design, build, and run professional SPICE circuit simulations entirely in your browser. No account required."
+      />
       <style>{`
   :root{
     --paper:#FBFEFC;

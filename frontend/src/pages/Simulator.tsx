@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import SEO from '../components/SEO';
 
 import { Link } from 'react-router-dom';
 import LZString from 'lz-string';
@@ -454,7 +455,13 @@ function Simulator() {
   }, [isSimulating]);
 
   return (
-    <div className="app-container">
+    <>
+      <SEO 
+        title="NodeSim | Online Circuit Simulator" 
+        description="Design and run SPICE circuit simulations entirely in your browser with real-time waveform graphers."
+        url="https://nodesimapp.com/simulator"
+      />
+      <div className="app-container">
       {/* Hidden File Input for Loading Circuits */}
       <input 
         type="file" 
@@ -1224,6 +1231,7 @@ function Simulator() {
         </div>
       )}
     </div>
+    </>
   );
 }
 

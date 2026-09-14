@@ -8,12 +8,15 @@ import ProcedurePage from './pages/ProcedurePage';
 import ResourcesPage from './pages/ResourcesPage';
 import FeedbackWidget from './components/FeedbackWidget';
 
+import { HelmetProvider } from 'react-helmet-async';
+
 // Lazy load the Simulator to prevent bundling 7MB WASM & Canvas on marketing pages
 const Simulator = lazy(() => import('./pages/Simulator'));
 
 function App() {
   return (
-    <BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
       <FeedbackWidget />
       <Routes>
         {/* Standalone Landing Page with its own header */}
@@ -42,6 +45,7 @@ function App() {
         />
       </Routes>
     </BrowserRouter>
+    </HelmetProvider>
   );
 }
 
