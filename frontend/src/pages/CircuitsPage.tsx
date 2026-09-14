@@ -46,7 +46,7 @@ const C = {
 
 const CATEGORIES = ['All', 'Filters', 'Rectifiers', 'Amplifiers', 'Power', 'Switching', 'Sources'];
 
-const EXAMPLES = [
+export const EXAMPLES = [
   // ── FILTERS ────────────────────────────────────────────────────
   { id: 'lpf', name: 'RC Low-Pass Filter', category: 'Filters', description: 'Passes low frequencies, attenuates highs. The foundation of analog signal processing.', analysis: 'AC Sweep', analysisColor: C.acSweep, difficulty: 'Beginner', components: ['Resistor', 'Capacitor', 'AC Source'], Icon: Waves, accent: '#0284c7', data: lowPassFilter },
   { id: 'hpf', name: 'RC High-Pass Filter', category: 'Filters', description: 'Blocks DC and low frequencies, passes high-frequency signals. Coupling & noise removal.', analysis: 'AC Sweep', analysisColor: C.acSweep, difficulty: 'Beginner', components: ['Capacitor', 'Resistor', 'AC Source'], Icon: TrendingUp, accent: '#0891b2', data: rcHighPassFilter },
@@ -101,10 +101,7 @@ export default function CircuitsPage() {
     return matchCat && matchSearch;
   });
 
-  const handleSelect = (data: any) => {
-    importState(JSON.stringify(data));
-    navigate('/simulator');
-  };
+
 
   return (
     <>
@@ -231,7 +228,7 @@ export default function CircuitsPage() {
               return (
                 <div
                   key={ex.id}
-                  onClick={() => handleSelect(ex.data)}
+                  onClick={() => navigate(`/circuits/${ex.id}`)}
                   onMouseEnter={() => setHovered(ex.id)}
                   onMouseLeave={() => setHovered(null)}
                   style={{

@@ -18,7 +18,7 @@ export default function Layout() {
           <nav className="msl-nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
             <Link to="/" className={pathname === '/' ? 'active' : ''}>Home</Link>
             <Link to="/features" className={pathname === '/features' ? 'active' : ''}>Features</Link>
-            <Link to="/circuits" className={pathname === '/circuits' ? 'active' : ''}>Circuits</Link>
+            <Link to="/circuits" className={pathname.startsWith('/circuits') ? 'active' : ''}>Circuits</Link>
             <Link to="/procedure" className={pathname === '/procedure' ? 'active' : ''}>How to Use</Link>
             <Link to="/resources" className={pathname === '/resources' ? 'active' : ''}>Resources</Link>
           </nav>
@@ -49,7 +49,7 @@ export default function Layout() {
           <div className="mp-links">
             <Link to="/" className={pathname === '/' ? 'active' : ''}>Home</Link>
             <Link to="/features" className={pathname === '/features' ? 'active' : ''}>Features</Link>
-            <Link to="/circuits" className={pathname === '/circuits' ? 'active' : ''}>Circuits</Link>
+            <Link to="/circuits" className={pathname.startsWith('/circuits') ? 'active' : ''}>Circuits</Link>
             <Link to="/procedure" className={pathname === '/procedure' ? 'active' : ''}>How to Use</Link>
             <Link to="/resources" className={pathname === '/resources' ? 'active' : ''}>Resources</Link>
           </div>

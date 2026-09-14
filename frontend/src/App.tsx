@@ -10,6 +10,8 @@ import FeedbackWidget from './components/FeedbackWidget';
 
 import { HelmetProvider } from 'react-helmet-async';
 
+import CircuitTemplatePage from './pages/CircuitTemplatePage';
+
 // Lazy load the Simulator to prevent bundling 7MB WASM & Canvas on marketing pages
 const Simulator = lazy(() => import('./pages/Simulator'));
 
@@ -26,6 +28,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/circuits" element={<CircuitsPage />} />
+          <Route path="/circuits/:id" element={<CircuitTemplatePage />} />
           <Route path="/procedure" element={<ProcedurePage />} />
           <Route path="/resources" element={<ResourcesPage />} />
         </Route>
