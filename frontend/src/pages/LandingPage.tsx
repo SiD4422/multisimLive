@@ -183,10 +183,10 @@ export default function LandingPage() {
         .float-pill{position:absolute;display:flex;align-items:center;gap:8px;background:var(--panel-dark);color:#EAF6EF;padding:9px 14px;border-radius:12px;font-size:12px;font-weight:600;box-shadow:var(--shadow-md);border:1px solid rgba(255,255,255,.08);z-index:3;}
         .float-pill svg{width:15px;height:15px;color:var(--green-light);flex:none;}
         .pill-top{top:-22px;right:8%;}
-        .hand-note{position:absolute;display:flex;gap:8px;font-family:var(--font-hand);font-weight:600;color:#0fa968 !important;font-size:22px;line-height:1.15;z-index:3;}
-        .hand-note svg{color:#0fa968 !important;flex:none;}
-        .note-top{top:-92px;right:26%;text-align:right;flex-direction:row-reverse;color:#0fa968 !important;}
-        .note-bottom{bottom:-110px;left:2%;align-items:flex-start;color:#0fa968 !important;}
+        .hand-note{position:absolute;display:flex;gap:8px;font-family:var(--font-hand);font-weight:600;color:var(--green-dark) !important;font-size:22px;line-height:1.15;z-index:3;}
+        .hand-note svg{color:var(--green-dark) !important;flex:none;}
+        .note-top{top:-92px;right:26%;text-align:right;flex-direction:row-reverse;color:var(--green-dark) !important;}
+        .note-bottom{bottom:-110px;left:2%;align-items:flex-start;color:var(--green-dark) !important;}
         @media(max-width:560px){.float-pill,.hand-note{display:none;}}
 
         .sim-frame{
