@@ -45,7 +45,16 @@ export default function Layout() {
         <div className="footer-grid">
           <div className="footer-brand-col">
             <div className="footer-brand">
-              <img src="/logo_dark_transparent.png" alt="NodeSim Logo" style={{ height: '40px', objectFit: 'contain' }} />
+              <div className="footer-logo-svg">
+                <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+                  <path d="M4 22 L11 10 L16 18 L26 4" stroke="#16a34a" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="26" cy="4" r="3" fill="#16a34a"/>
+                </svg>
+                <div className="footer-logo-text">
+                  <span className="word">Node<span>Sim</span></span>
+                  <span className="tag">CIRCUITS MADE SIMPLE</span>
+                </div>
+              </div>
             </div>
             <p className="footer-tagline">The free, modern alternative to NI Multisim.<br />100% browser-based. No install. No account.</p>
           </div>
