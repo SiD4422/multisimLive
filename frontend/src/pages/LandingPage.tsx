@@ -138,7 +138,7 @@ export default function LandingPage() {
   }
 
   /* ---------- Hero ---------- */
-  .msl-hero{position:relative;padding:56px 0 88px;overflow:hidden;
+  .msl-hero{position:relative;padding:20px 0 48px;overflow:hidden;
     background:
       radial-gradient(1100px 620px at 12% -12%, rgba(15,169,104,.09), transparent 60%),
       radial-gradient(820px 520px at 104% 6%, rgba(15,169,104,.07), transparent 55%),
@@ -151,7 +151,7 @@ export default function LandingPage() {
     -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,.5), transparent 78%);
     mask-image:linear-gradient(to bottom, rgba(0,0,0,.5), transparent 78%);
   }
-  .msl-hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(340px,440px) minmax(0,1fr);gap:56px;align-items:center;}
+  .msl-hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(340px,440px) minmax(0,1fr);gap:32px;align-items:center;}
   @media(max-width:1180px){.msl-hero-grid{grid-template-columns:1fr;gap:64px;}}
 
   .msl-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:var(--mint);border:1px solid var(--mint-deep);color:var(--green-dark);font-size:12px;font-weight:700;letter-spacing:.02em;}
@@ -177,8 +177,8 @@ export default function LandingPage() {
   .pill-top{top:-22px;right:8%;}
   .hand-note{position:absolute;display:flex;gap:8px;font-family:var(--font-hand);font-weight:600;color:var(--green-dark);font-size:22px;line-height:1.15;z-index:3;}
   .hand-note svg{color:var(--green-dark);flex:none;}
-  .note-top{top:-92px;right:26%;text-align:right;flex-direction:row-reverse;}
-  .note-bottom{bottom:-58px;left:2%;align-items:flex-start;}
+  .note-top{top:-52px;right:26%;text-align:right;flex-direction:row-reverse;}
+  .note-bottom{bottom:-42px;left:2%;align-items:flex-start;}
   @media(max-width:560px){.float-pill,.hand-note{display:none;}}
 
   .sim-frame{
