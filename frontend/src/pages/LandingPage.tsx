@@ -48,11 +48,12 @@ export default function LandingPage() {
         .lp-btn-cta{background:var(--green-600);color:#fff;padding:11px 20px;font-size:14.5px;box-shadow:0 8px 20px -6px rgba(22,163,74,.55);}
         .lp-btn-cta:hover{background:var(--green-700);}
         @media(max-width:420px){.lp-cta-text{display:none;}}
-        .lp-hero{max-width:1300px;margin:0 auto;padding:64px 56px 170px;display:grid;grid-template-columns:1fr 1.08fr;gap:64px;align-items:center;}
+        .lp-hero{max-width:1300px;margin:0 auto;padding:64px 56px 170px;display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center;}
         .lp-hero-content { margin-left: -20px; }
         .lp-badge{display:inline-flex;align-items:center;gap:7px;background:var(--green-100);color:var(--green-800);padding:7px 16px;border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:.02em;margin-bottom:26px;}
         .lp-badge svg{width:13px;height:13px;flex-shrink:0;}
-        .lp-title{font-size:clamp(2.6rem,2rem + 2.6vw,4.35rem);font-weight:800;line-height:1.04;letter-spacing:-.025em;margin:0 0 22px;}
+        .lp-title{font-size:clamp(2.6rem,2rem + 2.5vw,4rem);font-weight:800;line-height:1.04;letter-spacing:-.025em;margin:0 0 22px;}
+        .lp-gradient-text{background:linear-gradient(to right,var(--green-600),var(--green-500));-webkit-background-clip:text;background-clip:text;color:transparent; white-space: nowrap;}
         .lp-title .l1{color:var(--ink);display:block;}
         .lp-title .l2{color:var(--green-600);display:block;}
         .lp-lede{font-size:18px;line-height:1.65;color:var(--muted);max-width:490px;margin:0 0 34px;}
