@@ -32,7 +32,7 @@ export default function LandingPage() {
         .lp a{color:inherit;text-decoration:none;}
         .lp button{font-family:inherit;cursor:pointer;background:none;border:0;}
         .lp-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);}
-        .lp-header-inner{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;max-width:100%;margin:0;position:relative;}
+        .lp-header-inner{display:flex;align-items:center;justify-content:space-between;padding:20px 56px;max-width:1600px;margin:0 auto;position:relative;}
         .lp-logo{display:flex;align-items:center;gap:10px;}
         .lp-logo-text{display:flex;flex-direction:column;line-height:1;}
         .lp-logo-text .word{font-size:22px;font-weight:800;letter-spacing:-.02em;}
@@ -48,7 +48,7 @@ export default function LandingPage() {
         .lp-btn-cta{background:var(--green-600);color:#fff;padding:11px 20px;font-size:14.5px;box-shadow:0 8px 20px -6px rgba(22,163,74,.55);}
         .lp-btn-cta:hover{background:var(--green-700);}
         @media(max-width:420px){.lp-cta-text{display:none;}}
-        .lp-hero{max-width:100%;margin:0;padding:64px 32px 170px;display:grid;grid-template-columns:1fr 1.08fr;gap:64px;align-items:center;}
+        .lp-hero{max-width:1600px;margin:0 auto;padding:64px 56px 170px;display:grid;grid-template-columns:1fr 1.08fr;gap:64px;align-items:center;}
         .lp-hero-content { margin-left: -20px; }
         .lp-badge{display:inline-flex;align-items:center;gap:7px;background:var(--green-100);color:var(--green-800);padding:7px 16px;border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:.02em;margin-bottom:26px;}
         .lp-badge svg{width:13px;height:13px;flex-shrink:0;}
