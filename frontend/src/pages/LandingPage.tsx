@@ -197,8 +197,8 @@ export default function LandingPage() {
   .sim-brand{display:flex;align-items:center;gap:7px;color:#EAF6EF;font-family:var(--font-display);font-weight:700;font-size:14px;flex:none;}
   .sim-brand svg{width:20px;height:20px;}
   .sim-tabs{display:flex;gap:3px;background:rgba(255,255,255,.05);padding:3px;border-radius:9px;margin-left:6px;}
-  .sim-tabs button{padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;color:#93A99F;}
-  .sim-tabs button.active{background:rgba(255,255,255,.14);color:#fff;}
+  .sim-tabs button, .sim-tabs div{padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;color:#93A99F;}
+  .sim-tabs button.active, .sim-tabs div.active{background:rgba(255,255,255,.14);color:#fff;}
   .sim-spacer{flex:1;}
   .sim-run{display:flex;align-items:center;gap:6px;background:linear-gradient(180deg,var(--green-light),var(--green));color:#062217;font-weight:700;font-size:12.5px;padding:8px 15px;border-radius:8px;flex:none;}
   .sim-run svg{width:12px;height:12px;}
@@ -437,15 +437,15 @@ export default function LandingPage() {
                     NodeSim
                   </div>
                   <div className="sim-tabs">
-                    <button className="active">Schematic</button>
-                    <button>Grapher</button>
-                    <button>Split</button>
+                    <div className="active">Schematic</div>
+                    <div>Grapher</div>
+                    <div>Split</div>
                   </div>
                   <div className="sim-spacer"></div>
-                  <button className="sim-run">
+                  <div className="sim-run">
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7L7 5Z"/></svg>
                     Run
-                  </button>
+                  </div>
                   <span className="sim-avatar">SK</span>
                 </div>
 
@@ -453,7 +453,7 @@ export default function LandingPage() {
                   <aside className="sim-sidebar">
                     <div className="sim-search">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-                      <input readOnly value="Search components…" />
+                      <div className="sim-search-text">Search components…</div>
                     </div>
                     <div className="sim-comp"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M2 9h2l1.4-3 2.4 6 2.4-6 2.4 6 2.4-6L14 9h2"/></svg>Resistor</div>
                     <div className="sim-comp"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M2 9h5M11 9h5M7 4v10M11 4v10"/></svg>Capacitor</div>
@@ -502,10 +502,10 @@ export default function LandingPage() {
                         <text className="sch-label" x="282" y="166">10µF</text>
                       </svg>
                     </div>
-                    <div className="sim-canvas-tag">
-                      Untitled Circuit
-                      <button aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 5v14M5 12h14"/></svg></button>
-                    </div>
+                      <div className="sim-canvas-tag">
+                        Untitled Circuit
+                        <div aria-hidden="true" style={{display:'flex'}}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg></div>
+                      </div>
                   </div>
 
                   <div className="sim-analysis">
