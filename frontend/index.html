@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png?v=6" />
+    <link rel="apple-touch-icon" href="/favicon.png?v=6" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google-site-verification" content="I677SBO7Wb_Xv-CvCMiKvnDZbkiAId64Gtyrk5-0KLU" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,8 +48,32 @@
     }
     </script>
   </head>
+  <style>
+    .seo-fallback { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+  </style>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="seo-fallback">
+        <h1>NodeSim - Professional Circuit Simulation in Your Browser</h1>
+        <p>NodeSim is the modern, free alternative to NI Multisim. Design, build, and run professional SPICE circuit simulations entirely in your browser. No installation. No license headache. No heavy desktop software. Just simulate.</p>
+        <p>Features include an intuitive schematic editor, real SPICE simulations powered by ngspice, powerful analysis tools (DC sweep, AC sweep, Transient), and a built-in AI Engineering Tutor powered by Google Gemini.</p>
+        <h2>Why engineers choose NodeSim</h2>
+        <ul>
+          <li>Instant: No installation. Start simulating immediately.</li>
+          <li>SPICE-powered: Accurate circuit simulation powered by a professional SPICE engine.</li>
+          <li>Runs anywhere: Windows, macOS, Linux, Chromebook.</li>
+          <li>Shareable: Send a circuit to anyone with a single link.</li>
+          <li>Analyze: Inspect waveforms, voltages, currents and simulation results.</li>
+          <li>Built for learning: Understand what's happening.</li>
+        </ul>
+        <h2>Explore Example Circuits</h2>
+        <a href="/circuits">Circuit Library</a>
+        <a href="/simulator">Launch Simulator</a>
+        <a href="/features">Features</a>
+        <a href="/procedure">How to Use</a>
+        <a href="/resources">Resources</a>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
