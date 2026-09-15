@@ -9,7 +9,7 @@
         }
       ],
       "destination": "https://nodesimapp.com/$1",
-      "permanent": true
+      "statusCode": 301
     }
   ],
   "rewrites": [
