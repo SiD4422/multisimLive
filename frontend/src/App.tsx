@@ -9,6 +9,7 @@ import ResourcesPage from './pages/ResourcesPage';
 import FeedbackWidget from './components/FeedbackWidget';
 
 import { HelmetProvider } from 'react-helmet-async';
+import { Analytics } from '@vercel/analytics/react';
 
 import CircuitTemplatePage from './pages/CircuitTemplatePage';
 
@@ -20,6 +21,7 @@ function App() {
     <HelmetProvider>
       <BrowserRouter>
       <FeedbackWidget />
+      <Analytics />
       <Routes>
         {/* Standalone Landing Page with its own header */}
         <Route path="/" element={<LandingPage />} />
