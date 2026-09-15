@@ -133,10 +133,11 @@ export default function FeedbackWidget() {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="fb-email">Email (optional)</label>
+                  <label htmlFor="fb-email">Email</label>
                   <input 
                     type="email" 
                     id="fb-email"
+                    required
                     placeholder="So we can follow up with you"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
