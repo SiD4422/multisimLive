@@ -1,17 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "www.nodesimapp.com"
-        }
-      ],
-      "destination": "https://nodesimapp.com/$1",
-      "statusCode": 301
-    }
-  ],
   "rewrites": [
     {
       "source": "/(.*)",
