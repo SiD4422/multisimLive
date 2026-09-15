@@ -3,7 +3,7 @@ import SEO from '../components/SEO';
 
 import { Link } from 'react-router-dom';
 import LZString from 'lz-string';
-import { Play, MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, LayoutGrid, HelpCircle, Share, Maximize, Activity, PanelLeftClose, PanelLeftOpen, FileCode, Zap, CircleDot, ChevronRight, X, Search, FolderOpen, Save, CheckCircle2, AlertTriangle, BookOpen, Camera, Sparkles, Upload, Download, Copy } from 'lucide-react';
+import { Play, MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, LayoutGrid, HelpCircle, Share, Maximize, Activity, PanelLeftClose, PanelLeftOpen, FileCode, Zap, CircleDot, ChevronRight, X, Search, FolderOpen, Save, CheckCircle2, AlertTriangle, BookOpen, Camera, Sparkles, Upload, Download, Copy, Code } from 'lucide-react';
 import { importSpiceNetlist, looksLikeSpiceNetlist } from '../utils/spiceImporter';
 import SchematicEditor from '../components/SchematicEditor';
 import Grapher from '../components/Grapher';
@@ -16,6 +16,8 @@ import { OpPointTable } from '../components/OpPointTable';
 import { CircuitLibrary } from '../components/CircuitLibrary';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { generateNetlist } from '../utils/netlister';
+import { EmbedModal } from '../components/EmbedModal';
+import { WelcomeTour } from '../components/WelcomeTour';
 import { 
   IconProbeVoltage, IconProbeCurrent,
   IconGround, IconConnector, IconJunction,
@@ -77,6 +79,8 @@ function Simulator() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [circuitName, setCircuitName] = useState('Untitled Circuit');
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isEmbedModalOpen, setIsEmbedModalOpen] = useState(false);
+  const isEmbed = new URLSearchParams(window.location.search).get('embed') === 'true';
   const [arrowTop, setArrowTop] = useState<number>(20);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeView, setActiveView] = useState<'schematic' | 'grapher' | 'split'>('schematic');
@@ -480,6 +484,12 @@ function Simulator() {
       />
 
       {/* Example Library Modal */}
+      <WelcomeTour />
+      <EmbedModal 
+        isOpen={isEmbedModalOpen} 
+        onClose={() => setIsEmbedModalOpen(false)} 
+        circuitData={LZString.compressToEncodedURIComponent(exportState())}
+      />
       <ExampleLibraryModal
         isOpen={isLibraryOpen}
         onClose={() => setIsLibraryOpen(false)}
@@ -514,18 +524,20 @@ function Simulator() {
       <header className="header-top relative" style={{ zIndex: 10 }}>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2" style={{ marginLeft: '-95px' }}>
-            <Link to="/" title="Back to Home" className="flex items-center">
+            <a href="https://nodesimapp.com" target="_blank" rel="noopener noreferrer" title="Open NodeSim" className="flex items-center">
               <Logo style={{ width: '250px', height: '52px', transform: 'scale(1.3)', transformOrigin: 'left center' }} />
-            </Link>
-            <span style={{ fontSize: '10px' }} className="border border-green-700 text-green-300 px-1.5 py-0 rounded-full ml-1 whitespace-nowrap">Beta Testing</span>
+            </a>
+            {!isEmbed && <span style={{ fontSize: '10px' }} className="border border-green-700 text-green-300 px-1.5 py-0 rounded-full ml-1 whitespace-nowrap">Beta Testing</span>}
           </div>
           
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '20px', marginLeft: '30px', height: '30px' }}>
-             <Link to="/" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Home</Link>
-             <Link to="/features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</Link>
-             <Link to="/circuits" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Circuits</Link>
-             <Link to="/procedure" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Procedure</Link>
-          </nav>
+          {!isEmbed && (
+            <nav style={{ display: 'flex', alignItems: 'center', gap: '20px', marginLeft: '30px', height: '30px' }}>
+               <Link to="/" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Home</Link>
+               <Link to="/features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</Link>
+               <Link to="/circuits" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Circuits</Link>
+               <Link to="/procedure" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Procedure</Link>
+            </nav>
+          )}
         </div>
 
         <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
@@ -561,6 +573,7 @@ function Simulator() {
             { icon: <FolderOpen size={16}/>, label: 'Load Circuit (.json)', action: handleLoadClick, color: undefined },
             { icon: <Save size={16}/>, label: 'Save Circuit (.json)', action: handleSave, color: undefined },
             { icon: <Share size={16}/>, label: 'Share Link', action: handleShare, color: undefined },
+            { icon: <Code size={16}/>, label: 'Embed Circuit', action: () => setIsEmbedModalOpen(true), color: undefined },
             { icon: <Camera size={16}/>, label: 'Snapshot (PNG)', action: () => window.dispatchEvent(new CustomEvent('export-schematic')), color: '#4ade96' },
             { icon: <Upload size={16}/>, label: 'Import SPICE Netlist (.cir)', action: handleImportCirClick, color: '#60a5fa' },
             { icon: <Download size={16}/>, label: 'Export SPICE Netlist (.cir)', action: handleExportNetlist, color: '#60a5fa' },
