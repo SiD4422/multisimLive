@@ -18,6 +18,8 @@ import { useSchematicStore } from '../store/useSchematicStore';
 import { generateNetlist } from '../utils/netlister';
 import { EmbedModal } from '../components/EmbedModal';
 import { WelcomeTour } from '../components/WelcomeTour';
+import { useCircuitBoot } from '../hooks/useCircuitBoot';
+import { RestoreBanner } from '../components/RestoreBanner';
 import { 
   IconProbeVoltage, IconProbeCurrent,
   IconGround, IconConnector, IconJunction,
@@ -244,25 +246,7 @@ function Simulator() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Check URL hash for shared circuit on mount
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash && hash.startsWith('#circuit=')) {
-      try {
-        const compressed = hash.substring(9);
-        const jsonStr = LZString.decompressFromEncodedURIComponent(compressed);
-        if (jsonStr) {
-          useSchematicStore.getState().importState(jsonStr);
-          showToast('Shared circuit loaded successfully!', 'success');
-          // Clean up URL without triggering navigation
-          window.history.replaceState(null, '', window.location.pathname);
-        }
-      } catch (err) {
-        console.error("Failed to load circuit from URL:", err);
-        showToast('Failed to load shared circuit. The link may be broken.', 'warning');
-      }
-    }
-  }, []);
+  const bootSource = useCircuitBoot();
 
   // Global Keyboard Shortcuts
   useEffect(() => {
@@ -466,6 +450,7 @@ function Simulator() {
         url="https://nodesimapp.com/simulator"
       />
       <div className="app-container">
+        <RestoreBanner show={bootSource === 'restored'} />
       {/* Hidden File Input for Loading Circuits */}
       <input 
         type="file" 

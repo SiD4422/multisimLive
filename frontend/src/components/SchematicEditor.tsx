@@ -777,6 +777,7 @@ export default function SchematicEditor() {
           scaleY={scale}
           x={stagePos.x}
           y={stagePos.y}
+          style={{ touchAction: 'none' }}
           draggable={!wirePoints && !pendingComponent}
           onDragEnd={(e) => {
             if (e.target === stageRef.current) {

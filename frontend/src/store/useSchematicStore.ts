@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateNetlist } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
 
@@ -121,7 +122,25 @@ interface SchematicState {
   setPlaybackTime: (time: number | ((t: number) => number)) => void;
 }
 
-export const useSchematicStore = create<SchematicState>()((set, get) => ({
+export const STORAGE_KEY = 'nodesim-schematic-v1';
+export const SCHEMA_VERSION = 1;
+
+/** Read pre-hydration to decide if we should show the restore banner. */
+export function hadSavedCircuitAtBoot(): boolean {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    const st = parsed?.state;
+    return !!st && ((st.components?.length ?? 0) > 0 || (st.wires?.length ?? 0) > 0);
+  } catch {
+    return false;
+  }
+}
+
+export const useSchematicStore = create<SchematicState>()(
+  persist<SchematicState>(
+    (set, get) => ({
       components: [],
       wires: [],
       probes: [],
@@ -476,6 +495,29 @@ export const useSchematicStore = create<SchematicState>()((set, get) => ({
   setSimulationBuffer: (data) => set({ simulationBuffer: data }),
   setSimulationError: (error) => set({ simulationError: error }),
   togglePlayback: () => set((state) => ({ isPlaying: !state.isPlaying }))
-})
+    }),
+    {
+      name: STORAGE_KEY,
+      version: SCHEMA_VERSION,
+      storage: createJSONStorage(() => localStorage),
+      // Only persist schematic graph. Never sim results, WASM handles, selection, undo stack.
+      partialize: (s) => ({
+        components: s.components,
+        wires: s.wires,
+        probes: s.probes,
+      } as unknown as SchematicState),
+      // Drop old schema shapes rather than crashing hydration
+      migrate: (persisted: unknown, version: number) => {
+        if (version !== SCHEMA_VERSION) return { components: [], wires: [], probes: [] } as unknown as SchematicState;
+        return persisted as SchematicState;
+      },
+      onRehydrateStorage: () => (_state: unknown, error: unknown) => {
+        if (error) {
+          console.warn('[nodesim] schematic rehydrate failed, starting clean', error);
+          try { localStorage.removeItem(STORAGE_KEY); } catch { /* private mode */ }
+        }
+      },
+    }
+  )
 );
 if (typeof window !== 'undefined') { (window as any).useSchematicStore = useSchematicStore; }

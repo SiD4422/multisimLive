@@ -1,0 +1,17 @@
+﻿{
+  "name": "NodeSim — Circuit Simulator",
+  "short_name": "NodeSim",
+  "description": "Design, simulate, and understand analog circuits in the browser — powered by ngspice compiled to WASM.",
+  "id": "/simulator",
+  "start_url": "/simulator?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0B0F14",
+  "theme_color": "#0FA968",
+  "icons": [
+    { "src": "/favicon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

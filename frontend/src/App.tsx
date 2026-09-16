@@ -15,6 +15,7 @@ import CircuitTemplatePage from './pages/CircuitTemplatePage';
 
 // Lazy load the Simulator to prevent bundling 7MB WASM & Canvas on marketing pages
 const Simulator = lazy(() => import('./pages/Simulator'));
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -48,6 +49,11 @@ function App() {
             </Suspense>
           } 
         />
+
+        {/* 404 — catch-all must be last */}
+        <Route element={<Layout />}>
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Routes>
     </BrowserRouter>
     </HelmetProvider>

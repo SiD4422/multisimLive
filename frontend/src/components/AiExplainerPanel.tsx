@@ -3,7 +3,7 @@ import { X, Sparkles, Key, ChevronRight, Loader2, AlertTriangle, Copy, Check } f
 import { useSchematicStore } from '../store/useSchematicStore';
 import { generateNetlist } from '../utils/netlister';
 
-const LS_KEY = 'multisimlab_gemini_key';
+import { saveApiKey, loadApiKey, clearApiKey, hasStoredApiKey } from '../lib/secureKeyStorage';
 
 const SYSTEM_PROMPT = `You are an expert electronics tutor helping engineering students understand circuit behavior.
 When given a SPICE netlist, you analyze it and respond in a clear, educational, and engaging way.
@@ -41,7 +41,7 @@ interface Props {
 export function AiExplainerPanel({ isOpen, onClose }: Props) {
   const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings, simulationBuffer } = useSchematicStore();
 
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem(LS_KEY) || '');
+  const [apiKey, setApiKey] = useState(() => loadApiKey() || '');
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,7 +59,7 @@ export function AiExplainerPanel({ isOpen, onClose }: Props) {
 
   const saveKey = (key: string) => {
     setApiKey(key);
-    localStorage.setItem(LS_KEY, key);
+    saveApiKey(key);
     setShowKeyInput(false);
   };
 
@@ -246,12 +246,22 @@ export function AiExplainerPanel({ isOpen, onClose }: Props) {
               <Key size={12} />
               {apiKey ? 'API key saved ✓' : 'No API key set'}
             </span>
-            <button
-              onClick={() => setShowKeyInput(true)}
-              style={{ fontSize: 11, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              {apiKey ? 'Change key' : 'Set key'}
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {apiKey && (
+                <button
+                  onClick={() => { clearApiKey(); setApiKey(''); }}
+                  style={{ fontSize: 11, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Clear key
+                </button>
+              )}
+              <button
+                onClick={() => setShowKeyInput(true)}
+                style={{ fontSize: 11, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                {apiKey ? 'Change key' : 'Set key'}
+              </button>
+            </div>
           </div>
         )}
         {!apiKey && (

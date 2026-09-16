@@ -934,17 +934,21 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
         {pins.map((pin, i) => {
           const scaledX = pin.x * 1.5;
           const scaledY = pin.y * 1.5;
+          const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+          const handlePinHit = (e: any) => {
+            e.cancelBubble = true; 
+            const rad = (component.rotation || 0) * Math.PI / 180;
+            const rotX = scaledX * Math.cos(rad) - scaledY * Math.sin(rad);
+            const rotY = scaledX * Math.sin(rad) + scaledY * Math.cos(rad);
+            onNodeClick(e, { x: component.position.x + rotX, y: component.position.y + rotY }); 
+          };
+          
           return (
             <Circle 
               key={`pin${i}`}
-              x={scaledX} y={scaledY} radius={5} fill="#fff" stroke={strokeColor} strokeWidth={2} hitStrokeWidth={15}
-              onMouseDown={(e) => { 
-                e.cancelBubble = true; 
-                const rad = (component.rotation || 0) * Math.PI / 180;
-                const rotX = scaledX * Math.cos(rad) - scaledY * Math.sin(rad);
-                const rotY = scaledX * Math.sin(rad) + scaledY * Math.cos(rad);
-                onNodeClick(e, { x: component.position.x + rotX, y: component.position.y + rotY }); 
-              }}
+              x={scaledX} y={scaledY} radius={5} fill="#fff" stroke={strokeColor} strokeWidth={2} hitStrokeWidth={isTouch ? 34 : 15}
+              onMouseDown={handlePinHit}
+              onTouchStart={handlePinHit}
               onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as any).fill('#e5e7eb'); }}
               onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}
             />
