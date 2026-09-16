@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "NodeSim — Circuit Simulator",
   "short_name": "NodeSim",
   "description": "Design, simulate, and understand analog circuits in the browser — powered by ngspice compiled to WASM.",
