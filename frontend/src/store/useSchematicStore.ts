@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { generateNetlist } from '../utils/netlister';
+import { generateNetlist, parseSpiceToFloat } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
 
 // Atomic flag to clear graph on switch flip without race conditions
@@ -410,6 +410,19 @@ export const useSchematicStore = create<SchematicState>()(
 
   runSimulation: async (isSilent = false) => {
     const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings } = get();
+    
+    // T5: Prevent 0-ohm resistor infinite current crash in WASM
+    const ZERO_THRESHOLD = 1e-9;
+    for (const comp of components) {
+      if (comp.type === 'Resistor' || comp.type === 'Load') {
+        const ohms = parseSpiceToFloat(comp.value || '0');
+        if (Math.abs(ohms) < ZERO_THRESHOLD) {
+          set({ simulationError: `Component is 0Ω — this can cause infinite current. Use a small nonzero value (e.g. 1m) or remove it.`, isSimulating: false, isPlaying: false });
+          return;
+        }
+      }
+    }
+
     if (!isSilent) {
       set({ isSimulating: true, simulationError: null, isPlaying: false, playbackTime: 0 });
     }
