@@ -886,7 +886,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       onDragStart={onDragStart}
       onDragMove={onDragMove}
       onDragEnd={onDragEnd}
-      onMouseDown={(e) => {
+      onPointerDown={(e) => {
         if (type === 'SwitchSPST' || type === 'PushButton' || type === 'DigitalSwitch') {
           e.cancelBubble = true;
           let newVal = 'Closed';
@@ -947,8 +947,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
             <Circle 
               key={`pin${i}`}
               x={scaledX} y={scaledY} radius={5} fill="#fff" stroke={strokeColor} strokeWidth={2} hitStrokeWidth={isTouch ? 34 : 15}
-              onMouseDown={handlePinHit}
-              onTouchStart={handlePinHit}
+              onPointerDown={handlePinHit}
               onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as any).fill('#e5e7eb'); }}
               onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}
             />
