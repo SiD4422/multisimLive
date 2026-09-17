@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { track } from '@vercel/analytics';
 import { generateNetlist, parseSpiceToFloat } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
 
@@ -411,14 +412,18 @@ export const useSchematicStore = create<SchematicState>()(
   runSimulation: async (isSilent = false) => {
     const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings } = get();
     
+    if (!isSilent) track('Simulation_Run', { mode: analysisMode });
+
     // T5: Prevent 0-ohm resistor infinite current crash in WASM
     const ZERO_THRESHOLD = 1e-9;
     for (const comp of components) {
       if (comp.type === 'Resistor' || comp.type === 'Load') {
         const ohms = parseSpiceToFloat(comp.value || '1k');
         if (Math.abs(ohms) < ZERO_THRESHOLD) {
+          const errorMsg = `Resistor is 0Ω — this can cause infinite current. Use a small nonzero value (e.g. 1m) or remove it.`;
+          if (!isSilent) track('Simulation_Error', { type: 'DRC', details: 'Zero Ohm Resistor' });
           set({ 
-            simulationError: `Resistor is 0Ω — this can cause infinite current. Use a small nonzero value (e.g. 1m) or remove it.`, 
+            simulationError: errorMsg, 
             isSimulating: false, 
             isPlaying: false,
             selectedComponentId: comp.id,
@@ -470,6 +475,7 @@ export const useSchematicStore = create<SchematicState>()(
 
         // If it was an .op analysis, data is an array of op value objects. 
         if (analysisMode === 'op' || (data as any).__plotType === 'op') {
+          if (!isSilent) track('Simulation_Success', { mode: analysisMode });
           return {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             opData: finalData as any,
@@ -478,6 +484,7 @@ export const useSchematicStore = create<SchematicState>()(
           };
         }
         
+        if (!isSilent) track('Simulation_Success', { mode: analysisMode });
         return {
           simulationBuffer: finalData,
           simulationData: finalData,
@@ -496,6 +503,9 @@ export const useSchematicStore = create<SchematicState>()(
       let errorMsg = e.message || "Simulation failed. See console for details.";
       if (errorMsg.includes("singular matrix")) {
         errorMsg += "\n(Hint: Your circuit might be missing a Ground component. SPICE requires a reference ground node to simulate.)";
+        if (!isSilent) track('Simulation_Error', { type: 'SPICE', details: 'singular matrix' });
+      } else {
+        if (!isSilent) track('Simulation_Error', { type: 'SPICE', details: errorMsg.substring(0, 100) });
       }
       set({ isSimulating: false, simulationError: errorMsg });
     }
