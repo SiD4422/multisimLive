@@ -44,8 +44,13 @@ interface DiagnosisResult {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function geminiUrl(model: string, method: string, key: string, stream = false) {
-  return `${BASE}/${model}:${method}?key=${key.trim()}${stream ? '&alt=sse' : ''}`;
+function geminiUrl(model: string, method: string, stream = false) {
+  return `${BASE}/${model}:${method}${stream ? '?alt=sse' : ''}`;
+}
+
+function geminiHeaders(apiKey: string): Record<string, string> {
+  // Key sent as header (NOT query string) — query strings appear in server logs and browser history
+  return { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() };
 }
 
 // ─── diagnose() — structured JSON call ───────────────────────────────────────
@@ -54,9 +59,9 @@ export async function diagnose(context: AIContext, apiKey: string): Promise<Diag
   const contextStr = serializeContext(context);
   const prompt = `${contextStr}\n\n---\nANALYSIS TASK: Auto-diagnose this circuit for issues.\n${DIAGNOSE_SCHEMA}`;
 
-  const res = await fetch(geminiUrl(DIAGNOSE_MODEL, 'generateContent', apiKey), {
+  const res = await fetch(geminiUrl(DIAGNOSE_MODEL, 'generateContent'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: geminiHeaders(apiKey),
     body: JSON.stringify({
       system_instruction: { parts: [{ text: DIAGNOSE_SYSTEM }] },
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -102,9 +107,9 @@ export async function streamExplain(
 
   const prompt = `${contextStr}\n\nExplain this circuit in plain language:\n1. What it does\n2. Key component roles\n3. How it works\n${hasResults ? '4. Interpret the simulation results:\n' + simSummary + '\n5. Potential issues or improvements' : '4. What to expect from simulation\n5. Common pitfalls'}`;
 
-  const res = await fetch(geminiUrl(EXPLAIN_MODEL, 'streamGenerateContent', apiKey, true), {
+  const res = await fetch(geminiUrl(EXPLAIN_MODEL, 'streamGenerateContent', true), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: geminiHeaders(apiKey),
     signal,
     body: JSON.stringify({
       system_instruction: { parts: [{ text: EXPLAIN_SYSTEM }] },
@@ -163,9 +168,9 @@ export async function streamChat(
     { role: 'user', parts: [{ text: userMessage }] },
   ];
 
-  const res = await fetch(geminiUrl(EXPLAIN_MODEL, 'streamGenerateContent', apiKey, true), {
+  const res = await fetch(geminiUrl(EXPLAIN_MODEL, 'streamGenerateContent', true), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: geminiHeaders(apiKey),
     signal,
     body: JSON.stringify({
       system_instruction: { parts: [{ text: systemText }] },

@@ -652,7 +652,7 @@ export default function Grapher() {
     });
     ro.observe(el);
     return () => ro.disconnect();
-  });
+  }, []); // [] — only mount/unmount; chartRef.current is stable after first render
 
   // Build a map: raw data key → probe display name
   const probeMap = useMemo(() => {

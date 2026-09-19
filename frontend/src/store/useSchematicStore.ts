@@ -469,9 +469,7 @@ export const useSchematicStore = create<SchematicState>()(
         netlist = netlist.replace(/\.end\s*$/, `${analysisCmd}\n.end`);
       }
 
-      console.log("Generated Netlist:\n" + netlist);
       const data = await runSpiceSimulation(netlist, isSilent);
-      console.log("Simulation Result:", data);
 
       const isAcOrDc = analysisMode === 'ac' || analysisMode === 'dc';
       set(state => {
@@ -558,4 +556,3 @@ export const useSchematicStore = create<SchematicState>()(
     }
   )
 );
-if (typeof window !== 'undefined') { (window as any).useSchematicStore = useSchematicStore; }

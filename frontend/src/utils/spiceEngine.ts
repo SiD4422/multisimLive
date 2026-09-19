@@ -5,8 +5,15 @@ let currentJobId = 0;
 let pendingJob: SpiceJob | null = null;
 
 export async function runSpiceSimulation(netlist: string, isSilent = false): Promise<SpiceResult> {
-  // Pre-flight DRC: Prevent WASM crash on ideal voltage source short / zero-resistance loop
-  if (netlist.includes('V') && !netlist.includes('R') && !netlist.includes('C') && !netlist.includes('L') && !netlist.includes('D') && !netlist.includes('Q') && !netlist.includes('M')) {
+  // Pre-flight DRC: detect netlists that contain only voltage/current sources with no load.
+  // Parse actual SPICE component lines (non-comment, non-directive lines starting with component letters).
+  const lines = netlist.split('\n').filter(l => {
+    const t = l.trim();
+    return t && !t.startsWith('*') && !t.startsWith('.') && !t.startsWith('+');
+  });
+  const hasSource = lines.some(l => /^[VIvi]/i.test(l));
+  const hasLoad   = lines.some(l => /^[RCLDQMXrcldqmx]/i.test(l));
+  if (hasSource && !hasLoad) {
     throw new Error("Ideal voltage source shorted or floating. Add a resistor to prevent infinite current.");
   }
 

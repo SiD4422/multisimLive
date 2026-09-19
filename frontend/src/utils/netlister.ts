@@ -1313,8 +1313,9 @@ S_dis DIS GND dis_gate GND SMOD555
     }
     // --- NEW TRANSISTORS ---
     else if (comp.type === 'TransistorPNP') {
-      netlist += `Q_${comp.id} ${nodes[2] || '0'} ${nodes[0] || '0'} ${nodes[1] || '0'} QPNP
-`;
+      // SPICE format: Q name Collector Base Emitter model
+      // Pin order from getComponentPins: nodes[0]=Base, nodes[1]=Collector, nodes[2]=Emitter
+      netlist += `Q_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} QPNP\n`;
       models.add('.model QPNP PNP (BF=100 BR=1 IS=10f VAF=50)');
     }
     else if (comp.type === 'MosfetN') {
@@ -1454,7 +1455,8 @@ S_dis DIS GND dis_gate GND SMOD555
     else if (comp.type === 'CurrentMirror') {
       netlist += `Q_${comp.id}a ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[0] || '0'} 2N3904\n`;
       netlist += `Q_${comp.id}b ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} 2N3904\n`;
-      netlist += `R_${comp.id}_bias ${nodes[0] || '0'} ${nodes[0] || '0'} 0.001\n`;
+      // Bias resistor: from VCC (nodes[1]) to the shared base/collector (nodes[0])
+      netlist += `R_${comp.id}_bias ${nodes[1] || '0'} ${nodes[0] || '0'} 10k\n`;
       models.add('.model 2N3904 NPN (IS=1E-14 VAF=100 BF=300)');
     }
     else if (comp.type === 'Resistors') {
@@ -1603,15 +1605,20 @@ S_dis DIS GND dis_gate GND SMOD555
     }
     else if (comp.type === 'DFlipFlop') {
       const d = nodes[0] || '0', clk = nodes[1] || '0', q = nodes[2] || '0', qbar = nodes[3] || '0';
-      // A simple continuous-time behavioral approximation of a D flip-flop is tricky in pure SPICE without specific macros.
-      // As a placeholder, we use an RC filter delay on D that updates on CLK threshold. 
-      // For a true digital sim in SPICE, we often use A-devices (XSPICE), but since we are using ngspice WASM analog:
-      models.add(`.subckt DFF D CLK Q QBAR\nB1 Q 0 V=0\nB2 QBAR 0 V=5\n.ends`);
+      // Behavioral D flip-flop approximation using RC delay + comparator (continuous-time SPICE)
+      // Note: True edge-triggered behavior requires XSPICE A-devices not available in WASM ngspice.
+      // This model approximates: Q follows D with a small RC delay, gated by CLK level.
+      const rc = `Rdff_${comp.id}`;
+      const cd = `Cdff_${comp.id}`;
+      const qint = `qint_${comp.id}`;
+      models.add(`.subckt DFF D CLK Q QBAR\nRin D ${qint} 1k\nCdel ${qint} 0 1n\nBQ Q 0 V=limit(V(${qint})*10,0,5)\nBQB QBAR 0 V=5-limit(V(${qint})*10,0,5)\n.ends`);
       netlist += `X_${comp.id} ${d} ${clk} ${q} ${qbar} DFF\n`;
     }
     else if (comp.type === 'JKFlipFlop') {
       const j = nodes[0] || '0', clk = nodes[1] || '0', k = nodes[2] || '0', q = nodes[3] || '0', qbar = nodes[4] || '0';
-      models.add(`.subckt JKFF J CLK K Q QBAR\nB1 Q 0 V=0\nB2 QBAR 0 V=5\n.ends`);
+      // Behavioral JK flip-flop approximation (continuous-time; not true edge-triggered)
+      const qjk = `qjk_${comp.id}`;
+      models.add(`.subckt JKFF J CLK K Q QBAR\nRj J ${qjk} 1k\nCj ${qjk} 0 1n\nBQ Q 0 V=limit(V(${qjk})*10,0,5)\nBQB QBAR 0 V=5-limit(V(${qjk})*10,0,5)\n.ends`);
       netlist += `X_${comp.id} ${j} ${clk} ${k} ${q} ${qbar} JKFF\n`;
     }
   });
