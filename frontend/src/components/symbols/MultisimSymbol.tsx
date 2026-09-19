@@ -43,6 +43,8 @@ interface MultisimSymbolProps {
 }
 
 export default function MultisimSymbol({ component, selected, onSelect, onDragMove, onDragEnd, onDragStart, onNodeClick, updateComponentValue }: MultisimSymbolProps) {
+  const highlightedComponentIds = useSchematicStore(s => s.highlightedComponentIds);
+  const isHighlighted = highlightedComponentIds.includes(component.id);
   const strokeColor = selected ? "#3b82f6" : "#000000";
   const type = component.type;
   
@@ -908,6 +910,15 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
         <Group scaleX={1.5} scaleY={1.5}>
           {/* Invisible expanded hit area for easy selection */}
           <Path data={`M -10 -20 L 70 -20 L 70 20 L -10 20 Z`} fill="transparent" />
+          {/* AI Debugger: amber highlight ring — pulses when component is flagged */}
+          {isHighlighted && (
+            <Rect
+              x={-14} y={-24} width={88} height={48}
+              stroke="#f59e0b" strokeWidth={2.5} fill="rgba(245,158,11,0.08)"
+              cornerRadius={8} listening={false}
+              opacity={0.9}
+            />
+          )}
 
           {/* Render Circles */}
           {circles.map((c, i) => (

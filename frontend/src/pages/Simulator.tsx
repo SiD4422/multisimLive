@@ -11,7 +11,7 @@ import { ComponentInspectorPanel } from '../components/ComponentInspectorPanel';
 import { SimulationControls } from '../components/SimulationControls';
 import { AnalysisSettings } from '../components/AnalysisSettings';
 import { ExampleLibraryModal } from '../components/ExampleLibraryModal';
-import { AiExplainerPanel } from '../components/AiExplainerPanel';
+import AiExplainerPanel from '../components/AiExplainerPanel';
 import { OpPointTable } from '../components/OpPointTable';
 import { CircuitLibrary } from '../components/CircuitLibrary';
 import { useSchematicStore } from '../store/useSchematicStore';
@@ -480,7 +480,11 @@ function Simulator() {
         onClose={() => setIsLibraryOpen(false)}
       />
 
-      <AiExplainerPanel isOpen={isAiPanelOpen} onClose={() => setIsAiPanelOpen(false)} />
+      <AiExplainerPanel
+        isOpen={isAiPanelOpen}
+        onClose={() => setIsAiPanelOpen(false)}
+        onFocusNode={(_node) => { setActiveView('grapher'); }}
+      />
 
       {/* My Circuit Library (localStorage) */}
       <CircuitLibrary

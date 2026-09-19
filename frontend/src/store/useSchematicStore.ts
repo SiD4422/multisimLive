@@ -55,6 +55,11 @@ interface SchematicState {
   deleteSelectedComponents: () => void;
   pendingComponent: { type: string, value: string } | null;
   isConfigOpen: boolean;
+  // AI Debugger State
+  aiDiagnosis: import('../lib/aiTypes').DiagnosisResult | null;
+  highlightedComponentIds: string[];
+  setAiDiagnosis: (d: import('../lib/aiTypes').DiagnosisResult | null) => void;
+  setHighlightedComponentIds: (ids: string[]) => void;
   // Simulation State
   isSimulating: boolean;
   simulationData: any[] | null;
@@ -156,6 +161,8 @@ export const useSchematicStore = create<SchematicState>()(
       editingComponentId: null,
       pendingComponent: null,
       isConfigOpen: false,
+      aiDiagnosis: null,
+      highlightedComponentIds: [],
       isSimulating: false,
   simulationData: null,
   opData: null,
@@ -336,6 +343,8 @@ export const useSchematicStore = create<SchematicState>()(
   },
   setPendingComponent: (comp) => set({ pendingComponent: comp }),
   setIsConfigOpen: (isOpen) => set({ isConfigOpen: isOpen }),
+  setAiDiagnosis: (d) => set({ aiDiagnosis: d }),
+  setHighlightedComponentIds: (ids) => set({ highlightedComponentIds: ids }),
   setSelectedComponent: (id) => set({ selectedComponentId: id, selectedWireId: null, selectedProbeId: null }),
   setSelectedWire: (id) => set({ selectedWireId: id, selectedComponentId: null, selectedProbeId: null }),
   setSelectedProbe: (id) => set({ selectedProbeId: id, selectedComponentId: null, selectedWireId: null }),

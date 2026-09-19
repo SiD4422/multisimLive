@@ -1,340 +1,531 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { X, Sparkles, Key, ChevronRight, Loader2, AlertTriangle, Copy, Check } from 'lucide-react';
+// AiExplainerPanel.tsx  — AI Circuit Debugger (rebuilt)
+// Mode 1: Auto-diagnose (structured JSON from Gemini 2.0-flash)
+// Mode 2: Chat (multi-turn, circuit-aware, Gemini 1.5-flash streaming)
+// Mode 3: Explain (original explain flow, now via geminiClient)
+
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { X, Sparkles, Key, Loader2, AlertTriangle, Copy, Check, ChevronDown, ChevronUp, Search, MessageCircle, Zap, Send, Trash2 } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
-import { generateNetlist } from '../utils/netlister';
+import { buildAIContext } from '../lib/aiContext';
+import { diagnose, streamExplain, streamChat } from '../lib/geminiClient';
+import { saveApiKey, loadApiKey, clearApiKey } from '../lib/secureKeyStorage';
+import { track } from '@vercel/analytics';
+import type { DiagnosisResult, ChatMessage, DiagnosticIssue } from '../lib/aiTypes';
 
-import { saveApiKey, loadApiKey, clearApiKey, hasStoredApiKey } from '../lib/secureKeyStorage';
+// ─── Mini markdown renderer (unchanged from before) ────────────────────────
 
-const SYSTEM_PROMPT = `You are an expert electronics tutor helping engineering students understand circuit behavior.
-When given a SPICE netlist, you analyze it and respond in a clear, educational, and engaging way.
-Use markdown formatting. Keep explanations practical and student-friendly.`;
-
-function buildPrompt(netlist: string, analysisMode: string, hasResults: boolean, simSnapshot: string): string {
-  return `Analyze this circuit SPICE netlist and provide:
-
-1. **What this circuit does** — explain in plain language, as if teaching a first-year EE student
-2. **Key components and their roles** — what each major part contributes
-3. **How it works** — the operating principle (DC bias, signal flow, feedback, etc.)
-${hasResults
-  ? `4. **Simulation results interpretation** — the circuit was already simulated (${analysisMode.toUpperCase()}). Here are the last-timestep node voltages:
-${simSnapshot}
-Interpret what these values tell us about the circuit’s operating point.
-5. **Potential issues or improvements** — common mistakes or optimization tips`
-  : `4. **What to expect** — what waveform or result a ${analysisMode} simulation should show
-5. **Potential issues** — common pitfalls to watch for`}
-
-SPICE Netlist:
-\`\`\`spice
-${netlist}
-\`\`\`
-
-Analysis type: ${analysisMode.toUpperCase()}
-
-Be concise but thorough. Use bullet points where helpful. If you spot any SPICE errors in the netlist, point them out.`;
+function renderMarkdown(text: string): React.ReactNode[] {
+  const lines = text.split('\n');
+  const nodes: React.ReactNode[] = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.startsWith('### ')) {
+      nodes.push(<h3 key={i} style={{ margin: '14px 0 4px', fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{renderInline(line.slice(4))}</h3>);
+    } else if (line.startsWith('## ')) {
+      nodes.push(<h2 key={i} style={{ margin: '16px 0 6px', fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{renderInline(line.slice(3))}</h2>);
+    } else if (line.startsWith('# ')) {
+      nodes.push(<h1 key={i} style={{ margin: '16px 0 8px', fontSize: 15, fontWeight: 800, color: '#0f172a' }}>{renderInline(line.slice(2))}</h1>);
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      nodes.push(<li key={i} style={{ marginLeft: 16, marginBottom: 2, color: '#374151', lineHeight: 1.6 }}>{renderInline(line.slice(2))}</li>);
+    } else if (line.trim() === '') {
+      nodes.push(<br key={i} />);
+    } else {
+      nodes.push(<p key={i} style={{ margin: '2px 0', lineHeight: 1.6, color: '#374151' }}>{renderInline(line)}</p>);
+    }
+    i++;
+  }
+  return nodes;
 }
+
+function renderInline(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith('`') && part.endsWith('`')) return <code key={i} style={{ background: '#f1f5f9', padding: '1px 4px', borderRadius: 3, fontFamily: 'monospace', fontSize: 11, color: '#7c3aed' }}>{part.slice(1, -1)}</code>;
+    if (part.startsWith('*') && part.endsWith('*')) return <em key={i}>{part.slice(1, -1)}</em>;
+    return part;
+  });
+}
+
+// ─── Severity styling ────────────────────────────────────────────────────────
+
+const SEV_STYLE = {
+  critical: { bg: '#fff1f2', border: '#fecdd3', icon: '🔴', text: '#be123c' },
+  warning:  { bg: '#fffbeb', border: '#fde68a', icon: '🟠', text: '#92400e' },
+  info:     { bg: '#f0f9ff', border: '#bae6fd', icon: '🔵', text: '#0369a1' },
+};
+
+// ─── Issue card ──────────────────────────────────────────────────────────────
+
+function IssueCard({ issue, onHighlight, onShowWaveform }: {
+  issue: DiagnosticIssue;
+  onHighlight: (ids: string[]) => void;
+  onShowWaveform: (node: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const sev = SEV_STYLE[issue.severity];
+  return (
+    <div style={{ background: sev.bg, border: '1px solid ' + sev.border, borderRadius: 8, marginBottom: 8, overflow: 'hidden' }}>
+      <div
+        style={{ padding: '10px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        onClick={() => setExpanded(e => !e)}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+          <span style={{ fontSize: 14 }}>{sev.icon}</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 12, color: sev.text }}>{issue.title}</div>
+            {issue.components.length > 0 && (
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>
+                {issue.components.join(', ')}
+              </div>
+            )}
+          </div>
+        </div>
+        {expanded ? <ChevronUp size={14} color="#6b7280" /> : <ChevronDown size={14} color="#6b7280" />}
+      </div>
+      {expanded && (
+        <div style={{ padding: '0 12px 12px', borderTop: '1px solid ' + sev.border }}>
+          <p style={{ fontSize: 12, color: '#374151', margin: '8px 0', lineHeight: 1.5 }}>{issue.description}</p>
+          {issue.evidence.length > 0 && (
+            <div style={{ background: '#f8fafc', borderRadius: 6, padding: '6px 8px', marginBottom: 8 }}>
+              {issue.evidence.map((e, i) => (
+                <div key={i} style={{ fontSize: 11, fontFamily: 'monospace', color: '#475569', lineHeight: 1.8 }}>
+                  {e.node} {e.metric} = <strong>{typeof e.value === 'number' ? e.value.toExponential(3) : e.value}</strong>
+                  {e.expected ? <span style={{ color: '#9ca3af' }}> (expected {e.expected})</span> : null}
+                </div>
+              ))}
+            </div>
+          )}
+          <p style={{ fontSize: 11, color: sev.text, background: 'white', padding: '6px 8px', borderRadius: 6, margin: '0 0 8px', border: '1px solid ' + sev.border, lineHeight: 1.5 }}>
+            💡 {issue.suggestion}
+          </p>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {issue.components.length > 0 && (
+              <button
+                onClick={() => onHighlight(issue.components)}
+                style={{ fontSize: 11, padding: '4px 10px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontWeight: 600 }}
+              >
+                Highlight on canvas
+              </button>
+            )}
+            {issue.nodes.length > 0 && (
+              <button
+                onClick={() => onShowWaveform(issue.nodes[0])}
+                style={{ fontSize: 11, padding: '4px 10px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontWeight: 600 }}
+              >
+                Show waveform
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main component ──────────────────────────────────────────────────────────
+
+type Mode = 'diagnose' | 'chat' | 'explain';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onFocusNode?: (node: string) => void;
 }
 
-export function AiExplainerPanel({ isOpen, onClose }: Props) {
-  const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings, simulationBuffer } = useSchematicStore();
+export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props) {
+  const store = useSchematicStore();
+  const {
+    components, wires, probes, analysisMode,
+    simulationData, opData, simulationError, selectedComponentId,
+    setHighlightedComponentIds, setAiDiagnosis, aiDiagnosis,
+  } = store;
 
-  const [apiKey, setApiKey] = useState(() => loadApiKey() || '');
+  const [apiKey, setApiKeyState] = useState(() => loadApiKey() || '');
   const [showKeyInput, setShowKeyInput] = useState(false);
-  const [response, setResponse] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState<Mode>('diagnose');
+
+  // Diagnose state
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [diagnoseError, setDiagnoseError] = useState('');
+
+  // Explain state
+  const [explainText, setExplainText] = useState('');
+  const [isExplaining, setIsExplaining] = useState(false);
+  const [explainError, setExplainError] = useState('');
   const [copied, setCopied] = useState(false);
-  const abortRef = useRef<AbortController | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const explainAbortRef = useRef<AbortController | null>(null);
 
-  // Auto-scroll to bottom as text streams in
+  // Chat state
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatting, setIsChatting] = useState(false);
+  const chatAbortRef = useRef<AbortController | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [response]);
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory, isChatting]);
 
-  const saveKey = (key: string) => {
-    setApiKey(key);
-    saveApiKey(key);
-    setShowKeyInput(false);
-  };
+  const saveKey = (key: string) => { setApiKeyState(key); saveApiKey(key); setShowKeyInput(false); };
 
-  const handleExplain = async () => {
-    if (!apiKey.trim()) {
-      setShowKeyInput(true);
-      return;
-    }
-    if (components.length === 0) {
-      setError('Place some components on the schematic first!');
-      return;
-    }
+  const buildContext = useCallback((question?: string) =>
+    buildAIContext({
+      components, wires, probes, analysisMode,
+      simulationData: simulationData as Record<string, number>[] | null,
+      opData, simulationError, selectedComponentId,
+      activeQuestion: question,
+    }),
+    [components, wires, probes, analysisMode, simulationData, opData, simulationError, selectedComponentId]
+  );
 
-    setError('');
-    setResponse('');
-    setIsLoading(true);
-
-    // Cancel any previous request
-    if (abortRef.current) abortRef.current.abort();
-    abortRef.current = new AbortController();
-
+  // ── Handle Diagnose ────────────────────────────────────────────────────────
+  const handleDiagnose = async () => {
+    if (!apiKey.trim()) { setShowKeyInput(true); return; }
+    if (components.length === 0) { setDiagnoseError('Place some components first.'); return; }
+    setIsDiagnosing(true); setDiagnoseError(''); setAiDiagnosis(null);
+    track('AI_Diagnose_Run', { componentCount: components.length, mode: analysisMode });
     try {
-      const netlist = generateNetlist(components as any, wires as any, probes as any);
-
-      // Build a snapshot of last-timestep node voltages for context
-      let simSnapshot = 'No simulation run yet.';
-      const hasResults = !!(simulationBuffer && simulationBuffer.length > 0);
-      if (hasResults && simulationBuffer) {
-        const lastRow = simulationBuffer[simulationBuffer.length - 1];
-        const voltageLines = Object.entries(lastRow)
-          .filter(([k]) => k.startsWith('v(') || k.startsWith('V('))
-          .map(([k, v]) => `  ${k} = ${(v as number).toPrecision(5)} V`)
-          .join('\n');
-        const timeStr = lastRow.time !== undefined ? `t = ${(lastRow.time as number).toExponential(3)} s\n` : '';
-        simSnapshot = timeStr + (voltageLines || '  (no voltage data)');
-      }
-
-      const prompt = buildPrompt(netlist, analysisMode, hasResults, simSnapshot);
-
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey.trim()}&alt=sse`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: abortRef.current.signal,
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.4, maxOutputTokens: 1500 },
-          }),
-        }
-      );
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData?.error?.message || `API error ${res.status}`);
-      }
-
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        // Parse SSE chunks
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') continue;
-          try {
-            const json = JSON.parse(data);
-            const text = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-            if (text) setResponse(prev => prev + text);
-          } catch {
-            // skip malformed SSE chunks
-          }
-        }
-      }
-    } catch (e: any) {
-      if (e.name === 'AbortError') return;
-      setError(e.message || 'Failed to connect to Gemini API');
+      const ctx = buildContext();
+      const result = await diagnose(ctx, apiKey);
+      setAiDiagnosis(result);
+      track('AI_Diagnose_Success', { issueCount: result.issues.length });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Diagnosis failed.';
+      setDiagnoseError(msg);
+      track('AI_Diagnose_Error', { error: msg.substring(0, 80) });
     } finally {
-      setIsLoading(false);
+      setIsDiagnosing(false);
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(response);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // ── Handle Explain ─────────────────────────────────────────────────────────
+  const handleExplain = async () => {
+    if (!apiKey.trim()) { setShowKeyInput(true); return; }
+    if (components.length === 0) { setExplainError('Place some components first.'); return; }
+    explainAbortRef.current?.abort();
+    explainAbortRef.current = new AbortController();
+    setIsExplaining(true); setExplainText(''); setExplainError('');
+    track('AI_Explain_Run', { mode: analysisMode });
+    try {
+      const ctx = buildContext();
+      await streamExplain(ctx, apiKey, chunk => setExplainText(t => t + chunk), explainAbortRef.current.signal);
+    } catch (e: unknown) {
+      if ((e as Error).name !== 'AbortError') setExplainError((e as Error).message || 'Explain failed.');
+    } finally {
+      setIsExplaining(false);
+    }
   };
 
-  // Simple markdown renderer (bold, italic, code, bullet lists, headers)
-  function renderMarkdown(text: string) {
-    const lines = text.split('\n');
-    return lines.map((line, i) => {
-      if (line.startsWith('### ')) return <h3 key={i} style={{ margin: '12px 0 4px', fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{line.slice(4)}</h3>;
-      if (line.startsWith('## ')) return <h2 key={i} style={{ margin: '14px 0 4px', fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{line.slice(3)}</h2>;
-      if (line.startsWith('# ')) return <h1 key={i} style={{ margin: '16px 0 6px', fontSize: 15, fontWeight: 800, color: '#0f172a' }}>{line.slice(2)}</h1>;
-      if (line.startsWith('```')) return <div key={i} style={{ height: 2 }} />;
-      if (line.startsWith('- ') || line.startsWith('* ')) {
-        return (
-          <div key={i} style={{ display: 'flex', gap: 6, margin: '2px 0', paddingLeft: 8 }}>
-            <span style={{ color: '#8b5cf6', fontWeight: 700, flexShrink: 0 }}>•</span>
-            <span>{renderInline(line.slice(2))}</span>
-          </div>
-        );
+  // ── Handle Chat ────────────────────────────────────────────────────────────
+  const handleSendChat = async () => {
+    const msg = chatInput.trim();
+    if (!msg || isChatting) return;
+    if (!apiKey.trim()) { setShowKeyInput(true); return; }
+    const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: msg, timestamp: Date.now() };
+    const assistantId = (Date.now() + 1).toString();
+    setChatHistory(h => [...h, userMsg, { id: assistantId, role: 'assistant', content: '', timestamp: Date.now() }]);
+    setChatInput('');
+    setIsChatting(true);
+    chatAbortRef.current?.abort();
+    chatAbortRef.current = new AbortController();
+    track('AI_Chat_Message', { mode: analysisMode });
+    try {
+      const ctx = buildContext(msg);
+      let accumulated = '';
+      await streamChat(ctx, chatHistory, msg, apiKey, chunk => {
+        accumulated += chunk;
+        setChatHistory(h => h.map(m => m.id === assistantId ? { ...m, content: accumulated } : m));
+      }, chatAbortRef.current.signal);
+    } catch (e: unknown) {
+      if ((e as Error).name !== 'AbortError') {
+        setChatHistory(h => h.map(m => m.id === assistantId ? { ...m, content: '⚠️ ' + ((e as Error).message || 'Chat failed.') } : m));
       }
-      if (line.startsWith('**') && line.endsWith('**') && line.length > 4) {
-        return <p key={i} style={{ margin: '8px 0 2px', fontWeight: 700, fontSize: 13, color: '#1e293b' }}>{line.slice(2, -2)}</p>;
-      }
-      if (line.trim() === '') return <div key={i} style={{ height: 6 }} />;
-      return <p key={i} style={{ margin: '2px 0', lineHeight: 1.6 }}>{renderInline(line)}</p>;
-    });
-  }
+    } finally {
+      setIsChatting(false);
+    }
+  };
 
-  function renderInline(text: string): React.ReactNode {
-    // Bold: **text**, code: `text`, italic: *text*
-    const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
-      if (part.startsWith('`') && part.endsWith('`')) return <code key={i} style={{ background: '#f1f5f9', padding: '1px 4px', borderRadius: 3, fontFamily: 'monospace', fontSize: 11, color: '#7c3aed' }}>{part.slice(1, -1)}</code>;
-      if (part.startsWith('*') && part.endsWith('*')) return <em key={i}>{part.slice(1, -1)}</em>;
-      return part;
-    });
-  }
+  // ── Highlight / waveform actions ────────────────────────────────────────────
+  const handleHighlight = (ids: string[]) => {
+    setHighlightedComponentIds(ids);
+    setTimeout(() => setHighlightedComponentIds([]), 4000); // auto-clear after 4s
+  };
+  const handleShowWaveform = (node: string) => { onFocusNode?.(node); };
 
   if (!isOpen) return null;
 
+  const hasSimData = (simulationData && simulationData.length > 0) || (opData && opData.length > 0);
+
   return (
     <div style={{
-      position: 'fixed', top: 0, right: 0, bottom: 0, width: 380,
+      position: 'fixed', top: 0, right: 0, bottom: 0, width: 400,
       background: '#fff', borderLeft: '1px solid #e2e8f0',
       boxShadow: '-4px 0 24px rgba(0,0,0,0.12)',
       display: 'flex', flexDirection: 'column', zIndex: 200,
       fontFamily: 'Inter, system-ui, sans-serif', fontSize: 13,
     }}>
       {/* Header */}
-      <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)', color: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)', color: '#fff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 15 }}>
-            <Sparkles size={18} />
-            AI Circuit Explainer
+            <Sparkles size={18} /> AI Circuit Debugger
           </div>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: 4, opacity: 0.8, display: 'flex' }}>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', opacity: 0.8 }}>
             <X size={18} />
           </button>
         </div>
-        <p style={{ fontSize: 11, opacity: 0.85, margin: 0 }}>Powered by Gemini 1.5 Flash · Your API key stays local</p>
+        {/* Mode tabs */}
+        <div style={{ display: 'flex', gap: 4 }}>
+          {([['diagnose', '🔍 Diagnose'], ['chat', '💬 Chat'], ['explain', '📖 Explain']] as [Mode, string][]).map(([m, label]) => (
+            <button key={m} onClick={() => setMode(m)} style={{
+              flex: 1, padding: '5px 0', fontSize: 11, fontWeight: mode === m ? 700 : 400,
+              background: mode === m ? 'rgba(255,255,255,0.2)' : 'transparent',
+              border: mode === m ? '1px solid rgba(255,255,255,0.4)' : '1px solid transparent',
+              borderRadius: 6, color: '#fff', cursor: 'pointer', transition: 'all 0.15s',
+            }}>{label}</button>
+          ))}
+        </div>
       </div>
 
-      {/* Security + Privacy disclosure */}
-      <div style={{ padding: '8px 16px', background: '#fffbeb', borderBottom: '1px solid #fde68a', fontSize: 11, color: '#92400e', lineHeight: 1.5 }}>
-        ⚠️ Your <strong>circuit netlist is sent to Google Gemini</strong> for analysis. API key is stored in browser localStorage — visible in DevTools. <strong>Don’t use on shared computers.</strong>
+      {/* Privacy notice */}
+      <div style={{ padding: '6px 16px', background: '#fffbeb', borderBottom: '1px solid #fde68a', fontSize: 11, color: '#92400e' }}>
+        🔒 Netlist sent to Google Gemini. API key stays local — never reaches NodeSim servers.
       </div>
 
-      {/* API Key Section */}
-      <div style={{ padding: '10px 16px', background: '#fafafa', borderBottom: '1px solid #f1f5f9' }}>
+      {/* API Key Row */}
+      <div style={{ padding: '8px 16px', borderBottom: '1px solid #f1f5f9', background: '#fafafa' }}>
         {showKeyInput ? (
           <div style={{ display: 'flex', gap: 6 }}>
             <input
-              type="password"
-              placeholder="Paste your Gemini API key..."
-              defaultValue={apiKey}
-              onKeyDown={(e) => { if (e.key === 'Enter') saveKey((e.target as HTMLInputElement).value); }}
+              type="password" placeholder="Paste your Gemini API key..." defaultValue={apiKey}
+              id="gemini-api-key-input" autoFocus
+              onKeyDown={e => { if (e.key === 'Enter') saveKey((e.target as HTMLInputElement).value); }}
               style={{ flex: 1, padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none' }}
-              autoFocus
-              id="gemini-api-key-input"
             />
-            <button
-              onClick={() => saveKey((document.getElementById('gemini-api-key-input') as HTMLInputElement)?.value || '')}
-              style={{ padding: '6px 12px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}
-            >Save</button>
+            <button onClick={() => saveKey((document.getElementById('gemini-api-key-input') as HTMLInputElement)?.value || '')}
+              style={{ padding: '6px 12px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+              Save
+            </button>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 12, color: apiKey ? '#16a34a' : '#9ca3af', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Key size={12} />
-              {apiKey ? 'API key saved ✓' : 'No API key set'}
+              <Key size={12} /> {apiKey ? 'API key saved ✓' : 'No API key set'}
             </span>
             <div style={{ display: 'flex', gap: 8 }}>
-              {apiKey && (
-                <button
-                  onClick={() => { clearApiKey(); setApiKey(''); }}
-                  style={{ fontSize: 11, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  Clear key
-                </button>
-              )}
-              <button
-                onClick={() => setShowKeyInput(true)}
-                style={{ fontSize: 11, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                {apiKey ? 'Change key' : 'Set key'}
+              {apiKey && <button onClick={() => { clearApiKey(); setApiKeyState(''); }} style={{ fontSize: 11, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Clear</button>}
+              <button onClick={() => setShowKeyInput(true)} style={{ fontSize: 11, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                {apiKey ? 'Change' : 'Set key'}
               </button>
             </div>
           </div>
         )}
-        {!apiKey && (
-          <p style={{ fontSize: 11, color: '#9ca3af', margin: '4px 0 0' }}>
-            Get a free key at{' '}
-            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={{ color: '#7c3aed' }}>
-              aistudio.google.com
-            </a>
-          </p>
-        )}
+        {!apiKey && <p style={{ fontSize: 11, color: '#9ca3af', margin: '4px 0 0' }}>Free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={{ color: '#7c3aed' }}>aistudio.google.com</a></p>}
       </div>
 
-      {/* Explain button */}
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9' }}>
-        <button
-          onClick={handleExplain}
-          disabled={isLoading}
-          style={{
-            width: '100%', padding: '10px 16px',
-            background: isLoading ? '#e2e8f0' : 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
-            color: isLoading ? '#9ca3af' : '#fff',
-            border: 'none', borderRadius: 8, cursor: isLoading ? 'not-allowed' : 'pointer',
-            fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            transition: 'opacity 0.2s',
-          }}
-        >
-          {isLoading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={16} />}
-          {isLoading ? 'Analyzing circuit...' : '✨ Explain this circuit'}
-        </button>
-      </div>
+      {/* ── DIAGNOSE MODE ─────────────────────────────────────────────────── */}
+      {mode === 'diagnose' && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9' }}>
+            <button onClick={handleDiagnose} disabled={isDiagnosing}
+              style={{
+                width: '100%', padding: '11px 16px',
+                background: isDiagnosing ? '#e2e8f0' : 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
+                color: isDiagnosing ? '#9ca3af' : '#fff',
+                border: 'none', borderRadius: 8, cursor: isDiagnosing ? 'not-allowed' : 'pointer',
+                fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}>
+              {isDiagnosing ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={16} />}
+              {isDiagnosing ? 'Analyzing circuit…' : '🔍 Diagnose Circuit'}
+            </button>
+            {!hasSimData && !isDiagnosing && (
+              <p style={{ fontSize: 11, color: '#9ca3af', margin: '6px 0 0', textAlign: 'center' }}>
+                Tip: Run simulation first for richer diagnosis
+              </p>
+            )}
+          </div>
 
-      {/* Error */}
-      {error && (
-        <div style={{ margin: '8px 16px', padding: '10px 12px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <AlertTriangle size={14} color="#f97316" style={{ flexShrink: 0, marginTop: 1 }} />
-          <span style={{ fontSize: 12, color: '#c2410c' }}>{error}</span>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+            {diagnoseError && (
+              <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, padding: '10px 12px', marginBottom: 12, display: 'flex', gap: 8 }}>
+                <AlertTriangle size={14} color="#f97316" style={{ flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 12, color: '#c2410c' }}>{diagnoseError}</span>
+              </div>
+            )}
+
+            {!aiDiagnosis && !isDiagnosing && !diagnoseError && (
+              <div style={{ textAlign: 'center', color: '#9ca3af', paddingTop: 40 }}>
+                <Search size={36} style={{ margin: '0 auto 12px', opacity: 0.25 }} />
+                <p style={{ fontSize: 13, margin: 0 }}>Click "Diagnose Circuit"</p>
+                <p style={{ fontSize: 11, marginTop: 8, opacity: 0.7, lineHeight: 1.5 }}>
+                  NodeSim will automatically find issues<br />and highlight affected components.
+                </p>
+              </div>
+            )}
+
+            {aiDiagnosis && (
+              <>
+                {/* Summary */}
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 12px', marginBottom: 12 }}>
+                  <p style={{ fontSize: 12, color: '#166534', margin: 0, lineHeight: 1.5 }}>
+                    <strong>Summary:</strong> {aiDiagnosis.diagnosis}
+                  </p>
+                </div>
+
+                {/* Issues */}
+                {aiDiagnosis.issues.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: '#16a34a', padding: '20px 0' }}>
+                    <span style={{ fontSize: 28 }}>✅</span>
+                    <p style={{ margin: '8px 0 0', fontWeight: 700 }}>No issues detected</p>
+                    <p style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{aiDiagnosis.answer}</p>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8, fontWeight: 600 }}>
+                      {aiDiagnosis.issues.length} issue{aiDiagnosis.issues.length > 1 ? 's' : ''} found
+                    </div>
+                    {aiDiagnosis.issues.map((issue: import('../lib/aiTypes').DiagnosticIssue) => (
+                      <IssueCard
+                        key={issue.id}
+                        issue={issue}
+                        onHighlight={handleHighlight}
+                        onShowWaveform={handleShowWaveform}
+                      />
+                    ))}
+                    <div style={{ marginTop: 8 }}>
+                      <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{renderMarkdown(aiDiagnosis.answer)}</p>
+                    </div>
+                  </>
+                )}
+
+                <div style={{ marginTop: 12, display: 'flex', gap: 6 }}>
+                  <button onClick={handleDiagnose}
+                    style={{ flex: 1, padding: '7px', fontSize: 12, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', color: '#374151' }}>
+                    Re-diagnose
+                  </button>
+                  <button onClick={() => setAiDiagnosis(null)}
+                    style={{ padding: '7px 10px', fontSize: 12, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', color: '#374151' }}>
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Response Area */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', color: '#374151', lineHeight: 1.6 }}>
-        {!response && !isLoading && !error && (
-          <div style={{ textAlign: 'center', color: '#9ca3af', paddingTop: 40 }}>
-            <Sparkles size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-            <p style={{ fontSize: 13, margin: 0 }}>Draw a circuit and click<br />"Explain this circuit"</p>
-            <p style={{ fontSize: 11, marginTop: 8, opacity: 0.7 }}>
-              Gemini will analyze your schematic and explain<br />how it works in plain language.
-            </p>
+      {/* ── CHAT MODE ─────────────────────────────────────────────────────── */}
+      {mode === 'chat' && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {/* Message list */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+            {chatHistory.length === 0 && (
+              <div style={{ textAlign: 'center', color: '#9ca3af', paddingTop: 40 }}>
+                <MessageCircle size={36} style={{ margin: '0 auto 12px', opacity: 0.25 }} />
+                <p style={{ fontSize: 13, margin: 0 }}>Ask anything about your circuit</p>
+                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {['Why is my output clipping?', 'What is the gain of this amplifier?', 'How do I add a bypass capacitor?'].map(q => (
+                    <button key={q} onClick={() => { setChatInput(q); }}
+                      style={{ fontSize: 11, padding: '6px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, cursor: 'pointer', color: '#475569', textAlign: 'left' }}>
+                      "{q}"
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {chatHistory.map(msg => (
+              <div key={msg.id} style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div style={{
+                  maxWidth: '88%', padding: '8px 12px', borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
+                  background: msg.role === 'user' ? '#7c3aed' : '#f1f5f9',
+                  color: msg.role === 'user' ? '#fff' : '#374151',
+                  fontSize: 12, lineHeight: 1.6,
+                }}>
+                  {msg.role === 'assistant' ? renderMarkdown(msg.content || '…') : msg.content}
+                </div>
+              </div>
+            ))}
+            {isChatting && chatHistory[chatHistory.length - 1]?.role === 'assistant' && chatHistory[chatHistory.length - 1]?.content === '' && (
+              <div style={{ display: 'flex', gap: 4, padding: '8px 12px' }}>
+                {[0, 1, 2].map(i => <div key={i} style={{ width: 6, height: 6, background: '#7c3aed', borderRadius: '50%', animation: 'bounce 1.2s ease-in-out ' + (i * 0.2) + 's infinite' }} />)}
+              </div>
+            )}
+            <div ref={chatEndRef} />
           </div>
-        )}
-        {response && (
-          <div style={{ fontSize: 12.5 }}>
-            {renderMarkdown(response)}
-            {isLoading && <span style={{ display: 'inline-block', width: 8, height: 14, background: '#7c3aed', borderRadius: 2, animation: 'blink 1s step-end infinite', verticalAlign: 'text-bottom', marginLeft: 2 }} />}
-          </div>
-        )}
-      </div>
 
-      {/* Copy button */}
-      {response && !isLoading && (
-        <div style={{ padding: '8px 16px', borderTop: '1px solid #f1f5f9' }}>
-          <button
-            onClick={handleCopy}
-            style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-          >
-            {copied ? <><Check size={14} color="#16a34a" /> Copied!</> : <><Copy size={14} /> Copy explanation</>}
-          </button>
+          {/* Input row */}
+          {chatHistory.length > 0 && (
+            <div style={{ padding: '4px 16px 0', display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => setChatHistory([])} style={{ fontSize: 11, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Trash2 size={12} /> Clear chat
+              </button>
+            </div>
+          )}
+          <div style={{ padding: '0 16px 14px', display: 'flex', gap: 8 }}>
+            <textarea
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendChat(); } }}
+              placeholder="Ask about your circuit… (Enter to send)"
+              rows={2}
+              style={{ flex: 1, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12, outline: 'none', resize: 'none', fontFamily: 'inherit', lineHeight: 1.5 }}
+            />
+            <button onClick={handleSendChat} disabled={isChatting || !chatInput.trim()}
+              style={{ padding: '0 14px', background: isChatting || !chatInput.trim() ? '#e2e8f0' : '#7c3aed', color: '#fff', border: 'none', borderRadius: 8, cursor: isChatting || !chatInput.trim() ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center' }}>
+              <Send size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── EXPLAIN MODE ──────────────────────────────────────────────────── */}
+      {mode === 'explain' && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9' }}>
+            <button onClick={handleExplain} disabled={isExplaining}
+              style={{
+                width: '100%', padding: '11px 16px',
+                background: isExplaining ? '#e2e8f0' : 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
+                color: isExplaining ? '#9ca3af' : '#fff',
+                border: 'none', borderRadius: 8, cursor: isExplaining ? 'not-allowed' : 'pointer',
+                fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}>
+              {isExplaining ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Zap size={16} />}
+              {isExplaining ? 'Explaining circuit…' : '📖 Explain this circuit'}
+            </button>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px' }}>
+            {explainError && (
+              <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, padding: '10px 12px', marginBottom: 12, display: 'flex', gap: 8 }}>
+                <AlertTriangle size={14} color="#f97316" />
+                <span style={{ fontSize: 12, color: '#c2410c' }}>{explainError}</span>
+              </div>
+            )}
+            {!explainText && !isExplaining && (
+              <div style={{ textAlign: 'center', color: '#9ca3af', paddingTop: 40 }}>
+                <Sparkles size={36} style={{ margin: '0 auto 12px', opacity: 0.25 }} />
+                <p style={{ fontSize: 13, margin: 0 }}>Draw a circuit and click "Explain"</p>
+              </div>
+            )}
+            {explainText && <div style={{ fontSize: 12.5 }}>{renderMarkdown(explainText)}{isExplaining && <span style={{ display: 'inline-block', width: 8, height: 14, background: '#7c3aed', borderRadius: 2, animation: 'blink 1s step-end infinite', verticalAlign: 'text-bottom', marginLeft: 2 }} />}</div>}
+          </div>
+          {explainText && !isExplaining && (
+            <div style={{ padding: '8px 16px', borderTop: '1px solid #f1f5f9' }}>
+              <button onClick={() => { navigator.clipboard.writeText(explainText); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                {copied ? <><Check size={14} color="#16a34a" /> Copied!</> : <><Copy size={14} /> Copy explanation</>}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
       `}</style>
     </div>
   );
