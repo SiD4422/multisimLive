@@ -3,13 +3,28 @@
  * Extracts .model and .subckt definitions from a SPICE library file.
  * Returns a map of model name → full definition string ready to inject into a netlist.
  */
+export const OPAMP_PIN_MAPS: Record<string, {
+  nodesimPins: string[];
+  subcktPorts: string[];
+}> = {
+  'LM358':  { nodesimPins: ['IN+','IN-','VCC','VEE','OUT'], subcktPorts: ['IN+','IN-','VCC','VEE','OUT'] },
+  'LM741':  { nodesimPins: ['IN+','IN-','VCC','VEE','OUT'], subcktPorts: ['IN+','IN-','VCC','GND','OUT'] },
+  'TL071':  { nodesimPins: ['IN+','IN-','VCC','VEE','OUT'], subcktPorts: ['IN+','IN-','VCC','VEE','OUT'] },
+  'TL081':  { nodesimPins: ['IN+','IN-','VCC','VEE','OUT'], subcktPorts: ['IN+','IN-','VCC','VEE','OUT'] },
+  'LM324':  { nodesimPins: ['IN+','IN-','VCC','VEE','OUT'], subcktPorts: ['IN+','IN-','VCC','GND','OUT'] },
+  'UA741':  { nodesimPins: ['IN+','IN-','VCC','VEE','OUT'], subcktPorts: ['IN+','IN-','VCC','VEE','OUT'] },
+  'LM311':  { nodesimPins: ['IN+','IN-','VCC','VEE','OUT'], subcktPorts: ['IN+','IN-','VCC','GND','OUT'] },
+};
+
 export interface ParsedLibrary {
-  models: Record<string, string>;  // name → full .model or .subckt...ends text
-  warnings: string[];              // non-fatal parse issues
+  models: Record<string, string>;
+  portOrders: Record<string, string[]>;
+  warnings: string[];
 }
 
 export function parseLibFile(text: string): ParsedLibrary {
   const models: Record<string, string> = {};
+  const portOrders: Record<string, string[]> = {};
   const warnings: string[] = [];
 
   // Normalize line continuations: SPICE uses '+' at start of line to continue previous
@@ -40,9 +55,13 @@ export function parseLibFile(text: string): ParsedLibrary {
   while (i < lines.length) {
     const line = lines[i].trim();
     if (line.toLowerCase().startsWith('.subckt')) {
-      const nameMatch = line.match(/\.subckt\s+(\S+)/i);
-      if (nameMatch) {
-        const name = nameMatch[1].toUpperCase();
+      const parts = line.split(/\s+/);
+      if (parts.length >= 2) {
+        const name = parts[1].toUpperCase();
+        const ports = parts.slice(2);
+        if (ports.length > 0) {
+          portOrders[name] = ports;
+        }
         const blockLines: string[] = [line];
         i++;
         while (i < lines.length) {
@@ -60,5 +79,5 @@ export function parseLibFile(text: string): ParsedLibrary {
     warnings.push('No .model or .subckt definitions found in the pasted text.');
   }
 
-  return { models, warnings };
+  return { models, portOrders, warnings };
 }

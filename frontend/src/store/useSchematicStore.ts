@@ -62,7 +62,8 @@ interface SchematicState {
   setAiDiagnosis: (d: import('../lib/aiTypes').DiagnosisResult | null) => void;
   setHighlightedComponentIds: (ids: string[]) => void;
   customModels: Record<string, string>;
-  addCustomModels: (incoming: Record<string, string>) => void;
+  customModelPorts: Record<string, string[]>;
+  addCustomModels: (incomingModels: Record<string, string>, incomingPorts?: Record<string, string[]>) => void;
   removeCustomModel: (name: string) => void;
   clearCustomModels: () => void;
   // Simulation State
@@ -183,15 +184,21 @@ export const useSchematicStore = create<SchematicState>()(
       transientSettings: { endTime: '10ms', step: '0.01ms' },
 
       customModels: {},
-      addCustomModels: (incoming) =>
-        set(state => ({ customModels: { ...state.customModels, ...incoming } })),
+      customModelPorts: {},
+      addCustomModels: (incomingModels, incomingPorts = {}) =>
+        set(state => ({ 
+          customModels: { ...state.customModels, ...incomingModels },
+          customModelPorts: { ...state.customModelPorts, ...incomingPorts }
+        })),
       removeCustomModel: (name) =>
         set(state => {
-          const next = { ...state.customModels };
-          delete next[name];
-          return { customModels: next };
+          const nextModels = { ...state.customModels };
+          delete nextModels[name];
+          const nextPorts = { ...state.customModelPorts };
+          delete nextPorts[name];
+          return { customModels: nextModels, customModelPorts: nextPorts };
         }),
-      clearCustomModels: () => set({ customModels: {} }),
+      clearCustomModels: () => set({ customModels: {}, customModelPorts: {} }),
 
   saveHistory: () => set((state) => ({
     past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
@@ -478,7 +485,7 @@ export const useSchematicStore = create<SchematicState>()(
 
     // DRC: Detect floating (unconnected) pins on critical components
     // We detect this by generating the netlist and checking for NC_ nodes on power devices
-    const floatingCheck = generateNetlist(components, wires, probes, get().customModels);
+    const floatingCheck = generateNetlist(components, wires, probes, get().customModels, get().customModelPorts);
     const floatingLines = floatingCheck.split('\n').filter(l => l.match(/^[VRQMD]_/) && l.includes('NC_'));
     if (floatingLines.length > 0 && !isSilent) {
       const errorMsg = `Unconnected pin detected on a power component. Check all component terminals are wired before simulating.`;
@@ -491,7 +498,7 @@ export const useSchematicStore = create<SchematicState>()(
       set({ isSimulating: true, simulationError: null, isPlaying: false, playbackTime: 0 });
     }
     try {
-      let netlist = generateNetlist(components, wires, probes, get().customModels);
+      let netlist = generateNetlist(components, wires, probes, get().customModels, get().customModelPorts);
 
       // Replace the default .tran line with the correct analysis command
       let analysisCmd = '';
@@ -586,6 +593,7 @@ export const useSchematicStore = create<SchematicState>()(
         wires: s.wires,
         probes: s.probes,
         customModels: s.customModels,
+        customModelPorts: s.customModelPorts,
       } as unknown as SchematicState),
       // â”€â”€â”€ Schema migrations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       // Add an entry here BEFORE bumping SCHEMA_VERSION. Each function receives

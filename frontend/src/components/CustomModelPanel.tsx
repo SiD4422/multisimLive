@@ -17,9 +17,9 @@ export function CustomModelPanel({ isOpen, onClose }: CustomModelPanelProps) {
   if (!isOpen) return null;
 
   const handleParse = (text: string) => {
-    const { models, warnings } = parseLibFile(text);
+    const { models, portOrders, warnings } = parseLibFile(text);
     if (Object.keys(models).length > 0) {
-      addCustomModels(models);
+      addCustomModels(models, portOrders);
       setStatus({ type: 'success', msg: `Loaded ${Object.keys(models).length} model(s): ${Object.keys(models).join(', ')}` });
       setPasteText('');
     } else {
@@ -124,14 +124,18 @@ export function CustomModelPanel({ isOpen, onClose }: CustomModelPanelProps) {
         {modelCount > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Loaded Models ({modelCount})</label>
-            {Object.keys(customModels).map(name => (
+            {Object.keys(customModels).map(name => {
+              const ports = useSchematicStore.getState().customModelPorts?.[name];
+              const portStr = ports ? `  [${ports.join(', ')}]` : '';
+              return (
               <div key={name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0f172a', borderRadius: 6, padding: '6px 10px' }}>
-                <code style={{ fontSize: 12, color: '#4ade80' }}>{name}</code>
+                <code style={{ fontSize: 12, color: '#4ade80' }}>{name}{portStr}</code>
                 <button onClick={() => removeCustomModel(name)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 2 }}>
                   <X size={12} />
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

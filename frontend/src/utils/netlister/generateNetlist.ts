@@ -6,7 +6,8 @@ export function generateNetlist(
   components: SchematicComponent[], 
   wires: Wire[], 
   probes: Probe[] = [],
-  customModels: Record<string, string> = {}
+  customModels: Record<string, string> = {},
+  customModelPorts: Record<string, string[]> = {}
 ): string {
   let netlist = "* WebAssembly SPICE Netlist\n";
   let models = new Set<string>();
@@ -353,8 +354,26 @@ S_dis DIS GND dis_gate GND SMOD555
       const inPlus = nodes[0] || '0';
       const inMinus = nodes[1] || '0';
       const out = nodes[2] || '0';
-      netlist += `X_${comp.id} ${inMinus} ${inPlus} ${out} IDEAL_OPAMP\n`;
-      models.add(`.subckt IDEAL_OPAMP IN- IN+ OUT\nB1 OUT 0 V=15*tanh((V(IN+)-V(IN-))*100000)\n.ends`);
+      const modelName = (comp.value || 'IDEAL_OPAMP').toUpperCase();
+      
+      const customPorts = customModelPorts[modelName];
+      if (customPorts) {
+        const reordered = customPorts.map(port => {
+          const portUpper = port.toUpperCase().replace(/[-+]/g, p => p === '+' ? 'P' : 'N');
+          if (portUpper.includes('IN+') || portUpper.includes('INP') || portUpper === 'IN+') return inPlus;
+          if (portUpper.includes('IN-') || portUpper.includes('INN') || portUpper === 'IN-') return inMinus;
+          if (portUpper.includes('OUT') || portUpper.includes('VO')) return out;
+          return '0';
+        });
+        netlist += `X_${comp.id} ${reordered.join(' ')} ${modelName}\n`;
+      } else {
+        // Default behavior
+        const targetModel = customModels[modelName] ? modelName : 'IDEAL_OPAMP';
+        netlist += `X_${comp.id} ${inMinus} ${inPlus} ${out} ${targetModel}\n`;
+        if (targetModel === 'IDEAL_OPAMP') {
+          models.add(`.subckt IDEAL_OPAMP IN- IN+ OUT\nB1 OUT 0 V=15*tanh((V(IN+)-V(IN-))*100000)\n.ends`);
+        }
+      }
     }
     else if (comp.type === 'Opamp5') {
       const inPlus = nodes[0] || '0';
@@ -362,8 +381,27 @@ S_dis DIS GND dis_gate GND SMOD555
       const out = nodes[2] || '0';
       const vcc = nodes[3] || '0';
       const vee = nodes[4] || '0';
-      netlist += `X_${comp.id} ${inMinus} ${inPlus} ${vcc} ${vee} ${out} LM741\n`;
-      models.add(`.subckt LM741 IN- IN+ VCC VEE OUT\nB1 OUT 0 V=(V(VCC)-V(VEE))/2*tanh((V(IN+)-V(IN-))*100000)+(V(VCC)+V(VEE))/2\n.ends`);
+      const modelName = (comp.value || 'LM741').toUpperCase();
+      
+      const customPorts = customModelPorts[modelName];
+      if (customPorts) {
+        const reordered = customPorts.map(port => {
+          const portUpper = port.toUpperCase().replace(/[-+]/g, p => p === '+' ? 'P' : 'N');
+          if (portUpper.includes('IN+') || portUpper.includes('INP') || portUpper === 'IN+') return inPlus;
+          if (portUpper.includes('IN-') || portUpper.includes('INN') || portUpper === 'IN-') return inMinus;
+          if (portUpper.includes('VCC') || portUpper.includes('VDD') || portUpper.includes('VS+')) return vcc;
+          if (portUpper.includes('VEE') || portUpper.includes('VSS') || portUpper.includes('GND') || portUpper.includes('VS-')) return vee;
+          if (portUpper.includes('OUT') || portUpper.includes('VO')) return out;
+          return '0';
+        });
+        netlist += `X_${comp.id} ${reordered.join(' ')} ${modelName}\n`;
+      } else {
+        const targetModel = customModels[modelName] ? modelName : 'LM741';
+        netlist += `X_${comp.id} ${inMinus} ${inPlus} ${vcc} ${vee} ${out} ${targetModel}\n`;
+        if (targetModel === 'LM741') {
+          models.add(`.subckt LM741 IN- IN+ VCC VEE OUT\nB1 OUT 0 V=(V(VCC)-V(VEE))/2*tanh((V(IN+)-V(IN-))*100000)+(V(VCC)+V(VEE))/2\n.ends`);
+        }
+      }
     }
     else if (comp.type === 'OpampLM358') {
       const pinMap: Record<string, string> = {};
@@ -371,8 +409,27 @@ S_dis DIS GND dis_gate GND SMOD555
       const inP = pinMap['IN+'] || '0'; const inM = pinMap['IN-'] || '0';
       const vcc = pinMap['VCC'] || '0'; const vee = pinMap['VEE'] || '0';
       const out = pinMap['OUT'] || '0';
-      netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} LM358_MDL\n`;
-      models.add(`.subckt LM358_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1Meg\nB1 OUT 0 V=(V(VCC)-V(VEE)-1.5)*tanh((V(IN+)-V(IN-))*200000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends LM358_MDL`);
+      const modelName = (comp.value || 'LM358_MDL').toUpperCase();
+      
+      const customPorts = customModelPorts[modelName];
+      if (customPorts) {
+        const reordered = customPorts.map(port => {
+          const portUpper = port.toUpperCase().replace(/[-+]/g, p => p === '+' ? 'P' : 'N');
+          if (portUpper.includes('IN+') || portUpper.includes('INP') || portUpper === 'IN+') return inP;
+          if (portUpper.includes('IN-') || portUpper.includes('INN') || portUpper === 'IN-') return inM;
+          if (portUpper.includes('VCC') || portUpper.includes('VDD') || portUpper.includes('VS+')) return vcc;
+          if (portUpper.includes('VEE') || portUpper.includes('VSS') || portUpper.includes('GND') || portUpper.includes('VS-')) return vee;
+          if (portUpper.includes('OUT') || portUpper.includes('VO')) return out;
+          return '0';
+        });
+        netlist += `X_${comp.id} ${reordered.join(' ')} ${modelName}\n`;
+      } else {
+        const targetModel = customModels[modelName] ? modelName : 'LM358_MDL';
+        netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} ${targetModel}\n`;
+        if (targetModel === 'LM358_MDL') {
+          models.add(`.subckt LM358_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1Meg\nB1 OUT 0 V=(V(VCC)-V(VEE)-1.5)*tanh((V(IN+)-V(IN-))*200000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends LM358_MDL`);
+        }
+      }
     }
     else if (comp.type === 'OpampTL071') {
       const pinMap: Record<string, string> = {};
@@ -380,8 +437,27 @@ S_dis DIS GND dis_gate GND SMOD555
       const inP = pinMap['IN+'] || '0'; const inM = pinMap['IN-'] || '0';
       const vcc = pinMap['VCC'] || '0'; const vee = pinMap['VEE'] || '0';
       const out = pinMap['OUT'] || '0';
-      netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} TL071_MDL\n`;
-      models.add(`.subckt TL071_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1T\nB1 OUT 0 V=(V(VCC)-V(VEE)-2.5)*tanh((V(IN+)-V(IN-))*500000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends TL071_MDL`);
+      const modelName = (comp.value || 'TL071_MDL').toUpperCase();
+      
+      const customPorts = customModelPorts[modelName];
+      if (customPorts) {
+        const reordered = customPorts.map(port => {
+          const portUpper = port.toUpperCase().replace(/[-+]/g, p => p === '+' ? 'P' : 'N');
+          if (portUpper.includes('IN+') || portUpper.includes('INP') || portUpper === 'IN+') return inP;
+          if (portUpper.includes('IN-') || portUpper.includes('INN') || portUpper === 'IN-') return inM;
+          if (portUpper.includes('VCC') || portUpper.includes('VDD') || portUpper.includes('VS+')) return vcc;
+          if (portUpper.includes('VEE') || portUpper.includes('VSS') || portUpper.includes('GND') || portUpper.includes('VS-')) return vee;
+          if (portUpper.includes('OUT') || portUpper.includes('VO')) return out;
+          return '0';
+        });
+        netlist += `X_${comp.id} ${reordered.join(' ')} ${modelName}\n`;
+      } else {
+        const targetModel = customModels[modelName] ? modelName : 'TL071_MDL';
+        netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} ${targetModel}\n`;
+        if (targetModel === 'TL071_MDL') {
+          models.add(`.subckt TL071_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1T\nB1 OUT 0 V=(V(VCC)-V(VEE)-2.5)*tanh((V(IN+)-V(IN-))*500000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends TL071_MDL`);
+        }
+      }
     }
     else if (comp.type === 'SchmittTrigger') {
       const pinMap: Record<string, string> = {};
