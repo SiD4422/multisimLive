@@ -1,753 +1,7 @@
-import type { SchematicComponent, Wire, Point, Probe } from '../store/useSchematicStore';
-import symbolsData from './kicad_symbols.json';
-
-const GRID_SIZE = 10;
-
-// Grid-based matching robustly handles floating point errors from rotations
-const toGridNode = (p: Point & { _isFake?: boolean, _probeId?: string }): string => {
-  if (p._isFake) return `FAKE_${p._probeId}`;
-  return `${Math.round(p.x / GRID_SIZE)},${Math.round(p.y / GRID_SIZE)}`;
-};
-const isSameGridNode = (n1: string, n2: string) => n1 === n2;
-
-// Tolerance for probe placement (strict — must be very close to wire)
-const PROBE_TOLERANCE = GRID_SIZE / 2;
-// Tolerance for component pin detection (lenient — handle 1-grid misalignments from rotation)
-const PIN_TOLERANCE = GRID_SIZE * 1.5;
-
-function isPointOnSegment(p: Point, a: Point & { _isFake?: boolean }, b: Point & { _isFake?: boolean }, tolerance = PROBE_TOLERANCE): boolean {
-  // If the segment starts or ends with a fake point (meaning it's the split half of an Ammeter cut),
-  // and the component pin is exactly AT that fake point, do NOT geometrically claim it.
-  if (a._isFake && Math.abs(p.x - a.x) < 0.1 && Math.abs(p.y - a.y) < 0.1) return false;
-  if (b._isFake && Math.abs(p.x - b.x) < 0.1 && Math.abs(p.y - b.y) < 0.1) return false;
-
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const l2 = dx * dx + dy * dy;
-  
-  if (l2 === 0) {
-    // a == b
-    return Math.hypot(p.x - a.x, p.y - a.y) <= tolerance;
-  }
-  
-  // Consider the line extending the segment, parameterized as a + t (b - a).
-  // We find projection of point p onto the line.
-  // It falls where t = [(p-a) . (b-a)] / |b-a|^2
-  let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
-  
-  // We clamp t from [0,1] to handle points outside the segment.
-  t = Math.max(0, Math.min(1, t));
-  
-  // Projection falls on the segment
-  const projX = a.x + t * dx;
-  const projY = a.y + t * dy;
-  
-  const distance = Math.hypot(p.x - projX, p.y - projY);
-  return distance <= tolerance;
-}export function parseSpiceToFloat(valStr: string): number {
-    if (!valStr) return 0;
-    // Clean up spaces and strip physical unit suffixes (not multiplier prefixes)
-    // Strips: Ohm, ohm, Ω, Vpk, Apk, V, A, Hz, F (Farads), H (Henries) — order matters (longer first)
-    let clean = valStr.trim()
-      .replace(/(?:Ohm|ohm|Ω|Vpk|Apk|Hz|V|A|F|H)$/i, '')
-      .trim();
-  // Match number and optional multiplier suffix
-  const match = clean.match(/^([\+\-]?\d*(?:\.\d+)?(?:[eE][\+\-]?\d+)?)([a-zA-Z]+)?$/);
-  if (!match) return parseFloat(clean) || 0;
-  
-  const numPart = parseFloat(match[1]);
-  if (isNaN(numPart)) return 0;
-  
-  const suffix = match[2];
-  if (!suffix) return numPart;
-  
-  if (suffix === 'M') return numPart * 1e6; // Capital M is Mega in our UI (unlike strict SPICE)
-  
-  const lowerSuffix = suffix.toLowerCase();
-  switch (lowerSuffix) {
-    case 't': return numPart * 1e12;
-    case 'g': return numPart * 1e9;
-    case 'meg': return numPart * 1e6;
-    case 'k': return numPart * 1e3;
-    case 'm': return numPart * 1e-3;
-    case 'u': 
-    case 'µ': return numPart * 1e-6;
-    case 'n': return numPart * 1e-9;
-    case 'p': return numPart * 1e-12;
-    case 'f': return numPart * 1e-15;
-    default: return numPart;
-  }
-}
-
-export function getComponentPins(comp: SchematicComponent): { id: string, name?: string, gridNode: string, p?: Point }[] {
-  if (comp.type === 'Ammeter') {
-    const fakeP = JSON.parse(comp.value!);
-    return [
-      { id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } },
-      { id: '2', gridNode: toGridNode(fakeP), p: fakeP }
-    ];
-  }
-  // Hardcoded generic pins for basic components if they lack KiCad symbol mapping
-  if (comp.type === 'Ground') return [{ id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } }];
-  
-  const twoPinHorizontal = [
-    'Resistor', 'Load', 'Capacitor', 'Inductor',
-    'SwitchSPST', 'PushButton',
-    'DCSource', 'ACSource', 'ClockVoltage', 'PulseVoltage',
-    'DCCurrent', 'ACCurrent',
-    'Diode', 'DiodeZener', 'DiodeSchottky', 'LED',
-    // Sources missing from previous list:
-    'StepVoltage', 'AMVoltage', 'FMVoltage', 'ChirpVoltage',
-    'ThermalNoise', 'ArbitraryVoltageSource',
-    'TriangularVoltage', 'TriangularCurrent',
-    'StepCurrent', 'FMCurrent', 'ChirpCurrent', 'ArbitraryCurrentSource',
-    // Fixed: Clock/Pulse current sources now included
-    'ClockCurrent', 'PulseCurrent',
-    // Potentiometer and Fuse get their own entries (special SPICE handling)
-    'Potentiometer', 'Fuse',
-    // New P1/P2 two-pin passives
-    'CrystalOscillator', 'Photodiode', 'DIAC', 'Lamp'
-  ];
-
-  // DIGITAL SWITCH
-  if (comp.type === 'DigitalSwitch') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const px = 90 * cos;
-    const py = 90 * sin;
-    return [
-      { id: '1', gridNode: toGridNode({ x: comp.position.x + px, y: comp.position.y + py }), p: { x: comp.position.x + px, y: comp.position.y + py } }
-    ];
-  }
-
-  // FLIP FLOPS
-  if (comp.type === 'DFlipFlop' || comp.type === 'JKFlipFlop') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    
-    let rawPins = [];
-    if (comp.type === 'DFlipFlop') {
-      rawPins = [{ x: 0, y: -15, id: 'D' }, { x: 0, y: 15, id: 'CLK' }, { x: 60, y: -15, id: 'Q' }, { x: 60, y: 15, id: 'Q_bar' }];
-    } else {
-      rawPins = [{ x: 0, y: -15, id: 'J' }, { x: 0, y: 0, id: 'CLK' }, { x: 0, y: 15, id: 'K' }, { x: 60, y: -15, id: 'Q' }, { x: 60, y: 15, id: 'Q_bar' }];
-    }
-
-    return rawPins.map(pin => {
-      const dx = pin.x * 1.5;
-      const dy = pin.y * 1.5;
-      const rx = dx * cos - dy * sin;
-      const ry = dx * sin + dy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-
-  // ── Three-Phase Sources (4 pins: A, B, C, Neutral)
-  // Renderer places pin nodes at (0,0), (90,0), (0,60), (90,60) in symbol space.
-  // We approximate as square layout. Neutral hangs below at centre.
-  if (comp.type === 'ThreePhaseDelta' || comp.type === 'ThreePhaseWye') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    // 4 external terminals arranged in a 2×2 grid (scaled 1.5×)
-    // A=top-left, B=top-right, C=bottom-left, N=bottom-right
-    const offsets = [
-      { dx: 0,   dy: -30, id: 'A' },  // Phase A
-      { dx: 90,  dy: -30, id: 'B' },  // Phase B
-      { dx: 0,   dy:  30, id: 'C' },  // Phase C
-      { dx: 90,  dy:  30, id: 'N' },  // Neutral / Star-point
-    ];
-    return offsets.map(off => {
-      const rx = off.dx * cos - off.dy * sin;
-      const ry = off.dx * sin + off.dy * cos;
-      return {
-        id: off.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-
-  // ── 555 Timer (8 pins; order must match MultisimSymbol.tsx renderer exactly)
-  // Symbol renders: pin[0]=VCC(40,-70), pin[1]=GND(40,70),
-  //   pin[2]=RST(-20,-40), pin[3]=DIS(-20,-20), pin[4]=THR(-20,0),
-  //   pin[5]=TRI(-20,20), pin[6]=CON(-20,40), pin[7]=OUT(100,-20)
-  // All scaled by 1.5 in the renderer → multiply raw coords by 1.5
-  if (comp.type === 'Timer555') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [
-      { x:  40, y: -70, id: 'VCC' },
-      { x:  40, y:  70, id: 'GND' },
-      { x: -20, y: -40, id: 'RST' },
-      { x: -20, y: -20, id: 'DIS' },
-      { x: -20, y:   0, id: 'THR' },
-      { x: -20, y:  20, id: 'TRI' },
-      { x: -20, y:  40, id: 'CON' },
-      { x: 100, y: -20, id: 'OUT' },
-    ];
-    return rawPins.map(pin => {
-      // Scale by 1.5 first (renderer scale), then rotate
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-
-  // ── Digital Logic Gates (2-input: A, B, Y; NOT gate: A, Y)
-  const twoInputGates = ['GateAND', 'GateOR', 'GateNAND', 'GateNOR', 'GateXOR'];
-  if (twoInputGates.includes(comp.type)) {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    // Match MultisimSymbol.tsx visual pins: Input A=(0,-10), Input B=(0,10), Output Y=(55,0)
-    // Scaled by 1.5 in renderer, so raw coords are as placed by symbol
-    const rawPins = [
-      { x: 0,  y: -10, id: 'A' },
-      { x: 0,  y:  10, id: 'B' },
-      { x: 55, y:   0, id: 'Y' },
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-  if (comp.type === 'GateNOT') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    // Match MultisimSymbol.tsx visual pins: Input A=(0,0), Output Y=(55,0)
-    const rawPins = [
-      { x:  0, y: 0, id: 'A' },
-      { x: 55, y: 0, id: 'Y' },
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-  if (comp.type === 'IC74HC04') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [
-      { x: -15, y: 0, id: 'A' },
-      { x: 75, y: 0, id: 'Y' },
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-  if (comp.type === 'IC74HC00' || comp.type === 'IC74HC86') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [
-      { x: -15, y: -10, id: 'A' },
-      { x: -15, y: 10, id: 'B' },
-      { x: 75, y: 0, id: 'Y' },
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-  if (comp.type === 'IC74HC138') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [
-      { x: -15, y: -24, id: 'A' },
-      { x: -15, y: 0, id: 'B' },
-      { x: -15, y: 24, id: 'C' },
-      { x: 75, y: -24, id: 'Y0' },
-      { x: 75, y: -8, id: 'Y1' },
-      { x: 75, y: 8, id: 'Y2' },
-      { x: 75, y: 24, id: 'Y3' },
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-
-  if (twoPinHorizontal.includes(comp.type)) {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const rotX = 90 * Math.cos(rad); // 60 * 1.5
-    const rotY = 90 * Math.sin(rad); // 60 * 1.5
-    return [
-      { id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } },
-      { id: '2', gridNode: toGridNode({ x: comp.position.x + rotX, y: comp.position.y + rotY }), p: { x: comp.position.x + rotX, y: comp.position.y + rotY } }
-    ];
-  }
-
-  if (comp.type === 'TransistorNPN' || comp.type === 'TransistorPNP' || comp.type === 'MosfetN' || comp.type === 'MosfetP' || comp.type === 'JFET' || comp.type === 'IGBT' || comp.type === 'ThyristorSCR' || comp.type === 'Darlington') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const dx2 = 57;   // 38 * 1.5
-    const dy2 = -45;  // -30 * 1.5
-    const dy3 = 45;   // 30 * 1.5
-    return [
-      { id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } }, // Base/Gate
-      { id: '2', gridNode: toGridNode({ x: comp.position.x + dx2*cos - dy2*sin, y: comp.position.y + dx2*sin + dy2*cos }), p: { x: comp.position.x + dx2*cos - dy2*sin, y: comp.position.y + dx2*sin + dy2*cos } }, // Collector/Drain
-      { id: '3', gridNode: toGridNode({ x: comp.position.x + dx2*cos - dy3*sin, y: comp.position.y + dx2*sin + dy3*cos }), p: { x: comp.position.x + dx2*cos - dy3*sin, y: comp.position.y + dx2*sin + dy3*cos } } // Emitter/Source
-    ];
-  }
-
-  if (comp.type === 'Phototransistor') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const dx2 = 57;   // 38 * 1.5
-    const dy2 = -45;  // -30 * 1.5
-    const dy3 = 45;   // 30 * 1.5
-    return [
-      { id: '1', gridNode: toGridNode({ x: comp.position.x + dx2*cos - dy2*sin, y: comp.position.y + dx2*sin + dy2*cos }), p: { x: comp.position.x + dx2*cos - dy2*sin, y: comp.position.y + dx2*sin + dy2*cos } }, // Collector
-      { id: '2', gridNode: toGridNode({ x: comp.position.x + dx2*cos - dy3*sin, y: comp.position.y + dx2*sin + dy3*cos }), p: { x: comp.position.x + dx2*cos - dy3*sin, y: comp.position.y + dx2*sin + dy3*cos } } // Emitter
-    ];
-  }
-
-  if (comp.type === 'TRIAC') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [{ x: 0, y: 0, id: 'MT1' }, { x: 60, y: 0, id: 'MT2' }, { x: 45, y: 20, id: 'G' }];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  // SCR / ThyristorSCR: 3 pins — Anode (0,0), Cathode (55,0), Gate (55,28)
-  if (comp.type === 'ThyristorSCR') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [{ x: 0, y: 0, id: 'A' }, { x: 55, y: 0, id: 'K' }, { x: 55, y: 28, id: 'G' }];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  // Junction: 3 pins — left, right, down stem
-  if (comp.type === 'Junction') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [{ x: -12, y: 0, id: '1' }, { x: 12, y: 0, id: '2' }, { x: 0, y: 12, id: '3' }];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  // Connector: 2 pins — left (0,0), right (40,0)
-  if (comp.type === 'Connector') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [{ x: 0, y: 0, id: '1' }, { x: 40, y: 0, id: '2' }];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  if (comp.type === 'VoltageRegulator7805' || comp.type === 'VoltageRegulator7812' || comp.type === 'VoltageRegulatorLM317') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [{ x: 0, y: 0, id: 'IN' }, { x: 30, y: 25, id: 'GND' }, { x: 60, y: 0, id: 'OUT' }];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  if (comp.type === 'SevenSegment') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    // 8 pins: 7 segment inputs (A-G) on the left, 1 common cathode (K) at bottom
-    // Layout: left column for segments, right side for cathode
-    const rawPins = [
-      { x: -15, y: -45, id: 'A' },  // Segment A (top)
-      { x: -15, y: -30, id: 'B' },  // Segment B (top-right)
-      { x: -15, y: -15, id: 'C' },  // Segment C (bottom-right)
-      { x: -15, y:   0, id: 'D' },  // Segment D (bottom)
-      { x: -15, y:  15, id: 'E' },  // Segment E (bottom-left)
-      { x: -15, y:  30, id: 'F' },  // Segment F (top-left)
-      { x: -15, y:  45, id: 'G' },  // Segment G (middle)
-      { x:  75, y:   0, id: 'K' },  // Common Cathode
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  if (comp.type === 'CurrentMirror') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [{ x: 0, y: 0, id: 'IN' }, { x: 30, y: -25, id: 'VCC' }, { x: 60, y: 0, id: 'OUT' }];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  if (comp.type === 'DIP14') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins: any[] = [];
-    for (let i=0; i<7; i++) rawPins.push({ x: 0, y: -30 + i * 10, id: `${i+1}` });
-    for (let i=0; i<7; i++) rawPins.push({ x: 60, y: 30 - i * 10, id: `${i+8}` });
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  if (comp.type === 'BridgeRectifier') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const x1 = -30, y1 = 0;   // -20 * 1.5
-    const x2 = 150, y2 = 0;   // 100 * 1.5
-    const x3 = 60, y3 = -90;    // 40*1.5, -60*1.5
-    const x4 = 60, y4 = 90;     // 40*1.5, 60*1.5
-    return [
-      { id: '1', gridNode: toGridNode({ x: comp.position.x + x1*cos - y1*sin, y: comp.position.y + x1*sin + y1*cos }), p: { x: comp.position.x + x1*cos - y1*sin, y: comp.position.y + x1*sin + y1*cos } }, // Left AC
-      { id: '2', gridNode: toGridNode({ x: comp.position.x + x2*cos - y2*sin, y: comp.position.y + x2*sin + y2*cos }), p: { x: comp.position.x + x2*cos - y2*sin, y: comp.position.y + x2*sin + y2*cos } }, // Right AC
-      { id: '3', gridNode: toGridNode({ x: comp.position.x + x3*cos - y3*sin, y: comp.position.y + x3*sin + y3*cos }), p: { x: comp.position.x + x3*cos - y3*sin, y: comp.position.y + x3*sin + y3*cos } }, // Top +
-      { id: '4', gridNode: toGridNode({ x: comp.position.x + x4*cos - y4*sin, y: comp.position.y + x4*sin + y4*cos }), p: { x: comp.position.x + x4*cos - y4*sin, y: comp.position.y + x4*sin + y4*cos } }  // Bottom -
-    ];
-  }
-
-  if (comp.type === 'Optocoupler') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    // 4 pins matching MultisimSymbol.tsx: Anode (-30,-20), Cathode (-30,-4), Emitter (30,30), Collector (30,-30)
-    const rawPins = [
-      { x: -30, y: -20, id: 'A' },
-      { x: -30, y:  -4, id: 'K' },
-      { x:  30, y:  30, id: 'E' },
-      { x:  30, y: -30, id: 'C' }
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  // Transformers & Coupled Inductors & Relays — pin positions MUST match MultisimSymbol.tsx renderer exactly.
-  if (comp.type.startsWith('Transformer') || comp.type === 'Transformers' || comp.type === 'Relay' || comp.type === 'CoupledInductors') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const isCT = comp.type === 'Transformer1P1S_CT';
-    const pCount = (comp.type === 'Transformer2P1S' || comp.type === 'Transformer2P2S') ? 2 : 1;
-    const sCount = (comp.type === 'Transformer1P2S' || comp.type === 'Transformer2P2S') ? 2 : 1;
-    const topY = (pCount === 2 || sCount === 2) ? -50 : -30;
-
-    const rawPins: {x:number,y:number,id:string}[] = [];
-    // Primary top
-    rawPins.push({ x: 0, y: topY, id: 'P1+' });
-    rawPins.push({ x: 0, y: topY + 60, id: 'P1-' });
-    if (pCount === 2) {
-      rawPins.push({ x: 0, y: topY + 80, id: 'P2+' });
-      rawPins.push({ x: 0, y: topY + 140, id: 'P2-' });
-    }
-    // Secondary top
-    rawPins.push({ x: 60, y: topY, id: 'S1+' });
-    if (isCT) {
-      rawPins.push({ x: 60, y: topY + 30, id: 'CT' });
-    }
-    rawPins.push({ x: 60, y: topY + 60, id: 'S1-' });
-    if (sCount === 2) {
-      rawPins.push({ x: 60, y: topY + 80, id: 'S2+' });
-      rawPins.push({ x: 60, y: topY + 140, id: 'S2-' });
-    }
-
-    return rawPins.map(pin => {
-      // Scale by 1.5 (as in renderer), then rotate
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-
-  // Resistors (Pack) - 4 pins arranged representing two parallel resistors
-  if (comp.type === 'Resistors') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [
-      { x: 0,  y: -20, id: '1' },
-      { x: 60, y: -20, id: '2' },
-      { x: 0,  y:  20, id: '3' },
-      { x: 60, y:  20, id: '4' }
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-
-  // Lossy & Lossless Transmission Lines - 4 pins arranged representing two terminal ports
-  if (comp.type === 'LosslessTransmissionLine' || comp.type === 'LossyTransmissionLine') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [
-      { x: 0,  y: -5, id: '1' },
-      { x: 0,  y:  5, id: '2' },
-      { x: 60, y: -5, id: '3' },
-      { x: 60, y:  5, id: '4' }
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-
-  // 3-pin Opamps and Comparators
-  if (comp.type === 'Opamp' || comp.type === 'Comparator' || comp.type === 'Opamps') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [
-      { x: 0,  y: -10, id: 'IN+' },
-      { x: 0,  y:  10, id: 'IN-' },
-      { x: 60, y:   0, id: 'OUT' }
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-
-  // 5-pin Opamps
-  if (comp.type === 'Opamp5') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const rawPins = [
-      { x: 0,  y: -10, id: 'IN+' },
-      { x: 0,  y:  10, id: 'IN-' },
-      { x: 60, y:   0, id: 'OUT' },
-      { x: 40, y: -20, id: 'V+' },
-      { x: 40, y:  20, id: 'V-' }
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5;
-      const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin;
-      const ry = sx * sin + sy * cos;
-      return {
-        id: pin.id,
-        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
-        p: { x: comp.position.x + rx, y: comp.position.y + ry }
-      };
-    });
-  }
-
-  // ── LM358 / TL071 / SchmittTrigger — 5-pin opamp layout
-  if (comp.type === 'OpampLM358' || comp.type === 'OpampTL071' || comp.type === 'SchmittTrigger') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad); const sin = Math.sin(rad);
-    const rawPins = [
-      { x:  0, y: -10, id: 'IN+' },
-      { x:  0, y:  10, id: 'IN-' },
-      { x: 40, y: -20, id: 'VCC' },
-      { x: 40, y:  20, id: 'VEE' },
-      { x: 60, y:   0, id: 'OUT' },
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  // ── Voltage-Controlled Switch — 4 pins: CTRL+, CTRL-, SW1, SW2
-  if (comp.type === 'VCSwitch') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad); const sin = Math.sin(rad);
-    const rawPins = [
-      { x:   0, y: -20, id: 'CTRL+' },
-      { x:   0, y:  20, id: 'CTRL-' },
-      { x: -30, y:   0, id: 'SW1'   },
-      { x:  60, y:   0, id: 'SW2'   },
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  // ── VCCS — 4 pins: IN+, IN-, OUT+, OUT-
-  if (comp.type === 'VCCS') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad); const sin = Math.sin(rad);
-    const rawPins = [
-      { x:  0, y: -15, id: 'IN+'  },
-      { x:  0, y:  15, id: 'IN-'  },
-      { x: 60, y: -15, id: 'OUT+' },
-      { x: 60, y:  15, id: 'OUT-' },
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  // ── Instrumentation Amplifier — 4 pins (gain via inspector value)
-  if (comp.type === 'InstAmp') {
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const cos = Math.cos(rad); const sin = Math.sin(rad);
-    const rawPins = [
-      { x:  0, y: -15, id: 'IN+' },
-      { x:  0, y:  15, id: 'IN-' },
-      { x: 30, y: -30, id: 'REF' },
-      { x: 60, y:   0, id: 'OUT' },
-    ];
-    return rawPins.map(pin => {
-      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
-      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
-      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
-    });
-  }
-
-  // Use KiCad symbol data for accurate multi-pin resolution fallback
-  const symbolName = 
-    comp.type === 'Transformer' ? 'Transformer_1P_1S' :
-    null;
-
-  if (!symbolName) return [];
-
-  // @ts-ignore
-  const symDef = symbolsData[symbolName];
-  if (!symDef || !symDef.pins) return [];
-
-  const SCALE = 0.3; // 0.2 original * 1.5 UI scale
-  return symDef.pins.map((pin: any, i: number) => {
-    const px = pin.x * SCALE;
-    const py = -pin.y * SCALE;
-    const len = pin.length * SCALE;
-    let nodeX = px;
-    let nodeY = py;
-
-    if (pin.orientation === 'U') nodeY = py - len;
-    else if (pin.orientation === 'D') nodeY = py + len;
-    else if (pin.orientation === 'L') nodeX = px - len;
-    else if (pin.orientation === 'R') nodeX = px + len;
-
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const rotX = nodeX * Math.cos(rad) - nodeY * Math.sin(rad);
-    const rotY = nodeX * Math.sin(rad) + nodeY * Math.cos(rad);
-    const absX = comp.position.x + rotX;
-    const absY = comp.position.y + rotY;
-
-    return {
-      id: pin.name || `${i + 1}`,
-      gridNode: toGridNode({ x: absX, y: absY }),
-      p: { x: absX, y: absY }
-    };
-  });
-}
-
+﻿import type { SchematicComponent, Wire, Probe, Point } from '../../store/useSchematicStore';
+import { parseSpiceToFloat } from './parseSpiceToFloat';
+import { getComponentPins } from './getComponentPins';
+import { toGridNode, isSameGridNode, isPointOnSegment, PIN_TOLERANCE } from './utils';
 export function generateNetlist(components: SchematicComponent[], wires: Wire[], probes: Probe[] = []): string {
   let netlist = "* WebAssembly SPICE Netlist\n";
   let models = new Set<string>();
@@ -827,7 +81,7 @@ export function generateNetlist(components: SchematicComponent[], wires: Wire[],
       // 1. Check if any component pins lie on this segment (with lenient tolerance for rotated pins)
       allPins.forEach(pin => {
         // AMMETER SHORT-CIRCUIT FIX: if this segment starts with a fake probe point (wireB),
-        // don't claim component pins sitting exactly at the probe position — those belong to wireA's side.
+        // don't claim component pins sitting exactly at the probe position â€” those belong to wireA's side.
         if ((p1 as any)._isFake && pin.p && Math.abs(pin.p.x - p1.x) < 1 && Math.abs(pin.p.y - p1.y) < 1) return;
         if (isPointOnSegment(pin.p, p1, p2, PIN_TOLERANCE)) {
           gridPoints.push(pin.gridNode);
@@ -837,7 +91,7 @@ export function generateNetlist(components: SchematicComponent[], wires: Wire[],
       // 2. CRITICAL FIX: Check if endpoints of OTHER wires lie on this segment (T-junctions).
       //    Example: GND1 connects via a vertical wire whose top endpoint sits in the MIDDLE of
       //    the bottom horizontal bus wire. Without this check those two wires are separate nets!
-      //    NOTE: Skip fake points (_isFake) — those are ammeter split nodes and must NOT merge!
+      //    NOTE: Skip fake points (_isFake) â€” those are ammeter split nodes and must NOT merge!
       processedWires.forEach(otherWire => {
         if (otherWire === wire) return;
         otherWire.points.forEach(otherPt => {
@@ -845,7 +99,7 @@ export function generateNetlist(components: SchematicComponent[], wires: Wire[],
           // AMMETER SHORT-CIRCUIT FIX: if this segment starts with a fake probe point (wireB),
           // do NOT pull in wireA's terminal endpoint that sits at the exact same real coordinates.
           // Without this guard, wireA's end and wireB's fakeP start share the same physical location,
-          // causing the T-junction scan to merge them into one net → both ammeter pins → same SPICE node → shorted VSRC.
+          // causing the T-junction scan to merge them into one net â†’ both ammeter pins â†’ same SPICE node â†’ shorted VSRC.
           if ((p1 as any)._isFake && Math.abs(otherPt.x - p1.x) < 1 && Math.abs(otherPt.y - p1.y) < 1) return;
           if (isPointOnSegment(otherPt, p1, p2, PIN_TOLERANCE)) {
             gridPoints.push(toGridNode(otherPt));
@@ -978,21 +232,21 @@ export function generateNetlist(components: SchematicComponent[], wires: Wire[],
 
     // BUG-FIX: Resistor and Load (Potentiometer & Fuse are handled below with correct SPICE prefixes)
     if (comp.type === 'Resistor' || comp.type === 'Load') {
-      const val = (comp.value || '1k').replace('Ω', '');
+      const val = (comp.value || '1k').replace('Î©', '');
       netlist += `R_${comp.id} ${nodes[0]} ${nodes[1]} ${val}\n`;
     }
-    // BUG-FIX #2: Potentiometer — SPICE 'p' prefix means coupled-inductor, not pot.
+    // BUG-FIX #2: Potentiometer â€” SPICE 'p' prefix means coupled-inductor, not pot.
     // Model as two series resistors with wiper at 50% by default.
     else if (comp.type === 'Potentiometer') {
       const total = parseSpiceToFloat(comp.value || '10k') || 10000;
       const wiper = total / 2; // 50% wiper position
       netlist += `R_${comp.id}_A ${nodes[0]} ${nodes[1]}_wiper ${wiper}\n`;
       netlist += `R_${comp.id}_B ${nodes[1]}_wiper ${nodes[1]} ${wiper}\n`;
-      // Wiper node is the midpoint — wire to nodes[1] if the user only connects 2 pins
+      // Wiper node is the midpoint â€” wire to nodes[1] if the user only connects 2 pins
     }
-    // BUG-FIX #3: Fuse — SPICE 'f' prefix means CCCS. Model fuse as a tiny resistor (1mΩ).
+    // BUG-FIX #3: Fuse â€” SPICE 'f' prefix means CCCS. Model fuse as a tiny resistor (1mÎ©).
     else if (comp.type === 'Fuse') {
-      netlist += `R_${comp.id} ${nodes[0]} ${nodes[1]} 0.001\n`; // 1mΩ — fuse resistance
+      netlist += `R_${comp.id} ${nodes[0]} ${nodes[1]} 0.001\n`; // 1mÎ© â€” fuse resistance
     }
     else if (comp.type === 'Capacitor') {
       const val = (comp.value || "1uF").replace('F', '');
@@ -1046,7 +300,7 @@ export function generateNetlist(components: SchematicComponent[], wires: Wire[],
       netlist += `R_${comp.id} ${nodes[0]} ${nodes[1]} ${rVal}\n`;
     }
     else if (comp.type === 'Timer555') {
-      // Built-in 555 macromodel — no external .lib needed
+      // Built-in 555 macromodel â€” no external .lib needed
       // Pin order from getComponentPins: VCC, GND, RST, DIS, THR, TRI, CON, OUT
       const pinMap: Record<string, string> = {};
       pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
@@ -1227,7 +481,7 @@ S_dis DIS GND dis_gate GND SMOD555
 
       // Parse turns ratio from value (e.g. "10" means 10:1, "1" means 1:1)
       const ratio = parseSpiceToFloat(comp.value || '1') || 1;
-      // L1=1H, L2=1H/ratio² gives correct turns ratio with tight coupling
+      // L1=1H, L2=1H/ratioÂ² gives correct turns ratio with tight coupling
       const L1 = 0.1;  // 100mH primary
       const L2 = L1 / (ratio * ratio);
 
@@ -1414,7 +668,7 @@ S_dis DIS GND dis_gate GND SMOD555
       const segNames = ['a','b','c','d','e','f','g'];
       segNames.forEach((seg, i) => {
         const aNode = nodes[i] || '0';
-        // Each segment: series 330Ω resistor + LED diode to common cathode
+        // Each segment: series 330Î© resistor + LED diode to common cathode
         netlist += `R_${comp.id}_${seg} ${aNode} seg_${comp.id}_${seg} 330\n`;
         netlist += `D_${comp.id}_${seg} seg_${comp.id}_${seg} ${kNode} DLED\n`;
       });
@@ -1481,7 +735,7 @@ S_dis DIS GND dis_gate GND SMOD555
       const pB  = pinMap['B'] || nodes[1] || '2';
       const pC  = pinMap['C'] || nodes[2] || '3';
       const pN  = pinMap['N'] || nodes[3] || '0';  // Neutral / reference
-      const amp  = parseSpiceToFloat(comp.value || '230') || 230; // RMS → use peak
+      const amp  = parseSpiceToFloat(comp.value || '230') || 230; // RMS â†’ use peak
       const freq  = 50; // 50 Hz default
       const peak  = amp * Math.sqrt(2);
       if (comp.type === 'ThreePhaseWye') {
@@ -1515,7 +769,7 @@ S_dis DIS GND dis_gate GND SMOD555
     else if (comp.type === 'ArbitraryVoltageSource') {
       netlist += `B_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} V=5*sin(time)\n`;
     }
-    // BUG-FIX #6: Missing source types — TriangularVoltage, and all current-source variants
+    // BUG-FIX #6: Missing source types â€” TriangularVoltage, and all current-source variants
     else if (comp.type === 'TriangularVoltage') {
       const parts = (comp.value || '5V 1kHz').split(' ');
       const amp = parseSpiceToFloat(parts[0] || '5') || 5;
@@ -1544,7 +798,7 @@ S_dis DIS GND dis_gate GND SMOD555
       netlist += `B_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} I=sin(2*3.14159*1k*time)\n`;
     }
 
-    // ── Digital Logic Gates (modeled as analog behavioral voltage sources) ──
+    // â”€â”€ Digital Logic Gates (modeled as analog behavioral voltage sources) â”€â”€
     // VDD rail = 5V, switching threshold = 2.5V, output swings 0-5V
     else if (comp.type === 'GateAND') {
       const a = nodes[0] || '0', b = nodes[1] || '0', y = nodes[2] || '0';
@@ -1630,7 +884,7 @@ S_dis DIS GND dis_gate GND SMOD555
     models.forEach(model => netlist += `${model}\n`);
   }
 
-  // Convergence options — critical for transformer + diode circuits
+  // Convergence options â€” critical for transformer + diode circuits
   netlist += "\n.options GMIN=1e-10 RELTOL=1e-3 ABSTOL=1e-9 VNTOL=1e-4 ITL1=500 ITL2=500 ITL4=200\n";
 
   // Default transient analysis for testing
@@ -1638,110 +892,3 @@ S_dis DIS GND dis_gate GND SMOD555
   netlist += ".end\n";
   return netlist;
 }
-
-export function getSpiceNodeForPoint(p: Point, components: SchematicComponent[], wires: Wire[]): string {
-  // This function MUST mirror the exact same net-building logic as generateNetlist so that
-  // VoltageProbe node IDs match what was written into the SPICE netlist.
-  
-  // Build component pins (excluding ammeters & text, same as generateNetlist)
-  const allPins: { gridNode: string; p: Point }[] = [];
-  components.forEach(comp => {
-    if (comp.type === 'TextAnnotation' || comp.type === 'Ammeter' || comp.type === 'Ground') return;
-    getComponentPins(comp).forEach(pin => { if (pin.p) allPins.push({ gridNode: pin.gridNode, p: pin.p }); });
-  });
-
-  const gridNode = toGridNode(p);
-  const nets: Set<string>[] = [];
-
-  wires.forEach(wire => {
-    const gridPoints = wire.points.map(toGridNode);
-    for (let i = 0; i < wire.points.length - 1; i++) {
-      const p1 = wire.points[i];
-      const p2 = wire.points[i+1];
-      // Component pins on segment (lenient tolerance)
-      allPins.forEach(pin => {
-        if (isPointOnSegment(pin.p, p1, p2, PIN_TOLERANCE)) gridPoints.push(pin.gridNode);
-      });
-      // T-junction: other wire endpoints on segment (skip fake ammeter nodes!)
-      wires.forEach(otherWire => {
-        if (otherWire === wire) return;
-        otherWire.points.forEach(otherPt => {
-          if ((otherPt as any)._isFake) return;
-          if (isPointOnSegment(otherPt, p1, p2, PIN_TOLERANCE)) gridPoints.push(toGridNode(otherPt));
-        });
-      });
-      // Also check if the probe point itself lies on this segment (use strict tolerance)
-      if (isPointOnSegment(p, p1, p2)) gridPoints.push(gridNode);
-    }
-
-    let connectedNetIndices: number[] = [];
-    gridPoints.forEach(gp => {
-      nets.forEach((net, idx) => {
-        if (net.has(gp) && !connectedNetIndices.includes(idx)) connectedNetIndices.push(idx);
-      });
-    });
-    if (connectedNetIndices.length > 0) {
-      const masterNetIndex = connectedNetIndices[0];
-      gridPoints.forEach(gp => nets[masterNetIndex].add(gp));
-      for (let i = 1; i < connectedNetIndices.length; i++) {
-        nets[connectedNetIndices[i]].forEach(gp => nets[masterNetIndex].add(gp));
-        nets[connectedNetIndices[i]].clear();
-      }
-    } else {
-      nets.push(new Set(gridPoints));
-    }
-  });
-
-
-  const finalNets = nets.filter(net => net.size > 0);
-  const groundNodes = new Set<string>();
-  const hasGroundComponents = components.some(c => c.type === 'Ground');
-  components.filter(c => c.type === 'Ground').forEach(c => {
-    getComponentPins(c).forEach(pin => {
-      groundNodes.add(pin.gridNode);
-      // Geometrically expand: if the Ground pin lies on any wire, mark that whole wire as ground
-      wires.forEach(wire => {
-        for (let i = 0; i < wire.points.length - 1; i++) {
-          if (pin.p && isPointOnSegment(pin.p, wire.points[i], wire.points[i+1])) {
-            wire.points.forEach(wp => groundNodes.add(toGridNode(wp)));
-          }
-        }
-        wire.points.forEach(wp => {
-          if (toGridNode(wp) === pin.gridNode) {
-            wire.points.forEach(wp2 => groundNodes.add(toGridNode(wp2)));
-          }
-        });
-      });
-    });
-  });
-  // Transitively expand: any net that contains a groundNode is entirely ground
-  finalNets.forEach(net => {
-    let hasGround = false;
-    net.forEach(gn => { if (groundNodes.has(gn)) hasGround = true; });
-    if (hasGround) net.forEach(gn => groundNodes.add(gn));
-  });
-
-  // Build same stable netIdMap as generateNetlist
-  let nodeCounter = 1;
-  const netIdMap = new Map<number, string>();
-  let groundNetIndex = -1;
-  finalNets.forEach((net, idx) => {
-    let isGround = false;
-    net.forEach(gn => { if (groundNodes.has(gn)) isGround = true; });
-    if (isGround) { netIdMap.set(idx, "0"); groundNetIndex = idx; }
-  });
-  if (!hasGroundComponents && groundNetIndex === -1 && finalNets.length > 0) {
-    netIdMap.set(0, "0");
-    groundNetIndex = 0;
-  }
-  finalNets.forEach((_, idx) => {
-    if (!netIdMap.has(idx)) netIdMap.set(idx, `${nodeCounter++}`);
-  });
-
-  if (groundNodes.has(gridNode)) return "0";
-  const netIndex = finalNets.findIndex(net => net.has(gridNode));
-  if (netIndex !== -1) return netIdMap.get(netIndex) ?? `NC_${gridNode.replace(',', '_')}`;
-  return `NC_${gridNode.replace(',', '_')}`;
-}
-
-// Trigger HMR 2

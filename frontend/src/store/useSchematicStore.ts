@@ -553,10 +553,33 @@ export const useSchematicStore = create<SchematicState>()(
         wires: s.wires,
         probes: s.probes,
       } as unknown as SchematicState),
-      // Drop old schema shapes rather than crashing hydration
+      // ─── Schema migrations ────────────────────────────────────────────────────
+      // Add an entry here BEFORE bumping SCHEMA_VERSION. Each function receives
+      // the persisted state at that version and returns the upgraded shape.
+      // NEVER delete old migrations — they form a chain for users who skipped versions.
       migrate: (persisted: unknown, version: number) => {
-        if (version !== SCHEMA_VERSION) return { components: [], wires: [], probes: [] } as unknown as SchematicState;
-        return persisted as SchematicState;
+        // Version-chained migration: walk from the stored version up to current
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const MIGRATIONS: Record<number, (old: any) => any> = {
+          // Example (add before bumping SCHEMA_VERSION to 2):
+          // 1: (old) => ({ ...old, probes: old.probes ?? [] }),
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let state: any = persisted;
+        for (let v = version; v < SCHEMA_VERSION; v++) {
+          if (MIGRATIONS[v]) {
+            try { state = MIGRATIONS[v](state); }
+            catch { state = null; } // migration threw — fall through to guard below
+          }
+        }
+
+        // Defensive guard: ensure required arrays exist even after partial corruption
+        return {
+          components: Array.isArray(state?.components) ? state.components : [],
+          wires: Array.isArray(state?.wires) ? state.wires : [],
+          probes: Array.isArray(state?.probes) ? state.probes : [],
+        } as unknown as SchematicState;
       },
       onRehydrateStorage: () => (_state: unknown, error: unknown) => {
         if (error) {
