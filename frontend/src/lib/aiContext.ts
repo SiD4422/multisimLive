@@ -47,11 +47,12 @@ export interface BuildContextArgs {
   selectedComponentId: string | null;
   activeQuestion?: string;
   customModels?: Record<string, string>;
+  customModelPorts?: Record<string, string[]>;
 }
 
 export function buildAIContext(args: BuildContextArgs): AIContext {
-  const { components, wires, probes, analysisMode, simulationData, opData, simulationError, selectedComponentId, activeQuestion, customModels = {} } = args;
-  const netlist = components.length > 0 ? generateNetlist(components, wires, probes, customModels) : '';
+  const { components, wires, probes, analysisMode, simulationData, opData, simulationError, selectedComponentId, activeQuestion, customModels = {}, customModelPorts = {} } = args;
+  const netlist = components.length > 0 ? generateNetlist(components, wires, probes, customModels, customModelPorts) : '';
   let simCtx: AISimContext;
   if (simulationError) {
     simCtx = { status: 'error', analysisMode, errorMessage: simulationError, nodeStats: [] };

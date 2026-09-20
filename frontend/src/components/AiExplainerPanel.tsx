@@ -172,14 +172,18 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
 
   const saveKey = (key: string) => { setApiKeyState(key); saveApiKey(key); setShowKeyInput(false); setIsRateLimited(false); };
 
+  const { customModels, customModelPorts } = store;
+
   const buildContext = useCallback((question?: string) =>
     buildAIContext({
       components, wires, probes, analysisMode,
       simulationData: simulationData as Record<string, number>[] | null,
       opData, simulationError, selectedComponentId,
       activeQuestion: question,
+      customModels,
+      customModelPorts,
     }),
-    [components, wires, probes, analysisMode, simulationData, opData, simulationError, selectedComponentId]
+    [components, wires, probes, analysisMode, simulationData, opData, simulationError, selectedComponentId, customModels, customModelPorts]
   );
 
   // ── Handle Diagnose ────────────────────────────────────────────────────────
