@@ -20,6 +20,7 @@ export interface SchematicComponent {
   value?: string;
   rotation?: number;
   symbolName?: string;
+  metadata?: Record<string, string>;
 }
 
 export interface Wire {
