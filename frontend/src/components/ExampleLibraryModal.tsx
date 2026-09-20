@@ -26,6 +26,10 @@ import mosfetSwitch         from '../examples/mosfet_switch.json';
 import rcIntegrator         from '../examples/rc_integrator.json';
 import commonEmitter        from '../examples/common_emitter.json';
 import comparatorCircuit    from '../examples/comparator_circuit.json';
+import pnpAmplifier         from '../examples/pnp_amplifier.json';
+import voltageRegulator5V   from '../examples/voltage_regulator_5v.json';
+import schmittOscillator    from '../examples/schmitt_oscillator.json';
+import wienBridgeOscillator from '../examples/wien_bridge_oscillator.json';
 
 // ── Palette (matches site CSS vars) ─────────────────────────────────────────
 const C = {
@@ -180,8 +184,28 @@ const EXAMPLES = [
     accent: '#6d28d9',
     data: comparatorCircuit,
   },
+  {
+    id: 'pnp_amp', name: 'PNP Common-Emitter Amp', category: 'Amplifiers',
+    description: 'Common-emitter PNP amplifier with voltage divider bias. Inverts and amplifies the input signal.',
+    analysis: 'Transient', analysisColor: '#16a34a',
+    difficulty: 'Intermediate',
+    components: ['PNP BJT', 'Resistors', 'DC + AC'],
+    Icon: TrendingUp,
+    accent: '#8b5cf6',
+    data: pnpAmplifier,
+  },
 
   // ── POWER ──────────────────────────────────────────────────────
+  {
+    id: 'voltagereg_5v', name: '5V Voltage Regulator', category: 'Power',
+    description: 'AC mains to regulated 5V DC. Full-wave rectification followed by LM7805 linear regulator.',
+    analysis: 'Transient', analysisColor: '#16a34a',
+    difficulty: 'Intermediate',
+    components: ['7805', 'Bridge Rectifier', 'Capacitors'],
+    Icon: Zap,
+    accent: '#eab308',
+    data: voltageRegulator5V,
+  },
   {
     id: 'zener', name: 'Zener Voltage Clipper', category: 'Power',
     description: 'Zener diode clamps signal to breakdown voltage. Overvoltage protection and waveform clipping.',
@@ -219,6 +243,16 @@ const EXAMPLES = [
 
   // ── SWITCHING ──────────────────────────────────────────────────
   {
+    id: 'schmitt_osc', name: 'Schmitt Trigger Oscillator', category: 'Switching',
+    description: 'RC oscillator using Schmitt trigger hysteresis. Self-oscillating at ~700Hz.',
+    analysis: 'Transient', analysisColor: '#16a34a',
+    difficulty: 'Intermediate',
+    components: ['Schmitt Trigger', 'Resistor', 'Capacitor'],
+    Icon: Activity,
+    accent: '#f43f5e',
+    data: schmittOscillator,
+  },
+  {
     id: 'mosfet_sw', name: 'MOSFET Switch', category: 'Switching',
     description: 'N-Channel MOSFET as a digital switch. Gate voltage controls the drain-source resistance.',
     analysis: 'DC Sweep', analysisColor: C.warning,
@@ -230,6 +264,16 @@ const EXAMPLES = [
   },
 
   // ── SOURCES ────────────────────────────────────────────────────
+  {
+    id: 'wien_bridge', name: 'Wien Bridge Oscillator', category: 'Sources',
+    description: 'Sine wave oscillator at f=1/(2πRC)=1.59kHz. Classic Wien bridge with op-amp.',
+    analysis: 'Transient', analysisColor: '#16a34a',
+    difficulty: 'Advanced',
+    components: ['Op-Amp', 'RC Network'],
+    Icon: Waves,
+    accent: '#3b82f6',
+    data: wienBridgeOscillator,
+  },
   {
     id: '555', name: '555 Astable Oscillator', category: 'Sources',
     description: '555 timer in astable mode generates a continuous square wave at adjustable frequency.',

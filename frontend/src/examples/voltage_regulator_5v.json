@@ -1,0 +1,35 @@
+{
+  "components": [
+    { "id": "V1", "type": "ACSource",      "position": { "x": 80,  "y": 200 }, "value": "12V 50Hz", "rotation": 90 },
+    { "id": "BR1", "type": "BridgeRectifier", "position": { "x": 200, "y": 200 }, "rotation": 0 },
+    { "id": "C1", "type": "Capacitor",     "position": { "x": 280, "y": 200 }, "value": "1000uF", "rotation": 90 },
+    { "id": "U1", "type": "VoltageRegulator7805", "position": { "x": 350, "y": 200 }, "rotation": 0 },
+    { "id": "C2", "type": "Capacitor",     "position": { "x": 420, "y": 200 }, "value": "100uF",  "rotation": 90 },
+    { "id": "R1", "type": "Resistor",      "position": { "x": 490, "y": 200 }, "value": "100",    "rotation": 90 },
+    { "id": "G1", "type": "Ground",        "position": { "x": 280, "y": 300 }, "rotation": 0 },
+    { "id": "G2", "type": "Ground",        "position": { "x": 350, "y": 300 }, "rotation": 0 },
+    { "id": "G3", "type": "Ground",        "position": { "x": 420, "y": 300 }, "rotation": 0 },
+    { "id": "G4", "type": "Ground",        "position": { "x": 490, "y": 300 }, "rotation": 0 }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 80, "y": 150 }, { "x": 200, "y": 150 }] },
+    { "id": "W2", "points": [{ "x": 80, "y": 250 }, { "x": 200, "y": 250 }] },
+    { "id": "W3", "points": [{ "x": 200, "y": 100 }, { "x": 280, "y": 100 }, { "x": 350, "y": 100 }] },
+    { "id": "W4", "points": [{ "x": 280, "y": 100 }, { "x": 280, "y": 150 }] },
+    { "id": "W5", "points": [{ "x": 350, "y": 100 }, { "x": 350, "y": 150 }] },
+    { "id": "W6", "points": [{ "x": 200, "y": 300 }, { "x": 280, "y": 300 }] },
+    { "id": "W7", "points": [{ "x": 280, "y": 250 }, { "x": 280, "y": 300 }] },
+    { "id": "W8", "points": [{ "x": 350, "y": 100 }, { "x": 420, "y": 100 }, { "x": 490, "y": 100 }] },
+    { "id": "W9", "points": [{ "x": 420, "y": 100 }, { "x": 420, "y": 150 }] },
+    { "id": "W10", "points": [{ "x": 490, "y": 100 }, { "x": 490, "y": 150 }] },
+    { "id": "W11", "points": [{ "x": 420, "y": 250 }, { "x": 420, "y": 300 }] },
+    { "id": "W12", "points": [{ "x": 490, "y": 250 }, { "x": 490, "y": 300 }] }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 490, "y": 100 }, "type": "Voltage" }
+  ],
+  "scale": 1.0,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": { "endTime": "50m", "step": "0.1m" }
+}

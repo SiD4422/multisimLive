@@ -1,0 +1,25 @@
+{
+  "components": [
+    { "id": "V1", "type": "DCSource", "position": { "x": 80, "y": 200 }, "value": "5V", "rotation": 90 },
+    { "id": "U1", "type": "SchmittTrigger", "position": { "x": 200, "y": 200 }, "rotation": 0 },
+    { "id": "R1", "type": "Resistor", "position": { "x": 200, "y": 100 }, "value": "10k", "rotation": 0 },
+    { "id": "C1", "type": "Capacitor", "position": { "x": 120, "y": 200 }, "value": "100nF", "rotation": 90 },
+    { "id": "G1", "type": "Ground", "position": { "x": 80, "y": 250 }, "rotation": 0 },
+    { "id": "G2", "type": "Ground", "position": { "x": 120, "y": 250 }, "rotation": 0 },
+    { "id": "G3", "type": "Ground", "position": { "x": 200, "y": 250 }, "rotation": 0 }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 120, "y": 100 }, { "x": 120, "y": 150 }] },
+    { "id": "W2", "points": [{ "x": 120, "y": 100 }, { "x": 150, "y": 100 }] },
+    { "id": "W3", "points": [{ "x": 250, "y": 100 }, { "x": 280, "y": 100 }, { "x": 280, "y": 200 }, { "x": 250, "y": 200 }] },
+    { "id": "W4", "points": [{ "x": 120, "y": 200 }, { "x": 150, "y": 200 }] },
+    { "id": "W5", "points": [{ "x": 80, "y": 150 }, { "x": 80, "y": 50 }, { "x": 200, "y": 50 }, { "x": 200, "y": 150 }] }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 280, "y": 200 }, "type": "Voltage" }
+  ],
+  "scale": 1.0,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": { "endTime": "5m", "step": "0.001m" }
+}
