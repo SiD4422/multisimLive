@@ -767,7 +767,8 @@ export default function SchematicEditor() {
     return (
       <div style={{
         width: '100%', height: '100%', backgroundColor: '#a3a3a3', position: 'absolute',
-        cursor: wirePoints ? 'none' : pendingComponent ? 'crosshair' : 'grab'
+        cursor: wirePoints ? 'none' : pendingComponent ? 'crosshair' : 'grab',
+        touchAction: 'none'
       }}>
         {dimensions.width > 0 && (
         <Stage 

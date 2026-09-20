@@ -45,10 +45,12 @@ function isPointOnSegment(p: Point, a: Point & { _isFake?: boolean }, b: Point &
   const distance = Math.hypot(p.x - projX, p.y - projY);
   return distance <= tolerance;
 }export function parseSpiceToFloat(valStr: string): number {
-  if (!valStr) return 0;
-  // Clean up spaces and unit suffix like V, A, Hz, Vpk, Apk, etc.
-  // We keep 'm', 'u', 'n', 'p', 'f', 'k', 'meg', 'g', 't' as multiplier prefixes.
-  let clean = valStr.trim().replace(/(?:Vpk|Apk|V|A|Hz)$/i, '').trim();
+    if (!valStr) return 0;
+    // Clean up spaces and strip physical unit suffixes (not multiplier prefixes)
+    // Strips: Ohm, ohm, Ω, Vpk, Apk, V, A, Hz, F (Farads), H (Henries) — order matters (longer first)
+    let clean = valStr.trim()
+      .replace(/(?:Ohm|ohm|Ω|Vpk|Apk|Hz|V|A|F|H)$/i, '')
+      .trim();
   // Match number and optional multiplier suffix
   const match = clean.match(/^([\+\-]?\d*(?:\.\d+)?(?:[eE][\+\-]?\d+)?)([a-zA-Z]+)?$/);
   if (!match) return parseFloat(clean) || 0;

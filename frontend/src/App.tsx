@@ -15,6 +15,17 @@ import CircuitTemplatePage from './pages/CircuitTemplatePage';
 
 // Lazy load the Simulator to prevent bundling 7MB WASM & Canvas on marketing pages
 const Simulator = lazy(() => import('./pages/Simulator'));
+
+const RcCircuitTutorial = lazy(() => import('./pages/tutorials/RcCircuitTutorial'));
+const TransistorTutorial = lazy(() => import('./pages/tutorials/TransistorTutorial'));
+const OpAmpTutorial = lazy(() => import('./pages/tutorials/OpAmpTutorial'));
+const DiodeRectifierTutorial = lazy(() => import('./pages/tutorials/DiodeRectifierTutorial'));
+const RlcCircuitTutorial = lazy(() => import('./pages/tutorials/RlcCircuitTutorial'));
+
+const VsLtspice = lazy(() => import('./pages/compare/VsLtspice'));
+const VsMultisim = lazy(() => import('./pages/compare/VsMultisim'));
+const VsFalstad = lazy(() => import('./pages/compare/VsFalstad'));
+
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -34,6 +45,17 @@ function App() {
           <Route path="/circuits/:id" element={<CircuitTemplatePage />} />
           <Route path="/procedure" element={<ProcedurePage />} />
           <Route path="/resources" element={<ResourcesPage />} />
+
+          {/* SEO Pages */}
+          <Route path="/tutorials/rc-circuit" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><RcCircuitTutorial /></Suspense>} />
+          <Route path="/tutorials/transistor-amplifier" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><TransistorTutorial /></Suspense>} />
+          <Route path="/tutorials/op-amp" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><OpAmpTutorial /></Suspense>} />
+          <Route path="/tutorials/diode-rectifier" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><DiodeRectifierTutorial /></Suspense>} />
+          <Route path="/tutorials/rlc-circuit" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><RlcCircuitTutorial /></Suspense>} />
+          
+          <Route path="/compare/ltspice" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><VsLtspice /></Suspense>} />
+          <Route path="/compare/multisim" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><VsMultisim /></Suspense>} />
+          <Route path="/compare/falstad" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><VsFalstad /></Suspense>} />
         </Route>
         
         {/* Isolated Fullscreen Simulator */}

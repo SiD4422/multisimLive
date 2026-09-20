@@ -278,11 +278,12 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
 
   return (
     <div style={{
-      position: 'fixed', top: 0, right: 0, bottom: 0, width: 400,
+      position: 'fixed', top: 0, right: 0, bottom: 0, width: Math.min(400, window.innerWidth - 16),
       background: '#fff', borderLeft: '1px solid #e2e8f0',
       boxShadow: '-4px 0 24px rgba(0,0,0,0.12)',
       display: 'flex', flexDirection: 'column', zIndex: 200,
       fontFamily: 'Inter, system-ui, sans-serif', fontSize: 13,
+      maxWidth: '100vw', boxSizing: 'border-box',
     }}>
       {/* Header */}
       <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)', color: '#fff' }}>

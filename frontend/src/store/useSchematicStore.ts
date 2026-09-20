@@ -443,6 +443,17 @@ export const useSchematicStore = create<SchematicState>()(
       }
     }
 
+    // DRC: Detect floating (unconnected) pins on critical components
+    // We detect this by generating the netlist and checking for NC_ nodes on power devices
+    const floatingCheck = generateNetlist(components, wires, probes);
+    const floatingLines = floatingCheck.split('\n').filter(l => l.match(/^[VRQMD]_/) && l.includes('NC_'));
+    if (floatingLines.length > 0 && !isSilent) {
+      const errorMsg = `Unconnected pin detected on a power component. Check all component terminals are wired before simulating.`;
+      track('Simulation_Error', { type: 'DRC', details: 'Floating Pin' });
+      set({ simulationError: errorMsg, isSimulating: false, isPlaying: false });
+      return;
+    }
+
     if (!isSilent) {
       set({ isSimulating: true, simulationError: null, isPlaying: false, playbackTime: 0 });
     }
