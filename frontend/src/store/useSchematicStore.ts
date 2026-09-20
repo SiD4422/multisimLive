@@ -439,6 +439,23 @@ export const useSchematicStore = create<SchematicState>()(
     
     if (!isSilent) track('Simulation_Run', { mode: analysisMode });
 
+    // DRC: Require at least one Ground component
+    // Without a ground, the netlister silently assigns node 0 to the first wire in
+    // insertion order — producing wrong results with no warning. Surface it early.
+    const hasGround = components.some(c => c.type === 'Ground');
+    const hasActiveComponents = components.some(c =>
+      ['DCSource','ACSource','PulseVoltage','ClockVoltage','StepVoltage',
+       'DCCurrent','ACCurrent','TriangularVoltage','TriangularCurrent'].includes(c.type)
+    );
+    if (!hasGround && hasActiveComponents && !isSilent) {
+      set({
+        simulationError: 'No Ground component found. Add a Ground symbol to set the 0V reference node — every SPICE circuit needs one.',
+        isSimulating: false,
+        isPlaying: false,
+      });
+      return;
+    }
+
     // T5: Prevent 0-ohm resistor infinite current crash in WASM
     const ZERO_THRESHOLD = 1e-9;
     for (const comp of components) {
