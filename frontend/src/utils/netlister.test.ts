@@ -95,8 +95,8 @@ describe('generateNetlist correctness', () => {
     ];
     const netlist = generateNetlist(components, [], []);
     expect(netlist).toMatch(/Q_Q1/);
-    expect(netlist).toMatch(/\.model\s+QPNP\s+PNP/i);
-    expect(netlist).toMatch(/Q_Q1\s+NC_16_-4\s+NC_10_0\s+NC_16_5\s+QPNP/);
+    expect(netlist).toMatch(/\.model\s+2N3906\s+PNP/i);
+    expect(netlist).toMatch(/Q_Q1\s+NC_16_-4\s+NC_10_0\s+NC_16_5\s+2N3906/);
   });
 
   it('Test 5: Diode', () => {

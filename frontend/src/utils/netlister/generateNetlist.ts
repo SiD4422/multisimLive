@@ -1,4 +1,4 @@
-﻿import type { SchematicComponent, Wire, Probe, Point } from '../../store/useSchematicStore';
+import type { SchematicComponent, Wire, Probe, Point } from '../../store/useSchematicStore';
 import { parseSpiceToFloat } from './parseSpiceToFloat';
 import { getComponentPins } from './getComponentPins';
 import { toGridNode, isSameGridNode, isPointOnSegment, PIN_TOLERANCE } from './utils';
@@ -428,15 +428,22 @@ S_dis DIS GND dis_gate GND SMOD555
     else if (comp.type === 'ACSource') {
       const parts = (comp.value || "1Vpk 1kHz").split(' ');
       const amp = (parts[0] || "1").replace('Vpk', '').replace('V', '');
-      const freq = (parts[1] || "1k").replace('Hz', '');
-      netlist += `V_${comp.id} ${nodes[0]} ${nodes[1]} SINE(0 ${amp} ${freq})\n`;
+      // SPICE 'M' = milli (1e-3), NOT mega. 'Meg' = mega.
+      // Use parseSpiceToFloat to get numeric Hz, then emit in Meg notation to avoid ambiguity.
+      const freqHz = parseSpiceToFloat(parts[1] || "1k") || 1000;
+      const freqSpice = freqHz >= 1e6 ? `${(freqHz / 1e6).toFixed(3)}Meg`
+                      : freqHz >= 1e3 ? `${(freqHz / 1e3).toFixed(3)}k`
+                      : `${freqHz}`;
+      netlist += `V_${comp.id} ${nodes[0]} ${nodes[1]} SINE(0 ${amp} ${freqSpice})\n`;
     }
     else if (comp.type === 'ACCurrent') {
       const parts = (comp.value || "1Apk 1kHz").split(' ');
       const amp = (parts[0] || "1").replace('Apk', '').replace('A', '');
-      const freq = (parts[1] || "1k").replace('Hz', '');
-      // I1 n1 n2 AC 1 SIN(...)
-      netlist += `I_${comp.id} ${nodes[0]} ${nodes[1]} AC ${amp} SINE(0 ${amp} ${freq})\n`;
+      const freqHz = parseSpiceToFloat(parts[1] || "1k") || 1000;
+      const freqSpice = freqHz >= 1e6 ? `${(freqHz / 1e6).toFixed(3)}Meg`
+                      : freqHz >= 1e3 ? `${(freqHz / 1e3).toFixed(3)}k`
+                      : `${freqHz}`;
+      netlist += `I_${comp.id} ${nodes[0]} ${nodes[1]} AC ${amp} SINE(0 ${amp} ${freqSpice})\n`;
     }
     else if (comp.type === 'ClockVoltage') {
       const val = (comp.value || "5V").replace('V', '');
@@ -571,8 +578,21 @@ S_dis DIS GND dis_gate GND SMOD555
     else if (comp.type === 'TransistorPNP') {
       // SPICE format: Q name Collector Base Emitter model
       // Pin order from getComponentPins: nodes[0]=Base, nodes[1]=Collector, nodes[2]=Emitter
-      netlist += `Q_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} QPNP\n`;
-      models.add('.model QPNP PNP (BF=100 BR=1 IS=10f VAF=50)');
+      const rawVal = (comp.value || '2N3906').toUpperCase();
+
+      const pnpModels: Record<string, string> = {
+        '2N3906': '.model 2N3906 PNP (IS=1.41E-15 VAF=18.7 BF=180 IKF=80m XTB=1.5 BR=4 CJC=9.728p MJC=0.3763 VJC=0.5 CJE=8.063p MJE=0.3677 VJE=0.5 TF=304.2p TR=100n)',
+        'BC557':  '.model BC557 PNP (IS=5E-15 VAF=100 BF=300 IKF=0.2 XTB=1.5 BR=4 CJC=10p CJE=12p TR=250E-9 TF=350E-12)',
+        'BC558':  '.model BC558 PNP (IS=5E-15 VAF=100 BF=300 IKF=0.2 XTB=1.5 BR=4 CJC=10p CJE=12p TR=250E-9 TF=350E-12)',
+        'BC327':  '.model BC327 PNP (IS=2E-14 VAF=100 BF=250 IKF=0.5 XTB=1.5 BR=4 CJC=15p CJE=20p TR=100E-9 TF=200E-12)',
+        '2N2907': '.model 2N2907 PNP (IS=1.8E-15 VAF=74.03 BF=270 IKF=0.3 XTB=1.5 BR=6 CJC=8.18p CJE=19.82p TF=0.5E-9 TR=10E-9)',
+      };
+
+      const modelKey = Object.keys(pnpModels).find(k => rawVal.includes(k)) || '2N3906';
+      const modelDef = pnpModels[modelKey];
+
+      netlist += `Q_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${modelKey}\n`;
+      models.add(modelDef);
     }
     else if (comp.type === 'MosfetN') {
       netlist += `M_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${nodes[2] || '0'} NMOSMOD
@@ -791,8 +811,11 @@ S_dis DIS GND dis_gate GND SMOD555
     else if (comp.type === 'FMCurrent' || comp.type === 'ChirpCurrent') {
       const parts = (comp.value || '1Apk 1kHz').split(' ');
       const amp = parseSpiceToFloat(parts[0] || '1') || 1;
-      const freq = (parts[1] || '1k').replace('Hz','');
-      netlist += `I_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} SFFM(0 ${amp} ${freq} 5 1k)\n`;
+      const freqHz = parseSpiceToFloat(parts[1] || '1k') || 1000;
+      const freqSpice = freqHz >= 1e6 ? `${(freqHz / 1e6).toFixed(3)}Meg`
+                      : freqHz >= 1e3 ? `${(freqHz / 1e3).toFixed(3)}k`
+                      : `${freqHz}`;
+      netlist += `I_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} SFFM(0 ${amp} ${freqSpice} 5 1k)\n`;
     }
     else if (comp.type === 'ArbitraryCurrentSource') {
       netlist += `B_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} I=sin(2*3.14159*1k*time)\n`;
