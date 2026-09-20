@@ -280,7 +280,7 @@ export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: Compon
 
   return (
     <div 
-      className="sidebar" 
+      className="component-palette" 
       style={{ 
         width: '220px', 
         height: '100%', 
@@ -288,7 +288,9 @@ export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: Compon
         borderRight: '1px solid #e5e7eb', 
         display: 'flex', 
         flexDirection: 'column', 
-        fontFamily: 'system-ui, -apple-system, sans-serif'
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        flexShrink: 0,
+        overflowX: 'hidden',
       }}
     >
       <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f8fafc' }}>
