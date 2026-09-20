@@ -600,18 +600,44 @@ S_dis DIS GND dis_gate GND SMOD555
       models.add(modelDef);
     }
     else if (comp.type === 'MosfetN') {
-      netlist += `M_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${nodes[2] || '0'} NMOSMOD
-`;
-      models.add('.model NMOSMOD NMOS (LEVEL=1 VTO=2 KP=20m)');
+      const rawVal = (comp.value || '2N7000').toUpperCase();
+      const nmosParts: Record<string, string> = {
+        '2N7000':  '.model 2N7000 NMOS (LEVEL=1 VTO=2.1 KP=80m RD=0.2 RS=0.2 CJD=50p CJS=50p)',
+        'IRF540':  '.model IRF540 NMOS (LEVEL=3 VTO=4 KP=9 THETA=0.02 VMAX=1E5 ETA=0 KAPPA=0 DELTA=0 RD=0.04 RS=0.01)',
+        'IRF540N': '.model IRF540N NMOS (LEVEL=3 VTO=4 KP=9 THETA=0.02 VMAX=1E5 RD=0.04 RS=0.01)',
+        'BS170':   '.model BS170 NMOS (LEVEL=1 VTO=2.1 KP=20m RD=0.5 RS=0.5)',
+        'IRF630':  '.model IRF630 NMOS (LEVEL=3 VTO=4 KP=5.5 THETA=0.02 RD=0.18 RS=0.01)',
+        'IRF3205': '.model IRF3205 NMOS (LEVEL=3 VTO=4 KP=14 THETA=0.02 RD=0.008 RS=0.001)',
+      };
+      const modelKey = Object.keys(nmosParts).find(k => rawVal.includes(k)) || '2N7000';
+      netlist += `M_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${nodes[2] || '0'} ${modelKey}\n`;
+      models.add(nmosParts[modelKey]);
     }
     else if (comp.type === 'MosfetP') {
-      netlist += `M_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${nodes[2] || '0'} PMOSMOD
-`;
-      models.add('.model PMOSMOD PMOS (LEVEL=1 VTO=-2 KP=20m)');
+      const rawVal = (comp.value || 'BSS84').toUpperCase();
+      const pmosParts: Record<string, string> = {
+        'BSS84':   '.model BSS84 PMOS (LEVEL=1 VTO=-1.8 KP=20m RD=0.5 RS=0.5)',
+        'IRF9540': '.model IRF9540 PMOS (LEVEL=3 VTO=-4 KP=4 THETA=0.02 RD=0.12 RS=0.01)',
+        'IRF9540N':'.model IRF9540N PMOS (LEVEL=3 VTO=-4 KP=4 THETA=0.02 RD=0.12 RS=0.01)',
+        'IRF9630': '.model IRF9630 PMOS (LEVEL=3 VTO=-4 KP=3 THETA=0.02 RD=0.4 RS=0.01)',
+        'AO3401':  '.model AO3401 PMOS (LEVEL=1 VTO=-1.4 KP=15m RD=0.1 RS=0.05)',
+      };
+      const modelKey = Object.keys(pmosParts).find(k => rawVal.includes(k)) || 'BSS84';
+      netlist += `M_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${nodes[2] || '0'} ${modelKey}\n`;
+      models.add(pmosParts[modelKey]);
     }
     else if (comp.type === 'JFET') {
-      netlist += `J_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} NJFETMOD\n`;
-      models.add('.model NJFETMOD NJF (VTO=-2 BETA=1m)');
+      const rawVal = (comp.value || 'J201').toUpperCase();
+      const jfetParts: Record<string, string> = {
+        'J201':   '.model J201 NJF (VTO=-0.6 BETA=5m LAMBDA=0.01 IS=10f)',
+        '2N5459': '.model 2N5459 NJF (VTO=-3 BETA=4m LAMBDA=0.01 IS=10f)',
+        'MPF102': '.model MPF102 NJF (VTO=-3.5 BETA=3.5m LAMBDA=0.01 IS=10f)',
+        '2N3819': '.model 2N3819 NJF (VTO=-3 BETA=12m LAMBDA=0.01 IS=10f)',
+        'BF245A': '.model BF245A NJF (VTO=-2 BETA=6m LAMBDA=0.01 IS=10f)',
+      };
+      const modelKey = Object.keys(jfetParts).find(k => rawVal.includes(k)) || 'J201';
+      netlist += `J_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${modelKey}\n`;
+      models.add(jfetParts[modelKey]);
     }
     else if (comp.type === 'IGBT') {
       // Basic IGBT approximation (BJT + MOSFET) or just subcircuit
@@ -715,7 +741,18 @@ S_dis DIS GND dis_gate GND SMOD555
       models.add('.model 2N3904 NPN (IS=1E-14 VAF=100 BF=300)');
     }
     else if (comp.type === 'DIP14') {
-      netlist += `* DIP14 stub for ${comp.id}\n`;
+      // Generic DIP14 package: wire all pins through as-is.
+      // Users should load a real subckt (e.g. 74LS00) via the Custom Models panel
+      // to override this. Without a custom model, DIP14 acts as a 14-pin header.
+      const pinsList: string[] = [];
+      for (let i = 0; i < 14; i++) pinsList.push(nodes[i] || '0');
+      netlist += `X_${comp.id} ${pinsList.join(' ')} DIP14_GENERIC\n`;
+      models.add(
+        `.SUBCKT DIP14_GENERIC 1 2 3 4 5 6 7 8 9 10 11 12 13 14\n` +
+        `* Generic DIP14 package \u2014 load a real .subckt via Custom Models panel to override\n` +
+        `R_vcc 14 7 10Meg\n` +
+        `.ENDS`
+      );
     }
     else if (comp.type === 'TRIAC') {
       const mt1 = nodes[0] || '0';
@@ -798,16 +835,18 @@ S_dis DIS GND dis_gate GND SMOD555
     else if (comp.type === 'TriangularVoltage') {
       const parts = (comp.value || '5V 1kHz').split(' ');
       const amp = parseSpiceToFloat(parts[0] || '5') || 5;
-      const freq = parseSpiceToFloat(parts[1] || '1k') || 1000;
-      const halfPeriod = 1 / freq / 2;
-      netlist += `V_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} PULSE(0 ${amp} 0 ${halfPeriod} ${halfPeriod} 0 ${halfPeriod * 2})\n`;
+      const freqHz = parseSpiceToFloat(parts[1] || '1k') || 1000;
+      const halfPeriod = 1 / freqHz / 2;
+      // Bipolar triangle: -amp → +amp → -amp (symmetric, centered on 0V)
+      // PULSE(V1 V2 TD TR TF PW PER): V1=-amp, V2=+amp, TR=TF=halfPeriod, PW=0
+      netlist += `V_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} PULSE(${-amp} ${amp} 0 ${halfPeriod} ${halfPeriod} 0 ${halfPeriod * 2})\n`;
     }
     else if (comp.type === 'TriangularCurrent') {
       const parts = (comp.value || '1A 1kHz').split(' ');
       const amp = parseSpiceToFloat(parts[0] || '1') || 1;
-      const freq = parseSpiceToFloat(parts[1] || '1k') || 1000;
-      const halfPeriod = 1 / freq / 2;
-      netlist += `I_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} PULSE(0 ${amp} 0 ${halfPeriod} ${halfPeriod} 0 ${halfPeriod * 2})\n`;
+      const freqHz = parseSpiceToFloat(parts[1] || '1k') || 1000;
+      const halfPeriod = 1 / freqHz / 2;
+      netlist += `I_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} PULSE(${-amp} ${amp} 0 ${halfPeriod} ${halfPeriod} 0 ${halfPeriod * 2})\n`;
     }
     else if (comp.type === 'StepCurrent') {
       const val = parseSpiceToFloat(comp.value || '1A') || 1;
