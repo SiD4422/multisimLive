@@ -439,7 +439,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
           <LineChart {...commonChartProps}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             {commonXAxis}
-            <YAxis label={{ value: 'dB', angle: -90, position: 'insideLeft', fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
+            <YAxis label={{ value: 'Magnitude (dB)', angle: -90, position: 'insideLeft', fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
             <Tooltip
               labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
               formatter={(val: any, name: any) => [fmtNum(val as number) + ' dB', name]}
@@ -503,8 +503,8 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
 
 // â”€â”€ DC Sweep Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
-  data: SimulationData; traces: string[]; sweepKey: string; isOscilloscope: boolean;
+function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
+  data: SimulationData; traces: string[]; sweepKey: string; probeMap: Record<string, string>; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: SimulationRow | null; setCursorA: (v: SimulationRow | null) => void; cursorB: SimulationRow | null; setCursorB: (v: SimulationRow | null) => void;
   isDigitalMode?: boolean;
 }) {
@@ -513,6 +513,8 @@ function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cur
   const colors = isOscilloscope ? OSC_COLORS : COLORS;
   const gridColor = isOscilloscope ? '#003300' : '#e5e7eb';
   const textColor = isOscilloscope ? '#00ff00' : '#6b7280';
+  
+  const yLabel = getYAxisLabel(traces);
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: isOscilloscope ? '#001100' : '#fff', padding: 8 }}>
@@ -532,7 +534,7 @@ function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cur
               tick={{ fill: textColor }}
               label={{ value: `${sweepKey} (V)`, position: 'insideBottom', offset: -15, fill: textColor }}
             />
-            <YAxis label={{ value: 'Voltage / Current', angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
+            <YAxis label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
             <Tooltip
               formatter={(val: any, name: any) => [fmtNum(val as number), name]}
               labelFormatter={(v: any) => `${sweepKey}: ${Number(v).toFixed(3)}V`}
@@ -541,10 +543,13 @@ function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cur
             <Legend verticalAlign="top" height={36} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
             {isCursorMode && cursorA && <ReferenceLine x={cursorA[sweepKey]} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
-            {traces.map((t, i) => (
-              <Line key={t} name={t} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
+            {traces.map((t, i) => {
+              const displayName = probeMap[t] || formatTraceName(t);
+              return (
+              <Line key={t} name={displayName} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
-            ))}
+              );
+            })}
             <Brush
               dataKey={sweepKey}
               height={30}
@@ -600,9 +605,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
   const gridColor = isOscilloscope ? '#003300' : '#e5e7eb';
   const textColor = isOscilloscope ? '#00ff00' : '#6b7280';
 
-  const yAxisLabel = traces.some(t => t.toLowerCase().startsWith('i(') || t.toLowerCase().startsWith('i_')) ? 'Current (A)'
-                 : traces.some(t => t.toLowerCase().startsWith('v(') || t.toLowerCase().startsWith('v_')) ? 'Voltage (V)'
-                 : 'Value';
+  const yLabel = getYAxisLabel(traces);
 
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: isOscilloscope ? '#001100' : '#fff', padding: 8 }}>
@@ -625,7 +628,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
                 tick={{ fill: textColor }}
                 label={{ value: 'Time (ms)', position: 'insideBottom', offset: -15, fill: textColor }}
               />
-              <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor, style: { fontSize: 10 } }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
+              <YAxis label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
               <Tooltip
                 formatter={(value: any, name: any) => [fmtNum(value as number), name]}
                 labelFormatter={(label: any) => `Time: ${(parseFloat(label) * 1000).toFixed(4)}ms`}
@@ -836,12 +839,12 @@ export default function Grapher() {
   // FFT view overrides the normal plot for transient mode
   if (showFft && plotType === 'transient') {
     PlotComponent = (
-      <FftPlot simulationBuffer={simulationBuffer!} traces={traces} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} />
+      <FftPlot simulationBuffer={simulationBuffer!} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} />
     );
   } else if (plotType === 'ac') {
     PlotComponent = <BodePlot data={displayData} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
   } else if (plotType === 'dc') {
-    PlotComponent = <DcSweepPlot data={displayData} traces={traces} sweepKey={sweepKey} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
+    PlotComponent = <DcSweepPlot data={displayData} traces={traces} sweepKey={sweepKey} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
   } else {
     PlotComponent = (
       <TransientPlot
