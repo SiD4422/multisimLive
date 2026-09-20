@@ -24,6 +24,7 @@ import { RestoreBanner } from '../components/RestoreBanner';
 import { ComponentPalette } from '../components/ComponentPalette';
 import { SimulatorHeader } from '../components/SimulatorHeader';
 import { CustomModelPanel } from '../components/CustomModelPanel';
+import { StatusBar } from '../components/StatusBar';
 import '../index.css';
 
 // Error boundary to prevent Grapher crashes from blanking the whole screen
@@ -584,26 +585,7 @@ function Simulator() {
       {/* AnalysisSettings is shown as a modal via the gear icon — no bottom panel */}
 
       {/* Status Bar */}
-      <div style={{
-        height: '24px',
-        background: '#064a2d',
-        color: 'rgba(255,255,255,0.75)',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 12px',
-        fontSize: '11px',
-        fontFamily: 'monospace',
-        gap: '16px',
-        flexShrink: 0,
-        borderTop: '1px solid rgba(255,255,255,0.08)',
-        userSelect: 'none',
-      }}>
-        <span>Components: {components.length}</span>
-        <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
-        <span>Wires: {wires.length}</span>
-        <span style={{ color: 'rgba(255,255,255,0.3)' }}>|</span>
-        <span>Last Sim: {lastSimMs !== null ? `${lastSimMs}ms` : '—'}</span>
-      </div>
+      <StatusBar onShare={handleShare} />
 
       {/* Keyboard Shortcuts Modal */}
       {isShortcutModalOpen && (
