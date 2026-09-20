@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { track } from '@vercel/analytics';
 import type { SimulationData } from '../utils/spiceTypes';
@@ -61,6 +61,10 @@ interface SchematicState {
   highlightedComponentIds: string[];
   setAiDiagnosis: (d: import('../lib/aiTypes').DiagnosisResult | null) => void;
   setHighlightedComponentIds: (ids: string[]) => void;
+  customModels: Record<string, string>;
+  addCustomModels: (incoming: Record<string, string>) => void;
+  removeCustomModel: (name: string) => void;
+  clearCustomModels: () => void;
   // Simulation State
   isSimulating: boolean;
   simulationData: SimulationData | null;
@@ -177,6 +181,17 @@ export const useSchematicStore = create<SchematicState>()(
       acSettings: { fStart: '1', fStop: '1Meg', points: '100' },
       dcSettings: { source: 'V1', start: '0', stop: '5', step: '0.1' },
       transientSettings: { endTime: '10ms', step: '0.01ms' },
+
+      customModels: {},
+      addCustomModels: (incoming) =>
+        set(state => ({ customModels: { ...state.customModels, ...incoming } })),
+      removeCustomModel: (name) =>
+        set(state => {
+          const next = { ...state.customModels };
+          delete next[name];
+          return { customModels: next };
+        }),
+      clearCustomModels: () => set({ customModels: {} }),
 
   saveHistory: () => set((state) => ({
     past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
@@ -446,7 +461,7 @@ export const useSchematicStore = create<SchematicState>()(
 
     // DRC: Detect floating (unconnected) pins on critical components
     // We detect this by generating the netlist and checking for NC_ nodes on power devices
-    const floatingCheck = generateNetlist(components, wires, probes);
+    const floatingCheck = generateNetlist(components, wires, probes, get().customModels);
     const floatingLines = floatingCheck.split('\n').filter(l => l.match(/^[VRQMD]_/) && l.includes('NC_'));
     if (floatingLines.length > 0 && !isSilent) {
       const errorMsg = `Unconnected pin detected on a power component. Check all component terminals are wired before simulating.`;
@@ -459,7 +474,7 @@ export const useSchematicStore = create<SchematicState>()(
       set({ isSimulating: true, simulationError: null, isPlaying: false, playbackTime: 0 });
     }
     try {
-      let netlist = generateNetlist(components, wires, probes);
+      let netlist = generateNetlist(components, wires, probes, get().customModels);
 
       // Replace the default .tran line with the correct analysis command
       let analysisCmd = '';
@@ -553,6 +568,7 @@ export const useSchematicStore = create<SchematicState>()(
         components: s.components,
         wires: s.wires,
         probes: s.probes,
+        customModels: s.customModels,
       } as unknown as SchematicState),
       // â”€â”€â”€ Schema migrations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       // Add an entry here BEFORE bumping SCHEMA_VERSION. Each function receives

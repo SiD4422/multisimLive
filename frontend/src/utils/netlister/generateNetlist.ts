@@ -2,7 +2,12 @@ import type { SchematicComponent, Wire, Probe, Point } from '../../store/useSche
 import { parseSpiceToFloat } from './parseSpiceToFloat';
 import { getComponentPins } from './getComponentPins';
 import { toGridNode, isSameGridNode, isPointOnSegment, PIN_TOLERANCE } from './utils';
-export function generateNetlist(components: SchematicComponent[], wires: Wire[], probes: Probe[] = []): string {
+export function generateNetlist(
+  components: SchematicComponent[], 
+  wires: Wire[], 
+  probes: Probe[] = [],
+  customModels: Record<string, string> = {}
+): string {
   let netlist = "* WebAssembly SPICE Netlist\n";
   let models = new Set<string>();
 
@@ -901,6 +906,20 @@ S_dis DIS GND dis_gate GND SMOD555
       netlist += `X_${comp.id} ${j} ${clk} ${k} ${q} ${qbar} JKFF\n`;
     }
   });
+
+  // Inject custom models — override any built-in definition with the same name
+  for (const [name, def] of Object.entries(customModels)) {
+    // Only inject if the model name is actually referenced in the netlist
+    if (netlist.includes(name)) {
+      // Remove any existing built-in model with this name, then add custom
+      for (const existing of [...models]) {
+        if (existing.toUpperCase().includes(name.toUpperCase())) {
+          models.delete(existing);
+        }
+      }
+      models.add(def);
+    }
+  }
 
   if (models.size > 0) {
     netlist += "\n* Models\n";

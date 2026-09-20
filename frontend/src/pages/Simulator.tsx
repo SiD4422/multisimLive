@@ -23,6 +23,7 @@ import { RestoreBanner } from '../components/RestoreBanner';
 
 import { ComponentPalette } from '../components/ComponentPalette';
 import { SimulatorHeader } from '../components/SimulatorHeader';
+import { CustomModelPanel } from '../components/CustomModelPanel';
 import '../index.css';
 
 // Error boundary to prevent Grapher crashes from blanking the whole screen
@@ -76,6 +77,7 @@ function Simulator() {
   const [toast, setToast] = useState<{message: string, type: 'success' | 'warning'} | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
+  const [isCustomModelOpen, setIsCustomModelOpen] = useState(false);
   const [isMyCktOpen, setIsMyCktOpen] = useState(false);
   const [lastSimMs, setLastSimMs] = useState<number | null>(null);
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
@@ -350,6 +352,10 @@ function Simulator() {
         onClose={() => setIsAiPanelOpen(false)}
         onFocusNode={(_node) => { setActiveView('grapher'); }}
       />
+      <CustomModelPanel
+        isOpen={isCustomModelOpen}
+        onClose={() => setIsCustomModelOpen(false)}
+      />
 
       {/* My Circuit Library (localStorage) */}
       <CircuitLibrary
@@ -444,6 +450,20 @@ function Simulator() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <button
+            title="Custom SPICE Models"
+            onClick={() => setIsCustomModelOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '32px', height: '32px', background: isCustomModelOpen ? 'rgba(255,255,255,0.15)' : 'transparent',
+              border: '1px solid transparent', borderRadius: '6px',
+              cursor: 'pointer', color: 'rgba(255,255,255,0.7)', transition: 'all 0.12s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = isCustomModelOpen ? 'rgba(255,255,255,0.15)' : 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
+          >
+            <BookOpen size={16} />
+          </button>
           <button
             title="Simulation Settings"
             onClick={() => setIsConfigOpen(!isConfigOpen)}
