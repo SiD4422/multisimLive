@@ -677,13 +677,16 @@ S_dis DIS GND dis_gate GND SMOD555
     }
     else if (comp.type === 'MosfetN') {
       const rawVal = (comp.value || '2N7000').toUpperCase();
+      // NOTE: Using LEVEL=1 for all MOSFETs — ngspice-wasm does not reliably support
+      // LEVEL=3 (VMAX, ETA, KAPPA, DELTA params cause convergence failures in WASM builds).
+      // LEVEL=1 with correct VTO/KP accurately models switching behavior for student circuits.
       const nmosParts: Record<string, string> = {
-        '2N7000':  '.model 2N7000 NMOS (LEVEL=1 VTO=2.1 KP=80m RD=0.2 RS=0.2 CJD=50p CJS=50p)',
-        'IRF540':  '.model IRF540 NMOS (LEVEL=3 VTO=4 KP=9 THETA=0.02 VMAX=1E5 ETA=0 KAPPA=0 DELTA=0 RD=0.04 RS=0.01)',
-        'IRF540N': '.model IRF540N NMOS (LEVEL=3 VTO=4 KP=9 THETA=0.02 VMAX=1E5 RD=0.04 RS=0.01)',
+        '2N7000':  '.model 2N7000 NMOS (LEVEL=1 VTO=2.1 KP=80m RD=0.2 RS=0.2)',
+        'IRF540':  '.model IRF540 NMOS (LEVEL=1 VTO=4.0 KP=9.0 RD=0.04 RS=0.01)',
+        'IRF540N': '.model IRF540N NMOS (LEVEL=1 VTO=4.0 KP=9.0 RD=0.04 RS=0.01)',
         'BS170':   '.model BS170 NMOS (LEVEL=1 VTO=2.1 KP=20m RD=0.5 RS=0.5)',
-        'IRF630':  '.model IRF630 NMOS (LEVEL=3 VTO=4 KP=5.5 THETA=0.02 RD=0.18 RS=0.01)',
-        'IRF3205': '.model IRF3205 NMOS (LEVEL=3 VTO=4 KP=14 THETA=0.02 RD=0.008 RS=0.001)',
+        'IRF630':  '.model IRF630 NMOS (LEVEL=1 VTO=4.0 KP=5.5 RD=0.18 RS=0.01)',
+        'IRF3205': '.model IRF3205 NMOS (LEVEL=1 VTO=4.0 KP=14.0 RD=0.008 RS=0.001)',
       };
       const modelKey = Object.keys(nmosParts).find(k => rawVal.includes(k)) || '2N7000';
       netlist += `M_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${nodes[2] || '0'} ${modelKey}\n`;
@@ -693,9 +696,9 @@ S_dis DIS GND dis_gate GND SMOD555
       const rawVal = (comp.value || 'BSS84').toUpperCase();
       const pmosParts: Record<string, string> = {
         'BSS84':   '.model BSS84 PMOS (LEVEL=1 VTO=-1.8 KP=20m RD=0.5 RS=0.5)',
-        'IRF9540': '.model IRF9540 PMOS (LEVEL=3 VTO=-4 KP=4 THETA=0.02 RD=0.12 RS=0.01)',
-        'IRF9540N':'.model IRF9540N PMOS (LEVEL=3 VTO=-4 KP=4 THETA=0.02 RD=0.12 RS=0.01)',
-        'IRF9630': '.model IRF9630 PMOS (LEVEL=3 VTO=-4 KP=3 THETA=0.02 RD=0.4 RS=0.01)',
+        'IRF9540': '.model IRF9540 PMOS (LEVEL=1 VTO=-4.0 KP=4.0 RD=0.12 RS=0.01)',
+        'IRF9540N':'.model IRF9540N PMOS (LEVEL=1 VTO=-4.0 KP=4.0 RD=0.12 RS=0.01)',
+        'IRF9630': '.model IRF9630 PMOS (LEVEL=1 VTO=-4.0 KP=3.0 RD=0.4 RS=0.01)',
         'AO3401':  '.model AO3401 PMOS (LEVEL=1 VTO=-1.4 KP=15m RD=0.1 RS=0.05)',
       };
       const modelKey = Object.keys(pmosParts).find(k => rawVal.includes(k)) || 'BSS84';

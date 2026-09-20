@@ -483,12 +483,23 @@ export const useSchematicStore = create<SchematicState>()(
       }
     }
 
-    // DRC: Detect floating (unconnected) pins on critical components
-    // We detect this by generating the netlist and checking for NC_ nodes on power devices
+    // DRC: Detect genuinely floating pins on critical components only.
+    // Rules:
+    //  - Q_ (BJT): all 3 nodes (C,B,E) must be connected
+    //  - M_ (MOSFET): all 3 nodes (D,G,S) must be connected
+    //  - D_ (Diode): both nodes must be connected
+    // Excluded from blocking DRC:
+    //  - V_PRB_ lines (current probe ammeters — always have one NC_ node by design)
+    //  - X_ lines (op-amp/subckt — VCC/VEE optional on ideal 3-pin models)
+    //  - Timer555 CON pin (commonly left unconnected — treated as warning, not error)
     const floatingCheck = generateNetlist(components, wires, probes, get().customModels, get().customModelPorts);
-    const floatingLines = floatingCheck.split('\n').filter(l => l.match(/^[VRQMD]_/) && l.includes('NC_'));
-    if (floatingLines.length > 0 && !isSilent) {
-      const errorMsg = `Unconnected pin detected on a power component. Check all component terminals are wired before simulating.`;
+    const criticalFloating = floatingCheck.split('\n').filter(l => {
+      if (!l.includes('NC_')) return false;
+      // Only block on BJTs, MOSFETs, and diodes — never on probes or subckts
+      return l.match(/^Q_/) || l.match(/^M_/) || l.match(/^D_[^_]/);
+    });
+    if (criticalFloating.length > 0 && !isSilent) {
+      const errorMsg = `Unconnected pin detected. Check all transistor/diode terminals are wired before simulating.`;
       track('Simulation_Error', { type: 'DRC', details: 'Floating Pin' });
       set({ simulationError: errorMsg, isSimulating: false, isPlaying: false });
       return;

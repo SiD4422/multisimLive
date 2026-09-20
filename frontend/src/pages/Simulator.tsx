@@ -15,7 +15,7 @@ import AiExplainerPanel from '../components/AiExplainerPanel';
 import { OpPointTable } from '../components/OpPointTable';
 import { CircuitLibrary } from '../components/CircuitLibrary';
 import { useSchematicStore } from '../store/useSchematicStore';
-import { generateNetlist } from '../utils/netlister';
+import { generateNetlist, getComponentPins } from '../utils/netlister';
 import { EmbedModal } from '../components/EmbedModal';
 import { WelcomeTour } from '../components/WelcomeTour';
 import { useCircuitBoot } from '../hooks/useCircuitBoot';
@@ -97,13 +97,23 @@ function Simulator() {
       c.type === 'DCSource' || c.type === 'ACSource'
     );
     if (!hasSrc) issues.push('No voltage or current source in circuit');
-    // 3. Floating components (components with no wires attached)
+    // 3. Floating components — check if ANY pin (not just center) is near a wire
+    // Multi-pin ICs (555, op-amps) have pins far from their center position
     const allWirePoints = wires.flatMap(w => w.points);
-    const isNearWire = (pos: {x:number,y:number}) =>
+    const isPinNearWire = (pos: {x:number,y:number}) =>
       allWirePoints.some(p => Math.abs(p.x - pos.x) < 15 && Math.abs(p.y - pos.y) < 15);
-    const floating = components.filter(c =>
-      c.type !== 'Ground' && c.type !== 'TextAnnotation' && !isNearWire(c.position)
-    );
+    const floating = components.filter(c => {
+      if (c.type === 'Ground' || c.type === 'TextAnnotation') return false;
+      // Check center position first (fast path for most components)
+      if (isPinNearWire(c.position)) return false;
+      // For multi-pin components, check if any of their computed pins are near a wire
+      try {
+        const pins = getComponentPins(c);
+        return !pins.some(pin => pin.p && isPinNearWire(pin.p));
+      } catch {
+        return !isPinNearWire(c.position);
+      }
+    });
     if (floating.length > 0) issues.push(`${floating.length} component(s) not connected to any wire`);
     return issues;
   }, [components, wires]);
