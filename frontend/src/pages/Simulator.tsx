@@ -794,6 +794,7 @@ function Simulator() {
                           <div
                             key={item.type}
                             onClick={() => { handleSelectComponent(item.type, item.value); setActiveCategory(null); setSearchQuery(''); }}
+                            onTouchStart={(e) => { e.preventDefault(); handleSelectComponent(item.type, item.value); setActiveCategory(null); setSearchQuery(''); }}
                             style={{
                               padding: '12px 12px',
                               cursor: 'pointer',
@@ -922,9 +923,9 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Analysis and annotation</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ProbeVoltage', '')}><IconProbeVoltage size={28} /><span>Voltage</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ProbeCurrent', '')}><IconProbeCurrent size={28} /><span>Current</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('TextAnnotation', 'Text')}><span className="text-blue-500 font-bold mt-1 text-2xl">Abc</span><span className="text-gray-700 mt-2">Text Annotation</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ProbeVoltage', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ProbeVoltage', ''); }}><IconProbeVoltage size={28} /><span>Voltage</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ProbeCurrent', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ProbeCurrent', ''); }}><IconProbeCurrent size={28} /><span>Current</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('TextAnnotation', 'Text')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('TextAnnotation', 'Text'); }}><span className="text-blue-500 font-bold mt-1 text-2xl">Abc</span><span className="text-gray-700 mt-2">Text Annotation</span></div>
                       </div>
                     </>
                   )}
@@ -933,9 +934,9 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Schematic connectors</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Ground', '0')}><IconGround size={28} /><span>Ground</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Connector', '')}><IconConnector size={28} /><span>Connector</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Junction', '')}><IconJunction size={28} /><span>Junction</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Ground', '0')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Ground', '0'); }}><IconGround size={28} /><span>Ground</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Connector', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Connector', ''); }}><IconConnector size={28} /><span>Connector</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Junction', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Junction', ''); }}><IconJunction size={28} /><span>Junction</span></div>
                       </div>
                     </>
                   )}
@@ -944,28 +945,28 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Sources</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ACSource', '1Vpk 1kHz')}><IconACVoltage size={28} /><span>AC Voltage</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ACCurrent', '1A')}><IconACCurrent size={28} /><span>AC Current</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ClockVoltage', '5V')}><IconPulseVoltage size={28} /><span>Clock Voltage</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ClockCurrent', '')}><IconPulseVoltage size={28} /><span>Clock Current</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('TriangularVoltage', '')}><IconACVoltage size={28} /><span>Triangular Voltage</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('TriangularCurrent', '')}><IconACCurrent size={28} /><span>Triangular Current</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('DCSource', '5V')}><IconDCVoltage size={28} /><span>DC Voltage (VCC)</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('DCCurrent', '1A')}><IconDCCurrent size={28} /><span>DC Current</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('StepVoltage', '')}><IconPulseVoltage size={28} /><span>Step Voltage</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('StepCurrent', '')}><IconPulseVoltage size={28} /><span>Step Current</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('PulseVoltage', '5V')}><IconPulseVoltage size={28} /><span>Pulse Voltage</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('PulseCurrent', '')}><IconPulseVoltage size={28} /><span>Pulse Current</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('AMVoltage', '')}><IconACVoltage size={28} /><span>AM Voltage</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('FMVoltage', '')}><IconACVoltage size={28} /><span>FM Voltage</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('FMCurrent', '')}><IconACCurrent size={28} /><span>FM Current</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ChirpVoltage', '')}><IconPulseVoltage size={28} /><span>Chirp Voltage</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ChirpCurrent', '')}><IconPulseVoltage size={28} /><span>Chirp Current</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ThermalNoise', '')}><IconACVoltage size={28} /><span>Thermal Noise</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ArbitraryVoltageSource', '')}><IconACVoltage size={28} /><span>Arbitrary Voltage Source</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ArbitraryCurrentSource', '')}><IconACCurrent size={28} /><span>Arbitrary Current Source</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ThreePhaseDelta', '')}><IconACVoltage size={28} /><span>Three Phase Delta</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ThreePhaseWye', '')}><IconACVoltage size={28} /><span>Three Phase Wye</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ACSource', '1Vpk 1kHz')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ACSource', '1Vpk 1kHz'); }}><IconACVoltage size={28} /><span>AC Voltage</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ACCurrent', '1A')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ACCurrent', '1A'); }}><IconACCurrent size={28} /><span>AC Current</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ClockVoltage', '5V')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ClockVoltage', '5V'); }}><IconPulseVoltage size={28} /><span>Clock Voltage</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ClockCurrent', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ClockCurrent', ''); }}><IconPulseVoltage size={28} /><span>Clock Current</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('TriangularVoltage', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('TriangularVoltage', ''); }}><IconACVoltage size={28} /><span>Triangular Voltage</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('TriangularCurrent', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('TriangularCurrent', ''); }}><IconACCurrent size={28} /><span>Triangular Current</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DCSource', '5V')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('DCSource', '5V'); }}><IconDCVoltage size={28} /><span>DC Voltage (VCC)</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DCCurrent', '1A')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('DCCurrent', '1A'); }}><IconDCCurrent size={28} /><span>DC Current</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('StepVoltage', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('StepVoltage', ''); }}><IconPulseVoltage size={28} /><span>Step Voltage</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('StepCurrent', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('StepCurrent', ''); }}><IconPulseVoltage size={28} /><span>Step Current</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('PulseVoltage', '5V')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('PulseVoltage', '5V'); }}><IconPulseVoltage size={28} /><span>Pulse Voltage</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('PulseCurrent', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('PulseCurrent', ''); }}><IconPulseVoltage size={28} /><span>Pulse Current</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('AMVoltage', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('AMVoltage', ''); }}><IconACVoltage size={28} /><span>AM Voltage</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('FMVoltage', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('FMVoltage', ''); }}><IconACVoltage size={28} /><span>FM Voltage</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('FMCurrent', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('FMCurrent', ''); }}><IconACCurrent size={28} /><span>FM Current</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ChirpVoltage', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ChirpVoltage', ''); }}><IconPulseVoltage size={28} /><span>Chirp Voltage</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ChirpCurrent', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ChirpCurrent', ''); }}><IconPulseVoltage size={28} /><span>Chirp Current</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ThermalNoise', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ThermalNoise', ''); }}><IconACVoltage size={28} /><span>Thermal Noise</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ArbitraryVoltageSource', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ArbitraryVoltageSource', ''); }}><IconACVoltage size={28} /><span>Arbitrary Voltage Source</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ArbitraryCurrentSource', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ArbitraryCurrentSource', ''); }}><IconACCurrent size={28} /><span>Arbitrary Current Source</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ThreePhaseDelta', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ThreePhaseDelta', ''); }}><IconACVoltage size={28} /><span>Three Phase Delta</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ThreePhaseWye', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ThreePhaseWye', ''); }}><IconACVoltage size={28} /><span>Three Phase Wye</span></div>
                         <div className="flyout-item disabled"><Search size={28} color="#6b7280" /><span>More</span></div>
                       </div>
                     </>
@@ -975,18 +976,18 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Passive</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Resistor', '1k')}><IconResistor size={28} /><span>Resistor</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Load', '1k')}><IconLoad size={28} /><span>Load</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Capacitor', '1µF')}><IconCapacitor size={28} /><span>Capacitor</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Inductor', '1mH')}><IconInductor size={28} /><span>Inductor</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Potentiometer', '10k')}><IconPotentiometer size={28} /><span>Potentiometer</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Fuse', '')}><IconFuse size={28} /><span>Fuse</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Resistor', '1k')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Resistor', '1k'); }}><IconResistor size={28} /><span>Resistor</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Load', '1k')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Load', '1k'); }}><IconLoad size={28} /><span>Load</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Capacitor', '1µF')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Capacitor', '1µF'); }}><IconCapacitor size={28} /><span>Capacitor</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Inductor', '1mH')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Inductor', '1mH'); }}><IconInductor size={28} /><span>Inductor</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Potentiometer', '10k')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Potentiometer', '10k'); }}><IconPotentiometer size={28} /><span>Potentiometer</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Fuse', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Fuse', ''); }}><IconFuse size={28} /><span>Fuse</span></div>
                         <div className="flyout-item" onClick={() => setActiveCategory('transformers')}><IconTransformers size={28} /><span>Transformers...</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('CoupledInductors', '')}><IconCoupledInductors size={28} /><span>Coupled Inductors</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('LossyTransmissionLine', '')}><IconLossyTransmissionLine size={28} /><span>Lossy Transmission Line</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('LosslessTransmissionLine', '')}><IconLosslessTransmissionLine size={28} /><span>Lossless Transmission Line</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Resistors', '')}><IconResistorsPack size={28} /><span>Resistors...</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('CrystalOscillator', '16MHz')}><IconCrystal size={28} /><span>Crystal Oscillator</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('CoupledInductors', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('CoupledInductors', ''); }}><IconCoupledInductors size={28} /><span>Coupled Inductors</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('LossyTransmissionLine', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('LossyTransmissionLine', ''); }}><IconLossyTransmissionLine size={28} /><span>Lossy Transmission Line</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('LosslessTransmissionLine', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('LosslessTransmissionLine', ''); }}><IconLosslessTransmissionLine size={28} /><span>Lossless Transmission Line</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Resistors', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Resistors', ''); }}><IconResistorsPack size={28} /><span>Resistors...</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('CrystalOscillator', '16MHz')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('CrystalOscillator', '16MHz'); }}><IconCrystal size={28} /><span>Crystal Oscillator</span></div>
                       </div>
                     </>
                   )}
@@ -998,11 +999,11 @@ function Simulator() {
                         Transformers
                       </div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer1P1S', '')}><IconTransformer1P1S size={28} /><span>1P1S</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer1P1S_CT', '')}><IconTransformer1P1S_CT size={28} /><span>1P1S with Center Tap</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer1P2S', '')}><IconTransformer1P2S size={28} /><span>1P2S</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer2P1S', '')}><IconTransformer2P1S size={28} /><span>2P1S</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer2P2S', '')}><IconTransformer2P2S size={28} /><span>2P2S</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer1P1S', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Transformer1P1S', ''); }}><IconTransformer1P1S size={28} /><span>1P1S</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer1P1S_CT', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Transformer1P1S_CT', ''); }}><IconTransformer1P1S_CT size={28} /><span>1P1S with Center Tap</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer1P2S', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Transformer1P2S', ''); }}><IconTransformer1P2S size={28} /><span>1P2S</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer2P1S', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Transformer2P1S', ''); }}><IconTransformer2P1S size={28} /><span>2P1S</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Transformer2P2S', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Transformer2P2S', ''); }}><IconTransformer2P2S size={28} /><span>2P2S</span></div>
                       </div>
                     </>
                   )}
@@ -1011,17 +1012,17 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Analog ICs</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Opamp', 'LM324')}><IconOpamp3T size={28} /><span>Ideal Op-Amp</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Opamp5', 'LM741')}><IconOpamp5T size={28} /><span>LM741</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('OpampLM358', 'LM358')}><IconOpampLM358 size={28} /><span>LM358</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('OpampTL071', 'TL071')}><IconOpampTL071 size={28} /><span>TL071</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Comparator', 'LM311')}><IconComparator size={28} /><span>Comparator</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('SchmittTrigger', '3.3/1.7')}><IconSchmittTrigger size={28} /><span>Schmitt Trigger</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('VCSwitch', '2.5')}><IconVCSwitch size={28} /><span>VC Switch</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('VCCS', '0.001')}><IconVCCS size={28} /><span>VCCS</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('InstAmp', '100')}><IconInstAmp size={28} /><span>Inst. Amp</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Timer555', 'NE555')}><IconTimer555 size={28} /><span>555 Timer</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('CurrentMirror', '')}><IconCurrentMirror size={28} /><span>Current Mirror</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Opamp', 'LM324')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Opamp', 'LM324'); }}><IconOpamp3T size={28} /><span>Ideal Op-Amp</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Opamp5', 'LM741')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Opamp5', 'LM741'); }}><IconOpamp5T size={28} /><span>LM741</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('OpampLM358', 'LM358')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('OpampLM358', 'LM358'); }}><IconOpampLM358 size={28} /><span>LM358</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('OpampTL071', 'TL071')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('OpampTL071', 'TL071'); }}><IconOpampTL071 size={28} /><span>TL071</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Comparator', 'LM311')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Comparator', 'LM311'); }}><IconComparator size={28} /><span>Comparator</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('SchmittTrigger', '3.3/1.7')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('SchmittTrigger', '3.3/1.7'); }}><IconSchmittTrigger size={28} /><span>Schmitt Trigger</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('VCSwitch', '2.5')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('VCSwitch', '2.5'); }}><IconVCSwitch size={28} /><span>VC Switch</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('VCCS', '0.001')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('VCCS', '0.001'); }}><IconVCCS size={28} /><span>VCCS</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('InstAmp', '100')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('InstAmp', '100'); }}><IconInstAmp size={28} /><span>Inst. Amp</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Timer555', 'NE555')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Timer555', 'NE555'); }}><IconTimer555 size={28} /><span>555 Timer</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('CurrentMirror', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('CurrentMirror', ''); }}><IconCurrentMirror size={28} /><span>Current Mirror</span></div>
                       </div>
                     </>
                   )}
@@ -1030,11 +1031,11 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Diodes</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Diode', '1N4148')}><IconDiode size={28} /><span>Diode</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('DiodeZener', '1N4728A')}><IconDiodeZener size={28} /><span>Zener</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('DiodeSchottky', 'BAT54')}><IconDiode size={28} /><span>Schottky</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('LED', '')}><IconDiodeLED size={28} /><span>LED</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Photodiode', '')}><IconPhotodiode size={28} /><span>Photodiode</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Diode', '1N4148')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Diode', '1N4148'); }}><IconDiode size={28} /><span>Diode</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DiodeZener', '1N4728A')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('DiodeZener', '1N4728A'); }}><IconDiodeZener size={28} /><span>Zener</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DiodeSchottky', 'BAT54')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('DiodeSchottky', 'BAT54'); }}><IconDiode size={28} /><span>Schottky</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('LED', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('LED', ''); }}><IconDiodeLED size={28} /><span>LED</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Photodiode', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Photodiode', ''); }}><IconPhotodiode size={28} /><span>Photodiode</span></div>
                       </div>
                     </>
                   )}
@@ -1043,14 +1044,14 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Transistors</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('TransistorNPN', '2N3904')}><IconTransistorNPN size={28} /><span>NPN</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('TransistorPNP', '2N3906')}><IconTransistorPNP size={28} /><span>PNP</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('MosfetN', '2N7000')}><IconMosfetN size={28} /><span>NMOS</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('MosfetP', 'BSS84')}><IconMosfetP size={28} /><span>PMOS</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('JFET', 'J201')}><IconJFET size={28} /><span>JFET N</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('IGBT', 'FGA25N120')}><IconIGBT size={28} /><span>IGBT</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Phototransistor', '')}><IconPhototransistor size={28} /><span>Phototransistor</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Darlington', '')}><IconDarlington size={28} /><span>Darlington Pair</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('TransistorNPN', '2N3904')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('TransistorNPN', '2N3904'); }}><IconTransistorNPN size={28} /><span>NPN</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('TransistorPNP', '2N3906')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('TransistorPNP', '2N3906'); }}><IconTransistorPNP size={28} /><span>PNP</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('MosfetN', '2N7000')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('MosfetN', '2N7000'); }}><IconMosfetN size={28} /><span>NMOS</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('MosfetP', 'BSS84')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('MosfetP', 'BSS84'); }}><IconMosfetP size={28} /><span>PMOS</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('JFET', 'J201')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('JFET', 'J201'); }}><IconJFET size={28} /><span>JFET N</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('IGBT', 'FGA25N120')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('IGBT', 'FGA25N120'); }}><IconIGBT size={28} /><span>IGBT</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Phototransistor', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Phototransistor', ''); }}><IconPhototransistor size={28} /><span>Phototransistor</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Darlington', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Darlington', ''); }}><IconDarlington size={28} /><span>Darlington Pair</span></div>
                       </div>
                     </>
                   )}
@@ -1059,11 +1060,11 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Switches</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('SwitchSPST', 'SW1')}><IconSwitch size={28} /><span>SPST Switch</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('SPDTSwitch', '')}><IconSwitch size={28} /><span>SPDT Switch</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('DigitalSwitch', '0')}><IconSwitch size={28} /><span>Digital Switch (0/1)</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('PushButton', '')}><IconSwitch size={28} /><span>Push Button</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Relay', '')}><IconSwitch size={28} /><span>Relay</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('SwitchSPST', 'SW1')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('SwitchSPST', 'SW1'); }}><IconSwitch size={28} /><span>SPST Switch</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('SPDTSwitch', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('SPDTSwitch', ''); }}><IconSwitch size={28} /><span>SPDT Switch</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DigitalSwitch', '0')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('DigitalSwitch', '0'); }}><IconSwitch size={28} /><span>Digital Switch (0/1)</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('PushButton', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('PushButton', ''); }}><IconSwitch size={28} /><span>Push Button</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Relay', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Relay', ''); }}><IconSwitch size={28} /><span>Relay</span></div>
                       </div>
                     </>
                   )}
@@ -1072,14 +1073,14 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Power & Opto</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('BridgeRectifier', '')}><IconBridgeRectifier size={28} /><span>Bridge Rectifier</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('ThyristorSCR', '2N5060')}><IconThyristor size={28} /><span>SCR (Thyristor)</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('TRIAC', '')}><IconTriac size={28} /><span>TRIAC</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('DIAC', '')}><IconDiac size={28} /><span>DIAC</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Optocoupler', 'PC817')}><IconOptocoupler size={28} /><span>Optocoupler</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('VoltageRegulator7805', '')}><IconVoltageRegulator size={28} /><span>7805 Regulator</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('VoltageRegulator7812', '')}><IconVoltageRegulator size={28} /><span>7812 Regulator</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('VoltageRegulatorLM317', '')}><IconVoltageRegulator size={28} /><span>LM317 Regulator</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('BridgeRectifier', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('BridgeRectifier', ''); }}><IconBridgeRectifier size={28} /><span>Bridge Rectifier</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('ThyristorSCR', '2N5060')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('ThyristorSCR', '2N5060'); }}><IconThyristor size={28} /><span>SCR (Thyristor)</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('TRIAC', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('TRIAC', ''); }}><IconTriac size={28} /><span>TRIAC</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DIAC', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('DIAC', ''); }}><IconDiac size={28} /><span>DIAC</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Optocoupler', 'PC817')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Optocoupler', 'PC817'); }}><IconOptocoupler size={28} /><span>Optocoupler</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('VoltageRegulator7805', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('VoltageRegulator7805', ''); }}><IconVoltageRegulator size={28} /><span>7805 Regulator</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('VoltageRegulator7812', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('VoltageRegulator7812', ''); }}><IconVoltageRegulator size={28} /><span>7812 Regulator</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('VoltageRegulatorLM317', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('VoltageRegulatorLM317', ''); }}><IconVoltageRegulator size={28} /><span>LM317 Regulator</span></div>
                       </div>
                     </>
                   )}
@@ -1088,33 +1089,33 @@ function Simulator() {
                     <>
                       <div className="flyout-header">Digital Logic Gates</div>
                       <div className="flyout-grid">
-                        <div className="flyout-item" onClick={() => handleSelectComponent('GateAND', '')}><IconGateAND size={28} /><span>AND</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('GateOR', '')}><IconGateOR size={28} /><span>OR</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('GateNOT', '')}><IconGateNOT size={28} /><span>NOT</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('GateNAND', '')}><IconGateNAND size={28} /><span>NAND</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('GateNOR', '')}><IconGateNOR size={28} /><span>NOR</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('GateXOR', '')}><IconGateXOR size={28} /><span>XOR</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC04', '')}>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('GateAND', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('GateAND', ''); }}><IconGateAND size={28} /><span>AND</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('GateOR', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('GateOR', ''); }}><IconGateOR size={28} /><span>OR</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('GateNOT', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('GateNOT', ''); }}><IconGateNOT size={28} /><span>NOT</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('GateNAND', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('GateNAND', ''); }}><IconGateNAND size={28} /><span>NAND</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('GateNOR', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('GateNOR', ''); }}><IconGateNOR size={28} /><span>NOR</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('GateXOR', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('GateXOR', ''); }}><IconGateXOR size={28} /><span>XOR</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC04', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('IC74HC04', ''); }}>
                           <span className="flyout-icon">🔲</span>
                           <div><div className="flyout-label">74HC04</div><div className="flyout-sub">Hex Inverter</div></div>
                         </div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC00', '')}>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC00', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('IC74HC00', ''); }}>
                           <span className="flyout-icon">🔲</span>
                           <div><div className="flyout-label">74HC00</div><div className="flyout-sub">Quad NAND</div></div>
                         </div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC86', '')}>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC86', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('IC74HC86', ''); }}>
                           <span className="flyout-icon">🔲</span>
                           <div><div className="flyout-label">74HC86</div><div className="flyout-sub">Quad XOR</div></div>
                         </div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC138', '')}>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('IC74HC138', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('IC74HC138', ''); }}>
                           <span className="flyout-icon">🔲</span>
                           <div><div className="flyout-label">74HC138</div><div className="flyout-sub">3-to-8 Decoder</div></div>
                         </div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('DFlipFlop', '')}><IconDFlipFlop size={28} /><span>D Flip-Flop</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('JKFlipFlop', '')}><IconJKFlipFlop size={28} /><span>JK Flip-Flop</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('DIP14', '')}><IconDIP14 size={28} /><span>DIP-14 IC</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('SevenSegment', '')}><Icon7Segment size={28} /><span>7-Segment Display</span></div>
-                        <div className="flyout-item" onClick={() => handleSelectComponent('Lamp', '')}><IconLamp size={28} /><span>Indicator Lamp</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DFlipFlop', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('DFlipFlop', ''); }}><IconDFlipFlop size={28} /><span>D Flip-Flop</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('JKFlipFlop', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('JKFlipFlop', ''); }}><IconJKFlipFlop size={28} /><span>JK Flip-Flop</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('DIP14', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('DIP14', ''); }}><IconDIP14 size={28} /><span>DIP-14 IC</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('SevenSegment', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('SevenSegment', ''); }}><Icon7Segment size={28} /><span>7-Segment Display</span></div>
+                        <div className="flyout-item" onClick={() => handleSelectComponent('Lamp', '')} onTouchStart={(e) => { e.preventDefault(); handleSelectComponent('Lamp', ''); }}><IconLamp size={28} /><span>Indicator Lamp</span></div>
                       </div>
                     </>
                   )}
