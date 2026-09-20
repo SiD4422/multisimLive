@@ -692,4 +692,19 @@ body {
 .animate-fadeIn     { animation: fadeIn 0.15s ease; }
 .animate-slideInRight { animation: slideInRight 0.15s ease; }
 
-
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #1e293b;
+  color: #4ade80;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 14px;
+  z-index: 99999;
+  transition: top 0.15s;
+}
+.skip-link:focus {
+  top: 6px;
+}

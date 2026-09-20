@@ -1124,7 +1124,7 @@ function Simulator() {
           )}
 
           {/* Canvas Area */}
-          <div className="canvas-container flex-1 flex flex-col md:flex-row overflow-hidden">
+          <div id="main-content" className="canvas-container flex-1 flex flex-col md:flex-row overflow-hidden">
             {(activeView === 'schematic' || activeView === 'split') && (
               <div 
                 className={`canvas-wrapper relative ${activeView === 'split' ? 'w-1/2 border-r border-gray-300' : 'w-full'}`} 
