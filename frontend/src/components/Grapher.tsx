@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { SimulationData, SimulationRow } from '../utils/spiceTypes';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { getSpiceNodeForPoint } from '../utils/netlister';
@@ -23,27 +23,39 @@ const OSC_COLORS = [
 // ðŸ”§ Helpers ðŸ”§
 
 function formatTraceName(t: string): string {
-  if (t.startsWith('v(')) {
-    const node = t.match(/v\(([^)]+)\)/i)?.[1] || '';
-    if (node && !isNaN(Number(node))) return `Node ${node} Voltage`;
-    if (node) return `${node.toUpperCase()} Voltage`;
-    return t;
-  }
-  if (t.startsWith('i(')) {
-    const comp = t.match(/i\(([^)]+)\)/i)?.[1] || '';
-    if (comp.startsWith('v_')) {
-      return `${comp.replace('v_', '').toUpperCase()} Current`;
-    }
-    if (comp.includes('.x_')) {
-      const subComp = comp.match(/x_([a-z0-9]+)/i)?.[1] || '';
-      if (subComp) return `${subComp.toUpperCase()} Current`;
-    }
-    if (comp.startsWith('x_')) {
-       return `${comp.replace('x_','').toUpperCase()} Current`;
-    }
-    return `${comp.toUpperCase()} Current`;
-  }
-  return t;
+  const s = t.trim();
+  const sl = s.toLowerCase();
+
+  // v(n001), v(n002) — auto-numbered nodes
+  const autoNode = sl.match(/^v\(n(\d+)\)$/);
+  if (autoNode) return `Node ${parseInt(autoNode[1])} Voltage`;
+
+  // v(1), v(2) — plain numbered nodes
+  const numNode = sl.match(/^v\((\d+)\)$/);
+  if (numNode) return `Node ${numNode[1]} Voltage`;
+
+  // i(v_xxx) — current through a voltage source
+  const srcCurrent = sl.match(/^i\(v_([^)]+)\)$/);
+  if (srcCurrent) return `I through ${srcCurrent[1].toUpperCase()}`;
+
+  // i(r_xxx), i(c_xxx) etc — current through any component
+  const compCurrent = sl.match(/^i\(([a-z])_([^)]+)\)$/);
+  if (compCurrent) return `I through ${compCurrent[1].toUpperCase()}${compCurrent[2].toUpperCase()}`;
+
+  // v(out), v(in), v(vcc), v(gnd) — named nodes
+  const namedNode = sl.match(/^v\(([^)]+)\)$/);
+  if (namedNode) return `${namedNode[1].toUpperCase()} Voltage`;
+
+  // AC sweep suffixes
+  if (sl.endsWith('_db')) return formatTraceName(s.slice(0, -3)) + ' (dB)';
+  if (sl.endsWith('_phase')) return formatTraceName(s.slice(0, -6)) + ' Phase (°)';
+
+  // Axis keys
+  if (sl === 'frequency' || sl === 'freq') return 'Frequency (Hz)';
+  if (sl === 'time') return 'Time (s)';
+  if (sl === 'v_sweep') return 'Sweep Voltage (V)';
+
+  return s; // fallback
 }
 
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -65,6 +77,17 @@ function fmtNum(value: number): string {
   return Number(value.toFixed(4)).toString();
 }
 
+function getYAxisLabel(traces: string[], isAcMagnitude: boolean = false, isAcPhase: boolean = false): string {
+  if (isAcMagnitude) return 'Magnitude (dB)';
+  if (isAcPhase) return 'Phase (°)';
+  const hasV = traces.some(t => t.toLowerCase().startsWith('v('));
+  const hasI = traces.some(t => t.toLowerCase().startsWith('i('));
+  if (hasV && hasI) return 'Value';
+  if (hasV) return 'Voltage (V)';
+  if (hasI) return 'Current (A)';
+  return 'Value';
+}
+
 // â”€â”€ Subcomponents â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const LoadingSpinner = () => (
@@ -74,7 +97,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const MeasurementsPanel = ({ data, traces, plotType }: { data: SimulationData, traces: string[], plotType: string }) => {
+const MeasurementsPanel = ({ data, traces, plotType, probeMap }: { data: SimulationData, traces: string[], plotType: string, probeMap: Record<string, string> }) => {
   if (plotType !== 'transient' || !data || data.length < 2 || traces.length === 0) return null;
 
   const measurements = traces.map(trace => {
@@ -156,14 +179,17 @@ const MeasurementsPanel = ({ data, traces, plotType }: { data: SimulationData, t
         <span>Measurements</span>
       </div>
       <div className="flex flex-row overflow-x-auto p-2 gap-4">
-        {measurements.map((m, idx) => (
+        {measurements.map((m, idx) => {
+          const displayName = probeMap[m.trace] || formatTraceName(m.trace);
+          return (
           <div key={m.trace} className="flex flex-col min-w-[120px] bg-gray-50 border border-gray-200 rounded p-2">
-            <span className="font-bold mb-1 border-b pb-1 truncate" style={{color: COLORS[idx % COLORS.length]}}>{m.trace}</span>
+            <span className="font-bold mb-1 border-b pb-1 truncate" style={{color: COLORS[idx % COLORS.length]}} title={displayName}>{displayName}</span>
             <div className="flex justify-between"><span>Vpp:</span> <span className="font-mono">{fmtNum(m.pkpk)}V</span></div>
             <div className="flex justify-between"><span>RMS:</span> <span className="font-mono">{fmtNum(m.rms)}V</span></div>
             <div className="flex justify-between"><span>Freq:</span> <span className="font-mono">{m.freqStr}</span></div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -259,9 +285,10 @@ const EmptyView = () => (
 
 // â”€â”€ FFT Spectrum Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-function FftPlot({ simulationBuffer, traces, isOscilloscope, isDigitalMode }: {
+function FftPlot({ simulationBuffer, traces, probeMap, isOscilloscope, isDigitalMode }: {
   simulationBuffer: SimulationData;
   traces: string[];
+  probeMap: Record<string, string>;
   isOscilloscope: boolean;
   isDigitalMode?: boolean;
 }) {
@@ -312,6 +339,8 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope, isDigitalMode }: {
     );
   }
 
+  const yLabel = 'Magnitude (dB)';
+
   return (
     <div style={{ position: 'absolute', inset: 0, background: bg, padding: 8 }}>
       <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: textColor, marginBottom: 4, paddingLeft: 40 }}>
@@ -333,7 +362,7 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope, isDigitalMode }: {
             <YAxis
               domain={['auto', 'auto']}
               tick={{ fill: textColor, fontSize: 11 }}
-              label={{ value: 'dBV', angle: -90, position: 'insideLeft', fill: textColor, fontSize: 12 }}
+              label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: textColor, fontSize: 12 }}
             />
             <Tooltip
               labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
@@ -341,14 +370,17 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope, isDigitalMode }: {
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
-            {traces.map((t, i) => (
+            {traces.map((t, i) => {
+              const displayName = probeMap[t] || formatTraceName(t);
+              return (
               <Line
-                key={t} name={t} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
+                key={t} name={displayName} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 2 : 1.5}
                 isAnimationActive={false}
                 
               />
-            ))}
+              );
+            })}
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -568,6 +600,10 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
   const gridColor = isOscilloscope ? '#003300' : '#e5e7eb';
   const textColor = isOscilloscope ? '#00ff00' : '#6b7280';
 
+  const yAxisLabel = traces.some(t => t.toLowerCase().startsWith('i(') || t.toLowerCase().startsWith('i_')) ? 'Current (A)'
+                 : traces.some(t => t.toLowerCase().startsWith('v(') || t.toLowerCase().startsWith('v_')) ? 'Voltage (V)'
+                 : 'Value';
+
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: isOscilloscope ? '#001100' : '#fff', padding: 8 }}>
       <h3 style={{ fontSize: 13, fontWeight: 700, color: isOscilloscope ? '#00ff00' : '#374151', margin: '0 0 4px 8px' }}>Transient Analysis</h3>
@@ -589,7 +625,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
                 tick={{ fill: textColor }}
                 label={{ value: 'Time (ms)', position: 'insideBottom', offset: -15, fill: textColor }}
               />
-              <YAxis label={{ value: 'Voltage / Current', angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
+              <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor, style: { fontSize: 10 } }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
               <Tooltip
                 formatter={(value: any, name: any) => [fmtNum(value as number), name]}
                 labelFormatter={(label: any) => `Time: ${(parseFloat(label) * 1000).toFixed(4)}ms`}
@@ -662,9 +698,9 @@ export default function Grapher() {
       const name = probe.id || `${probe.type} Probe ${idx + 1}`;
       if (probe.type === 'Voltage') {
         const nodeId = getSpiceNodeForPoint(probe.position, components, wires);
-        map[`v_${nodeId}`] = name;
+        map[`v(${nodeId})`] = name;
       } else if (probe.type === 'Current') {
-        map[`i_v_probe_${probe.id.toLowerCase()}`] = name;
+        map[`i(v_probe_${probe.id.toLowerCase()})`] = name;
       }
     });
     return map;
@@ -710,14 +746,7 @@ export default function Grapher() {
         processed = decimated;
       }
 
-      return processed.map(row => {
-        const newRow: SimulationRow = {};
-        Object.keys(row).forEach(k => {
-          const safeKey = k.replace(/\(/g, '_').replace(/\)/g, '');
-          newRow[safeKey] = row[k];
-        });
-        return newRow;
-      });
+      return processed;
     }, [simulationBuffer, playbackTime, isPlaying]);
 
 
@@ -993,7 +1022,7 @@ export default function Grapher() {
       {/* Chart area: positioned exactly below toolbar with explicit pixel height */}
       <div style={{ position: 'absolute', top: TOOLBAR_H, left: 0, right: 0, bottom: 0 }}>
         {chartAreaHeight > 0 && PlotComponent}
-        <MeasurementsPanel data={formattedData} traces={traces} plotType={plotType} />
+        <MeasurementsPanel data={formattedData} traces={traces} plotType={plotType} probeMap={probeMap} />
       </div>
     </div>
   );
