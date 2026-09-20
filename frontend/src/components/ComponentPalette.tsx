@@ -145,8 +145,8 @@ const ALL_COMPONENTS = [
   { tab: 'Instruments', category: 'Probes & Meters', type: 'TextAnnotation', value: 'Text', label: 'Text Ann.' },
 ];
 
-const renderIcon = (type: string) => {
-  const props = { size: 22, color: '#374151' };
+const renderIcon = (type: string, sizeOverride?: { width?: number; height?: number; size?: number }) => {
+  const props = { size: sizeOverride?.size ?? sizeOverride?.width ?? 28, color: '#374151', width: sizeOverride?.width, height: sizeOverride?.height };
   switch(type) {
     case 'Ground': return <IconGround {...props} />;
     case 'ACSource': return <IconACVoltage {...props} />;
@@ -282,7 +282,7 @@ export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: Compon
     <div 
       className="sidebar" 
       style={{ 
-        width: '320px', 
+        width: '220px', 
         height: '100%', 
         backgroundColor: '#ffffff', 
         borderRight: '1px solid #e5e7eb', 
@@ -376,7 +376,7 @@ export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: Compon
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: 6,
+                  gap: 8,
                   padding: '4px 0',
                 }}>
                   {section.components.map(comp => (
@@ -394,32 +394,34 @@ export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: Compon
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 4,
-                        padding: '8px 4px',
+                        gap: 5,
+                        padding: '10px 4px 8px',
                         borderRadius: 8,
                         background: '#f8fafc',
                         border: '1px solid #e2e8f0',
                         cursor: 'pointer',
-                        fontSize: 10,
+                        fontSize: 11,
                         textAlign: 'center',
                         userSelect: 'none',
                         transition: 'all 0.15s',
-                        height: '64px'
+                        minHeight: '78px',
                       }}
                       onMouseEnter={e => {
-                        e.currentTarget.style.background = '#e0fdf4';
-                        e.currentTarget.style.borderColor = '#4ade80';
+                        e.currentTarget.style.background = '#ecfdf5';
+                        e.currentTarget.style.borderColor = '#34d399';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(52,211,153,0.15)';
                       }}
                       onMouseLeave={e => {
                         e.currentTarget.style.background = '#f8fafc';
                         e.currentTarget.style.borderColor = '#e2e8f0';
+                        e.currentTarget.style.boxShadow = 'none';
                       }}
                       title={comp.label}
                     >
-                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '26px' }}>
-                        {renderIcon(comp.type)}
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36 }}>
+                        {renderIcon(comp.type, { width: 32, height: 32 })}
                       </span>
-                      <span style={{ color: '#374151', lineHeight: 1.2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ color: '#374151', lineHeight: 1.2, fontSize: 10.5, fontWeight: 500, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
                         {comp.label}
                       </span>
                     </div>
