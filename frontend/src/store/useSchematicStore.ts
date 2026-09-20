@@ -1,6 +1,7 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { track } from '@vercel/analytics';
+import type { SimulationData } from '../utils/spiceTypes';
 import { generateNetlist, parseSpiceToFloat } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
 
@@ -62,9 +63,9 @@ interface SchematicState {
   setHighlightedComponentIds: (ids: string[]) => void;
   // Simulation State
   isSimulating: boolean;
-  simulationData: any[] | null;
+  simulationData: SimulationData | null;
   opData: { node: string, value: number, unit: string }[] | null;
-  simulationBuffer: any[] | null;
+  simulationBuffer: SimulationData | null;
   simulationError: string | null;
   isPlaying: boolean;
   playbackTime: number;
@@ -121,9 +122,9 @@ interface SchematicState {
   runSimulation: (isSilent?: boolean) => Promise<void>;
   stopSimulation: () => void;
   setIsPlaying: (isPlaying: boolean) => void;
-  setSimulationData: (data: any[] | null) => void;
+  setSimulationData: (data: SimulationData | null) => void;
   setOpData: (data: { node: string, value: number, unit: string }[] | null) => void;
-  setSimulationBuffer: (data: any[] | null) => void;
+  setSimulationBuffer: (data: SimulationData | null) => void;
   setSimulationError: (error: string | null) => void;
   setPlaybackTime: (time: number | ((t: number) => number)) => void;
 }
@@ -429,7 +430,7 @@ export const useSchematicStore = create<SchematicState>()(
       if (comp.type === 'Resistor' || comp.type === 'Load') {
         const ohms = parseSpiceToFloat(comp.value || '1k');
         if (Math.abs(ohms) < ZERO_THRESHOLD) {
-          const errorMsg = `Resistor is 0Ω — this can cause infinite current. Use a small nonzero value (e.g. 1m) or remove it.`;
+          const errorMsg = `Resistor is 0Î© â€” this can cause infinite current. Use a small nonzero value (e.g. 1m) or remove it.`;
           if (!isSilent) track('Simulation_Error', { type: 'DRC', details: 'Zero Ohm Resistor' });
           set({ 
             simulationError: errorMsg, 
@@ -553,10 +554,10 @@ export const useSchematicStore = create<SchematicState>()(
         wires: s.wires,
         probes: s.probes,
       } as unknown as SchematicState),
-      // ─── Schema migrations ────────────────────────────────────────────────────
+      // â”€â”€â”€ Schema migrations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       // Add an entry here BEFORE bumping SCHEMA_VERSION. Each function receives
       // the persisted state at that version and returns the upgraded shape.
-      // NEVER delete old migrations — they form a chain for users who skipped versions.
+      // NEVER delete old migrations â€” they form a chain for users who skipped versions.
       migrate: (persisted: unknown, version: number) => {
         // Version-chained migration: walk from the stored version up to current
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -570,7 +571,7 @@ export const useSchematicStore = create<SchematicState>()(
         for (let v = version; v < SCHEMA_VERSION; v++) {
           if (MIGRATIONS[v]) {
             try { state = MIGRATIONS[v](state); }
-            catch { state = null; } // migration threw — fall through to guard below
+            catch { state = null; } // migration threw â€” fall through to guard below
           }
         }
 
