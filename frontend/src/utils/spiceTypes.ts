@@ -65,3 +65,14 @@ export interface SpiceJob {
   worker: Worker;
   timeoutId: ReturnType<typeof setTimeout>;
 }
+
+// Simulation result row — one time step or frequency point
+export interface SimulationRow {
+  [key: string]: number; // node voltages, currents, frequencies
+}
+
+// Tagged simulation result array — carries plot type metadata
+export interface SimulationData extends Array<SimulationRow> {
+  __plotType?: 'transient' | 'ac' | 'dc' | 'op';
+}
+
