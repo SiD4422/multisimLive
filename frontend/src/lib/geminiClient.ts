@@ -8,7 +8,11 @@ import { serializeContext } from './aiContext';
 
 const EXPLAIN_MODEL = 'gemini-1.5-flash';
 const DIAGNOSE_MODEL = 'gemini-2.0-flash';
-const BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+
+// Mode 1: Proxy (no API key needed) — default for new users
+const PROXY_BASE = '/api/gemini';
+// Mode 2: Direct BYOK — used when user has set their own key  
+const DIRECT_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 // ─── System prompts ──────────────────────────────────────────────────────────
 
@@ -44,13 +48,19 @@ interface DiagnosisResult {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function geminiUrl(model: string, method: string, stream = false) {
-  return `${BASE}/${model}:${method}${stream ? '?alt=sse' : ''}`;
+function geminiUrl(model: string, method: string, stream = false, apiKey: string) {
+  if (apiKey.trim()) {
+    return `${DIRECT_BASE}/${model}:${method}${stream ? '?alt=sse' : ''}`;
+  }
+  return `${PROXY_BASE}?model=${model}&method=${method}${stream ? '&stream=true' : ''}`;
 }
 
 function geminiHeaders(apiKey: string): Record<string, string> {
-  // Key sent as header (NOT query string) — query strings appear in server logs and browser history
-  return { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() };
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (apiKey.trim()) {
+    headers['x-goog-api-key'] = apiKey.trim();
+  }
+  return headers;
 }
 
 // ─── diagnose() — structured JSON call ───────────────────────────────────────
@@ -59,7 +69,7 @@ export async function diagnose(context: AIContext, apiKey: string): Promise<Diag
   const contextStr = serializeContext(context);
   const prompt = `${contextStr}\n\n---\nANALYSIS TASK: Auto-diagnose this circuit for issues.\n${DIAGNOSE_SCHEMA}`;
 
-  const res = await fetch(geminiUrl(DIAGNOSE_MODEL, 'generateContent'), {
+  const res = await fetch(geminiUrl(DIAGNOSE_MODEL, 'generateContent', false, apiKey), {
     method: 'POST',
     headers: geminiHeaders(apiKey),
     body: JSON.stringify({
@@ -74,8 +84,9 @@ export async function diagnose(context: AIContext, apiKey: string): Promise<Diag
   });
 
   if (!res.ok) {
+    if (res.status === 429) throw new Error('Rate limit exceeded');
     const err = await res.json().catch(() => ({}));
-    throw new Error((err as { error?: { message?: string } })?.error?.message || `Gemini API error ${res.status}`);
+    throw new Error((err as { error?: { message?: string } })?.error?.message || err?.error || `Gemini API error ${res.status}`);
   }
 
   const data = await res.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
@@ -107,7 +118,7 @@ export async function streamExplain(
 
   const prompt = `${contextStr}\n\nExplain this circuit in plain language:\n1. What it does\n2. Key component roles\n3. How it works\n${hasResults ? '4. Interpret the simulation results:\n' + simSummary + '\n5. Potential issues or improvements' : '4. What to expect from simulation\n5. Common pitfalls'}`;
 
-  const res = await fetch(geminiUrl(EXPLAIN_MODEL, 'streamGenerateContent', true), {
+  const res = await fetch(geminiUrl(EXPLAIN_MODEL, 'streamGenerateContent', true, apiKey), {
     method: 'POST',
     headers: geminiHeaders(apiKey),
     signal,
@@ -119,8 +130,9 @@ export async function streamExplain(
   });
 
   if (!res.ok) {
+    if (res.status === 429) throw new Error('Rate limit exceeded');
     const err = await res.json().catch(() => ({}));
-    throw new Error((err as { error?: { message?: string } })?.error?.message || `API error ${res.status}`);
+    throw new Error((err as { error?: { message?: string } })?.error?.message || err?.error || `API error ${res.status}`);
   }
 
   const reader = res.body!.getReader();
@@ -168,7 +180,7 @@ export async function streamChat(
     { role: 'user', parts: [{ text: userMessage }] },
   ];
 
-  const res = await fetch(geminiUrl(EXPLAIN_MODEL, 'streamGenerateContent', true), {
+  const res = await fetch(geminiUrl(EXPLAIN_MODEL, 'streamGenerateContent', true, apiKey), {
     method: 'POST',
     headers: geminiHeaders(apiKey),
     signal,
@@ -180,8 +192,9 @@ export async function streamChat(
   });
 
   if (!res.ok) {
+    if (res.status === 429) throw new Error('Rate limit exceeded');
     const err = await res.json().catch(() => ({}));
-    throw new Error((err as { error?: { message?: string } })?.error?.message || `API error ${res.status}`);
+    throw new Error((err as { error?: { message?: string } })?.error?.message || err?.error || `API error ${res.status}`);
   }
 
   const reader = res.body!.getReader();

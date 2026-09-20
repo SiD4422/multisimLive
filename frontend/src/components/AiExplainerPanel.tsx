@@ -146,6 +146,8 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [mode, setMode] = useState<Mode>('diagnose');
 
+  const [isRateLimited, setIsRateLimited] = useState(false);
+
   // Diagnose state
   const [isDiagnosing, setIsDiagnosing] = useState(false);
   const [diagnoseError, setDiagnoseError] = useState('');
@@ -168,7 +170,7 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory, isChatting]);
 
-  const saveKey = (key: string) => { setApiKeyState(key); saveApiKey(key); setShowKeyInput(false); };
+  const saveKey = (key: string) => { setApiKeyState(key); saveApiKey(key); setShowKeyInput(false); setIsRateLimited(false); };
 
   const buildContext = useCallback((question?: string) =>
     buildAIContext({
@@ -182,7 +184,6 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
 
   // ── Handle Diagnose ────────────────────────────────────────────────────────
   const handleDiagnose = async () => {
-    if (!apiKey.trim()) { setShowKeyInput(true); return; }
     if (components.length === 0) { setDiagnoseError('Place some components first.'); return; }
     setIsDiagnosing(true); setDiagnoseError(''); setAiDiagnosis(null);
     track('AI_Diagnose_Run', { componentCount: components.length, mode: analysisMode });
@@ -193,7 +194,12 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
       track('AI_Diagnose_Success', { issueCount: result.issues.length });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Diagnosis failed.';
-      setDiagnoseError(msg);
+      if (msg.includes('Rate limit exceeded')) {
+        setIsRateLimited(true);
+        setDiagnoseError('Daily free limit reached. Add your own Gemini API key for unlimited access.');
+      } else {
+        setDiagnoseError(msg);
+      }
       track('AI_Diagnose_Error', { error: msg.substring(0, 80) });
     } finally {
       setIsDiagnosing(false);
@@ -202,7 +208,6 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
 
   // ── Handle Explain ─────────────────────────────────────────────────────────
   const handleExplain = async () => {
-    if (!apiKey.trim()) { setShowKeyInput(true); return; }
     if (components.length === 0) { setExplainError('Place some components first.'); return; }
     explainAbortRef.current?.abort();
     explainAbortRef.current = new AbortController();
@@ -212,7 +217,15 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
       const ctx = buildContext();
       await streamExplain(ctx, apiKey, chunk => setExplainText(t => t + chunk), explainAbortRef.current.signal);
     } catch (e: unknown) {
-      if ((e as Error).name !== 'AbortError') setExplainError((e as Error).message || 'Explain failed.');
+      if ((e as Error).name !== 'AbortError') {
+        const msg = (e as Error).message || 'Explain failed.';
+        if (msg.includes('Rate limit exceeded')) {
+          setIsRateLimited(true);
+          setExplainError('Daily free limit reached. Add your own Gemini API key for unlimited access.');
+        } else {
+          setExplainError(msg);
+        }
+      }
     } finally {
       setIsExplaining(false);
     }
@@ -222,7 +235,6 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
   const handleSendChat = async () => {
     const msg = chatInput.trim();
     if (!msg || isChatting) return;
-    if (!apiKey.trim()) { setShowKeyInput(true); return; }
     const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', content: msg, timestamp: Date.now() };
     const assistantId = (Date.now() + 1).toString();
     setChatHistory(h => [...h, userMsg, { id: assistantId, role: 'assistant', content: '', timestamp: Date.now() }]);
@@ -240,7 +252,13 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
       }, chatAbortRef.current.signal);
     } catch (e: unknown) {
       if ((e as Error).name !== 'AbortError') {
-        setChatHistory(h => h.map(m => m.id === assistantId ? { ...m, content: '⚠️ ' + ((e as Error).message || 'Chat failed.') } : m));
+        const errMsg = (e as Error).message || 'Chat failed.';
+        if (errMsg.includes('Rate limit exceeded')) {
+          setIsRateLimited(true);
+          setChatHistory(h => h.map(m => m.id === assistantId ? { ...m, content: '⚠️ Daily free limit reached. Add your own Gemini API key for unlimited access.' } : m));
+        } else {
+          setChatHistory(h => h.map(m => m.id === assistantId ? { ...m, content: '⚠️ ' + errMsg } : m));
+        }
       }
     } finally {
       setIsChatting(false);
@@ -311,11 +329,21 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 12, color: apiKey ? '#16a34a' : '#9ca3af', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Key size={12} /> {apiKey ? 'API key saved ✓' : 'No API key set'}
-            </span>
+            {apiKey ? (
+              <span style={{ fontSize: 12, color: '#16a34a', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Key size={12} /> Using your own API key (unlimited)
+              </span>
+            ) : isRateLimited ? (
+              <span style={{ fontSize: 12, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <AlertTriangle size={12} /> Daily free limit reached
+              </span>
+            ) : (
+              <span style={{ fontSize: 12, color: '#0d9488', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Sparkles size={12} /> 10 free AI diagnoses/day — no setup needed
+              </span>
+            )}
             <div style={{ display: 'flex', gap: 8 }}>
-              {apiKey && <button onClick={() => { clearApiKey(); setApiKeyState(''); }} style={{ fontSize: 11, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Clear</button>}
+              {apiKey && <button onClick={() => { clearApiKey(); setApiKeyState(''); setIsRateLimited(false); }} style={{ fontSize: 11, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Clear</button>}
               <button onClick={() => setShowKeyInput(true)} style={{ fontSize: 11, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
                 {apiKey ? 'Change' : 'Set key'}
               </button>
