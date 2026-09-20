@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import type { SimulationData, SimulationRow } from '../utils/spiceTypes';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { getSpiceNodeForPoint } from '../utils/netlister';
 import { computeFFT } from '../utils/fftAnalyzer';
@@ -19,7 +20,7 @@ const OSC_COLORS = [
   '#00ffff', '#39ff14', '#ff00ff', '#ffff00', '#ff4500', '#00bfff'
 ];
 
-// 🔧 Helpers 🔧
+// ðŸ”§ Helpers ðŸ”§
 
 function formatTraceName(t: string): string {
   if (t.startsWith('v(')) {
@@ -45,7 +46,7 @@ function formatTraceName(t: string): string {
   return t;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function formatHz(val: number): string {
   if (val >= 1e6) return `${(val / 1e6).toFixed(1)}MHz`;
@@ -64,7 +65,7 @@ function fmtNum(value: number): string {
   return Number(value.toFixed(4)).toString();
 }
 
-// ── Subcomponents ─────────────────────────────────────────────────────────────
+// â”€â”€ Subcomponents â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const LoadingSpinner = () => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 text-gray-500">
@@ -73,7 +74,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const MeasurementsPanel = ({ data, traces, plotType }: { data: any[], traces: string[], plotType: string }) => {
+const MeasurementsPanel = ({ data, traces, plotType }: { data: SimulationData, traces: string[], plotType: string }) => {
   if (plotType !== 'transient' || !data || data.length < 2 || traces.length === 0) return null;
 
   const measurements = traces.map(trace => {
@@ -196,7 +197,7 @@ const ErrorView = ({ error }: { error: string }) => {
             <ul className="space-y-1">
               {smart.hints.map((hint, i) => (
                 <li key={i} className="text-sm text-amber-900 flex items-start gap-2">
-                  <span className="mt-0.5 flex-shrink-0">•</span>
+                  <span className="mt-0.5 flex-shrink-0">â€¢</span>
                   <span>{hint}</span>
                 </li>
               ))}
@@ -238,7 +239,7 @@ const ErrorView = ({ error }: { error: string }) => {
           onClick={() => setShowRaw(!showRaw)}
           className="text-xs text-gray-400 hover:text-gray-600 underline text-left mb-2"
         >
-          {showRaw ? '▲ Hide raw ngspice output' : '▼ Show raw ngspice output'}
+          {showRaw ? 'â–² Hide raw ngspice output' : 'â–¼ Show raw ngspice output'}
         </button>
         {showRaw && (
           <div className="bg-gray-900 rounded p-3 overflow-x-auto">
@@ -256,10 +257,10 @@ const EmptyView = () => (
   </div>
 );
 
-// ── FFT Spectrum Plot ─────────────────────────────────────────────────────────
+// â”€â”€ FFT Spectrum Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function FftPlot({ simulationBuffer, traces, isOscilloscope, isDigitalMode }: {
-  simulationBuffer: any[];
+  simulationBuffer: SimulationData;
   traces: string[];
   isOscilloscope: boolean;
   isDigitalMode?: boolean;
@@ -272,14 +273,14 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope, isDigitalMode }: {
   const fftData = useMemo(() => {
     if (!simulationBuffer || simulationBuffer.length < 4) return [];
     // Each trace gets its own FFT, merged into one row array keyed by frequency
-    const times = simulationBuffer.map((r: any) => r.time as number);
+    const times = simulationBuffer.map((r: SimulationRow) => r.time as number);
     const allBins: Record<string, number>[] = [];
 
     // Use first trace's frequencies as the base x-axis
     const firstTrace = traces[0];
     if (!firstTrace) return [];
 
-    const firstValues = simulationBuffer.map((r: any) => (r[firstTrace] ?? 0) as number);
+    const firstValues = simulationBuffer.map((r: SimulationRow) => (r[firstTrace] ?? 0) as number);
     const firstBins = computeFFT(times, firstValues);
     if (firstBins.length === 0) return [];
 
@@ -290,7 +291,7 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope, isDigitalMode }: {
 
     // Add other traces, matching by index
     traces.slice(1).forEach(trace => {
-      const vals = simulationBuffer.map((r: any) => (r[trace] ?? 0) as number);
+      const vals = simulationBuffer.map((r: SimulationRow) => (r[trace] ?? 0) as number);
       const bins = computeFFT(times, vals);
       bins.forEach((bin, i) => {
         if (allBins[i]) allBins[i][trace] = bin.db;
@@ -355,11 +356,11 @@ function FftPlot({ simulationBuffer, traces, isOscilloscope, isDigitalMode }: {
   );
 }
 
-// ── ErrorView ─────────────────────────────────────────────────────────────────
+// â”€â”€ ErrorView â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
-  data: any[]; traces: string[]; probeMap: Record<string, string>; isOscilloscope: boolean;
-  isCursorMode: boolean; cursorA: any; setCursorA: any; cursorB: any; setCursorB: any;
+  data: SimulationData; traces: string[]; probeMap: Record<string, string>; isOscilloscope: boolean;
+  isCursorMode: boolean; cursorA: SimulationRow | null; setCursorA: (v: SimulationRow | null) => void; cursorB: SimulationRow | null; setCursorB: (v: SimulationRow | null) => void;
   isDigitalMode?: boolean;
 }) {
   const dbTraces = traces.filter(t => t.endsWith('_db'));
@@ -441,16 +442,16 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
 
       {/* Phase chart - bottom half */}
       <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, bottom: 0 }}>
-        <p className={`text-xs font-bold uppercase tracking-wide pl-12 pb-1 ${isOscilloscope ? 'text-green-500' : 'text-gray-500'}`}>Phase (°)</p>
+        <p className={`text-xs font-bold uppercase tracking-wide pl-12 pb-1 ${isOscilloscope ? 'text-green-500' : 'text-gray-500'}`}>Phase (Â°)</p>
         <div style={{ position: 'absolute', top: 20, left: 0, right: 0, bottom: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart {...commonChartProps}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             {commonXAxis}
-            <YAxis label={{ value: 'Phase (°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
+            <YAxis label={{ value: 'Phase (Â°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
             <Tooltip
               labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
-              formatter={(val: any, name: any) => [fmtNum(val as number) + '°', name]}
+              formatter={(val: any, name: any) => [fmtNum(val as number) + 'Â°', name]}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
@@ -468,11 +469,11 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
   );
 }
 
-// ── DC Sweep Plot ─────────────────────────────────────────────────────────────
+// â”€â”€ DC Sweep Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
-  data: any[]; traces: string[]; sweepKey: string; isOscilloscope: boolean;
-  isCursorMode: boolean; cursorA: any; setCursorA: any; cursorB: any; setCursorB: any;
+  data: SimulationData; traces: string[]; sweepKey: string; isOscilloscope: boolean;
+  isCursorMode: boolean; cursorA: SimulationRow | null; setCursorA: (v: SimulationRow | null) => void; cursorB: SimulationRow | null; setCursorB: (v: SimulationRow | null) => void;
   isDigitalMode?: boolean;
 }) {
   const [brushRange, setBrushRange] = useState<{ start?: number; end?: number } | null>(null);
@@ -529,11 +530,11 @@ function DcSweepPlot({ data, traces, sweepKey, isOscilloscope, isCursorMode, cur
   );
 }
 
-// ── Transient Plot ────────────────────────────────────────────────────────────
+// â”€â”€ Transient Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: {
-  data: any[]; traces: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
-  isCursorMode: boolean; cursorA: any; setCursorA: any; cursorB: any; setCursorB: any;
+  data: SimulationData; traces: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
+  isCursorMode: boolean; cursorA: SimulationRow | null; setCursorA: (v: SimulationRow | null) => void; cursorB: SimulationRow | null; setCursorB: (v: SimulationRow | null) => void;
   isDigitalMode?: boolean;
 }) {
   const [zoomDomain, setZoomDomain] = useState<[number | 'dataMin', number | 'dataMax']>(['dataMin', 'dataMax']);
@@ -621,7 +622,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
   );
 }
 
-// ── Main Grapher ──────────────────────────────────────────────────────────────
+// â”€â”€ Main Grapher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function Grapher() {
   const {
@@ -633,8 +634,8 @@ export default function Grapher() {
   const [isDigitalMode, setIsDigitalMode] = useState(false);
   const [isCursorMode, setIsCursorMode] = useState(false);
   const [showFft, setShowFft] = useState(false);
-  const [cursorA, setCursorA] = useState<any>(null);
-  const [cursorB, setCursorB] = useState<any>(null);
+  const [cursorA, setCursorA] = useState<SimulationRow | null>(null);
+  const [cursorB, setCursorB] = useState<SimulationRow | null>(null);
   
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -652,9 +653,9 @@ export default function Grapher() {
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []); // [] — only mount/unmount; chartRef.current is stable after first render
+  }, []); // [] â€” only mount/unmount; chartRef.current is stable after first render
 
-  // Build a map: raw data key → probe display name
+  // Build a map: raw data key â†’ probe display name
   const probeMap = useMemo(() => {
     const map: Record<string, string> = {};
     probes.forEach((probe, idx) => {
@@ -673,7 +674,7 @@ export default function Grapher() {
   const formattedData = useMemo(() => {
     if (!simulationBuffer || simulationBuffer.length === 0) return [];
 
-    const plotType = (simulationBuffer as any).__plotType || 'transient';
+    const plotType = (simulationBuffer as SimulationData).__plotType || 'transient';
     const isAcOrDc = plotType === 'ac' || plotType === 'dc';
 
     // For AC/DC: always show all data.
@@ -693,7 +694,7 @@ export default function Grapher() {
         return true;
       });
 
-      // 🚀 PERFORMANCE FIX: Recharts lags heavily with thousands of SVG nodes.
+      // ðŸš€ PERFORMANCE FIX: Recharts lags heavily with thousands of SVG nodes.
       // We decimate the dataset to a maximum of ~800 points to keep 60FPS rendering.
       const MAX_POINTS = 800;
       if (processed.length > MAX_POINTS) {
@@ -710,7 +711,7 @@ export default function Grapher() {
       }
 
       return processed.map(row => {
-        const newRow: any = {};
+        const newRow: SimulationRow = {};
         Object.keys(row).forEach(k => {
           const safeKey = k.replace(/\(/g, '_').replace(/\)/g, '');
           newRow[safeKey] = row[k];
@@ -724,7 +725,7 @@ export default function Grapher() {
   const displayData = useMemo(() => {
     if (!isDigitalMode) return formattedData;
     return formattedData.map(row => {
-      const snapped: any = {};
+      const snapped: SimulationRow = {};
       Object.keys(row).forEach(k => {
         const v = row[k];
         snapped[k] = typeof v === 'number' && k !== 'time' && k !== 'frequency'
@@ -743,7 +744,7 @@ export default function Grapher() {
     console.log('GRAPHER DATA KEYS:', allKeys);
     console.log('GRAPHER DATA [0]:', formattedData[0]);
 
-    const plotType = (simulationBuffer as any)?.__plotType || 'transient';
+    const plotType = (simulationBuffer as SimulationData)?.__plotType || 'transient';
 
     if (plotType === 'ac') {
       // Only show _db and _phase keys
@@ -792,13 +793,13 @@ export default function Grapher() {
     return { traces: valueKeys, sweepKey: timeKey };
   }, [formattedData, probes, probeMap, simulationBuffer]);
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   if (isSimulating) return <div style={{ position: 'absolute', inset: 0 }}><LoadingSpinner /></div>;
   if (simulationError) return <div style={{ position: 'absolute', inset: 0 }}><ErrorView error={simulationError} /></div>;
   if (!formattedData || formattedData.length === 0) return <div style={{ position: 'absolute', inset: 0 }}><EmptyView /></div>;
 
-  const plotType = (simulationBuffer as any)?.__plotType || analysisMode || 'transient';
+  const plotType = (simulationBuffer as SimulationData)?.__plotType || analysisMode || 'transient';
   let PlotComponent = null;
 
   const cursorProps = { isCursorMode, cursorA, setCursorA, cursorB, setCursorB };
@@ -887,7 +888,7 @@ export default function Grapher() {
               <th className="pr-2 font-normal italic">Signal</th>
               <th className="pr-2 text-red-500">A</th>
               <th className="pr-2 text-fuchsia-500">B</th>
-              <th className="font-bold">Δ</th>
+              <th className="font-bold">Î”</th>
             </tr>
           </thead>
           <tbody>
@@ -925,7 +926,7 @@ export default function Grapher() {
 
       {/* Fixed-height toolbar at top */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: TOOLBAR_H, display: 'flex', alignItems: 'center', gap: 16, padding: '0 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', zIndex: 5 }}>
-        {/* FFT toggle — only shown for transient */}
+        {/* FFT toggle â€” only shown for transient */}
         {plotType === 'transient' && (
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }} title="FFT Spectrum Analyzer">
             <div style={{ position: 'relative', width: 36, height: 20, flexShrink: 0 }}>
@@ -957,13 +958,13 @@ export default function Grapher() {
             <div style={{ position: 'absolute', top: 2, left: isOscilloscope ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 4, color: isOscilloscope ? '#16a34a' : '#6b7280' }}>
-            <Activity size={13} /> ∿Scope
+            <Activity size={13} /> âˆ¿Scope
           </span>
         </label>
 
         <button
           onClick={() => setIsDigitalMode(d => !d)}
-          title="Digital Mode — snaps waveforms to HIGH/LOW"
+          title="Digital Mode â€” snaps waveforms to HIGH/LOW"
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
             padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,

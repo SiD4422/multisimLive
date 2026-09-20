@@ -1,4 +1,4 @@
-import { getComponentPins } from './utils/netlister.ts';
+﻿import { getComponentPins } from './utils/netlister';
 
 // Find pin positions for various configurations
 const comps = [

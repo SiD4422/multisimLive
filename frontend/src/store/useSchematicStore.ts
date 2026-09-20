@@ -505,8 +505,8 @@ export const useSchematicStore = create<SchematicState>()(
         
         if (!isSilent) track('Simulation_Success', { mode: analysisMode });
         return {
-          simulationBuffer: finalData,
-          simulationData: finalData,
+          simulationBuffer: finalData as unknown as SimulationData,
+          simulationData: finalData as unknown as SimulationData,
           opData: null, // Clear op data if we did a regular simulation
           isSimulating: false,
           // Silent runs don't animate playback; they show full trace instantly
