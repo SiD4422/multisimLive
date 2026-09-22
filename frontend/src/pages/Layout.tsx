@@ -6,6 +6,7 @@ import './LandingPage.css';
 const dropdownStyle: React.CSSProperties = {
   position: 'relative',
   display: 'inline-block',
+  paddingBottom: '12px',  // extends hover zone so mouse doesn't leave before reaching menu
 };
 const dropdownMenuStyle: React.CSSProperties = {
   display: 'none',
@@ -20,7 +21,7 @@ const dropdownMenuStyle: React.CSSProperties = {
   minWidth: '220px',
   zIndex: 1000,
   boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
-  marginTop: '6px',
+  marginTop: '0',
 };
 
 export default function Layout() {
