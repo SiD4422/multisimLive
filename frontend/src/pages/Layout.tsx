@@ -2,8 +2,30 @@ import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import './LandingPage.css';
 
+// Inline styles for the Learn dropdown
+const dropdownStyle: React.CSSProperties = {
+  position: 'relative',
+  display: 'inline-block',
+};
+const dropdownMenuStyle: React.CSSProperties = {
+  display: 'none',
+  position: 'absolute',
+  top: '100%',
+  left: '50%',
+  transform: 'translateX(-50%)',
+  background: '#0d2818',
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderRadius: '10px',
+  padding: '8px 0',
+  minWidth: '220px',
+  zIndex: 1000,
+  boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+  marginTop: '6px',
+};
+
 export default function Layout() {
   const { pathname } = useLocation();
+  const isLearnActive = pathname.startsWith('/tutorials') || pathname.startsWith('/compare');
 
   return (
     <div className="landing-page">
@@ -20,6 +42,52 @@ export default function Layout() {
             <Link to="/features" className={pathname === '/features' ? 'active' : ''}>Features</Link>
             <Link to="/circuits" className={pathname.startsWith('/circuits') ? 'active' : ''}>Circuits</Link>
             <Link to="/procedure" className={pathname === '/procedure' ? 'active' : ''}>How to Use</Link>
+
+            {/* ── Learn dropdown ── */}
+            <div
+              style={dropdownStyle}
+              className="learn-dropdown-parent"
+              onMouseEnter={e => {
+                const menu = e.currentTarget.querySelector('.learn-dropdown-menu') as HTMLElement;
+                if (menu) menu.style.display = 'block';
+              }}
+              onMouseLeave={e => {
+                const menu = e.currentTarget.querySelector('.learn-dropdown-menu') as HTMLElement;
+                if (menu) menu.style.display = 'none';
+              }}
+            >
+              <span
+                style={{
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                  color: isLearnActive ? 'var(--brand-300, #4ade80)' : 'inherit',
+                  fontWeight: isLearnActive ? 700 : undefined,
+                }}
+              >
+                Learn
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </span>
+              <div className="learn-dropdown-menu" style={dropdownMenuStyle}>
+                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Tutorials
+                </div>
+                <Link to="/tutorials/rc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RC Circuit</Link>
+                <Link to="/tutorials/op-amp" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Op-Amp Amplifier</Link>
+                <Link to="/tutorials/555-timer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">555 Timer</Link>
+                <Link to="/tutorials/rlc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RLC Circuit</Link>
+                <Link to="/tutorials/diode-rectifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Diode Rectifier</Link>
+                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
+                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Comparisons
+                </div>
+                <Link to="/compare/vs-ltspice" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs LTspice</Link>
+                <Link to="/compare/vs-falstad" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Falstad</Link>
+                <Link to="/compare/vs-multisim" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Multisim</Link>
+              </div>
+            </div>
+
             <Link to="/resources" className={pathname === '/resources' ? 'active' : ''}>Resources</Link>
           </nav>
 
@@ -52,6 +120,18 @@ export default function Layout() {
             <Link to="/circuits" className={pathname.startsWith('/circuits') ? 'active' : ''}>Circuits</Link>
             <Link to="/procedure" className={pathname === '/procedure' ? 'active' : ''}>How to Use</Link>
             <Link to="/resources" className={pathname === '/resources' ? 'active' : ''}>Resources</Link>
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '6px 0', paddingTop: '6px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 0' }}>Tutorials</div>
+              <Link to="/tutorials/rc-circuit" className={pathname === '/tutorials/rc-circuit' ? 'active' : ''}>RC Circuit</Link>
+              <Link to="/tutorials/op-amp" className={pathname === '/tutorials/op-amp' ? 'active' : ''}>Op-Amp Amplifier</Link>
+              <Link to="/tutorials/555-timer" className={pathname === '/tutorials/555-timer' ? 'active' : ''}>555 Timer</Link>
+              <Link to="/tutorials/rlc-circuit" className={pathname === '/tutorials/rlc-circuit' ? 'active' : ''}>RLC Circuit</Link>
+              <Link to="/tutorials/diode-rectifier" className={pathname === '/tutorials/diode-rectifier' ? 'active' : ''}>Diode Rectifier</Link>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '8px 0 4px' }}>Comparisons</div>
+              <Link to="/compare/vs-ltspice" className={pathname === '/compare/vs-ltspice' ? 'active' : ''}>vs LTspice</Link>
+              <Link to="/compare/vs-falstad" className={pathname === '/compare/vs-falstad' ? 'active' : ''}>vs Falstad</Link>
+              <Link to="/compare/vs-multisim" className={pathname === '/compare/vs-multisim' ? 'active' : ''}>vs Multisim</Link>
+            </div>
           </div>
           <div className="mp-actions">
             <Link className="msl-btn msl-btn-primary" to="/simulator">Launch Simulator</Link>
@@ -83,6 +163,8 @@ export default function Layout() {
           <ul className="msl-footer-links">
             <li><Link to="/features">Features</Link></li>
             <li><Link to="/circuits">Circuits</Link></li>
+            <li><Link to="/tutorials/rc-circuit">Tutorials</Link></li>
+            <li><Link to="/compare/vs-ltspice">Comparisons</Link></li>
             <li><Link to="/procedure">How to Use</Link></li>
             <li><Link to="/resources">Resources</Link></li>
             <li><a href="https://github.com/SiD4422/multisimLive" target="_blank" rel="noopener noreferrer">GitHub</a></li>

@@ -82,6 +82,18 @@ const VsFalstad: React.FC = () => {
           Try NodeSim Now →
         </Link>
       </div>
+      {/* Cross-links for SEO and navigation */}
+      <div className="tutorial-crosslinks">
+        <span style={{ color: '#64748b', fontSize: 12, alignSelf: 'center', marginRight: 4 }}>More tutorials:</span>
+        <Link to="/tutorials/rc-circuit">RC Circuit</Link>
+        <Link to="/tutorials/op-amp">Op-Amp Amplifier</Link>
+        <Link to="/tutorials/555-timer">555 Timer</Link>
+        <Link to="/tutorials/rlc-circuit">RLC Circuit</Link>
+        <Link to="/tutorials/diode-rectifier">Diode Rectifier</Link>
+        <span style={{ color: '#64748b', fontSize: 12, alignSelf: 'center', marginLeft: 8, marginRight: 4 }}>Compare:</span>
+        <Link to="/compare/vs-ltspice">NodeSim vs LTspice</Link>
+        <Link to="/compare/vs-multisim">NodeSim vs Multisim</Link>
+      </div>
     </div>
   );
 };
