@@ -76,16 +76,16 @@ export default function Layout() {
                 </div>
                 <Link to="/tutorials/rc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RC Circuit</Link>
                 <Link to="/tutorials/op-amp" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Op-Amp Amplifier</Link>
-                <Link to="/tutorials/555-timer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">555 Timer</Link>
+                <Link to="/tutorials/transistor-amplifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Transistor Amplifier</Link>
                 <Link to="/tutorials/rlc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RLC Circuit</Link>
                 <Link to="/tutorials/diode-rectifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Diode Rectifier</Link>
                 <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
                 <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Comparisons
                 </div>
-                <Link to="/compare/vs-ltspice" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs LTspice</Link>
-                <Link to="/compare/vs-falstad" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Falstad</Link>
-                <Link to="/compare/vs-multisim" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Multisim</Link>
+                <Link to="/compare/ltspice" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs LTspice</Link>
+                <Link to="/compare/falstad" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Falstad</Link>
+                <Link to="/compare/multisim" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Multisim</Link>
               </div>
             </div>
 
@@ -125,13 +125,13 @@ export default function Layout() {
               <div style={{ fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 0' }}>Tutorials</div>
               <Link to="/tutorials/rc-circuit" className={pathname === '/tutorials/rc-circuit' ? 'active' : ''}>RC Circuit</Link>
               <Link to="/tutorials/op-amp" className={pathname === '/tutorials/op-amp' ? 'active' : ''}>Op-Amp Amplifier</Link>
-              <Link to="/tutorials/555-timer" className={pathname === '/tutorials/555-timer' ? 'active' : ''}>555 Timer</Link>
+              <Link to="/tutorials/transistor-amplifier" className={pathname === '/tutorials/transistor-amplifier' ? 'active' : ''}>Transistor Amplifier</Link>
               <Link to="/tutorials/rlc-circuit" className={pathname === '/tutorials/rlc-circuit' ? 'active' : ''}>RLC Circuit</Link>
               <Link to="/tutorials/diode-rectifier" className={pathname === '/tutorials/diode-rectifier' ? 'active' : ''}>Diode Rectifier</Link>
               <div style={{ fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '8px 0 4px' }}>Comparisons</div>
-              <Link to="/compare/vs-ltspice" className={pathname === '/compare/vs-ltspice' ? 'active' : ''}>vs LTspice</Link>
-              <Link to="/compare/vs-falstad" className={pathname === '/compare/vs-falstad' ? 'active' : ''}>vs Falstad</Link>
-              <Link to="/compare/vs-multisim" className={pathname === '/compare/vs-multisim' ? 'active' : ''}>vs Multisim</Link>
+              <Link to="/compare/ltspice" className={pathname === '/compare/ltspice' ? 'active' : ''}>vs LTspice</Link>
+              <Link to="/compare/falstad" className={pathname === '/compare/falstad' ? 'active' : ''}>vs Falstad</Link>
+              <Link to="/compare/multisim" className={pathname === '/compare/multisim' ? 'active' : ''}>vs Multisim</Link>
             </div>
           </div>
           <div className="mp-actions">
@@ -165,7 +165,7 @@ export default function Layout() {
             <li><Link to="/features">Features</Link></li>
             <li><Link to="/circuits">Circuits</Link></li>
             <li><Link to="/tutorials/rc-circuit">Tutorials</Link></li>
-            <li><Link to="/compare/vs-ltspice">Comparisons</Link></li>
+            <li><Link to="/compare/ltspice">Comparisons</Link></li>
             <li><Link to="/procedure">How to Use</Link></li>
             <li><Link to="/resources">Resources</Link></li>
             <li><a href="https://github.com/SiD4422/multisimLive" target="_blank" rel="noopener noreferrer">GitHub</a></li>

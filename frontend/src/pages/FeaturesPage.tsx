@@ -60,7 +60,7 @@ export default function FeaturesPage() {
           {[
             { bg: '#f3e8ff', ic: '#9333ea', Icon: LineChart, title: 'Live Oscilloscope', desc: "Toggle 'Scope Mode' on the grapher for a dark-themed neon-trace oscilloscope with point-and-click measurement cursors." },
             { bg: '#e0f2fe', ic: '#0284c7', Icon: Waves, title: 'AC & DC Sweeps', desc: 'Sweep frequency ranges for Bode plots, or sweep DC voltages to analyze transistor characteristics and I-V curves instantly.' },
-            { bg: '#fef3c7', ic: '#d97706', Icon: Layers, title: '60+ Component Library', desc: 'From basic RLC to Op-Amps, MOSFETs, Logic Gates, Flip-Flops, 555 Timer, Seven-Segment Displays and more.' },
+            { bg: '#fef3c7', ic: '#d97706', Icon: Layers, title: '60+ Component Library', desc: 'From basic RLC to Op-Amps, MOSFETs, Logic Gates, Flip-Flops, Transistor Amplifier, Seven-Segment Displays and more.' },
           ].map(f => (
             <div key={f.title} style={{ backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`, transition: 'transform 0.3s, box-shadow 0.3s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', cursor: 'default' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'; }}

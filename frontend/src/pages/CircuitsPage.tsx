@@ -73,7 +73,7 @@ export const EXAMPLES = [
   { id: 'mosfet_sw', name: 'MOSFET Switch', category: 'Switching', description: 'N-Channel MOSFET as a digital switch. Gate voltage controls the drain-source resistance.', analysis: 'DC Sweep', analysisColor: C.dcSweep, difficulty: 'Beginner', components: ['N-MOSFET', 'Resistor', 'DC Source'], Icon: ToggleRight, accent: '#0284c7', data: mosfetSwitch },
 
   // ── SOURCES ────────────────────────────────────────────────────
-  { id: '555', name: '555 Astable Oscillator', category: 'Sources', description: '555 timer in astable mode generates a continuous square wave at adjustable frequency.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['555 Timer', 'RC Network'], Icon: Cpu, accent: '#e11d48', data: astable555 },
+  { id: '555', name: '555 Astable Oscillator', category: 'Sources', description: '555 timer in astable mode generates a continuous square wave at adjustable frequency.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Transistor Amplifier', 'RC Network'], Icon: Cpu, accent: '#e11d48', data: astable555 },
 ];
 
 const DIFFICULTY_COLOR: Record<string, string> = {

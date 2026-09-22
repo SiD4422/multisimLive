@@ -79,12 +79,12 @@ const DiodeRectifierTutorial: React.FC = () => {
         <span style={{ color: '#64748b', fontSize: 12, alignSelf: 'center', marginRight: 4 }}>More tutorials:</span>
         <Link to="/tutorials/rc-circuit">RC Circuit</Link>
         <Link to="/tutorials/op-amp">Op-Amp Amplifier</Link>
-        <Link to="/tutorials/555-timer">555 Timer</Link>
+        <Link to="/tutorials/transistor-amplifier">Transistor Amplifier</Link>
         <Link to="/tutorials/rlc-circuit">RLC Circuit</Link>
         <span style={{ color: '#64748b', fontSize: 12, alignSelf: 'center', marginLeft: 8, marginRight: 4 }}>Compare:</span>
-        <Link to="/compare/vs-ltspice">NodeSim vs LTspice</Link>
-        <Link to="/compare/vs-falstad">NodeSim vs Falstad</Link>
-        <Link to="/compare/vs-multisim">NodeSim vs Multisim</Link>
+        <Link to="/compare/ltspice">NodeSim vs LTspice</Link>
+        <Link to="/compare/falstad">NodeSim vs Falstad</Link>
+        <Link to="/compare/multisim">NodeSim vs Multisim</Link>
       </div>
     </div>
   );
