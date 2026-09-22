@@ -6,6 +6,7 @@ import './LandingPage.css';import { Link } from 'react-router-dom'; import SEO f
                 <div style={{ padding:'6px 16px 4px', fontSize:'10px', fontWeight:700, color:'#4ade80', textTransform:'uppercase', letterSpacing:'0.08em' }}>Tutorials</div>
                 <Link to="/tutorials/rc-circuit" style={{ display:'block', padding:'7px 16px', color:'#c8d8ce', fontSize:'13px', textDecoration:'none' }} className="dropdown-item">RC Circuit</Link>
                 <Link to="/tutorials/op-amp" style={{ display:'block', padding:'7px 16px', color:'#c8d8ce', fontSize:'13px', textDecoration:'none' }} className="dropdown-item">Op-Amp Amplifier</Link>
+                <Link to="/tutorials/555-timer" style={{ display:'block', padding:'7px 16px', color:'#c8d8ce', fontSize:'13px', textDecoration:'none' }} className="dropdown-item">555 Timer</Link>
                 <Link to="/tutorials/transistor-amplifier" style={{ display:'block', padding:'7px 16px', color:'#c8d8ce', fontSize:'13px', textDecoration:'none' }} className="dropdown-item">Transistor Amplifier</Link>
                 <Link to="/tutorials/rlc-circuit" style={{ display:'block', padding:'7px 16px', color:'#c8d8ce', fontSize:'13px', textDecoration:'none' }} className="dropdown-item">RLC Circuit</Link>
                 <Link to="/tutorials/diode-rectifier" style={{ display:'block', padding:'7px 16px', color:'#c8d8ce', fontSize:'13px', textDecoration:'none' }} className="dropdown-item">Diode Rectifier</Link>

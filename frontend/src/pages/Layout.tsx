@@ -76,7 +76,7 @@ export default function Layout() {
                 </div>
                 <Link to="/tutorials/rc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RC Circuit</Link>
                 <Link to="/tutorials/op-amp" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Op-Amp Amplifier</Link>
-                <Link to="/tutorials/transistor-amplifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Transistor Amplifier</Link>
+                <Link to="/tutorials/555-timer" style={{ display:'block', padding:'7px 16px', color:'#c8d8ce', fontSize:'13px', textDecoration:'none' }} className="dropdown-item">555 Timer</Link><Link to="/tutorials/transistor-amplifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Transistor Amplifier</Link>
                 <Link to="/tutorials/rlc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RLC Circuit</Link>
                 <Link to="/tutorials/diode-rectifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Diode Rectifier</Link>
                 <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
@@ -125,6 +125,7 @@ export default function Layout() {
               <div style={{ fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 0' }}>Tutorials</div>
               <Link to="/tutorials/rc-circuit" className={pathname === '/tutorials/rc-circuit' ? 'active' : ''}>RC Circuit</Link>
               <Link to="/tutorials/op-amp" className={pathname === '/tutorials/op-amp' ? 'active' : ''}>Op-Amp Amplifier</Link>
+              <Link to="/tutorials/555-timer" className={pathname === '/tutorials/555-timer' ? 'active' : ''}>555 Timer</Link>
               <Link to="/tutorials/transistor-amplifier" className={pathname === '/tutorials/transistor-amplifier' ? 'active' : ''}>Transistor Amplifier</Link>
               <Link to="/tutorials/rlc-circuit" className={pathname === '/tutorials/rlc-circuit' ? 'active' : ''}>RLC Circuit</Link>
               <Link to="/tutorials/diode-rectifier" className={pathname === '/tutorials/diode-rectifier' ? 'active' : ''}>Diode Rectifier</Link>
