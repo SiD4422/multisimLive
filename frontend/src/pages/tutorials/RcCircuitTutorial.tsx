@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const RcCircuitTutorial: React.FC = () => {
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', color: '#f8fafc', lineHeight: '1.6' }}>
+    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <Helmet>
         <title>RC Circuit Simulator Online | NodeSim Tutorial</title>
         <meta name="description" content="Learn how to simulate an RC circuit online. Understand the RC time constant and transient response using our free browser-based simulator." />
@@ -14,14 +14,14 @@ const RcCircuitTutorial: React.FC = () => {
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>RC Circuit Simulator Tutorial</h1>
       
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>What this circuit does</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>What this circuit does</h2>
         <p>
           A Resistor-Capacitor (RC) circuit demonstrates fundamental concepts of electronics, including the charging and discharging phases of a capacitor. When connected to a DC voltage source, the capacitor charges through the resistor over time. This creates a predictable curve governed by the RC time constant, commonly used in timing applications and simple filters.
         </p>
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Components Needed</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Components Needed</h2>
         <ul style={{ paddingLeft: '1.5rem' }}>
           <li>1× DC Voltage Source (e.g., 5V Pulse or Step)</li>
           <li>1× Resistor (R = 1kΩ)</li>
@@ -31,7 +31,7 @@ const RcCircuitTutorial: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>How to Build it in NodeSim</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>How to Build it in NodeSim</h2>
         <ol style={{ paddingLeft: '1.5rem' }}>
           <li>Open the NodeSim workspace.</li>
           <li>Place a <strong>Voltage Source</strong> from the toolbar. Configure it as a Pulse source (0 to 5V).</li>
@@ -43,14 +43,14 @@ const RcCircuitTutorial: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Expected Simulation Results</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Expected Simulation Results</h2>
         <p>
           In the transient analysis, the voltage across the capacitor will initially be 0V and will exponentially rise towards 5V. It reaches approximately 63.2% of the maximum voltage (3.16V) at exactly one time constant.
         </p>
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Key Formulas / Concepts</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Key Formulas / Concepts</h2>
         <p>
           <strong>Time Constant (τ):</strong> <code>τ = R × C</code><br/>
           For R = 1kΩ and C = 1µF, τ = 1ms.<br/>

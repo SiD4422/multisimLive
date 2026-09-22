@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const TransistorTutorial: React.FC = () => {
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', color: '#f8fafc', lineHeight: '1.6' }}>
+    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <Helmet>
         <title>Transistor Amplifier Simulation | Common Emitter Circuit</title>
         <meta name="description" content="Learn how to simulate a common emitter transistor amplifier circuit online using NodeSim." />
@@ -14,14 +14,14 @@ const TransistorTutorial: React.FC = () => {
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>Transistor Amplifier Simulation</h1>
       
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>What this circuit does</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>What this circuit does</h2>
         <p>
           The Common Emitter (CE) amplifier is one of the most basic and widely used BJT (Bipolar Junction Transistor) circuit configurations. It takes a small AC input signal and amplifies it to produce a larger AC output signal. The output is inverted (180 degrees out of phase) relative to the input.
         </p>
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Components Needed</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Components Needed</h2>
         <ul style={{ paddingLeft: '1.5rem' }}>
           <li>1× NPN Transistor (e.g., 2N3904)</li>
           <li>1× DC Power Supply (Vcc = 12V)</li>
@@ -32,7 +32,7 @@ const TransistorTutorial: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>How to Build it in NodeSim</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>How to Build it in NodeSim</h2>
         <ol style={{ paddingLeft: '1.5rem' }}>
           <li>Place an <strong>NPN Transistor</strong> in the workspace.</li>
           <li>Set up the voltage divider bias using R1 and R2 at the base.</li>
@@ -44,14 +44,14 @@ const TransistorTutorial: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Expected Simulation Results</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Expected Simulation Results</h2>
         <p>
           In the transient plot, you should see a small 10mV input sine wave and a significantly larger, inverted output sine wave (typically a few volts, depending on the gain). The DC bias points should show the transistor operating in the active region.
         </p>
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Key Formulas / Concepts</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Key Formulas / Concepts</h2>
         <p>
           <strong>Voltage Gain (Av):</strong> <code>Av ≈ -Rc / re'</code> (with bypass capacitor)<br/>
           <strong>Phase Shift:</strong> 180 degrees between input and output.
