@@ -21,7 +21,7 @@ const VsLtspice: React.FC = () => {
       
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left' }}>
+          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left', color: '#ffffff' }}>
             <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Feature</th>
             <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NodeSim</th>
             <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>LTspice</th>
@@ -33,7 +33,7 @@ const VsLtspice: React.FC = () => {
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Web Browser (No Install)</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Windows / macOS (Install Required)</td>
           </tr>
-          <tr style={{ backgroundColor: '#1e293b' }}>
+          <tr style={{ backgroundColor: '#f8fafc' }}>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Ease of Use</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Beginner Friendly</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Steep Learning Curve</td>
@@ -43,7 +43,7 @@ const VsLtspice: React.FC = () => {
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>ngspice (WASM)</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Proprietary SPICE</td>
           </tr>
-          <tr style={{ backgroundColor: '#1e293b' }}>
+          <tr style={{ backgroundColor: '#f8fafc' }}>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Component Library</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Basic standard models</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Massive vendor library</td>

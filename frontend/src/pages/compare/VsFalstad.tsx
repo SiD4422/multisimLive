@@ -21,7 +21,7 @@ const VsFalstad: React.FC = () => {
       
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left' }}>
+          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left', color: '#ffffff' }}>
             <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Feature</th>
             <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NodeSim</th>
             <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Falstad</th>
@@ -33,7 +33,7 @@ const VsFalstad: React.FC = () => {
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Industry-standard ngspice</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Custom simplified engine</td>
           </tr>
-          <tr style={{ backgroundColor: '#1e293b' }}>
+          <tr style={{ backgroundColor: '#f8fafc' }}>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Accuracy</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Professional / Academic</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Educational / Approximated</td>
@@ -43,7 +43,7 @@ const VsFalstad: React.FC = () => {
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Standard Schematic + Graphs</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Animated current flow</td>
           </tr>
-          <tr style={{ backgroundColor: '#1e293b' }}>
+          <tr style={{ backgroundColor: '#f8fafc' }}>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Modern Features</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>AI Tutor, Dark Mode</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Classic Java-era UI</td>

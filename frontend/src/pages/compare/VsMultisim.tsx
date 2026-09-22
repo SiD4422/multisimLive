@@ -21,7 +21,7 @@ const VsMultisim: React.FC = () => {
       
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left' }}>
+          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left', color: '#ffffff' }}>
             <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Feature</th>
             <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NodeSim</th>
             <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NI Multisim Live</th>
@@ -33,7 +33,7 @@ const VsMultisim: React.FC = () => {
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Free, no login required</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Login required (Premium tier exists)</td>
           </tr>
-          <tr style={{ backgroundColor: '#1e293b' }}>
+          <tr style={{ backgroundColor: '#f8fafc' }}>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Simulation Speed</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Instant (runs on your CPU via WASM)</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Server-dependent</td>
@@ -43,7 +43,7 @@ const VsMultisim: React.FC = () => {
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>100% Local Processing</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Cloud-based</td>
           </tr>
-          <tr style={{ backgroundColor: '#1e293b' }}>
+          <tr style={{ backgroundColor: '#f8fafc' }}>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>AI Assistance</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Built-in Engineering Tutor</td>
             <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>None</td>
