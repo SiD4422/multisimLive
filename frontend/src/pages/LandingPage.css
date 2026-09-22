@@ -297,3 +297,8 @@
   .msl-footer-links a{color:#93A99F;transition:color .15s ease;}
   .msl-footer-links a:hover{color:#fff;}
 
+
+/* ── LandingPage Learn Dropdown ──────────────────────────────── */
+.lp-learn-menu { display: none; }
+div:hover > .lp-learn-menu,
+div:focus-within > .lp-learn-menu { display: block !important; }
