@@ -6,8 +6,8 @@
 import type { AIContext, DiagnosisResult, ChatMessage } from './aiTypes';
 import { serializeContext } from './aiContext';
 
-const EXPLAIN_MODEL = 'gemini-1.5-flash';
-const DIAGNOSE_MODEL = 'gemini-1.5-flash';
+const EXPLAIN_MODEL = 'gemini-3.5-flash-lite';
+const DIAGNOSE_MODEL = 'gemini-3.8-flash';
 
 // Mode 1: Proxy (no API key needed) — default for new users
 const PROXY_BASE = '/api/gemini';
