@@ -165,8 +165,8 @@ export default function Layout() {
           <ul className="msl-footer-links">
             <li><Link to="/features">Features</Link></li>
             <li><Link to="/circuits">Circuits</Link></li>
-            <li><Link to="/tutorials/rc-circuit">Tutorials</Link></li>
-            <li><Link to="/compare/ltspice">Comparisons</Link></li>
+            <li><Link to="/tutorials">Tutorials</Link></li>
+            <li><Link to="/compare">Comparisons</Link></li>
             <li><Link to="/procedure">How to Use</Link></li>
             <li><Link to="/resources">Resources</Link></li>
             <li><a href="https://github.com/SiD4422/multisimLive" target="_blank" rel="noopener noreferrer">GitHub</a></li>

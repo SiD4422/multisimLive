@@ -61,7 +61,7 @@ export default function ResourcesPage() {
             <Code color={C.primary} size={32} /> The SPICE Engine
           </h2>
           <p style={{ color: C.textSecondary, fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '24px' }}>
-            MultiSimLab runs on <strong>Ngspice</strong>, a powerful open-source mixed-level/mixed-signal circuit simulator. When you draw a schematic, the web app compiles a "netlist"—a text file describing every component and connection—and sends it to the WebAssembly engine.
+            NodeSim runs on <strong>Ngspice</strong>, a powerful open-source mixed-level/mixed-signal circuit simulator. When you draw a schematic, the web app compiles a "netlist"—a text file describing every component and connection—and sends it to the WebAssembly engine.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
             <div style={{ padding: '20px', backgroundColor: C.bgApp, borderRadius: 16, border: `1px solid ${C.border}` }}>

@@ -16,6 +16,9 @@ import CircuitTemplatePage from './pages/CircuitTemplatePage';
 // Lazy load the Simulator to prevent bundling 7MB WASM & Canvas on marketing pages
 const Simulator = lazy(() => import('./pages/Simulator'));
 
+const TutorialsIndex = lazy(() => import('./pages/TutorialsIndex'));
+const CompareIndex = lazy(() => import('./pages/CompareIndex'));
+
 const RcCircuitTutorial = lazy(() => import('./pages/tutorials/RcCircuitTutorial'));
 const TransistorTutorial = lazy(() => import('./pages/tutorials/TransistorTutorial'));
 const OpAmpTutorial = lazy(() => import('./pages/tutorials/OpAmpTutorial'));
@@ -48,7 +51,9 @@ function App() {
           <Route path="/resources" element={<ResourcesPage />} />
 
           {/* SEO Pages */}
-          <Route path="/tutorials/rc-circuit" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><RcCircuitTutorial /></Suspense>} />
+          <Route path="/tutorials" element={<Suspense fallback={<div style={{padding:'2rem',color:'#fff'}}>Loading...</div>}><TutorialsIndex /></Suspense>} />
+            <Route path="/compare" element={<Suspense fallback={<div style={{padding:'2rem',color:'#fff'}}>Loading...</div>}><CompareIndex /></Suspense>} />
+            <Route path="/tutorials/rc-circuit" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><RcCircuitTutorial /></Suspense>} />
           <Route path="/tutorials/555-timer" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#1e293b' }}>Loading...</div>}><Timer555Tutorial /></Suspense>} />
           <Route path="/tutorials/transistor-amplifier" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><TransistorTutorial /></Suspense>} />
           <Route path="/tutorials/op-amp" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><OpAmpTutorial /></Suspense>} />

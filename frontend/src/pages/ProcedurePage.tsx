@@ -35,7 +35,7 @@ export default function ProcedurePage() {
         {/* ── HEADER ── */}
         <div style={{ textAlign: 'center', marginBottom: 50 }}>
           <h1 style={{ fontSize: '3rem', fontWeight: 700, margin: '0 0 16px', letterSpacing: '-1px' }}>
-            How to Use MultiSimLab
+            How to Use NodeSim
           </h1>
           <p style={{ fontSize: '1.2rem', color: C.textSecondary, lineHeight: 1.6 }}>
             A complete step-by-step visual procedure to building, wiring, and simulating your first circuit in our online SPICE engine.
