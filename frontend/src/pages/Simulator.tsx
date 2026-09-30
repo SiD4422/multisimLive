@@ -3,8 +3,9 @@ import SEO from '../components/SEO';
 
 import { Link } from 'react-router-dom';
 import LZString from 'lz-string';
-import { Play, MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, LayoutGrid, HelpCircle, Share, Maximize, Activity, PanelLeftClose, PanelLeftOpen, FileCode, Zap, CircleDot, ChevronRight, X, Search, FolderOpen, Save, CheckCircle2, AlertTriangle, BookOpen, Camera, Sparkles, Upload, Download, Copy, Code } from 'lucide-react';
+import { Play, MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, LayoutGrid, HelpCircle, Share, Maximize, Activity, PanelLeftClose, PanelLeftOpen, FileCode, Zap, CircleDot, ChevronRight, X, Search, FolderOpen, Save, CheckCircle2, AlertTriangle, BookOpen, Camera, Sparkles, Upload, Download, Copy, Code, Globe } from 'lucide-react';
 import { importSpiceNetlist, looksLikeSpiceNetlist } from '../utils/spiceImporter';
+import { PublishModal } from '../components/PublishModal';
 import SchematicEditor from '../components/SchematicEditor';
 import Grapher from '../components/Grapher';
 import { ComponentInspectorPanel } from '../components/ComponentInspectorPanel';
@@ -84,6 +85,7 @@ function Simulator() {
   const [isMyCktOpen, setIsMyCktOpen] = useState(false);
   const [lastSimMs, setLastSimMs] = useState<number | null>(null);
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const stageRef = useRef<any>(null);
 
   // ── Circuit DRC ────────────────────────────────────────────────────────────────
@@ -446,7 +448,15 @@ function Simulator() {
           </div>
         </div>
 
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => setIsPublishModalOpen(true)}
+            title="Publish to Community Gallery"
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', borderRadius:8, background:'#10b98120', border:'1px solid #10b98140', color:'#10b981', fontSize:12, fontWeight:600, cursor:'pointer' }}
+          >
+            <Globe size={14} />
+            Publish
+          </button>
           <button
             title="Custom SPICE Models"
             onClick={() => setIsCustomModelOpen(true)}
@@ -610,6 +620,7 @@ function Simulator() {
         </div>
       )}
       <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
+      <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
     </div>
     </>
   );

@@ -6,6 +6,7 @@ import {
   ToggleRight, Layers, GitBranch, Triangle
 } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
+import { getCommunityCircuits, incrementViews, type CommunityCircuit } from '../lib/firebase';
 
 import lowPassFilter        from '../examples/low_pass_filter.json';
 import rcHighPassFilter     from '../examples/rc_high_pass_filter.json';
@@ -91,6 +92,21 @@ export default function CircuitsPage() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [hovered, setHovered] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'featured' | 'community'>('featured');
+  const [communityCircuits, setCommunityCircuits] = useState<CommunityCircuit[]>([]);
+  const [communityLoading, setCommunityLoading] = useState(false);
+  const [communityError, setCommunityError] = useState('');
+
+  useEffect(() => {
+    if (activeTab !== 'community') return;
+    setCommunityLoading(true);
+    setCommunityError('');
+    getCommunityCircuits(50)
+      .then(circuits => setCommunityCircuits(circuits))
+      .catch(() => setCommunityError('Failed to load community circuits.'))
+      .finally(() => setCommunityLoading(false));
+  }, [activeTab]);
 
   const filtered = EXAMPLES.filter(ex => {
     const matchCat = activeCategory === 'All' || ex.category === activeCategory;
@@ -206,7 +222,24 @@ export default function CircuitsPage() {
         </div>
 
         {/* ── Grid ── */}
-        {filtered.length === 0 ? (
+        {/* Tab Switcher */}
+        <div style={{ display: 'flex', gap: 0, background: '#f1f5f9', borderRadius: 10, padding: 4, marginBottom: 24, width: 'fit-content' }}>
+          <button
+            onClick={() => setActiveTab('featured')}
+            style={{ padding: '8px 20px', borderRadius: 7, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
+              background: activeTab === 'featured' ? '#16a34a' : 'transparent',
+              color: activeTab === 'featured' ? '#fff' : '#6b7280' }}
+          >⭐ Featured ({EXAMPLES.length})</button>
+          <button
+            onClick={() => setActiveTab('community')}
+            style={{ padding: '8px 20px', borderRadius: 7, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
+              background: activeTab === 'community' ? '#16a34a' : 'transparent',
+              color: activeTab === 'community' ? '#fff' : '#6b7280' }}
+          >🌐 Community {communityCircuits.length > 0 ? `(${communityCircuits.length})` : ''}</button>
+        </div>
+
+        {activeTab === 'featured' && (
+          filtered.length === 0 ? (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', padding: '100px 20px',
@@ -352,6 +385,59 @@ export default function CircuitsPage() {
                 </div>
               );
             })}
+          </div>
+        ))}
+        
+        {activeTab === 'community' && (
+          <div>
+            {/* Publish CTA banner */}
+            <div style={{ background: 'linear-gradient(135deg, #10b981, #16a34a)', borderRadius: 12, padding: '20px 24px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>Share your circuit with the community</div>
+                <div style={{ color: '#d1fae5', fontSize: 13 }}>Build something cool? Publish it for others to learn from.</div>
+              </div>
+              <a href="/simulator" style={{ background: '#fff', color: '#16a34a', padding: '10px 20px', borderRadius: 8, fontWeight: 700, fontSize: 13, textDecoration: 'none', flexShrink: 0 }}>Open Simulator →</a>
+            </div>
+
+            {communityLoading && (
+              <div style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>Loading community circuits...</div>
+            )}
+            {communityError && (
+              <div style={{ textAlign: 'center', padding: '48px 0', color: '#ef4444' }}>{communityError}</div>
+            )}
+            {!communityLoading && !communityError && communityCircuits.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '64px 0' }}>
+                <div style={{ fontSize: 48, marginBottom: 12 }}>🔌</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#1f2937', marginBottom: 8 }}>No community circuits yet</div>
+                <div style={{ color: '#6b7280', marginBottom: 24 }}>Be the first to publish a circuit!</div>
+                <a href="/simulator" style={{ background: '#16a34a', color: '#fff', padding: '12px 28px', borderRadius: 8, fontWeight: 700, textDecoration: 'none' }}>Build & Publish →</a>
+              </div>
+            )}
+            {!communityLoading && communityCircuits.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+                {communityCircuits.map(circuit => (
+                  <div key={circuit.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: '#1f2937', lineHeight: 1.3 }}>{circuit.name}</div>
+                      <span style={{ background: '#dcfce7', color: '#16a34a', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, flexShrink: 0 }}>{circuit.category}</span>
+                    </div>
+                    {circuit.description && (
+                      <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>{circuit.description}</div>
+                    )}
+                    <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#9ca3af' }}>
+                      <span>⚡ {circuit.componentCount} components</span>
+                      <span>👤 {circuit.authorName}</span>
+                      <span>📅 {circuit.createdAt.toLocaleDateString()}</span>
+                    </div>
+                    <a
+                      href={`/simulator#circuit=${circuit.circuitData}`}
+                      onClick={() => incrementViews(circuit.id)}
+                      style={{ display: 'block', textAlign: 'center', background: '#16a34a', color: '#fff', padding: '10px', borderRadius: 8, fontWeight: 600, fontSize: 13, textDecoration: 'none', marginTop: 4 }}
+                    >Open in Simulator →</a>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
