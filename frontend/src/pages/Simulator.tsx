@@ -17,6 +17,7 @@ import { CircuitLibrary } from '../components/CircuitLibrary';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { generateNetlist, getComponentPins } from '../utils/netlister';
 import { EmbedModal } from '../components/EmbedModal';
+import { ShareModal } from '../components/ShareModal';
 import { WelcomeTour } from '../components/WelcomeTour';
 import { useCircuitBoot } from '../hooks/useCircuitBoot';
 import { RestoreBanner } from '../components/RestoreBanner';
@@ -72,6 +73,7 @@ function Simulator() {
   const [circuitName, setCircuitName] = useState('Untitled Circuit');
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEmbedModalOpen, setIsEmbedModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const isEmbed = new URLSearchParams(window.location.search).get('embed') === 'true';
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeView, setActiveView] = useState<'schematic' | 'grapher' | 'split'>('schematic');
@@ -279,24 +281,8 @@ function Simulator() {
     e.target.value = '';
   };
 
-  const handleShare = async () => {
-    try {
-      const stateStr = exportState();
-      const compressed = LZString.compressToEncodedURIComponent(stateStr);
-      const url = `${window.location.origin}${window.location.pathname}#circuit=${compressed}`;
-      
-      // Browsers cap URLs typically around 2000 chars. We set limit slightly below for safety.
-      if (url.length > 1900) {
-        showToast('Circuit too complex to share via URL. Please use the Save button to download a JSON file instead.', 'warning');
-        return;
-      }
-      
-      await navigator.clipboard.writeText(url);
-      showToast('Shareable link copied to clipboard!', 'success');
-    } catch (err) {
-      console.error("Share failed", err);
-      showToast('Failed to copy link to clipboard.', 'warning');
-    }
+  const handleShare = () => {
+    setIsShareModalOpen(true);
   };
 
   const toggleFullScreen = () => {
@@ -623,6 +609,7 @@ function Simulator() {
           </div>
         </div>
       )}
+      <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
     </div>
     </>
   );
