@@ -1,13 +1,13 @@
 // geminiClient.ts
 // Clean Gemini API client. Replaces the inline fetch logic in AiExplainerPanel.
-// Uses gemini-2.0-flash for structured diagnosis (better reasoning).
+// Uses gemini-1.5-flash for diagnosis (gemini-2.0-flash is deprecated).
 // Uses gemini-1.5-flash for streaming explain/chat (speed).
 
 import type { AIContext, DiagnosisResult, ChatMessage } from './aiTypes';
 import { serializeContext } from './aiContext';
 
 const EXPLAIN_MODEL = 'gemini-1.5-flash';
-const DIAGNOSE_MODEL = 'gemini-2.0-flash';
+const DIAGNOSE_MODEL = 'gemini-1.5-flash';
 
 // Mode 1: Proxy (no API key needed) — default for new users
 const PROXY_BASE = '/api/gemini';
