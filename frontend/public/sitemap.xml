@@ -1,33 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://nodesimapp.com/</loc><lastmod>2024-01-01</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://nodesimapp.com/simulator</loc><lastmod>2024-01-01</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>https://nodesimapp.com/features</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nodesimapp.com/circuits</loc><lastmod>2024-01-01</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nodesimapp.com/procedure</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/resources</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/lpf</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/hpf</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/rl_lp</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/lc_bp</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/integrator</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/half_wave</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/rectifier</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/transformer</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/opamp</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/ce_amp</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/npn_amp</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/comparator</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/zener</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/vdivider</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/mosfet_sw</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/circuits/555</loc><lastmod>2024-01-01</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://nodesimapp.com/tutorials/rc-circuit</loc><lastmod>2024-03-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nodesimapp.com/tutorials/transistor-amplifier</loc><lastmod>2024-03-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nodesimapp.com/tutorials/op-amp</loc><lastmod>2024-03-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nodesimapp.com/tutorials/diode-rectifier</loc><lastmod>2024-03-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nodesimapp.com/tutorials/rlc-circuit</loc><lastmod>2024-03-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nodesimapp.com/compare/ltspice</loc><lastmod>2024-03-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nodesimapp.com/compare/multisim</loc><lastmod>2024-03-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://nodesimapp.com/compare/falstad</loc><lastmod>2024-03-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+
+  <!-- Core pages — highest priority -->
+  <url><loc>https://www.nodesimapp.com/</loc><lastmod>2026-09-30</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://www.nodesimapp.com/simulator</loc><lastmod>2026-09-30</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits</loc><lastmod>2026-09-30</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.nodesimapp.com/features</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.nodesimapp.com/procedure</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/resources</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
+  <!-- Tutorial pages — high SEO value (keyword-rich long-form content) -->
+  <url><loc>https://www.nodesimapp.com/tutorials/rc-circuit</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.nodesimapp.com/tutorials/555-timer</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.nodesimapp.com/tutorials/transistor-amplifier</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.nodesimapp.com/tutorials/op-amp</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.nodesimapp.com/tutorials/diode-rectifier</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.nodesimapp.com/tutorials/rlc-circuit</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+
+  <!-- Comparison pages — very high SEO value (captures competitor search intent) -->
+  <url><loc>https://www.nodesimapp.com/compare/ltspice</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.nodesimapp.com/compare/multisim</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.nodesimapp.com/compare/falstad</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+
+  <!-- Circuit library individual pages -->
+  <url><loc>https://www.nodesimapp.com/circuits/lpf</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/hpf</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/rectifier</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/half_wave</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/opamp</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/ce_amp</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/npn_amp</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/555</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/vdivider</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/transformer</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/zener</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/comparator</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/mosfet_sw</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/integrator</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/lc_bp</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/rl_lp</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
 </urlset>

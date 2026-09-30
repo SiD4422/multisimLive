@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nodesimapp.com/sitemap.xml
+# Block simulator state URLs from indexing (no SEO value, very long URLs)
+Disallow: /simulator#
+
+# Sitemap location — matches www canonical
+Sitemap: https://www.nodesimapp.com/sitemap.xml
