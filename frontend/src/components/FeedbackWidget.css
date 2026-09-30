@@ -2,7 +2,7 @@
 .feedback-float-btn {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  left: 24px;
   background: #0f172a;
   color: #fff;
   border: none;
