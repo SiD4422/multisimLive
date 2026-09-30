@@ -399,6 +399,7 @@ function Simulator() {
         setIsLibraryOpen={setIsLibraryOpen}
         setIsEmbedModalOpen={setIsEmbedModalOpen}
         setIsShortcutModalOpen={setIsShortcutModalOpen}
+        onOpenAi={() => setIsAiPanelOpen(true)}
       />
 
       {/* Toolbar */}

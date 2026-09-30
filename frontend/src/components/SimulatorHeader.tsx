@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   BookOpen, FolderOpen, Save, Share, Code, 
-  Camera, Upload, Download, Copy, Maximize, HelpCircle 
+  Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles
 } from 'lucide-react';
 import { Logo } from './icons/Logo';
 
@@ -25,6 +25,7 @@ export interface SimulatorHeaderProps {
   setIsLibraryOpen: (v: boolean) => void;
   setIsEmbedModalOpen: (v: boolean) => void;
   setIsShortcutModalOpen: (v: boolean) => void;
+  onOpenAi: () => void;
 }
 
 export function SimulatorHeader({
@@ -45,7 +46,8 @@ export function SimulatorHeader({
   lastSimMs,
   setIsLibraryOpen,
   setIsEmbedModalOpen,
-  setIsShortcutModalOpen
+  setIsShortcutModalOpen,
+  onOpenAi
 }: SimulatorHeaderProps) {
   return (
     <header className="header-top relative" style={{ zIndex: 10 }}>
@@ -93,6 +95,33 @@ export function SimulatorHeader({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        {/* AI Tutor button — labeled and prominent so users can find it */}
+        <button
+          onClick={onOpenAi}
+          title="AI Circuit Tutor — powered by Gemini"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            background: 'linear-gradient(135deg, #16a34a, #15803d)',
+            border: '1px solid #22c55e40',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            color: '#fff',
+            fontSize: '12px',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            transition: 'all 0.15s ease',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 1px 4px rgba(22,163,74,0.3)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(135deg, #15803d, #166534)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(22,163,74,0.5)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a, #15803d)'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(22,163,74,0.3)'; }}
+        >
+          <Sparkles size={13} />
+          AI Tutor
+        </button>
         {/* Divider */}
         <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
         {[

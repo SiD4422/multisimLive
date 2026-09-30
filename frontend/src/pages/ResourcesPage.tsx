@@ -117,31 +117,36 @@ export default function ResourcesPage() {
         </div>
 
         {/* SECTION: Video Tutorials */}
-        <div style={{
-          backgroundColor: C.bgCard, borderRadius: 24, padding: '40px',
-          border: `1px solid ${C.border}`, boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-            <h2 style={{ fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
-              <PlayCircle color="#ef4444" size={36} /> Video Tutorials
-            </h2>
-            <span style={{ backgroundColor: '#fef2f2', color: '#ef4444', padding: '6px 12px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 600 }}>Coming Soon</span>
-          </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-            {[1, 2].map((v) => (
-              <div key={v} style={{ borderRadius: 16, overflow: 'hidden', border: `1px solid ${C.border}` }}>
-                <div style={{ height: 180, backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <PlayCircle size={48} color="#94a3b8" />
+        <section style={{ marginBottom: '56px' }}>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '2rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
+            <PlayCircle color="#ef4444" size={32} /> Video Tutorials
+          </h2>
+          <p style={{ color: '#64748b', marginBottom: '24px', fontSize: '15px' }}>Recommended YouTube channels and videos for learning circuit simulation.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+            {[
+              { title: 'The Organic Chemistry Tutor', desc: 'Clear explanations of RC, RL, RLC circuits, transistors, and op-amps.', url: 'https://www.youtube.com/@TheOrganicChemistryTutor', tag: 'Circuit Theory' },
+              { title: 'EEVblog', desc: 'Professional electronics engineering — component deep dives, oscilloscope tutorials, real-world circuits.', url: 'https://www.youtube.com/@EEVblog', tag: 'Engineering' },
+              { title: 'All About Electronics', desc: 'Step-by-step explanations of BJTs, MOSFETs, op-amps and power electronics.', url: 'https://www.youtube.com/@AllAboutElectronics', tag: 'Components' },
+              { title: 'Afrotechmods', desc: 'Practical circuit building — great for understanding real component behavior.', url: 'https://www.youtube.com/@Afrotechmods', tag: 'Practical' },
+            ].map(v => (
+              <a
+                key={v.title}
+                href={v.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', textDecoration: 'none', color: 'inherit', transition: 'border-color 0.2s' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ background: '#fef2f2', color: '#ef4444', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 }}>{v.tag}</span>
+                  <PlayCircle size={18} color="#ef4444" />
                 </div>
-                <div style={{ padding: '20px' }}>
-                  <h4 style={{ margin: '0 0 8px', fontSize: '1.1rem' }}>{v === 1 ? 'Building a 555 Astable Oscillator' : 'Analyzing Bode Plots with AC Sweep'}</h4>
-                  <p style={{ margin: 0, color: C.textSecondary, fontSize: '0.95rem' }}>Learn how to wire and measure this classic circuit step-by-step.</p>
-                </div>
-              </div>
+                <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>{v.title}</div>
+                <div style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.6 }}>{v.desc}</div>
+                <div style={{ color: '#3b82f6', fontSize: '12px', fontWeight: 600 }}>Watch on YouTube →</div>
+              </a>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* CTA */}
         <div style={{ textAlign: 'center', marginTop: 60 }}>
