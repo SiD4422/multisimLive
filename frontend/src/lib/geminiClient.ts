@@ -6,8 +6,8 @@
 import type { AIContext, DiagnosisResult, ChatMessage } from './aiTypes';
 import { serializeContext } from './aiContext';
 
-const EXPLAIN_MODEL = 'gemini-3.5-flash-lite';
-const DIAGNOSE_MODEL = 'gemini-3.8-flash';
+const EXPLAIN_MODEL   = 'gemini-3.5-flash-lite';
+const DIAGNOSE_MODEL  = 'gemini-3.5-flash-lite';
 
 // Mode 1: Proxy (no API key needed) — default for new users
 const PROXY_BASE = '/api/gemini';
@@ -69,24 +69,32 @@ export async function diagnose(context: AIContext, apiKey: string): Promise<Diag
   const contextStr = serializeContext(context);
   const prompt = `${contextStr}\n\n---\nANALYSIS TASK: Auto-diagnose this circuit for issues.\n${DIAGNOSE_SCHEMA}`;
 
-  const res = await fetch(geminiUrl(DIAGNOSE_MODEL, 'generateContent', false, apiKey), {
-    method: 'POST',
-    headers: geminiHeaders(apiKey),
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: DIAGNOSE_SYSTEM }] },
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 2048,
-        responseMimeType: 'application/json',
-      },
-    }),
-  });
+  // Auto-retry on 503 overloaded (up to 3 attempts with backoff)
+  let res: Response | null = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    res = await fetch(geminiUrl(DIAGNOSE_MODEL, 'generateContent', false, apiKey), {
+      method: 'POST',
+      headers: geminiHeaders(apiKey),
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: DIAGNOSE_SYSTEM }] },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 2048,
+          responseMimeType: 'application/json',
+        },
+      }),
+    });
+    if (res.status !== 503) break;
+    // Wait before retry: 1s, then 2s
+    await new Promise(r => setTimeout(r, (attempt + 1) * 1000));
+  }
 
-  if (!res.ok) {
-    if (res.status === 429) throw new Error('Rate limit exceeded');
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as { error?: { message?: string } })?.error?.message || err?.error || `Gemini API error ${res.status}`);
+  if (!res || !res.ok) {
+    if (res?.status === 429) throw new Error('Rate limit exceeded');
+    if (res?.status === 503) throw new Error('AI is busy right now — please try again in a few seconds.');
+    const err = await res?.json().catch(() => ({}));
+    throw new Error((err as { error?: { message?: string } })?.error?.message || err?.error || `Gemini API error ${res?.status}`);
   }
 
   const data = await res.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
