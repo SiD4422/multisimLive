@@ -55,12 +55,11 @@ export function SimulatorHeader({
 }: SimulatorHeaderProps) {
   return (
     <header className="header-top relative" style={{ zIndex: 10 }}>
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-6" style={{ flex: 1, minWidth: 0 }}>
         <div className="flex items-center gap-2" style={{ marginLeft: '-95px' }}>
           <a href="https://nodesimapp.com" target="_blank" rel="noopener noreferrer" title="Open NodeSim" className="flex items-center">
             <Logo style={{ width: '250px', height: '52px', transform: 'scale(1.3)', transformOrigin: 'left center' }} />
           </a>
-          {!isEmbed && <span style={{ fontSize: '10px' }} className="border border-green-700 text-green-300 px-1.5 py-0 rounded-full ml-1 whitespace-nowrap">Beta Testing</span>}
         </div>
         
         {!isEmbed && (
@@ -73,7 +72,7 @@ export function SimulatorHeader({
         )}
       </div>
 
-      <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+      <div style={{ flex: '0 1 auto', display: 'flex', justifyContent: 'center', whiteSpace: 'nowrap', overflow: 'hidden', padding: '0 10px' }}>
         {isEditingName ? (
           <input 
             autoFocus
@@ -92,13 +91,14 @@ export function SimulatorHeader({
             className="header-title cursor-pointer hover:bg-green-700 hover:bg-opacity-50 px-3 py-1 rounded transition-colors text-center" 
             onClick={onEditName}
             title="Click to rename"
+            style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
           >
             {circuitName || 'Untitled Circuit'}
           </div>
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', minWidth: 0 }}>
         {/* AI Tutor button — labeled and prominent so users can find it */}
         <button
           onClick={onOpenAi}
