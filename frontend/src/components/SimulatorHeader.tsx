@@ -26,6 +26,7 @@ export interface SimulatorHeaderProps {
   setIsEmbedModalOpen: (v: boolean) => void;
   setIsShortcutModalOpen: (v: boolean) => void;
   onOpenAi: () => void;
+  onExportKiCad: () => void;
 }
 
 export function SimulatorHeader({
@@ -47,7 +48,8 @@ export function SimulatorHeader({
   setIsLibraryOpen,
   setIsEmbedModalOpen,
   setIsShortcutModalOpen,
-  onOpenAi
+  onOpenAi,
+  onExportKiCad
 }: SimulatorHeaderProps) {
   return (
     <header className="header-top relative" style={{ zIndex: 10 }}>
@@ -155,6 +157,31 @@ export function SimulatorHeader({
             {icon}
           </button>
         ))}
+        <button
+          onClick={onExportKiCad}
+          title="Export to KiCad Netlist (.net) for PCB layout"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '32px', height: '32px',
+            background: 'transparent',
+            border: '1px solid transparent',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            color: '#a78bfa',
+            transition: 'all 0.12s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#a78bfa'; }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="3" width="20" height="18" rx="2" />
+            <line x1="8" y1="21" x2="8" y2="3" />
+            <line x1="16" y1="21" x2="16" y2="3" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <circle cx="8" cy="7" r="1" fill="currentColor" />
+            <circle cx="16" cy="17" r="1" fill="currentColor" />
+          </svg>
+        </button>
         <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
         <button
           title="Fullscreen"

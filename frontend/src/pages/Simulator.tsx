@@ -25,6 +25,7 @@ import { RestoreBanner } from '../components/RestoreBanner';
 
 import { ComponentPalette } from '../components/ComponentPalette';
 import { SimulatorHeader } from '../components/SimulatorHeader';
+import { downloadKiCadNetlist } from '../utils/exportKiCad';
 import { CustomModelPanel } from '../components/CustomModelPanel';
 import { StatusBar } from '../components/StatusBar';
 import '../index.css';
@@ -185,6 +186,11 @@ function Simulator() {
     window.addEventListener('beforeunload', handleBeforeUnload, { capture: true });
     return () => window.removeEventListener('beforeunload', handleBeforeUnload, { capture: true });
   }, []);
+
+  const handleExportKiCad = () => {
+    const { components, wires } = useSchematicStore.getState();
+    downloadKiCadNetlist(components, wires);
+  };
 
   const handleExportNetlist = () => {
     const netlist = generateNetlist(components, wires, useSchematicStore.getState().probes);
@@ -400,6 +406,7 @@ function Simulator() {
         setIsEmbedModalOpen={setIsEmbedModalOpen}
         setIsShortcutModalOpen={setIsShortcutModalOpen}
         onOpenAi={() => setIsAiPanelOpen(true)}
+        onExportKiCad={handleExportKiCad}
       />
 
       {/* Toolbar */}
