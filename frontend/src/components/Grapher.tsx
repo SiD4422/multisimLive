@@ -1022,9 +1022,9 @@ export default function Grapher() {
         </div>
       </div>
 
-      {/* Chart area: positioned exactly below toolbar with explicit pixel height */}
+      {/* Chart area: positioned exactly below toolbar */}
       <div style={{ position: 'absolute', top: TOOLBAR_H, left: 0, right: 0, bottom: 0 }}>
-        {chartAreaHeight > 0 && PlotComponent}
+        {PlotComponent}
         <MeasurementsPanel data={formattedData} traces={traces} plotType={plotType} probeMap={probeMap} />
       </div>
     </div>
