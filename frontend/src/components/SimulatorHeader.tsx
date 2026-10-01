@@ -157,31 +157,48 @@ export function SimulatorHeader({
             {icon}
           </button>
         ))}
+        {/* KiCad Export — labeled pill button next to AI Tutor */}
         <button
           onClick={onExportKiCad}
-          title="Export to KiCad Netlist (.net) for PCB layout"
+          title="Export to KiCad (.net) — import in KiCad PCB Editor to start PCB layout"
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: '32px', height: '32px',
-            background: 'transparent',
-            border: '1px solid transparent',
-            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '6px 11px',
+            background: 'rgba(139,92,246,0.18)',
+            border: '1px solid rgba(139,92,246,0.45)',
+            borderRadius: '8px',
             cursor: 'pointer',
-            color: '#a78bfa',
-            transition: 'all 0.12s ease',
+            color: '#c4b5fd',
+            fontSize: '12px',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s ease',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#a78bfa'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.32)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(139,92,246,0.7)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.18)'; e.currentTarget.style.color = '#c4b5fd'; e.currentTarget.style.borderColor = 'rgba(139,92,246,0.45)'; }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="3" width="20" height="18" rx="2" />
-            <line x1="8" y1="21" x2="8" y2="3" />
-            <line x1="16" y1="21" x2="16" y2="3" />
-            <line x1="2" y1="12" x2="22" y2="12" />
-            <circle cx="8" cy="7" r="1" fill="currentColor" />
-            <circle cx="16" cy="17" r="1" fill="currentColor" />
+          {/* Simple IC chip icon — square body with 4 legs each side */}
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+            <rect x="5" y="5" width="10" height="10" rx="1.5" />
+            {/* Top pins */}
+            <line x1="8"  y1="5" x2="8"  y2="2" />
+            <line x1="12" y1="5" x2="12" y2="2" />
+            {/* Bottom pins */}
+            <line x1="8"  y1="15" x2="8"  y2="18" />
+            <line x1="12" y1="15" x2="12" y2="18" />
+            {/* Left pins */}
+            <line x1="5" y1="8"  x2="2" y2="8" />
+            <line x1="5" y1="12" x2="2" y2="12" />
+            {/* Right pins */}
+            <line x1="15" y1="8"  x2="18" y2="8" />
+            <line x1="15" y1="12" x2="18" y2="12" />
           </svg>
+          → KiCad
         </button>
+        {/* Divider */}
         <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
         <button
           title="Fullscreen"
