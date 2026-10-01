@@ -103,23 +103,52 @@ function Simulator() {
       c.type === 'DCSource' || c.type === 'ACSource'
     );
     if (!hasSrc) issues.push('No voltage or current source in circuit');
-    // 3. Floating components — check if ANY pin (not just center) is near a wire
-    // Multi-pin ICs (555, op-amps) have pins far from their center position
+    // 3. Floating components — check if ANY pin is connected
     const allWirePoints = wires.flatMap(w => w.points);
-    const isPinNearWire = (pos: {x:number,y:number}) =>
-      allWirePoints.some(p => Math.abs(p.x - pos.x) < 15 && Math.abs(p.y - pos.y) < 15);
+    
+    // Pre-calculate all component pins to avoid re-evaluating
+    const allComponentPins = components.flatMap(c => {
+      if (c.type === 'TextAnnotation') return [];
+      try {
+        return getComponentPins(c).map(p => ({ compId: c.id, pos: p.p }));
+      } catch {
+        return [{ compId: c.id, pos: c.position }];
+      }
+    }).filter(p => p.pos);
+
+    const isPinConnected = (pos: {x:number,y:number}, compId: string) => {
+      // a) Near a wire vertex?
+      if (allWirePoints.some(p => Math.abs(p.x - pos.x) < 15 && Math.abs(p.y - pos.y) < 15)) return true;
+      // b) Near another component's pin? (direct connection)
+      if (allComponentPins.some(other => other.compId !== compId && other.pos && Math.abs(other.pos.x - pos.x) < 15 && Math.abs(other.pos.y - pos.y) < 15)) return true;
+      // c) On a wire segment?
+      for (const w of wires) {
+        for (let i = 0; i < w.points.length - 1; i++) {
+          const p1 = w.points[i];
+          const p2 = w.points[i+1];
+          const l2 = (p1.x - p2.x)**2 + (p1.y - p2.y)**2;
+          if (l2 === 0) continue;
+          let t = ((pos.x - p1.x)*(p2.x - p1.x) + (pos.y - p1.y)*(p2.y - p1.y)) / l2;
+          t = Math.max(0, Math.min(1, t));
+          const projX = p1.x + t * (p2.x - p1.x);
+          const projY = p1.y + t * (p2.y - p1.y);
+          if ((pos.x - projX)**2 + (pos.y - projY)**2 < 15*15) return true;
+        }
+      }
+      return false;
+    };
+
     const floating = components.filter(c => {
       if (c.type === 'Ground' || c.type === 'TextAnnotation') return false;
-      // Check center position first (fast path for most components)
-      if (isPinNearWire(c.position)) return false;
-      // For multi-pin components, check if any of their computed pins are near a wire
       try {
         const pins = getComponentPins(c);
-        return !pins.some(pin => pin.p && isPinNearWire(pin.p));
+        if (pins.length === 0) return !isPinConnected(c.position, c.id);
+        return !pins.some(pin => pin.p && isPinConnected(pin.p, c.id));
       } catch {
-        return !isPinNearWire(c.position);
+        return !isPinConnected(c.position, c.id);
       }
     });
+
     if (floating.length > 0) issues.push(`${floating.length} component(s) not connected to any wire`);
     return issues;
   }, [components, wires]);
