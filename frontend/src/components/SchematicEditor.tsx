@@ -13,11 +13,13 @@ import { getComponentPins } from '../utils/netlister';
 import { findOrthogonalPath } from '../utils/autoRouter';
 import { buildWireNodeMap, buildWireVoltageResult, voltageToStrokeWidth, getPointAlongPolyline } from '../utils/wireVoltageMap';
 import { computeWireCrossings } from '../utils/wireCrossings';
+import { CurrentFlowOverlay } from './CurrentFlowOverlay';
 
 const SNAP_GRID = 10;
 const VISUAL_GRID = 45;
 
 export default function SchematicEditor() {
+  const [isFlowMode, setIsFlowMode] = useState(false);
   const {
     components, wires, addComponent, updateComponentPosition, 
     selectedComponentId, setSelectedComponent, pendingComponent, setPendingComponent,
@@ -1057,6 +1059,46 @@ export default function SchematicEditor() {
         </Stage>
         )}
 
+        {/* Floating Flow Button */}
+        <div style={{ position: 'absolute', bottom: 16, right: 16, zIndex: 100 }}>
+          <button
+            onClick={() => setIsFlowMode(f => !f)}
+            disabled={!simulationBuffer || simulationBuffer.length === 0}
+            title={isFlowMode ? 'Stop current flow animation' : 'Show animated current flow (Falstad-style)'}
+            style={{
+              background: isFlowMode ? '#dcfce7' : '#ffffff',
+              color: isFlowMode ? '#16a34a' : '#6b7280',
+              border: `1px solid ${isFlowMode ? '#16a34a' : '#d1d5db'}`,
+              borderRadius: 6,
+              padding: '4px 8px',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: simulationBuffer && simulationBuffer.length > 0 ? 'pointer' : 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="2.5"/>
+              <circle cx="12" cy="12" r="2.5" opacity="0.6"/>
+              <circle cx="19" cy="12" r="2.5" opacity="0.3"/>
+              <path d="M7.5 12 H9.5 M14.5 12 H16.5" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
+            Flow
+          </button>
+        </div>
+
+        {isFlowMode && (
+          <CurrentFlowOverlay
+            isActive={isFlowMode}
+            canvasOffset={stagePos}
+            canvasScale={scale}
+            svgWidth={dimensions.width}
+            svgHeight={dimensions.height}
+          />
+        )}
         {/* Wire right-click context menu */}
         {wireContextMenu && (
           <div
@@ -1119,3 +1161,4 @@ export default function SchematicEditor() {
       </div>
     );
   }
+
