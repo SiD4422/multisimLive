@@ -1,3 +1,4 @@
+type IconProps = { size?: number, color?: string };
 
 // Green Probe Pin (Base for V, A, V/A, Digital)
 const ProbePin = () => (
@@ -248,7 +249,7 @@ export const IconDIP14 = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-export const Icon74HC595 = ({ size = 28, color = '#374151' }: IconProps) => (
+export const Icon74HC595 = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="10" y="4" width="20" height="32" stroke={color} strokeWidth="2" fill="white" rx="2" />
     <text x="20" y="22" textAnchor="middle" fontSize="5" fill={color} fontFamily="monospace">595</text>
@@ -503,9 +504,8 @@ export const IconGateXOR = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-type IconProps = { size?: number, color?: string };
 
-export const IconGateXNOR = ({ size = 28, color = '#374151' }: IconProps) => (
+export const IconGateXNOR = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M8 10 Q6 20 8 30 Q20 28 28 20 Q20 12 8 10Z" stroke={color} strokeWidth="2" fill="white" />
     <path d="M5 10 Q8 20 5 30" stroke={color} strokeWidth="2" fill="none" />
@@ -516,7 +516,7 @@ export const IconGateXNOR = ({ size = 28, color = '#374151' }: IconProps) => (
   </svg>
 );
 
-export const IconGateBuffer = ({ size = 28, color = '#374151' }: IconProps) => (
+export const IconGateBuffer = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <polygon points="8,8 8,32 30,20" stroke={color} strokeWidth="2" fill="white" />
     <line x1="2" y1="20" x2="8" y2="20" stroke={color} strokeWidth="2" />
@@ -548,7 +548,7 @@ export const IconJKFlipFlop = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-export const IconSRFlipFlop = ({ size = 28, color = '#374151' }: IconProps) => (
+export const IconSRFlipFlop = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="10" y="8" width="20" height="24" stroke={color} strokeWidth="2" fill="white" rx="1" />
     <text x="20" y="16" textAnchor="middle" fontSize="5" fill={color} fontFamily="monospace">S</text>
@@ -562,7 +562,7 @@ export const IconSRFlipFlop = ({ size = 28, color = '#374151' }: IconProps) => (
   </svg>
 );
 
-export const IconTFlipFlop = ({ size = 28, color = '#374151' }: IconProps) => (
+export const IconTFlipFlop = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
   <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="10" y="8" width="20" height="24" stroke={color} strokeWidth="2" fill="white" rx="1" />
     <text x="20" y="16" textAnchor="middle" fontSize="5" fill={color} fontFamily="monospace">T</text>
@@ -823,7 +823,6 @@ export const IconTVSDiode = ({ size = 28, color = '#374151' }: { size?: number, 
   </svg>
 );
 
-type IconProps = { size?: number, color?: string };
 
 // Voltmeter — circle with V inside, two terminals
 export const IconVoltmeter = ({ size = 28, color = '#374151' }: IconProps) => (

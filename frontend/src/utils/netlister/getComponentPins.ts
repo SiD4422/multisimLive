@@ -681,7 +681,7 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
   }
 
   // â”€â”€ VCCS â€” 4 pins: IN+, IN-, OUT+, OUT-
-  if (comp.type === 'VCCS') {
+  if (comp.type === 'VCCS' || comp.type === 'CCCS') {
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad); const sin = Math.sin(rad);
     const rawPins = [
@@ -689,6 +689,23 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
       { x:  0, y:  15, id: 'IN-'  },
       { x: 60, y: -15, id: 'OUT+' },
       { x: 60, y:  15, id: 'OUT-' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+    });
+  }
+
+  // ─── VCVS / CCVS ─── 4 pins: CTRL+, CTRL-, OUT+, OUT-
+  if (comp.type === 'VCVS' || comp.type === 'CCVS') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad); const sin = Math.sin(rad);
+    const rawPins = [
+      { x:  0, y: -15, id: 'CTRL+' },
+      { x:  0, y:  15, id: 'CTRL-' },
+      { x: 60, y: -15, id: 'OUT+'  },
+      { x: 60, y:  15, id: 'OUT-'  },
     ];
     return rawPins.map(pin => {
       const sx = pin.x * 1.5; const sy = pin.y * 1.5;

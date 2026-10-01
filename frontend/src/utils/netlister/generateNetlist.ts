@@ -811,7 +811,7 @@ S_dis DIS GND dis_gate GND SMOD555
       netlist += `X_${comp.id} ${aNode} ${kNode} ${cNode} ${eNode} OPTO_MODEL\n`;
       models.add(`.SUBCKT OPTO_MODEL A K C E\nV_measure A N1 0\nD1 N1 K DLED\n.MODEL DLED D (IS=1p N=2 RS=5 BV=5)\nF1 0 B V_measure 0.5\nQ1 C B E NPNMOD\n.MODEL NPNMOD NPN(BF=100)\nR_dummy B E 100k\n.ENDS`);
     }
-    else if (comp.type === 'VoltageRegulator7805' || comp.type === 'VoltageRegulator7812' || comp.type === 'VoltageRegulatorLM317') {
+    else if (comp.type === 'VoltageRegulator7805' || comp.type === 'VoltageRegulator7812' || comp.type === 'VoltageRegulatorLM317' || comp.type === 'VoltageRegulator7809' || comp.type === 'VoltageRegulatorAMS1117') {
       const val = comp.type;
       const inNode = nodes[0] || '0';
       const gndNode = nodes[1] || '0'; // Or ADJ
@@ -823,10 +823,24 @@ S_dis DIS GND dis_gate GND SMOD555
       } else if (val === 'VoltageRegulator7812') {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM7812_MODEL\n`;
         models.add(`.SUBCKT LM7812_MODEL IN OUT GND\nE_reg OUT GND VALUE={IF(V(IN,GND)>14, 12, V(IN,GND)-2)}\nR_out OUT 0 10Meg\n.ENDS`);
+      } else if (val === 'VoltageRegulator7809') {
+        netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM7809_MODEL\n`;
+        models.add(`.SUBCKT LM7809_MODEL IN OUT GND\nE_reg OUT GND VALUE={IF(V(IN,GND)>11, 9, V(IN,GND)-2)}\nR_out OUT 0 10Meg\n.ENDS`);
+      } else if (val === 'VoltageRegulatorAMS1117') {
+        netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} AMS1117_MODEL\n`;
+        models.add(`.SUBCKT AMS1117_MODEL IN OUT GND\nE_reg OUT GND VALUE={IF(V(IN,GND)>4.3, 3.3, V(IN,GND)-1)}\nR_out OUT 0 10Meg\n.ENDS`);
       } else {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM317_MODEL\n`;
         models.add(`.SUBCKT LM317_MODEL IN OUT ADJ\nE_reg OUT ADJ VALUE={IF(V(IN,ADJ)>3, 1.25, V(IN,ADJ)*0.4)}\nR_out OUT 0 10Meg\n.ENDS`);
       }
+    }
+    else if (comp.type === 'BuckConverter') {
+      const vin_pos = nodes[0] || '0';
+      const vin_neg = nodes[1] || '0';
+      const vout_pos = nodes[2] || '0';
+      const vout_neg = nodes[3] || '0';
+      const duty = parseFloat(comp.value || '0.5');
+      netlist += `E_${comp.id} ${vout_pos} ${vout_neg} ${vin_pos} ${vin_neg} ${duty}\n`;
     }
     else if (comp.type === 'IC74LS00') {
       const pinsList = [];
