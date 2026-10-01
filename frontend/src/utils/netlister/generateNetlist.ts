@@ -225,10 +225,31 @@ export function generateNetlist(
     if (comp.type === 'Ammeter') {
       const n1 = getNodeId(pins[0].gridNode);
       const n2 = getNodeId(pins[1].gridNode);
-      netlist += `${comp.id} ${n1} ${n2} DC 0\n`;
-      // Prevent singular matrix if the ammeter splits a wire at a dead end or junction
-      netlist += `R_leak1_${comp.id} ${n1} 0 1G\n`;
-      netlist += `R_leak2_${comp.id} ${n2} 0 1G\n`;
+      const isProbe = comp.value && comp.value.startsWith('{');
+      const vName = isProbe ? comp.id : `V_${comp.id}`;
+      netlist += `${vName} ${n1} ${n2} DC 0\n`;
+      if (isProbe) {
+        // Prevent singular matrix if the ammeter splits a wire at a dead end or junction
+        netlist += `R_leak1_${comp.id} ${n1} 0 1G\n`;
+        netlist += `R_leak2_${comp.id} ${n2} 0 1G\n`;
+      }
+      return;
+    }
+
+    if (comp.type === 'Voltmeter') {
+      const n1 = getNodeId(pins[0].gridNode);
+      const n2 = getNodeId(pins[1].gridNode);
+      netlist += `R_${comp.id} ${n1} ${n2} 1MEG\n`;
+      return;
+    }
+
+    if (comp.type === 'Wattmeter') {
+      const vplus = getNodeId(pins[0].gridNode);
+      const vminus = getNodeId(pins[1].gridNode);
+      const iplus = getNodeId(pins[2].gridNode);
+      const iminus = getNodeId(pins[3].gridNode);
+      netlist += `R_wv_${comp.id} ${vplus} ${vminus} 1MEG\n`;
+      netlist += `V_wa_${comp.id} ${iplus} ${iminus} 0\n`;
       return;
     }
     
@@ -240,6 +261,29 @@ export function generateNetlist(
     if (comp.type === 'Resistor' || comp.type === 'Load') {
       const val = (comp.value || '1k').replace('Î©', '');
       netlist += `R_${comp.id} ${nodes[0]} ${nodes[1]} ${val}\n`;
+    }
+    else if (comp.type === 'Thermistor') {
+      const val = (comp.value || '10k').replace('Î©', '');
+      netlist += `R_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} ${val}\n`;
+    }
+    else if (comp.type === 'LDR') {
+      const val = (comp.value || '1k').replace('Î©', '');
+      netlist += `R_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} ${val}\n`;
+    }
+    else if (comp.type === 'Varistor') {
+      const val = (comp.value || '100k').replace('Î©', '');
+      netlist += `R_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} ${val}\n`;
+    }
+    else if (comp.type === 'VaractorDiode') {
+      const val = (comp.value || '10p').replace('F', '');
+      netlist += `C_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} ${val}\n`;
+    }
+    else if (comp.type === 'TVSDiode') {
+      const anode = nodes[0] || '0';
+      const cathode = nodes[1] || '0';
+      const model = comp.value || 'P6KE33A';
+      netlist += `D_${comp.id} ${anode} ${cathode} ${model}\n`;
+      models.add(`.model P6KE33A D(BV=33 IBV=1m)`);
     }
     // BUG-FIX #2: Potentiometer â€” SPICE 'p' prefix means coupled-inductor, not pot.
     // Model as two series resistors with wiper at 50% by default.

@@ -657,6 +657,41 @@ export const IconVCCS = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
+export const IconVCVS = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="20,4 36,20 20,36 4,20" stroke={color} strokeWidth="2" fill="white" />
+    <text x="20" y="24" textAnchor="middle" fontSize="9" fontWeight="bold" fill={color} fontFamily="monospace">E</text>
+    <line x1="2" y1="14" x2="8" y2="14" stroke={color} strokeWidth="1.5" />
+    <line x1="2" y1="26" x2="8" y2="26" stroke={color} strokeWidth="1.5" />
+    <line x1="20" y1="2" x2="20" y2="4" stroke={color} strokeWidth="2" />
+    <line x1="20" y1="36" x2="20" y2="38" stroke={color} strokeWidth="2" />
+    <text x="5" y="13" fontSize="5" fill={color}>+</text>
+    <text x="5" y="27" fontSize="5" fill={color}>-</text>
+  </svg>
+);
+
+export const IconCCVS = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="20,4 36,20 20,36 4,20" stroke={color} strokeWidth="2" fill="white" />
+    <text x="20" y="24" textAnchor="middle" fontSize="9" fontWeight="bold" fill={color} fontFamily="monospace">H</text>
+    <line x1="2" y1="14" x2="8" y2="14" stroke={color} strokeWidth="1.5" />
+    <line x1="2" y1="26" x2="8" y2="26" stroke={color} strokeWidth="1.5" />
+    <line x1="20" y1="2" x2="20" y2="4" stroke={color} strokeWidth="2" />
+    <line x1="20" y1="36" x2="20" y2="38" stroke={color} strokeWidth="2" />
+  </svg>
+);
+
+export const IconCCCS = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="20,4 36,20 20,36 4,20" stroke={color} strokeWidth="2" fill="white" />
+    <text x="20" y="24" textAnchor="middle" fontSize="9" fontWeight="bold" fill={color} fontFamily="monospace">F</text>
+    <line x1="2" y1="20" x2="4" y2="20" stroke={color} strokeWidth="2" />
+    <line x1="36" y1="20" x2="38" y2="20" stroke={color} strokeWidth="2" />
+    <line x1="20" y1="2" x2="20" y2="4" stroke={color} strokeWidth="2" />
+    <line x1="20" y1="36" x2="20" y2="38" stroke={color} strokeWidth="2" />
+  </svg>
+);
+
 export const IconInstAmp = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 70 48" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="16" y="6" width="38" height="36" fill="white" rx="2" stroke="#4b5563" strokeWidth="1.5"/>
@@ -667,5 +702,96 @@ export const IconInstAmp = ({ size = 24 }: { size?: number }) => (
     <text x="20" y="28" fontSize="9" fill="#374151" fontWeight="bold" fontFamily="monospace">INA</text>
     <text x="2" y="18" fontSize="7" fill="#4b5563">+</text>
     <text x="2" y="34" fontSize="7" fill="#4b5563">−</text>
+  </svg>
+);
+
+export const IconThermistor = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Resistor body */}
+    <line x1="20" y1="2" x2="20" y2="10" stroke={color} strokeWidth="2" />
+    <rect x="14" y="10" width="12" height="20" stroke={color} strokeWidth="2" fill="white" />
+    <line x1="20" y1="30" x2="20" y2="38" stroke={color} strokeWidth="2" />
+    {/* NTC arrow/symbol */}
+    <text x="20" y="23" textAnchor="middle" fontSize="7" fill={color} fontFamily="serif">t°</text>
+  </svg>
+);
+
+export const IconLDR = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="20" y1="2" x2="20" y2="10" stroke={color} strokeWidth="2" />
+    <rect x="14" y="10" width="12" height="20" stroke={color} strokeWidth="2" fill="white" />
+    <line x1="20" y1="30" x2="20" y2="38" stroke={color} strokeWidth="2" />
+    {/* Light rays */}
+    <line x1="30" y1="12" x2="35" y2="8" stroke={color} strokeWidth="1.5" />
+    <line x1="30" y1="18" x2="36" y2="16" stroke={color} strokeWidth="1.5" />
+    <line x1="30" y1="14" x2="37" y2="12" stroke={color} strokeWidth="1.5" />
+  </svg>
+);
+
+export const IconVaristor = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="20" y1="2" x2="20" y2="10" stroke={color} strokeWidth="2" />
+    <rect x="14" y="10" width="12" height="20" stroke={color} strokeWidth="2" fill="white" />
+    <line x1="20" y1="30" x2="20" y2="38" stroke={color} strokeWidth="2" />
+    <line x1="12" y1="28" x2="28" y2="12" stroke={color} strokeWidth="1.5" />
+  </svg>
+);
+
+export const IconVaractor = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="20" y1="2" x2="20" y2="13" stroke={color} strokeWidth="2" />
+    <polygon points="20,13 12,24 28,24" stroke={color} strokeWidth="1.5" fill="white" />
+    <line x1="12" y1="24" x2="28" y2="24" stroke={color} strokeWidth="2" />
+    {/* Capacitor plate */}
+    <line x1="12" y1="27" x2="28" y2="27" stroke={color} strokeWidth="2" />
+    <line x1="20" y1="27" x2="20" y2="38" stroke={color} strokeWidth="2" />
+  </svg>
+);
+
+export const IconTVSDiode = ({ size = 28, color = '#374151' }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="20" y1="2" x2="20" y2="13" stroke={color} strokeWidth="2" />
+    <polygon points="20,13 12,24 28,24" stroke={color} strokeWidth="1.5" fill="white" />
+    <line x1="9" y1="24" x2="31" y2="24" stroke={color} strokeWidth="2" />
+    <line x1="9" y1="24" x2="12" y2="21" stroke={color} strokeWidth="1.5" />
+    <line x1="31" y1="24" x2="28" y2="27" stroke={color} strokeWidth="1.5" />
+    <line x1="20" y1="24" x2="20" y2="38" stroke={color} strokeWidth="2" />
+    <text x="33" y="16" fontSize="7" fill={color} fontFamily="monospace">TVS</text>
+  </svg>
+);
+
+type IconProps = { size?: number, color?: string };
+
+// Voltmeter — circle with V inside, two terminals
+export const IconVoltmeter = ({ size = 28, color = '#374151' }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="20" y1="2" x2="20" y2="10" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <line x1="20" y1="30" x2="20" y2="38" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <circle cx="20" cy="20" r="10" stroke={color} strokeWidth="2" fill="white" />
+    <text x="20" y="24" textAnchor="middle" fontSize="10" fontWeight="bold" fill={color} fontFamily="monospace">V</text>
+    <line x1="17" y1="10" x2="23" y2="10" stroke={color} strokeWidth="1.5" />
+    <line x1="20" y1="7" x2="20" y2="13" stroke={color} strokeWidth="1.5" />
+  </svg>
+);
+
+// Ammeter — circle with A inside, two terminals
+export const IconAmmeter = ({ size = 28, color = '#374151' }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="2" y1="20" x2="10" y2="20" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <line x1="30" y1="20" x2="38" y2="20" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <circle cx="20" cy="20" r="10" stroke={color} strokeWidth="2" fill="white" />
+    <text x="20" y="24" textAnchor="middle" fontSize="10" fontWeight="bold" fill={color} fontFamily="monospace">A</text>
+  </svg>
+);
+
+// Wattmeter — circle with W inside, four terminals
+export const IconWattmeter = ({ size = 28, color = '#374151' }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="20" y1="2" x2="20" y2="10" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <line x1="20" y1="30" x2="20" y2="38" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <line x1="2" y1="14" x2="10" y2="17" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <line x1="30" y1="23" x2="38" y2="26" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <circle cx="20" cy="20" r="10" stroke={color} strokeWidth="2" fill="white" />
+    <text x="20" y="24" textAnchor="middle" fontSize="9" fontWeight="bold" fill={color} fontFamily="monospace">W</text>
   </svg>
 );

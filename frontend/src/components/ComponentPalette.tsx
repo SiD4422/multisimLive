@@ -11,7 +11,8 @@ import {
   IconVoltageRegulator, Icon7Segment, IconCrystal, IconPhotodiode, IconPhototransistor,
   IconDIP14, IconTriac, IconDiac, IconDarlington, IconCurrentMirror,
   IconDFlipFlop, IconJKFlipFlop, IconLamp,
-  IconOpampLM358, IconOpampTL071, IconSchmittTrigger, IconVCSwitch, IconVCCS, IconInstAmp
+  IconOpampLM358, IconOpampTL071, IconSchmittTrigger, IconVCSwitch, IconVCCS, IconInstAmp,
+  IconVoltmeter, IconAmmeter, IconWattmeter
 } from './icons/MultisimIcons';
 
 export interface ComponentPaletteProps {
@@ -48,6 +49,9 @@ const ALL_COMPONENTS = [
   { tab: 'Basic', category: 'Passive', type: 'Transformer1P2S', value: '', label: '1P2S' },
   { tab: 'Basic', category: 'Passive', type: 'Transformer2P1S', value: '', label: '2P1S' },
   { tab: 'Basic', category: 'Passive', type: 'Transformer2P2S', value: '', label: '2P2S' },
+  { tab: 'Basic', category: 'Passive', type: 'Thermistor', value: '10k', label: 'Thermistor NTC' },
+  { tab: 'Basic', category: 'Passive', type: 'LDR', value: '1k', label: 'LDR' },
+  { tab: 'Basic', category: 'Passive', type: 'Varistor', value: '100k', label: 'Varistor' },
 
   { tab: 'Basic', category: 'Diodes', type: 'Diode', value: '1N4148', label: 'Diode' },
   { tab: 'Basic', category: 'Diodes', type: 'DiodeZener', value: '1N4728A', label: 'Zener' },
@@ -142,6 +146,9 @@ const ALL_COMPONENTS = [
 
   { tab: 'Instruments', category: 'Probes & Meters', type: 'ProbeVoltage', value: '', label: 'Voltage Probe' },
   { tab: 'Instruments', category: 'Probes & Meters', type: 'ProbeCurrent', value: '', label: 'Current Probe' },
+  { tab: 'Instruments', category: 'Probes & Meters', type: 'Voltmeter', value: '', label: 'Voltmeter' },
+  { tab: 'Instruments', category: 'Probes & Meters', type: 'Ammeter', value: '', label: 'Ammeter' },
+  { tab: 'Instruments', category: 'Probes & Meters', type: 'Wattmeter', value: '', label: 'Wattmeter' },
   { tab: 'Instruments', category: 'Probes & Meters', type: 'TextAnnotation', value: 'Text', label: 'Text Ann.' },
 ];
 
@@ -178,6 +185,9 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'BridgeRectifier': return <IconBridgeRectifier {...props} />;
     case 'ProbeVoltage': return <IconProbeVoltage {...props} />;
     case 'ProbeCurrent': return <IconProbeCurrent {...props} />;
+    case 'Voltmeter': return <IconVoltmeter {...props} />;
+    case 'Ammeter': return <IconAmmeter {...props} />;
+    case 'Wattmeter': return <IconWattmeter {...props} />;
     case 'Connector': return <IconConnector {...props} />;
     case 'Junction': return <IconJunction {...props} />;
     case 'Load': return <IconLoad {...props} />;

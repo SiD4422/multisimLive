@@ -1,13 +1,57 @@
-﻿import type { SchematicComponent, Point } from '../../store/useSchematicStore';
+import type { SchematicComponent, Point } from '../../store/useSchematicStore';
 import symbolsData from '../kicad_symbols.json';
 import { toGridNode } from './utils';
 export function getComponentPins(comp: SchematicComponent): { id: string, name?: string, gridNode: string, p?: Point }[] {
   if (comp.type === 'Ammeter') {
-    const fakeP = JSON.parse(comp.value!);
-    return [
-      { id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } },
-      { id: '2', gridNode: toGridNode(fakeP), p: fakeP }
+    if (comp.value && comp.value.startsWith('{')) {
+      const fakeP = JSON.parse(comp.value);
+      return [
+        { id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } },
+        { id: '2', gridNode: toGridNode(fakeP), p: fakeP }
+      ];
+    } else {
+      const rad = (comp.rotation || 0) * Math.PI / 180;
+      const cos = Math.cos(rad); const sin = Math.sin(rad);
+      const rawPins = [
+        { x: -20, y: 0, id: 'in' },
+        { x: 20, y: 0, id: 'out' }
+      ];
+      return rawPins.map(pin => {
+        const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+        const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+        return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+      });
+    }
+  }
+
+  if (comp.type === 'Voltmeter') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad); const sin = Math.sin(rad);
+    const rawPins = [
+      { x: 0, y: -20, id: '+' },
+      { x: 0, y: 20, id: '-' }
     ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+    });
+  }
+
+  if (comp.type === 'Wattmeter') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad); const sin = Math.sin(rad);
+    const rawPins = [
+      { x: 0, y: -20, id: 'V+' },
+      { x: 0, y: 20, id: 'V-' },
+      { x: -20, y: -10, id: 'I+' },
+      { x: 20, y: 10, id: 'I-' }
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+    });
   }
   // Hardcoded generic pins for basic components if they lack KiCad symbol mapping
   if (comp.type === 'Ground') return [{ id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } }];
@@ -18,6 +62,7 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     'DCSource', 'ACSource', 'ClockVoltage', 'PulseVoltage',
     'DCCurrent', 'ACCurrent',
     'Diode', 'DiodeZener', 'DiodeSchottky', 'LED',
+    'Thermistor', 'LDR', 'Varistor', 'VaractorDiode', 'TVSDiode',
     // Sources missing from previous list:
     'StepVoltage', 'AMVoltage', 'FMVoltage', 'ChirpVoltage',
     'ThermalNoise', 'ArbitraryVoltageSource',
