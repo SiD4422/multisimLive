@@ -195,7 +195,7 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
   }
 
   // â”€â”€ Digital Logic Gates (2-input: A, B, Y; NOT gate: A, Y)
-  const twoInputGates = ['GateAND', 'GateOR', 'GateNAND', 'GateNOR', 'GateXOR'];
+  const twoInputGates = ['GateAND', 'GateOR', 'GateNAND', 'GateNOR', 'GateXOR', 'GateXNOR'];
   if (twoInputGates.includes(comp.type)) {
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad);
@@ -219,7 +219,7 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
       };
     });
   }
-  if (comp.type === 'GateNOT') {
+  if (comp.type === 'GateNOT' || comp.type === 'GateBuffer') {
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
