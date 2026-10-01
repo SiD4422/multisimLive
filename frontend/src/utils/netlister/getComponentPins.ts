@@ -89,16 +89,20 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
   }
 
   // FLIP FLOPS
-  if (comp.type === 'DFlipFlop' || comp.type === 'JKFlipFlop') {
+  if (comp.type === 'DFlipFlop' || comp.type === 'JKFlipFlop' || comp.type === 'SRFlipFlop' || comp.type === 'TFlipFlop') {
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
     
-    let rawPins = [];
+    let rawPins: { x: number, y: number, id: string }[] = [];
     if (comp.type === 'DFlipFlop') {
       rawPins = [{ x: 0, y: -15, id: 'D' }, { x: 0, y: 15, id: 'CLK' }, { x: 60, y: -15, id: 'Q' }, { x: 60, y: 15, id: 'Q_bar' }];
-    } else {
+    } else if (comp.type === 'JKFlipFlop') {
       rawPins = [{ x: 0, y: -15, id: 'J' }, { x: 0, y: 0, id: 'CLK' }, { x: 0, y: 15, id: 'K' }, { x: 60, y: -15, id: 'Q' }, { x: 60, y: 15, id: 'Q_bar' }];
+    } else if (comp.type === 'SRFlipFlop') {
+      rawPins = [{ x: 0, y: -15, id: 'S' }, { x: 0, y: 15, id: 'R' }, { x: 60, y: -15, id: 'Q' }, { x: 60, y: 15, id: 'Q_bar' }];
+    } else if (comp.type === 'TFlipFlop') {
+      rawPins = [{ x: 0, y: -15, id: 'T' }, { x: 0, y: 15, id: 'CLK' }, { x: 60, y: -15, id: 'Q' }, { x: 60, y: 15, id: 'Q_bar' }];
     }
 
     return rawPins.map(pin => {
@@ -137,6 +141,23 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
         gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
         p: { x: comp.position.x + rx, y: comp.position.y + ry }
       };
+    });
+  }
+
+  if (comp.type === 'IC74HC595') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x: -15, y: -24, id: 'SER' },
+      { x: -15, y: -8, id: 'SRCLK' },
+      { x: -15, y: 8, id: 'RCLK' },
+      { x: 75, y: -24, id: 'QA' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
     });
   }
 
@@ -374,11 +395,27 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     });
   }
 
-  if (comp.type === 'VoltageRegulator7805' || comp.type === 'VoltageRegulator7812' || comp.type === 'VoltageRegulatorLM317') {
+  if (comp.type === 'VoltageRegulator7805' || comp.type === 'VoltageRegulator7812' || comp.type === 'VoltageRegulatorLM317' || comp.type === 'VoltageRegulator7809' || comp.type === 'VoltageRegulatorAMS1117') {
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
     const rawPins = [{ x: 0, y: 0, id: 'IN' }, { x: 30, y: 25, id: 'GND' }, { x: 60, y: 0, id: 'OUT' }];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5; const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
+      return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+    });
+  }
+
+  if (comp.type === 'BuckConverter') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad); const sin = Math.sin(rad);
+    const rawPins = [
+      { x:  0, y: -10, id: 'Vin+' },
+      { x:  0, y:  10, id: 'Vin-' },
+      { x: 60, y: -10, id: 'Vout+' },
+      { x: 60, y:  10, id: 'Vout-' },
+    ];
     return rawPins.map(pin => {
       const sx = pin.x * 1.5; const sy = pin.y * 1.5;
       const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;

@@ -533,6 +533,34 @@ S_dis DIS GND dis_gate GND SMOD555
       const gm = parseFloat(comp.value || '0.001') || 0.001;
       netlist += `G_${comp.id} ${outP} ${outM} ${inP} ${inM} ${gm}\n`;
     }
+    else if (comp.type === 'VCVS') {
+      const pinMap: Record<string, string> = {};
+      pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
+      const ctrlP = pinMap['CTRL+'] || '0'; const ctrlN = pinMap['CTRL-'] || '0';
+      const outP = pinMap['OUT+'] || '0'; const outN = pinMap['OUT-'] || '0';
+      const gain = parseFloat(comp.value || '10') || 10;
+      netlist += `E_${comp.id} ${outP} ${outN} ${ctrlP} ${ctrlN} ${gain}\n`;
+    }
+    else if (comp.type === 'CCVS') {
+      const pinMap: Record<string, string> = {};
+      pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
+      const ctrlP = pinMap['CTRL+'] || '0'; const ctrlN = pinMap['CTRL-'] || '0';
+      const outP = pinMap['OUT+'] || '0'; const outN = pinMap['OUT-'] || '0';
+      const gain = parseFloat(comp.value || '1000') || 1000;
+      const senseId = `V_s_${comp.id}`;
+      netlist += `${senseId} ${ctrlP} ${ctrlN} 0\n`;
+      netlist += `H_${comp.id} ${outP} ${outN} ${senseId} ${gain}\n`;
+    }
+    else if (comp.type === 'CCCS') {
+      const pinMap: Record<string, string> = {};
+      pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
+      const inP = pinMap['IN+'] || '0'; const inM = pinMap['IN-'] || '0';
+      const outP = pinMap['OUT+'] || '0'; const outM = pinMap['OUT-'] || '0';
+      const gain = parseFloat(comp.value || '10') || 10;
+      const senseId = `V_s_${comp.id}`;
+      netlist += `${senseId} ${inP} ${inM} 0\n`;
+      netlist += `F_${comp.id} ${outP} ${outM} ${senseId} ${gain}\n`;
+    }
     else if (comp.type === 'InstAmp') {
       const pinMap: Record<string, string> = {};
       pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
@@ -1011,6 +1039,14 @@ S_dis DIS GND dis_gate GND SMOD555
       // XOR: (A>thresh) != (B>thresh)
       netlist += `B_${comp.id} ${y} 0 V = ((V(${a})>2.5)!=(V(${b})>2.5)) ? 5 : 0\n`;
     }
+    else if (comp.type === 'GateXNOR') {
+      const a = nodes[0] || '0', b = nodes[1] || '0', y = nodes[2] || '0';
+      netlist += `B_${comp.id} ${y} 0 V = ((V(${a})>2.5)==(V(${b})>2.5)) ? 5 : 0\n`;
+    }
+    else if (comp.type === 'GateBuffer') {
+      const a = nodes[0] || '0', y = nodes[2] || '0';
+      netlist += `B_${comp.id} ${y} 0 V = (V(${a}) > 2.5) ? 5 : 0\n`;
+    }
     else if (comp.type === 'GateNOT') {
       const a = nodes[0] || '0', y = nodes[1] || '0';
       netlist += `B_${comp.id} ${y} 0 V = (V(${a}) > 2.5) ? 0 : 5\n`;
@@ -1066,6 +1102,23 @@ S_dis DIS GND dis_gate GND SMOD555
       const qjk = `qjk_${comp.id}`;
       models.add(`.subckt JKFF J CLK K Q QBAR\nRj J ${qjk} 1k\nCj ${qjk} 0 1n\nBQ Q 0 V=limit(V(${qjk})*10,0,5)\nBQB QBAR 0 V=5-limit(V(${qjk})*10,0,5)\n.ends`);
       netlist += `X_${comp.id} ${j} ${clk} ${k} ${q} ${qbar} JKFF\n`;
+    }
+    else if (comp.type === 'SRFlipFlop') {
+      const s = nodes[0] || '0', r = nodes[1] || '0', q = nodes[2] || '0', qbar = nodes[3] || '0';
+      models.add(`.subckt SR_FF S R Q QBAR\nB1 Q 0 V= (V(R)>2.5 || V(QBAR)>2.5) ? 0 : 5\nB2 QBAR 0 V= (V(S)>2.5 || V(Q)>2.5) ? 0 : 5\nC1 Q 0 1n\nC2 QBAR 0 1n\n.ends`);
+      netlist += `X_${comp.id} ${s} ${r} ${q} ${qbar} SR_FF\n`;
+    }
+    else if (comp.type === 'TFlipFlop') {
+      const t = nodes[0] || '0', clk = nodes[1] || '0', q = nodes[2] || '0', qbar = nodes[3] || '0';
+      models.add(`.subckt DFF D CLK Q QBAR\nRin D qint 1k\nCdel qint 0 1n\nBQ Q 0 V=limit(V(qint)*10,0,5)\nBQB QBAR 0 V=5-limit(V(qint)*10,0,5)\n.ends`);
+      models.add(`.subckt T_FF T CLK Q QBAR\nXdff D_int CLK Q QBAR DFF\nB_D D_int 0 V = V(T)>2.5 ? V(QBAR) : V(Q)\n.ends`);
+      netlist += `X_${comp.id} ${t} ${clk} ${q} ${qbar} T_FF\n`;
+    }
+    else if (comp.type === 'IC74HC595') {
+      const ser = nodes[0] || '0', srclk = nodes[1] || '0', rclk = nodes[2] || '0', qa = nodes[3] || '0';
+      models.add(`.subckt DFF D CLK Q QBAR\nRin D qint 1k\nCdel qint 0 1n\nBQ Q 0 V=limit(V(qint)*10,0,5)\nBQB QBAR 0 V=5-limit(V(qint)*10,0,5)\n.ends`);
+      models.add(`.subckt IC74HC595_SIM SER SRCLK RCLK QA\nXdff SER SRCLK Q_sr Qbar_sr DFF\nXdff_out Q_sr RCLK QA Qbar_out DFF\n.ends`);
+      netlist += `X_${comp.id} ${ser} ${srclk} ${rclk} ${qa} IC74HC595_SIM\n`;
     }
   });
 

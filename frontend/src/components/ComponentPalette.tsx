@@ -7,12 +7,13 @@ import {
   IconResistor, IconLoad, IconCapacitor, IconInductor, IconOpamp, IconOpamp3T, IconOpamp5T, IconComparator, IconTimer555, IconDiode, IconDiodeZener, IconDiodeLED, IconBridgeRectifier, IconThyristor, IconOptocoupler, IconTransistor, IconTransistorNPN, IconTransistorPNP, IconMosfetN, IconMosfetP, IconJFET, IconIGBT, IconSwitch,
   IconPotentiometer, IconFuse, IconTransformers, IconTransformer1P1S, IconTransformer1P1S_CT, IconTransformer1P2S, IconTransformer2P1S, IconTransformer2P2S, IconCoupledInductors, 
   IconLossyTransmissionLine, IconLosslessTransmissionLine, IconResistorsPack,
-  IconLogicGate, IconGateAND, IconGateOR, IconGateNOT, IconGateNAND, IconGateNOR, IconGateXOR,
+  IconLogicGate, IconGateAND, IconGateOR, IconGateNOT, IconGateNAND, IconGateNOR, IconGateXOR, IconGateXNOR, IconGateBuffer,
   IconVoltageRegulator, Icon7Segment, IconCrystal, IconPhotodiode, IconPhototransistor,
-  IconDIP14, IconTriac, IconDiac, IconDarlington, IconCurrentMirror,
-  IconDFlipFlop, IconJKFlipFlop, IconLamp,
-  IconOpampLM358, IconOpampTL071, IconSchmittTrigger, IconVCSwitch, IconVCCS, IconInstAmp,
-  IconVoltmeter, IconAmmeter, IconWattmeter
+  IconDIP14, Icon74HC595, IconTriac, IconDiac, IconDarlington, IconCurrentMirror,
+  IconDFlipFlop, IconJKFlipFlop, IconSRFlipFlop, IconTFlipFlop, IconLamp,
+  IconOpampLM358, IconOpampTL071, IconSchmittTrigger, IconVCSwitch, IconVCCS, IconVCVS, IconCCVS, IconCCCS, IconInstAmp,
+  IconVoltmeter, IconAmmeter, IconWattmeter,
+  IconThermistor, IconLDR, IconVaristor, IconVaractor, IconTVSDiode
 } from './icons/MultisimIcons';
 
 export interface ComponentPaletteProps {
@@ -58,6 +59,8 @@ const ALL_COMPONENTS = [
   { tab: 'Basic', category: 'Diodes', type: 'DiodeSchottky', value: 'BAT54', label: 'Schottky' },
   { tab: 'Basic', category: 'Diodes', type: 'LED', value: '', label: 'LED' },
   { tab: 'Basic', category: 'Diodes', type: 'Photodiode', value: '', label: 'Photodiode' },
+  { tab: 'Basic', category: 'Diodes', type: 'VaractorDiode', value: '10p', label: 'Varactor' },
+  { tab: 'Basic', category: 'Diodes', type: 'TVSDiode', value: 'P6KE33A', label: 'TVS Diode' },
 
   { tab: 'Basic', category: 'Switches', type: 'SwitchSPST', value: 'SW1', label: 'SPST Switch' },
   { tab: 'Basic', category: 'Switches', type: 'SPDTSwitch', value: '', label: 'SPDT Switch' },
@@ -88,6 +91,9 @@ const ALL_COMPONENTS = [
   { tab: 'Analog', category: 'Op-Amps', type: 'SchmittTrigger', value: '3.3/1.7', label: 'Schmitt Trigger' },
   { tab: 'Analog', category: 'Op-Amps', type: 'VCSwitch', value: '2.5', label: 'VC Switch' },
   { tab: 'Analog', category: 'Op-Amps', type: 'VCCS', value: '0.001', label: 'VCCS' },
+  { tab: 'Analog', category: 'Op-Amps', type: 'VCVS', value: '10', label: 'VCVS' },
+  { tab: 'Analog', category: 'Op-Amps', type: 'CCCS', value: '10', label: 'CCCS' },
+  { tab: 'Analog', category: 'Op-Amps', type: 'CCVS', value: '1000', label: 'CCVS' },
   { tab: 'Analog', category: 'Op-Amps', type: 'InstAmp', value: '100', label: 'Inst. Amp' },
 
   { tab: 'Analog', category: 'Power', type: 'BridgeRectifier', value: '', label: 'Bridge Rectifier' },
@@ -106,6 +112,8 @@ const ALL_COMPONENTS = [
   { tab: 'Digital', category: 'Logic Gates', type: 'GateNAND', value: '', label: 'NAND Gate' },
   { tab: 'Digital', category: 'Logic Gates', type: 'GateNOR', value: '', label: 'NOR Gate' },
   { tab: 'Digital', category: 'Logic Gates', type: 'GateXOR', value: '', label: 'XOR Gate' },
+  { tab: 'Digital', category: 'Logic Gates', type: 'GateXNOR', value: '', label: 'XNOR Gate' },
+  { tab: 'Digital', category: 'Logic Gates', type: 'GateBuffer', value: '', label: 'Buffer' },
   { tab: 'Digital', category: 'Logic Gates', type: 'IC74HC04', value: '', label: '74HC04' },
   { tab: 'Digital', category: 'Logic Gates', type: 'IC74HC00', value: '', label: '74HC00' },
   { tab: 'Digital', category: 'Logic Gates', type: 'IC74HC86', value: '', label: '74HC86' },
@@ -113,9 +121,12 @@ const ALL_COMPONENTS = [
   { tab: 'Digital', category: 'Logic Gates', type: 'IC74HC164', value: '', label: '74HC164' },
 
   { tab: 'Digital', category: 'Timers & Counters', type: 'Timer555', value: 'NE555', label: '555 Timer' },
+  { tab: 'Digital', category: 'Timers & Counters', type: 'IC74HC595', value: '', label: '74HC595' },
 
   { tab: 'Digital', category: 'Flip-Flops', type: 'DFlipFlop', value: '', label: 'D Flip-Flop' },
   { tab: 'Digital', category: 'Flip-Flops', type: 'JKFlipFlop', value: '', label: 'JK Flip-Flop' },
+  { tab: 'Digital', category: 'Flip-Flops', type: 'SRFlipFlop', value: '', label: 'SR Flip-Flop' },
+  { tab: 'Digital', category: 'Flip-Flops', type: 'TFlipFlop', value: '', label: 'T Flip-Flop' },
 
   { tab: 'Digital', category: 'Memory', type: 'DIP14', value: '', label: 'DIP-14 IC' },
   { tab: 'Digital', category: 'Memory', type: 'SevenSegment', value: '', label: '7-Segment' },
@@ -218,6 +229,11 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'GateNAND': return <IconGateNAND {...props} />;
     case 'GateNOR': return <IconGateNOR {...props} />;
     case 'GateXOR': return <IconGateXOR {...props} />;
+    case 'GateXNOR': return <IconGateXNOR {...props} />;
+    case 'GateBuffer': return <IconGateBuffer {...props} />;
+    case 'SRFlipFlop': return <IconSRFlipFlop {...props} />;
+    case 'TFlipFlop': return <IconTFlipFlop {...props} />;
+    case 'IC74HC595': return <Icon74HC595 {...props} />;
     case 'VoltageRegulator7805': 
     case 'VoltageRegulator7812': 
     case 'VoltageRegulatorLM317': return <IconVoltageRegulator {...props} />;
@@ -236,6 +252,11 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'VCSwitch': return <IconVCSwitch {...props} />;
     case 'VCCS': return <IconVCCS {...props} />;
     case 'InstAmp': return <IconInstAmp {...props} />;
+    case 'Thermistor': return <IconThermistor {...props} />;
+    case 'LDR': return <IconLDR {...props} />;
+    case 'Varistor': return <IconVaristor {...props} />;
+    case 'VaractorDiode': return <IconVaractor {...props} />;
+    case 'TVSDiode': return <IconTVSDiode {...props} />;
     case 'TextAnnotation': return <span style={{ fontWeight: 'bold', fontSize: 16 }}>Abc</span>;
     default: return <IconResistor {...props} />; 
   }

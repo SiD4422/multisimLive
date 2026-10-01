@@ -248,6 +248,19 @@ export const IconDIP14 = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
+export const Icon74HC595 = ({ size = 28, color = '#374151' }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="4" width="20" height="32" stroke={color} strokeWidth="2" fill="white" rx="2" />
+    <text x="20" y="22" textAnchor="middle" fontSize="5" fill={color} fontFamily="monospace">595</text>
+    {[6,10,14,18,22,26,30,34].map((y, i) => (
+      <g key={i}>
+        <line x1="2" y1={y} x2="10" y2={y} stroke={color} strokeWidth="1.2" />
+        <line x1="30" y1={y} x2="38" y2={y} stroke={color} strokeWidth="1.2" />
+      </g>
+    ))}
+  </svg>
+);
+
 export const IconTransistor = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M 2 12 L 10 12 M 10 6 L 10 18 M 14 8 L 14 4 L 20 4 M 14 16 L 14 20 L 20 20" stroke="#666" strokeWidth="1.5" fill="none" />
@@ -490,6 +503,28 @@ export const IconGateXOR = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
+type IconProps = { size?: number, color?: string };
+
+export const IconGateXNOR = ({ size = 28, color = '#374151' }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 10 Q6 20 8 30 Q20 28 28 20 Q20 12 8 10Z" stroke={color} strokeWidth="2" fill="white" />
+    <path d="M5 10 Q8 20 5 30" stroke={color} strokeWidth="2" fill="none" />
+    <line x1="2" y1="15" x2="10" y2="15" stroke={color} strokeWidth="2" />
+    <line x1="2" y1="25" x2="10" y2="25" stroke={color} strokeWidth="2" />
+    <circle cx="31" cy="20" r="3" stroke={color} strokeWidth="1.5" fill="white" />
+    <line x1="34" y1="20" x2="40" y2="20" stroke={color} strokeWidth="2" />
+  </svg>
+);
+
+export const IconGateBuffer = ({ size = 28, color = '#374151' }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="8,8 8,32 30,20" stroke={color} strokeWidth="2" fill="white" />
+    <line x1="2" y1="20" x2="8" y2="20" stroke={color} strokeWidth="2" />
+    <line x1="30" y1="20" x2="38" y2="20" stroke={color} strokeWidth="2" />
+  </svg>
+);
+
+
 export const IconDFlipFlop = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="8" y="4" width="16" height="24" stroke="#555" strokeWidth="1.6" fill="white" />
@@ -510,6 +545,34 @@ export const IconJKFlipFlop = ({ size = 24 }: { size?: number }) => (
     <text x="18" y="25" fontSize="6" fill="#555" fontWeight="bold">Q'</text>
     <path d="M 8 14 L 11 16 L 8 18" stroke="#555" strokeWidth="1.6" fill="none" />
     <path d="M 2 8 L 8 8 M 2 16 L 8 16 M 2 24 L 8 24 M 24 8 L 30 8 M 24 24 L 30 24" stroke="#555" strokeWidth="1.6" />
+  </svg>
+);
+
+export const IconSRFlipFlop = ({ size = 28, color = '#374151' }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="8" width="20" height="24" stroke={color} strokeWidth="2" fill="white" rx="1" />
+    <text x="20" y="16" textAnchor="middle" fontSize="5" fill={color} fontFamily="monospace">S</text>
+    <text x="20" y="28" textAnchor="middle" fontSize="5" fill={color} fontFamily="monospace">R</text>
+    <line x1="2" y1="14" x2="10" y2="14" stroke={color} strokeWidth="1.5" />
+    <line x1="2" y1="26" x2="10" y2="26" stroke={color} strokeWidth="1.5" />
+    <line x1="30" y1="14" x2="38" y2="14" stroke={color} strokeWidth="1.5" />
+    <line x1="30" y1="26" x2="38" y2="26" stroke={color} strokeWidth="1.5" />
+    <text x="32" y="13" fontSize="4" fill={color} fontFamily="monospace">Q</text>
+    <text x="32" y="25" fontSize="4" fill={color} fontFamily="monospace">Q'</text>
+  </svg>
+);
+
+export const IconTFlipFlop = ({ size = 28, color = '#374151' }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="8" width="20" height="24" stroke={color} strokeWidth="2" fill="white" rx="1" />
+    <text x="20" y="16" textAnchor="middle" fontSize="5" fill={color} fontFamily="monospace">T</text>
+    <text x="20" y="26" textAnchor="middle" fontSize="4" fill={color} fontFamily="monospace">CLK</text>
+    <line x1="2" y1="14" x2="10" y2="14" stroke={color} strokeWidth="1.5" />
+    <line x1="2" y1="24" x2="10" y2="24" stroke={color} strokeWidth="1.5" />
+    <line x1="30" y1="14" x2="38" y2="14" stroke={color} strokeWidth="1.5" />
+    <line x1="30" y1="26" x2="38" y2="26" stroke={color} strokeWidth="1.5" />
+    <text x="32" y="13" fontSize="4" fill={color} fontFamily="monospace">Q</text>
+    <text x="32" y="25" fontSize="4" fill={color} fontFamily="monospace">Q'</text>
   </svg>
 );
 
@@ -793,5 +856,22 @@ export const IconWattmeter = ({ size = 28, color = '#374151' }: IconProps) => (
     <line x1="30" y1="23" x2="38" y2="26" stroke={color} strokeWidth="2" strokeLinecap="round" />
     <circle cx="20" cy="20" r="10" stroke={color} strokeWidth="2" fill="white" />
     <text x="20" y="24" textAnchor="middle" fontSize="9" fontWeight="bold" fill={color} fontFamily="monospace">W</text>
+  </svg>
+);
+
+export const IconBuckConverter = ({ size = 28, color = '#374151' }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="10" width="28" height="20" stroke={color} strokeWidth="2" fill="white" rx="3" />
+    <text x="20" y="22" textAnchor="middle" fontSize="6" fontWeight="bold" fill={color} fontFamily="monospace">BUCK</text>
+    {/* Inductor symbol inside */}
+    <path d="M10 26 Q12 23 14 26 Q16 23 18 26" stroke={color} strokeWidth="1.2" fill="none" />
+    {/* Input/Output pins */}
+    <line x1="2" y1="16" x2="6" y2="16" stroke={color} strokeWidth="2" />
+    <line x1="2" y1="24" x2="6" y2="24" stroke={color} strokeWidth="2" />
+    <line x1="34" y1="16" x2="38" y2="16" stroke={color} strokeWidth="2" />
+    <line x1="34" y1="24" x2="38" y2="24" stroke={color} strokeWidth="2" />
+    <text x="3" y="14" fontSize="4" fill={color}>Vin</text>
+    <text x="3" y="28" fontSize="4" fill={color}>GND</text>
+    <text x="33" y="14" fontSize="4" fill={color}>Vo</text>
   </svg>
 );
