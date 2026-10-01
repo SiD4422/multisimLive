@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   BookOpen, FolderOpen, Save, Share, Code, 
-  Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles
+  Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles, FileText
 } from 'lucide-react';
 import { Logo } from './icons/Logo';
 
@@ -27,6 +27,7 @@ export interface SimulatorHeaderProps {
   setIsShortcutModalOpen: (v: boolean) => void;
   onOpenAi: () => void;
   onExportKiCad: () => void;
+  onLabReport: () => void;
 }
 
 export function SimulatorHeader({
@@ -49,7 +50,8 @@ export function SimulatorHeader({
   setIsEmbedModalOpen,
   setIsShortcutModalOpen,
   onOpenAi,
-  onExportKiCad
+  onExportKiCad,
+  onLabReport
 }: SimulatorHeaderProps) {
   return (
     <header className="header-top relative" style={{ zIndex: 10 }}>
@@ -197,6 +199,27 @@ export function SimulatorHeader({
             <line x1="15" y1="12" x2="18" y2="12" />
           </svg>
           → KiCad
+        </button>
+        {/* Lab Report — AI-generated PDF */}
+        <button
+          onClick={onLabReport}
+          title="Generate AI Lab Report PDF — Aim, Theory, Procedure, Result, Conclusion"
+          style={{
+            display: 'flex', alignItems: 'center', gap: '5px',
+            padding: '6px 11px',
+            background: 'rgba(22,163,74,0.15)',
+            border: '1px solid rgba(22,163,74,0.4)',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            color: '#86efac',
+            fontSize: '12px', fontWeight: 700,
+            whiteSpace: 'nowrap', transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(22,163,74,0.3)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(22,163,74,0.15)'; e.currentTarget.style.color = '#86efac'; }}
+        >
+          <FileText size={13} />
+          Lab Report
         </button>
         {/* Divider */}
         <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />

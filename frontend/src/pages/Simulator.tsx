@@ -22,6 +22,7 @@ import { ShareModal } from '../components/ShareModal';
 import { WelcomeTour } from '../components/WelcomeTour';
 import { useCircuitBoot } from '../hooks/useCircuitBoot';
 import { RestoreBanner } from '../components/RestoreBanner';
+import { LabReportModal } from '../components/LabReportModal';
 
 import { ComponentPalette } from '../components/ComponentPalette';
 import { SimulatorHeader } from '../components/SimulatorHeader';
@@ -87,6 +88,9 @@ function Simulator() {
   const [lastSimMs, setLastSimMs] = useState<number | null>(null);
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isLabReportModalOpen, setIsLabReportModalOpen] = useState(false);
+  const [schematicSnapshot, setSchematicSnapshot] = useState<string | undefined>();
+  const [graphSnapshot, setGraphSnapshot] = useState<string | undefined>();
   const stageRef = useRef<any>(null);
 
   // ── Circuit DRC ────────────────────────────────────────────────────────────────
@@ -322,6 +326,21 @@ function Simulator() {
     setIsShareModalOpen(true);
   };
 
+  const handleLabReport = useCallback(async () => {
+    // Capture schematic PNG via existing export-schematic event
+    const schematic = await new Promise<string | undefined>((resolve) => {
+      const handler = (e: Event) => {
+        window.removeEventListener('schematic-exported', handler);
+        resolve((e as CustomEvent).detail?.dataUrl);
+      };
+      window.addEventListener('schematic-exported', handler);
+      window.dispatchEvent(new CustomEvent('export-schematic', { detail: { returnDataUrl: true } }));
+      setTimeout(() => { window.removeEventListener('schematic-exported', handler); resolve(undefined); }, 3000);
+    });
+    setSchematicSnapshot(schematic);
+    setIsLabReportModalOpen(true);
+  }, []);
+
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(e => console.error(e));
@@ -436,6 +455,7 @@ function Simulator() {
         setIsShortcutModalOpen={setIsShortcutModalOpen}
         onOpenAi={() => setIsAiPanelOpen(true)}
         onExportKiCad={handleExportKiCad}
+        onLabReport={handleLabReport}
       />
 
       {/* Toolbar */}
@@ -656,6 +676,12 @@ function Simulator() {
           </div>
         </div>
       )}
+      <LabReportModal
+        isOpen={isLabReportModalOpen}
+        onClose={() => setIsLabReportModalOpen(false)}
+        schematicDataUrl={schematicSnapshot}
+        graphDataUrl={graphSnapshot}
+      />
       <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
       <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
     </div>
