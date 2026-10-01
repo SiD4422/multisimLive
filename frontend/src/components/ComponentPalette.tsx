@@ -8,7 +8,7 @@ import {
   IconPotentiometer, IconFuse, IconTransformers, IconTransformer1P1S, IconTransformer1P1S_CT, IconTransformer1P2S, IconTransformer2P1S, IconTransformer2P2S, IconCoupledInductors, 
   IconLossyTransmissionLine, IconLosslessTransmissionLine, IconResistorsPack,
   IconLogicGate, IconGateAND, IconGateOR, IconGateNOT, IconGateNAND, IconGateNOR, IconGateXOR, IconGateXNOR, IconGateBuffer,
-  IconVoltageRegulator, Icon7Segment, IconCrystal, IconPhotodiode, IconPhototransistor,
+  IconVoltageRegulator, IconBuckConverter, Icon7Segment, IconCrystal, IconPhotodiode, IconPhototransistor,
   IconDIP14, Icon74HC595, IconTriac, IconDiac, IconDarlington, IconCurrentMirror,
   IconDFlipFlop, IconJKFlipFlop, IconSRFlipFlop, IconTFlipFlop, IconLamp,
   IconOpampLM358, IconOpampTL071, IconSchmittTrigger, IconVCSwitch, IconVCCS, IconVCVS, IconCCVS, IconCCCS, IconInstAmp,
@@ -251,6 +251,9 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'SchmittTrigger': return <IconSchmittTrigger {...props} />;
     case 'VCSwitch': return <IconVCSwitch {...props} />;
     case 'VCCS': return <IconVCCS {...props} />;
+    case 'VCVS': return <IconVCVS {...props} />;
+    case 'CCVS': return <IconCCVS {...props} />;
+    case 'CCCS': return <IconCCCS {...props} />;
     case 'InstAmp': return <IconInstAmp {...props} />;
     case 'Thermistor': return <IconThermistor {...props} />;
     case 'LDR': return <IconLDR {...props} />;
