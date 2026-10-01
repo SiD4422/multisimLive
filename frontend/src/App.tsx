@@ -30,6 +30,16 @@ const VsLtspice = lazy(() => import('./pages/compare/VsLtspice'));
 const VsMultisim = lazy(() => import('./pages/compare/VsMultisim'));
 const VsFalstad = lazy(() => import('./pages/compare/VsFalstad'));
 
+// Programmatic SEO — circuit pages
+const RcLowPassFilter = lazy(() => import('./pages/circuits/RcLowPassFilter'));
+const InvertingOpAmp = lazy(() => import('./pages/circuits/InvertingOpAmp'));
+const Timer555Astable = lazy(() => import('./pages/circuits/Timer555Astable'));
+const RlcResonance = lazy(() => import('./pages/circuits/RlcResonance'));
+const DiodeHalfWaveRectifier = lazy(() => import('./pages/circuits/DiodeHalfWaveRectifier'));
+const FullWaveRectifier = lazy(() => import('./pages/circuits/FullWaveRectifier'));
+const CommonEmitterAmplifier = lazy(() => import('./pages/circuits/CommonEmitterAmplifier'));
+const BuckConverter = lazy(() => import('./pages/circuits/BuckConverter'));
+
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -63,6 +73,16 @@ function App() {
           <Route path="/compare/ltspice" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><VsLtspice /></Suspense>} />
           <Route path="/compare/multisim" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><VsMultisim /></Suspense>} />
           <Route path="/compare/falstad" element={<Suspense fallback={<div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>}><VsFalstad /></Suspense>} />
+
+          {/* Programmatic SEO — individual circuit simulator pages */}
+          <Route path="/circuits/rc-low-pass-filter" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><RcLowPassFilter /></Suspense>} />
+          <Route path="/circuits/inverting-op-amp" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><InvertingOpAmp /></Suspense>} />
+          <Route path="/circuits/555-timer-astable" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><Timer555Astable /></Suspense>} />
+          <Route path="/circuits/rlc-resonance" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><RlcResonance /></Suspense>} />
+          <Route path="/circuits/half-wave-rectifier" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><DiodeHalfWaveRectifier /></Suspense>} />
+          <Route path="/circuits/full-wave-rectifier" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><FullWaveRectifier /></Suspense>} />
+          <Route path="/circuits/common-emitter-amplifier" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><CommonEmitterAmplifier /></Suspense>} />
+          <Route path="/circuits/buck-converter" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><BuckConverter /></Suspense>} />
         </Route>
         
         {/* Isolated Fullscreen Simulator */}
