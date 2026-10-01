@@ -102,8 +102,11 @@ const ALL_COMPONENTS = [
   { tab: 'Analog', category: 'Power', type: 'DIAC', value: '', label: 'DIAC' },
   { tab: 'Analog', category: 'Power', type: 'Optocoupler', value: 'PC817', label: 'Optocoupler' },
   { tab: 'Analog', category: 'Power', type: 'VoltageRegulator7805', value: '', label: '7805 Regulator' },
+  { tab: 'Analog', category: 'Power', type: 'VoltageRegulator7809', value: '', label: '7809 Regulator' },
   { tab: 'Analog', category: 'Power', type: 'VoltageRegulator7812', value: '', label: '7812 Regulator' },
   { tab: 'Analog', category: 'Power', type: 'VoltageRegulatorLM317', value: '', label: 'LM317 Regulator' },
+  { tab: 'Analog', category: 'Power', type: 'VoltageRegulatorAMS1117', value: '3.3V', label: 'AMS1117 LDO' },
+  { tab: 'Analog', category: 'Power', type: 'BuckConverter', value: '0.5', label: 'Buck Converter' },
   { tab: 'Analog', category: 'Power', type: 'CurrentMirror', value: '', label: 'Current Mirror' },
 
   { tab: 'Digital', category: 'Logic Gates', type: 'GateAND', value: '', label: 'AND Gate' },
@@ -235,8 +238,11 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'TFlipFlop': return <IconTFlipFlop {...props} />;
     case 'IC74HC595': return <Icon74HC595 {...props} />;
     case 'VoltageRegulator7805': 
+    case 'VoltageRegulator7809':
     case 'VoltageRegulator7812': 
-    case 'VoltageRegulatorLM317': return <IconVoltageRegulator {...props} />;
+    case 'VoltageRegulatorLM317': 
+    case 'VoltageRegulatorAMS1117': return <IconVoltageRegulator {...props} />;
+    case 'BuckConverter': return <IconBuckConverter {...props} />;
     case 'SevenSegment': return <Icon7Segment {...props} />;
     case 'CrystalOscillator': return <IconCrystal {...props} />;
     case 'Photodiode': return <IconPhotodiode {...props} />;
