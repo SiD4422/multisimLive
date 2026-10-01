@@ -148,15 +148,79 @@ export function exportToKiCad(components: SchematicComponent[], wires: Wire[]): 
 
   const date = new Date().toISOString().split('T')[0];
 
+  // Footprint lookup — maps NodeSim type → KiCad THT footprint string
+  const FOOTPRINTS: Record<string, string> = {
+    Resistor:'Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal',
+    Thermistor:'Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal',
+    LDR:'Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal',
+    Varistor:'Varistor_THT:RV_Disc_D7mm_W3.6mm_P5mm',
+    Potentiometer:'Potentiometer_THT:Potentiometer_Bourns_3386P_Vertical',
+    Capacitor:'Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm',
+    Inductor:'Inductor_THT:L_Axial_L5.3mm_D2.2mm_P7.62mm_Horizontal',
+    Diode:'Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal',
+    DiodeZener:'Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal',
+    DiodeSchottky:'Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal',
+    VaractorDiode:'Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal',
+    TVSDiode:'Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal',
+    LED:'LED_THT:LED_D5.0mm',
+    BridgeRectifier:'Diode_THT:Diode_Bridge_Round_D10.0mm',
+    DIAC:'Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal',
+    TransistorNPN:'Package_TO_SOT_THT:TO-92_Inline',
+    TransistorPNP:'Package_TO_SOT_THT:TO-92_Inline',
+    MosfetN:'Package_TO_SOT_THT:TO-92_Inline',
+    MosfetP:'Package_TO_SOT_THT:TO-92_Inline',
+    JFET:'Package_TO_SOT_THT:TO-92_Inline',
+    Darlington:'Package_TO_SOT_THT:TO-92_Inline',
+    IGBT:'Package_TO_SOT_THT:TO-220-3_Vertical',
+    ThyristorSCR:'Package_TO_SOT_THT:TO-92_Inline',
+    TRIAC:'Package_TO_SOT_THT:TO-220-3_Vertical',
+    Opamp:'Package_DIP:DIP-8_W7.62mm',
+    Opamp5:'Package_DIP:DIP-8_W7.62mm',
+    OpampLM358:'Package_DIP:DIP-8_W7.62mm',
+    OpampTL071:'Package_DIP:DIP-8_W7.62mm',
+    Comparator:'Package_DIP:DIP-8_W7.62mm',
+    VoltageRegulator7805:'Package_TO_SOT_THT:TO-220-3_Vertical',
+    VoltageRegulator7809:'Package_TO_SOT_THT:TO-220-3_Vertical',
+    VoltageRegulator7812:'Package_TO_SOT_THT:TO-220-3_Vertical',
+    VoltageRegulatorAMS1117:'Package_TO_SOT_SMD:SOT-223-3_TabPin2',
+    VoltageRegulatorLM317:'Package_TO_SOT_THT:TO-220-3_Vertical',
+    Timer555:'Package_DIP:DIP-8_W7.62mm',
+    GateAND:'Package_DIP:DIP-14_W7.62mm',
+    GateOR:'Package_DIP:DIP-14_W7.62mm',
+    GateNOT:'Package_DIP:DIP-14_W7.62mm',
+    GateNAND:'Package_DIP:DIP-14_W7.62mm',
+    GateNOR:'Package_DIP:DIP-14_W7.62mm',
+    GateXOR:'Package_DIP:DIP-14_W7.62mm',
+    GateXNOR:'Package_DIP:DIP-14_W7.62mm',
+    GateBuffer:'Package_DIP:DIP-14_W7.62mm',
+    DFlipFlop:'Package_DIP:DIP-14_W7.62mm',
+    JKFlipFlop:'Package_DIP:DIP-14_W7.62mm',
+    SRFlipFlop:'Package_DIP:DIP-16_W7.62mm',
+    TFlipFlop:'Package_DIP:DIP-14_W7.62mm',
+    IC74HC595:'Package_DIP:DIP-16_W7.62mm',
+    Optocoupler:'Package_DIP:DIP-4_W7.62mm',
+    Fuse:'Fuse:Fuse_Radial_D5.0mm_L15.0mm_P5.00mm',
+    SwitchSPST:'Button_Switch_THT:SW_Tactile_SPST_Angled_PTS645',
+    PushButton:'Button_Switch_THT:SW_Tactile_SPST_Angled_PTS645',
+    Relay:'Relay_THT:Relay_DPDT_Finder_40.52',
+    CrystalOscillator:'Crystal:Crystal_HC49-U_Vertical',
+    DCSource:'Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical',
+    ACSource:'Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical',
+    Voltmeter:'Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical',
+    Ammeter:'Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical',
+    BuckConverter:'Package_TO_SOT_SMD:SO-8_3.9x4.9mm_P1.27mm',
+  };
+
   // Generate components section
   const compLines = simComponents.map((comp, i) => {
     const ref = compRefs.get(comp.id)!;
     const value = comp.value || comp.type;
     const kicad = KICAD_REF_MAP[comp.type] ?? { lib: 'Device', part: comp.type, desc: comp.type };
+    const footprint = FOOTPRINTS[comp.type] ?? '';
     const tstamp = comp.id.replace(/[^a-fA-F0-9]/g, '').slice(0, 8).padEnd(8, '0');
     return `    (comp (ref "${ref}")
       (value "${value}")
-      (footprint "")
+      (footprint "${footprint}")
       (datafields)
       (libsource (lib "${kicad.lib}") (part "${kicad.part}") (description "${kicad.desc}"))
       (sheetpath (names "/") (tstamps "/"))
