@@ -75,7 +75,7 @@ export function SimulatorHeader({
         {isEditingName ? (
           <input 
             autoFocus
-            className="header-title bg-white text-gray-900 outline-none text-center px-2 py-1 rounded shadow-inner" 
+            className="header-title bg-white outline-none text-center px-2 py-1 rounded shadow-inner" 
             value={circuitName}
             onChange={(e) => onNameChange(e.target.value)}
             onBlur={onNameBlur}
@@ -83,7 +83,7 @@ export function SimulatorHeader({
               if (e.key === 'Enter') onNameBlur();
             }}
             placeholder="Circuit Name"
-            style={{ width: `${Math.max(15, circuitName.length)}ch` }}
+            style={{ width: `${Math.max(15, circuitName.length)}ch`, color: '#0f172a' }}
           />
         ) : (
           <div 
