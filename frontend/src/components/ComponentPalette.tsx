@@ -322,7 +322,7 @@ export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: Compon
     <div 
       className="component-palette" 
       style={{ 
-        width: '220px', 
+        width: '260px', 
         height: '100%', 
         backgroundColor: '#ffffff', 
         borderRight: '1px solid #e5e7eb', 
