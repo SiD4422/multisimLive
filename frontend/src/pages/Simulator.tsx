@@ -23,6 +23,7 @@ import { WelcomeTour } from '../components/WelcomeTour';
 import { useCircuitBoot } from '../hooks/useCircuitBoot';
 import { RestoreBanner } from '../components/RestoreBanner';
 import { LabReportModal } from '../components/LabReportModal';
+import { SupportModal } from '../components/SupportModal';
 
 import { ComponentPalette } from '../components/ComponentPalette';
 import { SimulatorHeader } from '../components/SimulatorHeader';
@@ -89,6 +90,7 @@ function Simulator() {
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isLabReportModalOpen, setIsLabReportModalOpen] = useState(false);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [schematicSnapshot, setSchematicSnapshot] = useState<string | undefined>();
   const [graphSnapshot, setGraphSnapshot] = useState<string | undefined>();
   const stageRef = useRef<any>(null);
@@ -456,6 +458,7 @@ function Simulator() {
         onOpenAi={() => setIsAiPanelOpen(true)}
         onExportKiCad={handleExportKiCad}
         onLabReport={handleLabReport}
+        onOpenSupport={() => setIsSupportModalOpen(true)}
       />
 
       {/* Toolbar */}
@@ -681,6 +684,10 @@ function Simulator() {
         onClose={() => setIsLabReportModalOpen(false)}
         schematicDataUrl={schematicSnapshot}
         graphDataUrl={graphSnapshot}
+      />
+      <SupportModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
       />
       <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
       <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
