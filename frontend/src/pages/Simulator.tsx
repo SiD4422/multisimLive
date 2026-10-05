@@ -64,7 +64,7 @@ class GrapherErrorBoundary extends React.Component<{children: React.ReactNode}, 
 
 function Simulator() {
   const { 
-    addComponent, components, wires, undo, redo, past, future, scale, setScale,
+    addComponent, components, wires, probes, undo, redo, past, future, scale, setScale,
     selectedComponentId, selectedWireId, selectedProbeId,
     updateComponentValue, updateComponentRotation, setPendingComponent,
     runSimulation, isSimulating, exportState, importState,
@@ -156,8 +156,11 @@ function Simulator() {
     });
 
     if (floating.length > 0) issues.push(`${floating.length} component(s) not connected to any wire`);
+    // 4. No voltage probe placed — user won't see any output in the Grapher
+    const hasVoltageProbe = probes.length > 0;
+    if (!hasVoltageProbe) issues.push('No Voltage Probe placed — add one to see waveforms in the Grapher');
     return issues;
-  }, [components, wires]);
+  }, [components, wires, probes]);
 
   const showToast = (message: string, type: 'success' | 'warning' = 'success') => {
     setToast({ message, type });
