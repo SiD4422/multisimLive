@@ -86,6 +86,15 @@ export default function Layout() {
                 <Link to="/compare/ltspice" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs LTspice</Link>
                 <Link to="/compare/falstad" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Falstad</Link>
                 <Link to="/compare/multisim" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Multisim</Link>
+                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
+                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Free Calculators
+                </div>
+                <Link to="/tools/ohms-law" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Ohm's Law Calculator</Link>
+                <Link to="/tools/voltage-divider" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Voltage Divider</Link>
+                <Link to="/tools/rc-calculator" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RC Calculator</Link>
+                <Link to="/tools/555-timer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">555 Timer</Link>
+                <Link to="/tools/resistor-color-code" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Resistor Color Code</Link>
               </div>
             </div>
 
@@ -133,6 +142,12 @@ export default function Layout() {
               <Link to="/compare/ltspice" className={pathname === '/compare/ltspice' ? 'active' : ''}>vs LTspice</Link>
               <Link to="/compare/falstad" className={pathname === '/compare/falstad' ? 'active' : ''}>vs Falstad</Link>
               <Link to="/compare/multisim" className={pathname === '/compare/multisim' ? 'active' : ''}>vs Multisim</Link>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '8px 0 4px' }}>Free Calculators</div>
+              <Link to="/tools/ohms-law" className={pathname === '/tools/ohms-law' ? 'active' : ''}>Ohm's Law Calculator</Link>
+              <Link to="/tools/voltage-divider" className={pathname === '/tools/voltage-divider' ? 'active' : ''}>Voltage Divider</Link>
+              <Link to="/tools/rc-calculator" className={pathname === '/tools/rc-calculator' ? 'active' : ''}>RC Calculator</Link>
+              <Link to="/tools/555-timer" className={pathname === '/tools/555-timer' ? 'active' : ''}>555 Timer</Link>
+              <Link to="/tools/resistor-color-code" className={pathname === '/tools/resistor-color-code' ? 'active' : ''}>Resistor Color Code</Link>
             </div>
           </div>
           <div className="mp-actions">

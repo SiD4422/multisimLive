@@ -45,6 +45,13 @@ const BuckConverter = lazy(() => import('./pages/circuits/BuckConverter'));
 
 import NotFound from './pages/NotFound';
 
+const OhmsLawCalculator = lazy(() => import('./pages/tools/OhmsLawCalculator'));
+const VoltageDividerCalculator = lazy(() => import('./pages/tools/VoltageDividerCalculator'));
+const RcCalculator = lazy(() => import('./pages/tools/RcCalculator'));
+const Timer555Calculator = lazy(() => import('./pages/tools/Timer555Calculator'));
+const ResistorColorCodeCalculator = lazy(() => import('./pages/tools/ResistorColorCodeCalculator'));
+const ToolsIndex = lazy(() => import('./pages/tools/ToolsIndex'));
+
 function App() {
   return (
     <HelmetProvider>
@@ -88,6 +95,13 @@ function App() {
           <Route path="/circuits/full-wave-rectifier" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><FullWaveRectifier /></Suspense>} />
           <Route path="/circuits/common-emitter-amplifier" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><CommonEmitterAmplifier /></Suspense>} />
           <Route path="/circuits/buck-converter" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><BuckConverter /></Suspense>} />
+          
+          <Route path="/tools" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><ToolsIndex /></Suspense>} />
+          <Route path="/tools/ohms-law" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><OhmsLawCalculator /></Suspense>} />
+          <Route path="/tools/voltage-divider" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><VoltageDividerCalculator /></Suspense>} />
+          <Route path="/tools/rc-calculator" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><RcCalculator /></Suspense>} />
+          <Route path="/tools/555-timer" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><Timer555Calculator /></Suspense>} />
+          <Route path="/tools/resistor-color-code" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><ResistorColorCodeCalculator /></Suspense>} />
         </Route>
         
         {/* Isolated Fullscreen Simulator */}
