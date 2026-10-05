@@ -169,9 +169,11 @@ export default function Layout() {
             <li><Link to="/compare">Comparisons</Link></li>
             <li><Link to="/procedure">How to Use</Link></li>
             <li><Link to="/resources">Resources</Link></li>
+            <li><Link to="/privacy">Privacy</Link></li>
+            <li><Link to="/terms">Terms</Link></li>
             <li><a href="https://github.com/SiD4422/multisimLive" target="_blank" rel="noopener noreferrer">GitHub</a></li>
           </ul>
-          <p>© {new Date().getFullYear()} NodeSim. Open source under the MIT License.</p>
+          <p>&copy; {new Date().getFullYear()} NodeSim. Open source under the MIT License.</p>
         </div>
       </footer>
 

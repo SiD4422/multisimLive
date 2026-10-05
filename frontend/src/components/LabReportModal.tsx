@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, FileText, Loader2, Download, Sparkles } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
+import { isLabReportLimitReached, getLabReportRemainingCount, incrementLabReportUsage, FREE_REPORT_LIMIT } from '../utils/labReportUsage';
 
 interface LabReportModalProps {
   isOpen: boolean;
@@ -31,6 +32,8 @@ export function LabReportModal({ isOpen, onClose, schematicDataUrl, graphDataUrl
   } | null>(null);
 
   if (!isOpen) return null;
+
+  const limitReached = isLabReportLimitReached();
 
   const componentTypes = [...new Set(components.map(c => c.type))].join(', ');
 
@@ -75,6 +78,7 @@ Keep language formal but easy to understand for a 2nd or 3rd year engineering st
         throw new Error('Could not parse AI response. Please try again.');
       }
       setReportContent(parsed);
+      incrementLabReportUsage();
       setStep('preview');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to generate report.';
@@ -250,7 +254,22 @@ Keep language formal but easy to understand for a 2nd or 3rd year engineering st
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><X size={18} /></button>
         </div>
 
-        {step === 'form' && (
+        {limitReached && step !== 'generating' && step !== 'preview' && (
+          <div style={{ textAlign: 'center', padding: '8px 0' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 20, padding: '5px 14px', marginBottom: 18 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24' }}>⚡ Free monthly limit reached ({FREE_REPORT_LIMIT}/{FREE_REPORT_LIMIT} used)</span>
+            </div>
+            <div style={{ fontSize: 26, marginBottom: 10 }}>☕</div>
+            <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>You've used your {FREE_REPORT_LIMIT} free reports</div>
+            <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginBottom: 20 }}>NodeSim is built by a solo student. If it helped you, consider supporting it to keep AI features running!</div>
+            <a href="upi://pay?pa=spartensid12@oksbi&pn=NodeSim&cu=INR"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#16a34a', color: '#fff', textDecoration: 'none', padding: '12px', borderRadius: 9, fontWeight: 700, fontSize: 14, marginBottom: 10 }}
+            >☕ Support via UPI (any amount)</a>
+            <div style={{ fontSize: 11, color: '#475569' }}>Your 3 free reports reset on the 1st of next month.</div>
+          </div>
+        )}
+
+        {!limitReached && step === 'form' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <label style={labelStyle}>Experiment Title *</label>
@@ -278,6 +297,9 @@ Keep language formal but easy to understand for a 2nd or 3rd year engineering st
             </div>
             <div style={{ background: '#0f172a', borderRadius: 8, padding: 10, fontSize: 11, color: '#64748b', lineHeight: 1.7 }}>
               <strong style={{ color: '#94a3b8' }}>ℹ️ What happens next:</strong> Gemini AI will write the Aim, Theory, Procedure, Result, and Conclusion sections based on your circuit. Your schematic and simulation graph will be embedded in the PDF automatically.
+            </div>
+            <div style={{ fontSize: 11, color: '#64748b', textAlign: 'center', marginBottom: 6 }}>
+              {getLabReportRemainingCount()} of {FREE_REPORT_LIMIT} free reports remaining this month
             </div>
             <button
               onClick={handleGenerate}

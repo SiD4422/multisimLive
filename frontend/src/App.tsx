@@ -16,6 +16,9 @@ import CircuitTemplatePage from './pages/CircuitTemplatePage';
 // Lazy load the Simulator to prevent bundling 7MB WASM & Canvas on marketing pages
 const Simulator = lazy(() => import('./pages/Simulator'));
 
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+
 const TutorialsIndex = lazy(() => import('./pages/TutorialsIndex'));
 const CompareIndex = lazy(() => import('./pages/CompareIndex'));
 
@@ -59,6 +62,8 @@ function App() {
           <Route path="/circuits/:id" element={<CircuitTemplatePage />} />
           <Route path="/procedure" element={<ProcedurePage />} />
           <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/privacy" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><PrivacyPage /></Suspense>} />
+          <Route path="/terms" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><TermsPage /></Suspense>} />
 
           {/* SEO Pages */}
           <Route path="/tutorials" element={<Suspense fallback={<div style={{padding:'2rem',color:'#fff'}}>Loading...</div>}><TutorialsIndex /></Suspense>} />
