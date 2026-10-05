@@ -8,7 +8,8 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer, Brush, ReferenceLine
 } from 'recharts';
-import { Activity, Download, Crosshair, Table2, BarChart2 } from 'lucide-react';
+import { Activity, Download, Crosshair, Table2, BarChart2, Sparkles } from 'lucide-react';
+import { AiWaveformPanel } from './AiWaveformPanel';
 import { toPng } from 'html-to-image';
 import { generateCSV } from '../utils/csvExport';
 
@@ -676,7 +677,19 @@ export default function Grapher() {
   const [cursorA, setCursorA] = useState<SimulationRow | null>(null);
   const [cursorB, setCursorB] = useState<SimulationRow | null>(null);
   
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  
   const chartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setAiAnalysis(null);
+    setAiLoading(false);
+    setAiError(null);
+    setShowAiPanel(false);
+  }, [simulationBuffer]);
 
   // Measure the container so charts always get real pixel dimensions
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -950,15 +963,97 @@ export default function Grapher() {
     );
   };
 
+  const handleAiAnalyze = async () => {
+    if (aiLoading) return;
+    setShowAiPanel(true);
+    setAiLoading(true);
+    setAiError(null);
+    setAiAnalysis(null);
+
+    try {
+      // Summarize the waveform data for the prompt
+      const traceCount = traces.length;
+      const rowCount = formattedData.length;
+      
+      // Get min/max/mean for each trace from formattedData
+      const traceSummaries = traces.map(trace => {
+        const values = formattedData.map(row => row[trace] as number).filter(v => typeof v === 'number' && !isNaN(v));
+        if (values.length === 0) return `${trace}: no data`;
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        return `${trace}: min=${min.toFixed(4)}, max=${max.toFixed(4)}, mean=${mean.toFixed(4)}`;
+      });
+
+      const xKey = plotType === 'ac' ? 'frequency' : plotType === 'dc' ? 'v_sweep' : 'time';
+      const xValues = formattedData.map(row => row[xKey] as number).filter(v => typeof v === 'number');
+      const xStart = xValues[0];
+      const xEnd = xValues[xValues.length - 1];
+
+      const prompt = `You are an expert electronics engineering tutor analyzing a SPICE simulation result for a student.
+
+Simulation type: ${plotType === 'ac' ? 'AC Sweep (frequency response)' : plotType === 'dc' ? 'DC Sweep' : 'Transient (time-domain)'}
+Number of traces: ${traceCount}
+Data points: ${rowCount}
+${plotType === 'transient' ? `Time range: ${xStart?.toExponential(3)}s to ${xEnd?.toExponential(3)}s` : ''}
+${plotType === 'ac' ? `Frequency range: ${xStart?.toExponential(3)} Hz to ${xEnd?.toExponential(3)} Hz` : ''}
+${plotType === 'dc' ? `Sweep range: ${xStart?.toFixed(3)}V to ${xEnd?.toFixed(3)}V` : ''}
+
+Waveform statistics:
+${traceSummaries.join('\n')}
+
+Please analyze this simulation result and provide:
+1. What the waveform shows (signal type, behavior)
+2. Key measurements (amplitude, frequency if applicable, DC offset)
+3. Whether the result looks correct/expected for a typical circuit
+4. Any potential issues you can detect (clipping, distortion, no output, unexpected behavior)
+5. One actionable tip to improve the circuit or simulation
+
+Keep your response concise and practical for a 2nd/3rd year engineering student. Use plain text, no markdown formatting.`;
+
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Gemini API error');
+      setAiAnalysis(data.result);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'Failed to analyze waveform. Try again.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const chartAreaHeight = Math.max(0, containerSize.height - TOOLBAR_H);
 
   return (
     <div ref={chartRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: '#fff' }}>
       {renderCursorPanel()}
 
+      {showAiPanel && (
+        <AiWaveformPanel
+          onClose={() => setShowAiPanel(false)}
+          analysis={aiAnalysis}
+          isLoading={aiLoading}
+          error={aiError}
+        />
+      )}
+
       {/* Fixed-height toolbar at top */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: TOOLBAR_H, display: 'flex', alignItems: 'center', gap: 16, padding: '0 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', zIndex: 5 }}>
-        {/* FFT toggle â€” only shown for transient */}
+        {/* Analysis mode badge */}
+        <div style={{ 
+          display: 'flex', alignItems: 'center', gap: 4,
+          background: plotType === 'ac' ? '#dbeafe' : plotType === 'dc' ? '#fef3c7' : '#f0fdf4',
+          color: plotType === 'ac' ? '#1d4ed8' : plotType === 'dc' ? '#92400e' : '#166534',
+          border: `1px solid ${plotType === 'ac' ? '#bfdbfe' : plotType === 'dc' ? '#fde68a' : '#bbf7d0'}`,
+          borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700
+        }}>
+          {plotType === 'ac' ? '〜 AC Sweep' : plotType === 'dc' ? '⎍ DC Sweep' : '⚡ Transient'}
+        </div>
+        {/* FFT toggle — only shown for transient */}
         {plotType === 'transient' && (
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }} title="FFT Spectrum Analyzer">
             <div style={{ position: 'relative', width: 36, height: 20, flexShrink: 0 }}>
@@ -1013,6 +1108,22 @@ export default function Grapher() {
         </button>
 
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          <button
+            onClick={handleAiAnalyze}
+            title="Analyze waveform with AI"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              padding: '4px 12px', borderRadius: 6,
+              border: `1px solid ${showAiPanel ? '#8b5cf6' : '#e5e7eb'}`,
+              background: showAiPanel ? '#ede9fe' : '#fff',
+              color: showAiPanel ? '#7c3aed' : '#374151',
+              cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              transition: 'all 0.15s',
+            }}
+          >
+            <Sparkles size={13} />
+            AI Analyze
+          </button>
           <button onClick={handleExportPNG} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#374151' }} title="Download PNG">
             <Download size={15} /> PNG
           </button>

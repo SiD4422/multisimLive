@@ -89,35 +89,61 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
 
         {/* AC Sweep Settings */}
         {analysisMode === 'ac' && (
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-            <div style={{ flex: 1 }}>
-              <label className="input-label">Start Freq</label>
-              <input
-                className="input-field"
-                value={acSettings.fStart}
-                onChange={e => setAcSettings({ fStart: e.target.value })}
-                placeholder="1"
-              />
+          <>
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>Quick Presets</label>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {[
+                  { label: 'Audio (20Hz–20kHz)', fStart: '20', fStop: '20k', points: '100' },
+                  { label: 'Filter (1Hz–1MHz)', fStart: '1', fStop: '1Meg', points: '100' },
+                  { label: 'Power (1Hz–100kHz)', fStart: '1', fStop: '100k', points: '50' },
+                  { label: 'RF (1kHz–1GHz)', fStart: '1k', fStop: '1G', points: '100' },
+                ].map(preset => (
+                  <button
+                    key={preset.label}
+                    onClick={() => setAcSettings({ fStart: preset.fStart, fStop: preset.fStop, points: preset.points })}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                      border: '1px solid #d1d5db', background: '#f9fafb', color: '#374151',
+                      cursor: 'pointer', whiteSpace: 'nowrap'
+                    }}
+                  >{preset.label}</button>
+                ))}
+              </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <label className="input-label">Stop Freq</label>
-              <input
-                className="input-field"
-                value={acSettings.fStop}
-                onChange={e => setAcSettings({ fStop: e.target.value })}
-                placeholder="1Meg"
-              />
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">Start Freq</label>
+                <input
+                  className="input-field"
+                  value={acSettings.fStart}
+                  onChange={e => setAcSettings({ fStart: e.target.value })}
+                  placeholder="1"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">Stop Freq</label>
+                <input
+                  className="input-field"
+                  value={acSettings.fStop}
+                  onChange={e => setAcSettings({ fStop: e.target.value })}
+                  placeholder="1Meg"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">Pts/Dec</label>
+                <input
+                  className="input-field"
+                  value={acSettings.points}
+                  onChange={e => setAcSettings({ points: e.target.value })}
+                  placeholder="100"
+                />
+              </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <label className="input-label">Pts/Dec</label>
-              <input
-                className="input-field"
-                value={acSettings.points}
-                onChange={e => setAcSettings({ points: e.target.value })}
-                placeholder="100"
-              />
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 12px', fontSize: 11, color: '#166534', lineHeight: 1.6, marginBottom: '20px' }}>
+              <strong>Tip:</strong> AC Sweep plots the frequency response (Bode plot). Use an <strong>AC Voltage Source</strong> as your input. Place a Voltage Probe on the output node. The Grapher will show magnitude (dB) and phase vs. frequency.
             </div>
-          </div>
+          </>
         )}
 
         {/* DC Sweep Settings */}
