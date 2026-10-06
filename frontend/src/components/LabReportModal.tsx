@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, FileText, Loader2, Download, Sparkles } from 'lucide-react';
+import { X, FileText, Loader2, Download, Sparkles, LogIn } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
-import { isLabReportLimitReached, getLabReportRemainingCount, incrementLabReportUsage, FREE_REPORT_LIMIT } from '../utils/labReportUsage';
+import { useAuth } from '../hooks/useAuth';
+import { checkAndIncrementUsage } from '../utils/dbUsage';
 
 interface LabReportModalProps {
   isOpen: boolean;
@@ -10,10 +11,11 @@ interface LabReportModalProps {
   graphDataUrl?: string;     // PNG screenshot of the grapher
 }
 
-type Step = 'form' | 'generating' | 'preview' | 'error';
+type Step = 'form' | 'generating' | 'preview' | 'error' | 'paywall';
 
 export function LabReportModal({ isOpen, onClose, schematicDataUrl, graphDataUrl }: LabReportModalProps) {
   const { components } = useSchematicStore();
+  const { user, loading, signInWithGoogle } = useAuth();
   const [step, setStep] = useState<Step>('form');
   const [errorMsg, setErrorMsg] = useState('');
   const [formData, setFormData] = useState({
@@ -33,15 +35,21 @@ export function LabReportModal({ isOpen, onClose, schematicDataUrl, graphDataUrl
 
   if (!isOpen) return null;
 
-  const limitReached = isLabReportLimitReached();
-
   const componentTypes = [...new Set(components.map(c => c.type))].join(', ');
 
   const handleGenerate = async () => {
     if (!formData.title.trim()) return;
+    if (!user) return;
+    
     setStep('generating');
     setErrorMsg('');
     try {
+      const usage = await checkAndIncrementUsage(user.uid);
+      if (!usage.allowed) {
+        setStep('paywall');
+        return;
+      }
+
       const prompt = `You are a professional electronics lab report writer for undergraduate engineering students.
 
 Generate a complete, formal lab report for the following circuit simulation experiment.
@@ -78,7 +86,6 @@ Keep language formal but easy to understand for a 2nd or 3rd year engineering st
         throw new Error('Could not parse AI response. Please try again.');
       }
       setReportContent(parsed);
-      incrementLabReportUsage();
       setStep('preview');
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to generate report.';
@@ -254,93 +261,111 @@ Keep language formal but easy to understand for a 2nd or 3rd year engineering st
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><X size={18} /></button>
         </div>
 
-        {limitReached && step !== 'generating' && step !== 'preview' && (
-          <div style={{ textAlign: 'center', padding: '8px 0' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 20, padding: '5px 14px', marginBottom: 18 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24' }}>⚡ Free monthly limit reached ({FREE_REPORT_LIMIT}/{FREE_REPORT_LIMIT} used)</span>
-            </div>
-            <div style={{ fontSize: 26, marginBottom: 10 }}>☕</div>
-            <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>You've used your {FREE_REPORT_LIMIT} free reports</div>
-            <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginBottom: 20 }}>NodeSim is built by a solo student. If it helped you, consider supporting it to keep AI features running!</div>
-            <a href="upi://pay?pa=spartensid12@oksbi&pn=NodeSim&cu=INR"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#16a34a', color: '#fff', textDecoration: 'none', padding: '12px', borderRadius: 9, fontWeight: 700, fontSize: 14, marginBottom: 10 }}
-            >☕ Support via UPI (any amount)</a>
-            <div style={{ fontSize: 11, color: '#475569' }}>Your 3 free reports reset on the 1st of next month.</div>
-          </div>
-        )}
-
-        {!limitReached && step === 'form' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <div>
-              <label style={labelStyle}>Experiment Title *</label>
-              <input style={inputStyle} value={formData.title} onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} placeholder="e.g. RC Low Pass Filter Frequency Response" />
-            </div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <div style={{ flex: 2 }}>
-                <label style={labelStyle}>Student Name</label>
-                <input style={inputStyle} value={formData.studentName} onChange={e => setFormData(p => ({ ...p, studentName: e.target.value }))} placeholder="Your name" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Roll No.</label>
-                <input style={inputStyle} value={formData.rollNo} onChange={e => setFormData(p => ({ ...p, rollNo: e.target.value }))} placeholder="RA2211" />
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Subject</label>
-                <input style={inputStyle} value={formData.subject} onChange={e => setFormData(p => ({ ...p, subject: e.target.value }))} placeholder="Electronics Lab" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={labelStyle}>Date</label>
-                <input style={inputStyle} value={formData.date} onChange={e => setFormData(p => ({ ...p, date: e.target.value }))} />
-              </div>
-            </div>
-            <div style={{ background: '#0f172a', borderRadius: 8, padding: 10, fontSize: 11, color: '#64748b', lineHeight: 1.7 }}>
-              <strong style={{ color: '#94a3b8' }}>ℹ️ What happens next:</strong> Gemini AI will write the Aim, Theory, Procedure, Result, and Conclusion sections based on your circuit. Your schematic and simulation graph will be embedded in the PDF automatically.
-            </div>
-            <div style={{ fontSize: 11, color: '#64748b', textAlign: 'center', marginBottom: 6 }}>
-              {getLabReportRemainingCount()} of {FREE_REPORT_LIMIT} free reports remaining this month
-            </div>
-            <button
-              onClick={handleGenerate}
-              disabled={!formData.title.trim()}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: formData.title.trim() ? '#16a34a' : '#334155', color: '#fff', border: 'none', borderRadius: 10, padding: '13px', fontSize: 14, fontWeight: 700, cursor: formData.title.trim() ? 'pointer' : 'not-allowed' }}
-            >
-              <Sparkles size={16} /> Generate Lab Report with AI
-            </button>
-          </div>
-        )}
-
-        {step === 'generating' && (
+        {loading ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <Loader2 size={40} style={{ color: '#16a34a', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Gemini is writing your lab report...</div>
-            <div style={{ fontSize: 13, color: '#64748b' }}>Generating Aim, Theory, Procedure, Result & Conclusion</div>
           </div>
-        )}
-
-        {step === 'error' && (
+        ) : !user ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: 14, color: '#fca5a5', marginBottom: 16 }}>⚠️ {errorMsg}</div>
-            <button onClick={() => setStep('form')} style={{ background: '#334155', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', fontWeight: 600 }}>Try Again</button>
-          </div>
-        )}
-
-        {step === 'preview' && reportContent && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {([['Aim', reportContent.aim], ['Theory', reportContent.theory], ['Procedure', reportContent.procedure], ['Result', reportContent.result], ['Conclusion', reportContent.conclusion]] as [string, string][]).map(([label, content]) => (
-              <div key={label} style={{ background: '#0f172a', borderRadius: 10, padding: 14, border: '1px solid #1e293b' }}>
-                <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#16a34a', marginBottom: 6 }}>{label}</div>
-                <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{content}</div>
-              </div>
-            ))}
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setStep('form')} style={{ flex: 1, background: '#334155', color: '#fff', border: 'none', borderRadius: 10, padding: 12, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>← Regenerate</button>
-              <button onClick={handleDownloadPDF} style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, padding: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
-                <Download size={16} /> Download PDF
-              </button>
+            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Generate AI Lab Reports</div>
+            <div style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.6, marginBottom: 24 }}>
+              Sign in to automatically generate comprehensive PDF lab records for your circuits. You get 3 free reports per month.
             </div>
+            <button
+              onClick={signInWithGoogle}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+            >
+              <LogIn size={18} /> Sign in with Google
+            </button>
           </div>
+        ) : (
+          <>
+            {step === 'paywall' && (
+              <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 20, padding: '5px 14px', marginBottom: 18 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24' }}>⚡ Free monthly limit reached (3/3 used)</span>
+                </div>
+                <div style={{ fontSize: 26, marginBottom: 10 }}>☕</div>
+                <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>You've used your 3 free reports</div>
+                <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginBottom: 20 }}>NodeSim is built by a solo student. If it helped you, consider supporting it to keep AI features running!</div>
+                <a href="upi://pay?pa=spartensid12@oksbi&pn=NodeSim&cu=INR"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#16a34a', color: '#fff', textDecoration: 'none', padding: '12px', borderRadius: 9, fontWeight: 700, fontSize: 14, marginBottom: 10 }}
+                >☕ Support via UPI (any amount)</a>
+                <div style={{ fontSize: 11, color: '#475569' }}>Your 3 free reports reset on the 1st of next month.</div>
+              </div>
+            )}
+
+            {step === 'form' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div>
+                  <label style={labelStyle}>Experiment Title *</label>
+                  <input style={inputStyle} value={formData.title} onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} placeholder="e.g. RC Low Pass Filter Frequency Response" />
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 2 }}>
+                    <label style={labelStyle}>Student Name</label>
+                    <input style={inputStyle} value={formData.studentName} onChange={e => setFormData(p => ({ ...p, studentName: e.target.value }))} placeholder="Your name" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={labelStyle}>Roll No.</label>
+                    <input style={inputStyle} value={formData.rollNo} onChange={e => setFormData(p => ({ ...p, rollNo: e.target.value }))} placeholder="RA2211" />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={labelStyle}>Subject</label>
+                    <input style={inputStyle} value={formData.subject} onChange={e => setFormData(p => ({ ...p, subject: e.target.value }))} placeholder="Electronics Lab" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={labelStyle}>Date</label>
+                    <input style={inputStyle} value={formData.date} onChange={e => setFormData(p => ({ ...p, date: e.target.value }))} />
+                  </div>
+                </div>
+                <div style={{ background: '#0f172a', borderRadius: 8, padding: 10, fontSize: 11, color: '#64748b', lineHeight: 1.7 }}>
+                  <strong style={{ color: '#94a3b8' }}>ℹ️ What happens next:</strong> Gemini AI will write the Aim, Theory, Procedure, Result, and Conclusion sections based on your circuit. Your schematic and simulation graph will be embedded in the PDF automatically.
+                </div>
+                <button
+                  onClick={handleGenerate}
+                  disabled={!formData.title.trim()}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: formData.title.trim() ? '#16a34a' : '#334155', color: '#fff', border: 'none', borderRadius: 10, padding: '13px', fontSize: 14, fontWeight: 700, cursor: formData.title.trim() ? 'pointer' : 'not-allowed' }}
+                >
+                  <Sparkles size={16} /> Generate Lab Report with AI
+                </button>
+              </div>
+            )}
+
+            {step === 'generating' && (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Loader2 size={40} style={{ color: '#16a34a', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+                <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>Gemini is writing your lab report...</div>
+                <div style={{ fontSize: 13, color: '#64748b' }}>Generating Aim, Theory, Procedure, Result & Conclusion</div>
+              </div>
+            )}
+
+            {step === 'error' && (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{ fontSize: 14, color: '#fca5a5', marginBottom: 16 }}>⚠️ {errorMsg}</div>
+                <button onClick={() => setStep('form')} style={{ background: '#334155', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 24px', cursor: 'pointer', fontWeight: 600 }}>Try Again</button>
+              </div>
+            )}
+
+            {step === 'preview' && reportContent && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {([['Aim', reportContent.aim], ['Theory', reportContent.theory], ['Procedure', reportContent.procedure], ['Result', reportContent.result], ['Conclusion', reportContent.conclusion]] as [string, string][]).map(([label, content]) => (
+                  <div key={label} style={{ background: '#0f172a', borderRadius: 10, padding: 14, border: '1px solid #1e293b' }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#16a34a', marginBottom: 6 }}>{label}</div>
+                    <div style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{content}</div>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={() => setStep('form')} style={{ flex: 1, background: '#334155', color: '#fff', border: 'none', borderRadius: 10, padding: 12, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>← Regenerate</button>
+                  <button onClick={handleDownloadPDF} style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, padding: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                    <Download size={16} /> Download PDF
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
