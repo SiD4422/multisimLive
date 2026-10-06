@@ -5,7 +5,7 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-const MODEL = 'gemini-2.0-flash-lite';
+const MODEL = 'gemini-3.5-flash-lite';
 
 export default async function handler(req: Request) {
   if (req.method === 'OPTIONS') {
