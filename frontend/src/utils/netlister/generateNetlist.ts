@@ -87,7 +87,7 @@ export function generateNetlist(
       // 1. Check if any component pins lie on this segment (with lenient tolerance for rotated pins)
       allPins.forEach(pin => {
         // AMMETER SHORT-CIRCUIT FIX: if this segment starts with a fake probe point (wireB),
-        // don't claim component pins sitting exactly at the probe position â€” those belong to wireA's side.
+        // don't claim component pins sitting exactly at the probe position — those belong to wireA's side.
         if ((p1 as any)._isFake && pin.p && Math.abs(pin.p.x - p1.x) < 1 && Math.abs(pin.p.y - p1.y) < 1) return;
         if (isPointOnSegment(pin.p, p1, p2, PIN_TOLERANCE)) {
           gridPoints.push(pin.gridNode);
@@ -97,7 +97,7 @@ export function generateNetlist(
       // 2. CRITICAL FIX: Check if endpoints of OTHER wires lie on this segment (T-junctions).
       //    Example: GND1 connects via a vertical wire whose top endpoint sits in the MIDDLE of
       //    the bottom horizontal bus wire. Without this check those two wires are separate nets!
-      //    NOTE: Skip fake points (_isFake) â€” those are ammeter split nodes and must NOT merge!
+      //    NOTE: Skip fake points (_isFake) — those are ammeter split nodes and must NOT merge!
       processedWires.forEach(otherWire => {
         if (otherWire === wire) return;
         otherWire.points.forEach(otherPt => {
@@ -105,7 +105,7 @@ export function generateNetlist(
           // AMMETER SHORT-CIRCUIT FIX: if this segment starts with a fake probe point (wireB),
           // do NOT pull in wireA's terminal endpoint that sits at the exact same real coordinates.
           // Without this guard, wireA's end and wireB's fakeP start share the same physical location,
-          // causing the T-junction scan to merge them into one net â†’ both ammeter pins â†’ same SPICE node â†’ shorted VSRC.
+          // causing the T-junction scan to merge them into one net → both ammeter pins → same SPICE node → shorted VSRC.
           if ((p1 as any)._isFake && Math.abs(otherPt.x - p1.x) < 1 && Math.abs(otherPt.y - p1.y) < 1) return;
           if (isPointOnSegment(otherPt, p1, p2, PIN_TOLERANCE)) {
             gridPoints.push(toGridNode(otherPt));
@@ -259,19 +259,19 @@ export function generateNetlist(
 
     // BUG-FIX: Resistor and Load (Potentiometer & Fuse are handled below with correct SPICE prefixes)
     if (comp.type === 'Resistor' || comp.type === 'Load') {
-      const val = (comp.value || '1k').replace('Î©', '');
+      const val = (comp.value || '1k').replace('Ω', '');
       netlist += `R_${comp.id} ${nodes[0]} ${nodes[1]} ${val}\n`;
     }
     else if (comp.type === 'Thermistor') {
-      const val = (comp.value || '10k').replace('Î©', '');
+      const val = (comp.value || '10k').replace('Ω', '');
       netlist += `R_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} ${val}\n`;
     }
     else if (comp.type === 'LDR') {
-      const val = (comp.value || '1k').replace('Î©', '');
+      const val = (comp.value || '1k').replace('Ω', '');
       netlist += `R_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} ${val}\n`;
     }
     else if (comp.type === 'Varistor') {
-      const val = (comp.value || '100k').replace('Î©', '');
+      const val = (comp.value || '100k').replace('Ω', '');
       netlist += `R_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} ${val}\n`;
     }
     else if (comp.type === 'VaractorDiode') {
@@ -285,18 +285,18 @@ export function generateNetlist(
       netlist += `D_${comp.id} ${anode} ${cathode} ${model}\n`;
       models.add(`.model P6KE33A D(BV=33 IBV=1m)`);
     }
-    // BUG-FIX #2: Potentiometer â€” SPICE 'p' prefix means coupled-inductor, not pot.
+    // BUG-FIX #2: Potentiometer — SPICE 'p' prefix means coupled-inductor, not pot.
     // Model as two series resistors with wiper at 50% by default.
     else if (comp.type === 'Potentiometer') {
       const total = parseSpiceToFloat(comp.value || '10k') || 10000;
       const wiper = total / 2; // 50% wiper position
       netlist += `R_${comp.id}_A ${nodes[0]} ${nodes[1]}_wiper ${wiper}\n`;
       netlist += `R_${comp.id}_B ${nodes[1]}_wiper ${nodes[1]} ${wiper}\n`;
-      // Wiper node is the midpoint â€” wire to nodes[1] if the user only connects 2 pins
+      // Wiper node is the midpoint — wire to nodes[1] if the user only connects 2 pins
     }
-    // BUG-FIX #3: Fuse â€” SPICE 'f' prefix means CCCS. Model fuse as a tiny resistor (1mÎ©).
+    // BUG-FIX #3: Fuse — SPICE 'f' prefix means CCCS. Model fuse as a tiny resistor (1mΩ).
     else if (comp.type === 'Fuse') {
-      netlist += `R_${comp.id} ${nodes[0]} ${nodes[1]} 0.001\n`; // 1mÎ© â€” fuse resistance
+      netlist += `R_${comp.id} ${nodes[0]} ${nodes[1]} 0.001\n`; // 1mΩ — fuse resistance
     }
     else if (comp.type === 'Capacitor') {
       const val = (comp.value || "1uF").replace('F', '');
@@ -350,7 +350,7 @@ export function generateNetlist(
       netlist += `R_${comp.id} ${nodes[0]} ${nodes[1]} ${rVal}\n`;
     }
     else if (comp.type === 'Timer555') {
-      // Built-in 555 macromodel â€” no external .lib needed
+      // Built-in 555 macromodel — no external .lib needed
       // Pin order from getComponentPins: VCC, GND, RST, DIS, THR, TRI, CON, OUT
       const pinMap: Record<string, string> = {};
       pins.forEach(p => { pinMap[p.id] = getNodeId(p.gridNode); });
@@ -641,7 +641,7 @@ S_dis DIS GND dis_gate GND SMOD555
 
       // Parse turns ratio from value (e.g. "10" means 10:1, "1" means 1:1)
       const ratio = parseSpiceToFloat(comp.value || '1') || 1;
-      // L1=1H, L2=1H/ratioÂ² gives correct turns ratio with tight coupling
+      // L1=1H, L2=1H/ratio² gives correct turns ratio with tight coupling
       const L1 = 0.1;  // 100mH primary
       const L2 = L1 / (ratio * ratio);
 
@@ -884,7 +884,7 @@ S_dis DIS GND dis_gate GND SMOD555
       const segNames = ['a','b','c','d','e','f','g'];
       segNames.forEach((seg, i) => {
         const aNode = nodes[i] || '0';
-        // Each segment: series 330Î© resistor + LED diode to common cathode
+        // Each segment: series 330Ω resistor + LED diode to common cathode
         netlist += `R_${comp.id}_${seg} ${aNode} seg_${comp.id}_${seg} 330\n`;
         netlist += `D_${comp.id}_${seg} seg_${comp.id}_${seg} ${kNode} DLED\n`;
       });
@@ -962,7 +962,7 @@ S_dis DIS GND dis_gate GND SMOD555
       const pB  = pinMap['B'] || nodes[1] || '2';
       const pC  = pinMap['C'] || nodes[2] || '3';
       const pN  = pinMap['N'] || nodes[3] || '0';  // Neutral / reference
-      const amp  = parseSpiceToFloat(comp.value || '230') || 230; // RMS â†’ use peak
+      const amp  = parseSpiceToFloat(comp.value || '230') || 230; // RMS → use peak
       const freq  = 50; // 50 Hz default
       const peak  = amp * Math.sqrt(2);
       if (comp.type === 'ThreePhaseWye') {
@@ -996,7 +996,7 @@ S_dis DIS GND dis_gate GND SMOD555
     else if (comp.type === 'ArbitraryVoltageSource') {
       netlist += `B_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} V=5*sin(time)\n`;
     }
-    // BUG-FIX #6: Missing source types â€” TriangularVoltage, and all current-source variants
+    // BUG-FIX #6: Missing source types — TriangularVoltage, and all current-source variants
     else if (comp.type === 'TriangularVoltage') {
       const parts = (comp.value || '5V 1kHz').split(' ');
       const amp = parseSpiceToFloat(parts[0] || '5') || 5;
@@ -1030,7 +1030,7 @@ S_dis DIS GND dis_gate GND SMOD555
       netlist += `B_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} I=sin(2*3.14159*1k*time)\n`;
     }
 
-    // â”€â”€ Digital Logic Gates (modeled as analog behavioral voltage sources) â”€â”€
+    // ⚡⚡ Digital Logic Gates (modeled as analog behavioral voltage sources) ⚡⚡
     // VDD rail = 5V, switching threshold = 2.5V, output swings 0-5V
     else if (comp.type === 'GateAND') {
       const a = nodes[0] || '0', b = nodes[1] || '0', y = nodes[2] || '0';
@@ -1155,7 +1155,7 @@ S_dis DIS GND dis_gate GND SMOD555
     models.forEach(model => netlist += `${model}\n`);
   }
 
-  // Convergence options â€” critical for transformer + diode circuits
+  // Convergence options — critical for transformer + diode circuits
   netlist += "\n.options GMIN=1e-10 RELTOL=1e-3 ABSTOL=1e-9 VNTOL=1e-4 ITL1=500 ITL2=500 ITL4=200\n";
 
   // Default transient analysis for testing

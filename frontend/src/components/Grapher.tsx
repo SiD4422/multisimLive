@@ -8,6 +8,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer, Brush, ReferenceLine
 } from 'recharts';
+import type { MouseHandlerDataParam } from 'recharts';
 import { Activity, Download, Crosshair, Table2, BarChart2, Sparkles } from 'lucide-react';
 import { AiWaveformPanel } from './AiWaveformPanel';
 import { toPng } from 'html-to-image';
@@ -59,7 +60,7 @@ function formatTraceName(t: string): string {
   return s; // fallback
 }
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ⚡⚡ Helpers ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
 
 function formatHz(val: number): string {
   if (val >= 1e6) return `${(val / 1e6).toFixed(1)}MHz`;
@@ -89,7 +90,7 @@ function getYAxisLabel(traces: string[], isAcMagnitude: boolean = false, isAcPha
   return 'Value';
 }
 
-// â”€â”€ Subcomponents â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ⚡⚡ Subcomponents ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡â”€
 
 const LoadingSpinner = () => (
   <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 text-gray-500">
@@ -266,7 +267,7 @@ const ErrorView = ({ error }: { error: string }) => {
           onClick={() => setShowRaw(!showRaw)}
           className="text-xs text-gray-400 hover:text-gray-600 underline text-left mb-2"
         >
-          {showRaw ? 'â–² Hide raw ngspice output' : 'â–¼ Show raw ngspice output'}
+          {showRaw ? '▲ Hide raw ngspice output' : '▼ Show raw ngspice output'}
         </button>
         {showRaw && (
           <div className="bg-gray-900 rounded p-3 overflow-x-auto">
@@ -284,7 +285,7 @@ const EmptyView = () => (
   </div>
 );
 
-// â”€â”€ FFT Spectrum Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ⚡⚡ FFT Spectrum Plot ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡â”€
 
 function FftPlot({ simulationBuffer, traces, probeMap, isOscilloscope, isDigitalMode }: {
   simulationBuffer: SimulationData;
@@ -389,7 +390,29 @@ function FftPlot({ simulationBuffer, traces, probeMap, isOscilloscope, isDigital
   );
 }
 
-// â”€â”€ ErrorView â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ⚡⚡ ErrorView ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡â”€
+
+/**
+ * Resolve the data row under the pointer for a recharts chart event.
+ * recharts v3 no longer passes `activePayload`; it passes the active index/label instead.
+ * We match on the x value first (robust when a Brush zoom offsets the index), then fall back to the index.
+ */
+function rowFromChartEvent(
+  rows: readonly SimulationRow[],
+  e: MouseHandlerDataParam | undefined,
+  xKey: string,
+): SimulationRow | null {
+  if (!e) return null;
+  const rawIdx = e.activeIndex ?? e.activeTooltipIndex;
+  const idx = rawIdx == null ? NaN : Number(rawIdx);
+  const label = e.activeLabel == null ? NaN : Number(e.activeLabel);
+  if (Number.isFinite(label)) {
+    if (Number.isFinite(idx) && rows[idx]?.[xKey] === label) return rows[idx];
+    const hit = rows.find((r) => r[xKey] === label);
+    if (hit) return hit;
+  }
+  return Number.isFinite(idx) ? rows[idx] ?? null : null;
+}
 
 function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
   data: SimulationData; traces: string[]; probeMap: Record<string, string>; isOscilloscope: boolean;
@@ -409,8 +432,8 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
   const commonChartProps = {
     data,
     margin: { top: 5, right: 30, left: 20, bottom: 5 },
-    onClick: isCursorMode ? (e: any) => { if (e && e.activePayload) setCursorA(e.activePayload[0].payload); } : undefined,
-    onMouseMove: isCursorMode ? (e: any) => { if (e && e.activePayload) setCursorB(e.activePayload[0].payload); } : undefined,
+    onClick: isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'frequency'); if (r) setCursorA(r); } : undefined,
+    onMouseMove: isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'frequency'); if (r) setCursorB(r); } : undefined,
     onMouseLeave: isCursorMode ? () => setCursorB(null) : undefined,
   };
 
@@ -475,16 +498,16 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
 
       {/* Phase chart - bottom half */}
       <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, bottom: 0 }}>
-        <p className={`text-xs font-bold uppercase tracking-wide pl-12 pb-1 ${isOscilloscope ? 'text-green-500' : 'text-gray-500'}`}>Phase (Â°)</p>
+        <p className={`text-xs font-bold uppercase tracking-wide pl-12 pb-1 ${isOscilloscope ? 'text-green-500' : 'text-gray-500'}`}>Phase (°)</p>
         <div style={{ position: 'absolute', top: 20, left: 0, right: 0, bottom: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart {...commonChartProps}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             {commonXAxis}
-            <YAxis label={{ value: 'Phase (Â°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
+            <YAxis label={{ value: 'Phase (°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
             <Tooltip
               labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
-              formatter={(val: any, name: any) => [fmtNum(val as number) + 'Â°', name]}
+              formatter={(val: any, name: any) => [fmtNum(val as number) + '°', name]}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
@@ -502,7 +525,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
   );
 }
 
-// â”€â”€ DC Sweep Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ⚡⚡ DC Sweep Plot ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡â”€
 
 function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
   data: SimulationData; traces: string[]; sweepKey: string; probeMap: Record<string, string>; isOscilloscope: boolean;
@@ -523,8 +546,8 @@ function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCurso
       <div style={{ position: 'absolute', top: 28, left: 0, right: 0, bottom: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-            onClick={isCursorMode ? (e: any) => { if (e && e.activePayload) setCursorA(e.activePayload[0].payload); } : undefined}
-            onMouseMove={isCursorMode ? (e: any) => { if (e && e.activePayload) setCursorB(e.activePayload[0].payload); } : undefined}
+            onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r) setCursorA(r); } : undefined}
+            onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r) setCursorB(r); } : undefined}
             onMouseLeave={isCursorMode ? () => setCursorB(null) : undefined}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
@@ -568,7 +591,7 @@ function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCurso
   );
 }
 
-// â”€â”€ Transient Plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ⚡⚡ Transient Plot ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
 
 function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: {
   data: SimulationData; traces: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
@@ -615,8 +638,8 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
       <div style={{ position: 'absolute', top: 28, left: 0, right: 0, bottom: 0 }} onWheel={handleWheel}>
         <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-              onClick={isCursorMode ? (e: any) => { if (e && e.activePayload) setCursorA(e.activePayload[0].payload); } : undefined}
-              onMouseMove={isCursorMode ? (e: any) => { if (e && e.activePayload) setCursorB(e.activePayload[0].payload); } : undefined}
+              onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r) setCursorA(r); } : undefined}
+              onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r) setCursorB(r); } : undefined}
               onMouseLeave={isCursorMode ? () => setCursorB(null) : undefined}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
@@ -662,7 +685,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
   );
 }
 
-// â”€â”€ Main Grapher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ⚡⚡ Main Grapher ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
 
 export default function Grapher() {
   const {
@@ -705,9 +728,9 @@ export default function Grapher() {
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []); // [] â€” only mount/unmount; chartRef.current is stable after first render
+  }, []); // [] — only mount/unmount; chartRef.current is stable after first render
 
-  // Build a map: raw data key â†’ probe display name
+  // Build a map: raw data key → probe display name
   const probeMap = useMemo(() => {
     const map: Record<string, string> = {};
     probes.forEach((probe, idx) => {
@@ -838,7 +861,7 @@ export default function Grapher() {
     return { traces: valueKeys, sweepKey: timeKey };
   }, [formattedData, probes, probeMap, simulationBuffer]);
 
-  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ⚡⚡ Render ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
 
   if (isSimulating) return <div style={{ position: 'absolute', inset: 0 }}><LoadingSpinner /></div>;
   if (simulationError) return <div style={{ position: 'absolute', inset: 0 }}><ErrorView error={simulationError} /></div>;
@@ -1091,7 +1114,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
 
         <button
           onClick={() => setIsDigitalMode(d => !d)}
-          title="Digital Mode â€” snaps waveforms to HIGH/LOW"
+          title="Digital Mode — snaps waveforms to HIGH/LOW"
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
             padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,

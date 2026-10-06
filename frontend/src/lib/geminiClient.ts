@@ -1,13 +1,20 @@
 // geminiClient.ts
-// Clean Gemini API client. Replaces the inline fetch logic in AiExplainerPanel.
-// Uses gemini-1.5-flash for diagnosis (gemini-2.0-flash is deprecated).
-// Uses gemini-1.5-flash for streaming explain/chat (speed).
+// Gemini API client used by the AI panel and the lab-report generator.
+//
+// Two transport modes:
+//   - Proxy  (default): POST /api/gemini  -> frontend/api/gemini.ts (hosted key, rate limited)
+//   - Direct (BYOK):    POST generativelanguage.googleapis.com with the user's own key
+//
+// IMPORTANT: the proxy only forwards models listed in its allowlist
+// (DEFAULT_MODELS in api/gemini.ts, or the GEMINI_ALLOWED_MODELS env var).
+// If you change a model name below, change it there too.
 
 import type { AIContext, DiagnosisResult, ChatMessage } from './aiTypes';
 import { serializeContext } from './aiContext';
 
-const EXPLAIN_MODEL   = 'gemini-3.5-flash-lite';
-const DIAGNOSE_MODEL  = 'gemini-3.5-flash-lite';
+export const GEMINI_MODEL = 'gemini-3.5-flash-lite';
+const EXPLAIN_MODEL   = GEMINI_MODEL; // streaming explain / chat
+const DIAGNOSE_MODEL  = GEMINI_MODEL; // structured JSON diagnosis
 
 // Mode 1: Proxy (no API key needed) — default for new users
 const PROXY_BASE = '/api/gemini';
@@ -52,7 +59,7 @@ function geminiUrl(model: string, method: string, stream = false, apiKey: string
   if (apiKey.trim()) {
     return `${DIRECT_BASE}/${model}:${method}${stream ? '?alt=sse' : ''}`;
   }
-  return `${PROXY_BASE}?model=${model}&method=${method}${stream ? '&stream=true' : ''}`;
+  return `${PROXY_BASE}?model=${encodeURIComponent(model)}&method=${encodeURIComponent(method)}${stream ? '&stream=true' : ''}`;
 }
 
 function geminiHeaders(apiKey: string): Record<string, string> {
