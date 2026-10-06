@@ -300,6 +300,33 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     labelOffset = { x: 40, y: -20 };
     valueOffset = { x: 40, y: 15 };
   }
+  // --- INSTRUMENTS ---
+  else if (type === 'Voltmeter') {
+    circles.push({ x: 0, y: 0, r: 10, fill: "#fff", stroke: strokeColor });
+    texts.push({ text: 'V', x: -4, y: -4, size: 10, fill: strokeColor });
+    lines.push({ points: [0, -10, 0, -20] });
+    lines.push({ points: [0, 10, 0, 20] });
+    pins = [{ x: 0, y: -20 }, { x: 0, y: 20 }];
+    labelOffset = { x: 15, y: -25 };
+  }
+  else if (type === 'Ammeter') {
+    circles.push({ x: 0, y: 0, r: 10, fill: "#fff", stroke: strokeColor });
+    texts.push({ text: 'A', x: -4, y: -4, size: 10, fill: strokeColor });
+    lines.push({ points: [-10, 0, -20, 0] });
+    lines.push({ points: [10, 0, 20, 0] });
+    pins = [{ x: -20, y: 0 }, { x: 20, y: 0 }];
+    labelOffset = { x: 15, y: -25 };
+  }
+  else if (type === 'Wattmeter') {
+    circles.push({ x: 0, y: 0, r: 10, fill: "#fff", stroke: strokeColor });
+    texts.push({ text: 'W', x: -4, y: -4, size: 10, fill: strokeColor });
+    lines.push({ points: [0, -10, 0, -20] });
+    lines.push({ points: [0, 10, 0, 20] });
+    lines.push({ points: [-9, -4.5, -20, -10] });
+    lines.push({ points: [9, 4.5, 20, 10] });
+    pins = [{ x: 0, y: -20 }, { x: 0, y: 20 }, { x: -20, y: -10 }, { x: 20, y: 10 }];
+    labelOffset = { x: 15, y: -25 };
+  }
   // --- GROUND ---
   else if (type === 'Ground') {
     paths.push({ data: "M 0 0 L 0 10 M -12 10 L 12 10 M -8 14 L 8 14 M -4 18 L 4 18", fill: "transparent" });
