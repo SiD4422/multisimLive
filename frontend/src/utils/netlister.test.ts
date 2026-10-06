@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseSpiceToFloat, generateNetlist } from './netlister';
-import type { SchematicComponent, Wire, Probe } from '../store/useSchematicStore';
+import type { SchematicComponent, Wire } from '../store/useSchematicStore';
 
 describe('parseSpiceToFloat', () => {
   it('correctly handles basic values and suffixes', () => {

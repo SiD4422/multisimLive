@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function validNewCircuit(d) {
+      return d.keys().hasOnly(['name', 'description', 'category', 'authorName',
+                               'componentCount', 'circuitData', 'views', 'createdAt'])
+          && d.name is string && d.name.size() >= 1 && d.name.size() <= 100
+          && d.description is string && d.description.size() <= 500
+          && d.category is string && d.category.size() >= 1 && d.category.size() <= 30
+          && d.authorName is string && d.authorName.size() >= 1 && d.authorName.size() <= 50
+          && d.componentCount is int && d.componentCount >= 1 && d.componentCount <= 2000
+          && d.circuitData is string && d.circuitData.size() >= 1 && d.circuitData.size() <= 80000
+          && d.views == 0
+          && d.createdAt == request.time;
+    }
+
+    match /circuits/{circuitId} {
+      allow read: if true;
+      allow create: if validNewCircuit(request.resource.data);
+
+      // Only the view counter may change, and only by +1 per write.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+                    && request.resource.data.views is int
+                    && request.resource.data.views == resource.data.views + 1;
+
+      allow delete: if false;
+    }
+  }
+}

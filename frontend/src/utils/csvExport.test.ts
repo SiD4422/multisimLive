@@ -35,6 +35,6 @@ describe('CSV Export Utility', () => {
 
   it('should handle empty input gracefully', () => {
     expect(generateCSV([])).toBe('');
-    expect(generateCSV(null as any)).toBe('');
+    expect(generateCSV(null)).toBe('');
   });
 });

@@ -3,7 +3,7 @@
  * @param data Array of objects containing simulation data
  * @returns A comma-separated values string
  */
-export function generateCSV(data: any[]): string {
+export function generateCSV(data: any[] | null): string {
   if (!data || data.length === 0) return '';
 
   // Extract all unique keys across all objects to form the header
