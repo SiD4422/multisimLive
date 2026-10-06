@@ -1099,6 +1099,84 @@ export default function SchematicEditor() {
             svgHeight={dimensions.height}
           />
         )}
+
+        {/* Mobile Component Context Menu */}
+        {(() => {
+          let compId = null;
+          if (selectedComponentIds.length === 1) {
+            compId = selectedComponentIds[0];
+          } else if (selectedComponentId && selectedComponentIds.length === 0) {
+            compId = selectedComponentId;
+          }
+          
+          if (!compId || pendingComponent || wirePoints) return null;
+          
+          const comp = components.find(c => c.id === compId);
+          if (!comp) return null;
+          
+          const screenX = comp.position.x * scale + stagePos.x;
+          // Position slightly above the component
+          const screenY = comp.position.y * scale + stagePos.y - (40 * scale) - 20;
+
+          return (
+            <div
+              style={{
+                position: 'absolute',
+                left: screenX,
+                top: screenY,
+                transform: 'translate(-50%, -100%)',
+                background: '#1f2937',
+                color: '#f9fafb',
+                borderRadius: '8px',
+                padding: '4px',
+                display: 'flex',
+                gap: '4px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                zIndex: 1000,
+                pointerEvents: 'auto'
+              }}
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const cur = comp.rotation || 0;
+                  updateComponentRotation(comp.id, (cur + 90) % 360);
+                }}
+                style={{
+                  background: 'transparent', border: 'none', color: 'inherit',
+                  cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: '4px'
+                }}
+                title="Rotate"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 2v6h-6"></path>
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                </svg>
+              </button>
+              <div style={{ width: '1px', background: '#374151', margin: '4px 2px' }}></div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteComponent(comp.id);
+                  clearSelection();
+                }}
+                style={{
+                  background: 'transparent', border: 'none', color: '#f87171',
+                  cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: '4px'
+                }}
+                title="Delete"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          );
+        })()}
+
         {/* Wire right-click context menu */}
         {wireContextMenu && (
           <div
