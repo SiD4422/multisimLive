@@ -19,7 +19,7 @@ const COLORS = [
 ];
 
 const OSC_COLORS = [
-  '#00ffff', '#39ff14', '#ff00ff', '#ffff00', '#ff4500', '#00bfff'
+  '#39ff14', '#00ffff', '#ff00ff', '#ffff00', '#ff4500', '#00bfff'
 ];
 
 // ðŸ”§ Helpers ðŸ”§
@@ -626,7 +626,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
   };
 
   const colors = isOscilloscope ? OSC_COLORS : COLORS;
-  const gridColor = isOscilloscope ? '#003300' : '#e5e7eb';
+  const gridColor = isOscilloscope ? '#0f3314' : '#e5e7eb';
   const textColor = isOscilloscope ? '#00ff00' : '#6b7280';
 
   const yLabel = getYAxisLabel(traces);
@@ -634,6 +634,13 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: isOscilloscope ? '#001100' : '#fff', padding: 8 }}>
       <h3 style={{ fontSize: 13, fontWeight: 700, color: isOscilloscope ? '#00ff00' : '#374151', margin: '0 0 4px 8px' }}>Transient Analysis</h3>
+      {isOscilloscope && (
+        <div style={{ position: 'absolute', top: 32, right: 40, color: '#39ff14', fontFamily: 'monospace', fontSize: '12px', textAlign: 'right', pointerEvents: 'none', zIndex: 10, textShadow: '0 0 5px #39ff14' }}>
+          <div>TEKTRONIX TBS1052B MODE</div>
+          <div>CH1: 5V/div</div>
+          <div>M: 1ms/div</div>
+        </div>
+      )}
       {/* Chart area: from below the title to bottom */}
       <div style={{ position: 'absolute', top: 28, left: 0, right: 0, bottom: 0 }} onWheel={handleWheel}>
         <ResponsiveContainer width="100%" height="100%">
@@ -642,6 +649,17 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
               onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r) setCursorB(r); } : undefined}
               onMouseLeave={isCursorMode ? () => setCursorB(null) : undefined}
             >
+              {isOscilloscope && (
+                <defs>
+                  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+              )}
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis
                 dataKey="time"
@@ -665,7 +683,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
                 const displayName = probeMap[traceName] || formatTraceName(traceName);
                 return (
                   <Line key={traceName} name={displayName} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={traceName}
-                    stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
+                    stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} filter={isOscilloscope ? 'url(#glow)' : undefined} />
                 );
               })}
               <Brush
