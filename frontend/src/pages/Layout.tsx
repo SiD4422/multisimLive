@@ -41,6 +41,7 @@ export default function Layout() {
           <nav className="msl-nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
             <Link to="/" className={pathname === '/' ? 'active' : ''}>Home</Link>
             <Link to="/features" className={pathname === '/features' ? 'active' : ''}>Features</Link>
+            <Link to="/about" className={pathname === '/about' ? 'active' : ''}>About</Link>
             <Link to="/circuits" className={pathname.startsWith('/circuits') ? 'active' : ''}>Circuits</Link>
             <Link to="/procedure" className={pathname === '/procedure' ? 'active' : ''}>How to Use</Link>
 
@@ -127,6 +128,7 @@ export default function Layout() {
           <div className="mp-links">
             <Link to="/" className={pathname === '/' ? 'active' : ''}>Home</Link>
             <Link to="/features" className={pathname === '/features' ? 'active' : ''}>Features</Link>
+            <Link to="/about" className={pathname === '/about' ? 'active' : ''}>About</Link>
             <Link to="/circuits" className={pathname.startsWith('/circuits') ? 'active' : ''}>Circuits</Link>
             <Link to="/procedure" className={pathname === '/procedure' ? 'active' : ''}>How to Use</Link>
             <Link to="/resources" className={pathname === '/resources' ? 'active' : ''}>Resources</Link>
@@ -179,7 +181,9 @@ export default function Layout() {
           </div>
           <ul className="msl-footer-links">
             <li><Link to="/features">Features</Link></li>
+              <li><Link to="/about">About</Link></li>
             <li><Link to="/circuits">Circuits</Link></li>
+              <li><Link to="/showcase">Showcase</Link></li>
             <li><Link to="/tutorials">Tutorials</Link></li>
             <li><Link to="/compare">Comparisons</Link></li>
             <li><Link to="/procedure">How to Use</Link></li>

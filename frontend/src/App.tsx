@@ -4,6 +4,8 @@ import Layout from './pages/Layout';
 import LandingPage from './pages/LandingPage';
 import FeaturesPage from './pages/FeaturesPage';
 import CircuitsPage from './pages/CircuitsPage';
+import { AboutPage } from './pages/AboutPage';
+import { ShowcasePage } from './pages/ShowcasePage';
 import ProcedurePage from './pages/ProcedurePage';
 import ResourcesPage from './pages/ResourcesPage';
 import FeedbackWidget from './components/FeedbackWidget';
@@ -65,6 +67,8 @@ function App() {
         {/* Marketing Pages with shared Navbar & Footer */}
         <Route element={<Layout />}>
           <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/showcase" element={<ShowcasePage />} />
           <Route path="/circuits" element={<CircuitsPage />} />
           <Route path="/circuits/:id" element={<CircuitTemplatePage />} />
           <Route path="/procedure" element={<ProcedurePage />} />

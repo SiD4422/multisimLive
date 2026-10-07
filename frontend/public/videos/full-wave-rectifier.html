@@ -1,0 +1,143 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>NodeSim — Build a Full-Wave Rectifier</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#eef1ef;--fg:#16201a;--bd:#c9d2cc}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#050706;--fg:#e8ece9;--bd:#26302a}}
+:root[data-theme="dark"]{--bg:#050706;--fg:#e8ece9;--bd:#26302a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:12px}
+canvas{width:100%;max-width:1280px;aspect-ratio:16/9;height:auto;border-radius:8px;display:block;background:#050706}
+.bar{display:flex;gap:10px;align-items:center;width:100%;max-width:1280px}
+button{background:transparent;color:var(--fg);border:1px solid var(--bd);border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit}
+input{flex:1;accent-color:#16a867}
+</style></head><body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div class="bar"><button id="pp">▶ Play (with sound)</button><button id="rs">Restart</button><input id="sc" type="range" min="0" max="98" step="0.01" value="0"><span id="tl">0.0 / 98s</span></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d'),D=98,GN='#16a867',K='#141414',FU='Inter,system-ui,sans-serif',FT='"Inter Tight",Inter,sans-serif',FM='"JetBrains Mono",ui-monospace,monospace';
+const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),sg=(t,a,b)=>cl((t-a)/(b-a)),eo=p=>1-Math.pow(1-p,3),eio=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2,lp=(a,b,p)=>a+(b-a)*p,io=(t,a,b,c,d)=>sg(t,a,b)*(1-sg(t,c,d)),tp=(s,k)=>s.slice(0,Math.ceil(s.length*cl(k)));
+function txt(s,px,py,sz,w,al,aa,sp,col,f){x.save();x.globalAlpha*=cl(al);x.font=`${w} ${sz}px ${f||FU}`;x.letterSpacing=(sp||0)+'px';x.textAlign=aa||'left';x.fillStyle=col||'#fff';x.fillText(s,px,py);x.restore()}
+const rr=(a,b,w,h,r,f,s,lw)=>{x.beginPath();x.roundRect(a,b,w,h,r);if(f){x.fillStyle=f;x.fill()}if(s){x.strokeStyle=s;x.lineWidth=lw||1.3;x.stroke()}};
+const ln=(pts,w=3,c=K)=>{x.strokeStyle=c;x.lineWidth=w;x.lineCap='round';x.lineJoin='round';x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke()};
+const pin=(a,b)=>{x.fillStyle='#fff';x.strokeStyle=K;x.lineWidth=2.5;x.beginPath();x.arc(a,b,6.5,0,7);x.fill();x.stroke()};
+// ---------- timeline data (screenshot coords) ----------
+const KF=[[0,1300,720],[5.2,1300,720],[6.2,254,340],[7.2,58,500],[7.8,58,500],[9.4,765,523],[10,800,420],[10.7,1025,378],[12.5,1025,378],[13,1025,434],[14.6,1025,434],[15.5,1035,464],[15.9,1035,464],
+[17,160,288],[19,160,288],[19.3,58,500],[20.8,1027,655],[21.5,1100,720],[27,1100,720],
+[28.2,765,580],[28.9,765,655],[30.2,915,655],[30.6,765,467],[31.8,1140,467],[32.9,1140,655],[34,1180,720],
+[35.8,54,340],[37.2,260,500],[38.6,1265,610],[39.6,1525,468],[40.1,1525,468],[41.2,1535,498],[41.8,160,288],[43.6,58,500],[44.8,1265,656],
+[45.5,54,340],[46.6,58,500],[48,1390,598],[49.2,1655,508],[50.3,1665,538],[51,160,288],[52.2,58,500],[53.4,1390,656],[53.8,58,500],[55,1027,768],
+[56,1027,542],[58.3,1390,542],[58.8,160,288],[60.2,58,500],[61.5,765,467],[62.2,58,500],[63.4,1265,542],[64.5,1500,800],[70.6,211,186],[72,300,300],[76,1500,800]];
+const CL=[6.3,10.7,13,15.5,17.3,36,40.1,41.2,42,45.6,49.2,50.3,51,58.8,71.2,7.8,19.3,37.2,43.6,46.6,52.2,53.8,60.2,62.2,28.5,30.8,56];
+const DR=[[7.8,9.4,'V'],[19.3,20.8,'BR'],[37.2,38.6,'C'],[43.6,44.8,'G2'],[46.6,48,'R'],[52.2,53.4,'G3'],[53.8,55,'G4'],[60.2,61.5,'P1'],[62.2,63.4,'P2']];
+const DEST={V:[765,523],BR:[1027,655],C:[1265,610],G2:[1265,656],R:[1390,598],G3:[1390,656],G4:[1027,768],P1:[765,467],P2:[1265,542]},DT={};DR.forEach(d=>DT[d[2]]=d[1]);
+const CK=[[0,960,559,1],[4.6,960,559,1],[5.5,700,500,1.18],[9,700,500,1.18],[10,860,430,1.8],[16,860,430,1.8],[16.8,960,559,1],[22,1000,600,1.5],[27.3,1000,600,1.5],[28.2,900,560,1.55],[33.5,900,560,1.55],[34.5,960,559,1],[39,1230,540,1.8],[41.6,1230,540,1.8],[42.4,960,559,1],[48.6,1380,560,1.8],[50.7,1380,560,1.8],[51.4,960,559,1],[56,1200,560,1.45],[58.6,1200,560,1.45],[59.2,960,559,1],[70,960,559,1],[70.8,480,300,1.7],[72.2,480,300,1.7],[73,960,559,1],[74.2,1050,540,1.4],[76,1050,540,1.4],[78.2,1617,559,.6],[98,1617,559,.6]];
+const seg=(A,t)=>{let i=0;while(i<A.length-1&&A[i+1][0]<=t)i++;const a=A[i],b=A[i+1]||a;return[a,b,b===a?1:eio(sg(t,a[0],b[0]))]};
+const cur=t=>{const[a,b,p]=seg(KF,t);return[lp(a[1],b[1],p),lp(a[2],b[2],p)]};
+const STEP=[[4.2,'WORKSPACE',''],[9.6,'AC SOURCE','120 V · 60 Hz'],[19,'BRIDGE RECTIFIER','1N4007'],[28,'WIRING · AC SIDE',''],[35,'FILTER CAPACITOR','1000 µF'],[45,'LOAD + GROUND','100 Ω'],[56,'WIRING · DC OUTPUT',''],[58.8,'MEASUREMENT PROBES',''],[64,'FINAL CIRCUIT',''],[70.5,'RUN SIMULATION',''],[78,'ANALYZE THE OUTPUT','']];
+const CAP=[[4.4,9,"Let's build a full-wave rectifier in NodeSim, and watch AC turn into smoother DC."],[9.8,16,'First the source: an AC source on the canvas, set to 120 volts at 60 hertz.'],[19.3,27.5,"Now the bridge rectifier. Its 1N4007 diodes steer both halves of the AC wave the same way."],[28.2,33.5,"Wire the source across the bridge's two AC terminals."],[33.6,35.2,'Both half-cycles now feed one output rail.'],[36,43,'Add the filter capacitor: 1000 microfarads, across the DC output. It stores charge near each peak.'],[45.5,51.5,'Then the load: a 100 ohm resistor, each with its own ground reference.'],[56,58.6,'Wire the DC output across the capacitor and the load.'],[59,64.5,'Two voltage probes: one at the source, one on the filtered output.'],[64.8,70,'The complete circuit. This is a software simulation, not a live mains build.'],[70.8,73.8,'Press Run. ngspice, compiled to WebAssembly, solves it right in the browser.'],[74.3,78,'The probes lock: 118.199 volts at the source, 117.678 volts at the output.'],[78.5,86.5,"The capacitor charges near each peak and feeds the load between them. The output is smoother, not perfectly flat."],[86.8,91.5,'Open the circuit in NodeSim and change any value to see how the output responds.']];
+// ---------- audio ----------
+let AC,M,NB;const cues=[];
+function au(){if(AC){AC.resume();return}AC=new AudioContext();M=AC.createGain();M.gain.value=.6;M.connect(AC.destination);NB=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+ [55,82.4].forEach(f=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;g.gain.value=.018;o.connect(g);g.connect(M);o.start()})}
+function tone(f,d,v,f2){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.frequency.setValueAtTime(f,n);if(f2)o.frequency.exponentialRampToValueAtTime(f2,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(M);o.start(n);o.stop(n+d)}
+function nz(d,fq,v){if(!AC)return;const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain(),n=AC.currentTime;s.buffer=NB;f.type='bandpass';f.frequency.value=fq;f.Q.value=5;g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);s.connect(f);f.connect(g);g.connect(M);s.start(n);s.stop(n+d)}
+CL.forEach(t=>cues.push([t,()=>nz(.035,3500,.35)]));DR.forEach(d=>cues.push([d[1],()=>tone(150,.14,.18,60)]));
+cues.push([71.3,()=>tone(110,1.2,.2,90)],[74,()=>{tone(880,.6,.07);tone(1320,.9,.06)}],[75.6,()=>tone(1760,.4,.05)],[92.3,()=>tone(60,1.6,.25,38)],[.5,()=>tone(70,2,.1,50)]);cues.sort((a,b)=>a[0]-b[0]);
+// ---------- UI shell ----------
+const LS=[[0,'Basic',''],[6.3,'Sources',''],[17.3,'','bridge'],[36,'Basic',''],[41.8,'','ground'],[45.6,'Basic',''],[50.9,'','ground'],[58.8,'','probe']],NM={bridge:'Bridge Rectifier',ground:'Ground',probe:'Voltage Probe',Sources:'AC Source'};
+const CARDS=['Resistor','Load','Capacitor','Inductor','Potentiometer','Fuse','Coupled Inductors','Lossy Trans. Line','Lossless Trans. Line'];
+function shell(t){
+ x.fillStyle='#e9eeea';x.fillRect(0,96,1917,925);x.fillStyle='#064a2b';x.fillRect(0,96,1917,64);
+ ln([[24,148],[34,118],[42,140],[52,112]],4,'#2ee08a');txt('NodeSim',60,136,31,600,1,'left',-.5,'#fff',FT);
+ [['HOME',251],['FEATURES',329],['CIRCUITS',444],['PROCEDURE',552]].forEach(n=>txt(n[0],n[1],134,17,600,1,'left',1,'#bfe8d0'));
+ txt('Untitled Circuit',901,134,18,500);rr(1033,110,98,38,8,'#19b86c');txt('AI Tutor',1082,135,16,600,1,'center');for(let i=0;i<9;i++)rr(1160+i*37.5,120,18,18,4,null,'rgba(255,255,255,.55)',1.5);
+ rr(1490,110,98,38,8,'#173a4a','rgba(255,255,255,.2)');txt('→ KiCad',1539,135,15,600,1,'center');rr(1595,110,113,38,8,'#0b6b3d','rgba(255,255,255,.25)');txt('Lab Report',1651,135,15,600,1,'center');rr(1715,110,95,38,8,'#0b6b3d','rgba(255,255,255,.25)');txt('Support',1762,135,15,600,1,'center');
+ x.fillStyle='#055430';x.fillRect(0,160,1917,51);rr(26,177,18,18,3,null,'rgba(255,255,255,.7)',1.5);rr(75,171,104,30,8,'#0b6b3d');txt('Interactive',127,192,15,600,1,'center');
+ x.fillStyle='#fff';x.beginPath();x.moveTo(203,176);x.lineTo(219,186);x.lineTo(203,196);x.fill();txt('Run',232,192,17,500);
+ const rt=lp(0,4.592,eo(sg(t,71.4,74)));rr(261,172,140,28,4,'rgba(255,255,255,.1)');txt('t = '+rt.toFixed(3)+' ms / 50 ms',331,192,13,500,1,'center',0,'#fff',FM);
+ rr(421,164,149,46,[10,10,0,0],'#fff');txt('SCHEMATIC',500,193,15,600,1,'center',0,'#0b3d24');txt('GRAPHER',627,192,15,600,1,'center',0,'#bfe8d0');txt('SPLIT',725,192,15,600,1,'center',0,'#bfe8d0');rr(1695,167,110,38,8,'#0b6b3d','rgba(255,255,255,.2)');txt('Publish',1757,192,15,600,1,'center');
+ x.fillStyle='#f4f6f4';x.fillRect(0,211,325,784);x.fillStyle='#dfe5e1';x.fillRect(325,211,1,784);
+ txt('Component Library',15,246,18,500,1,'left',0,'#0b2a1b');rr(15,268,294,40,8,'#fff','#cdd6d0');
+ let ls=LS[0];LS.forEach(l=>{if(t>=l[0])ls=l});const ty=ls[2]?tp(ls[2],sg(t,ls[0]+.2,ls[0]+1)):'';
+ x.strokeStyle='#6b7a72';x.lineWidth=2;x.beginPath();x.arc(35,288,7,0,7);x.stroke();txt(ty||'Search components...',54,294,16,400,1,'left',0,ty?'#111':'#8a968f');
+ [['Basic',15,54],['Analog',85,56],['Digital',158,56],['Sources',228,54]].forEach(b=>{const on=b[0]==ls[1];if(on)rr(b[1],324,b[2]+(b[0]=='Basic'?0:4),30,6,'#16a867');txt(b[0],b[1]+(on?b[2]/2:0)+(b[0]=='Basic'?0:2),345,15,500,1,on?'center':'left',0,on?'#fff':'#5b6b62')});
+ txt('PASSIVE',38,434,14,600,1,'left',2,'#4a5a52',FM);
+ let names=CARDS;if(ls[2])names=sg(t,ls[0]+.8,ls[0]+1.1)>0?[NM[ls[2]]]:[];else if(ls[1]=='Sources')names=['AC Source'];
+ names.forEach((n,i)=>{const cx=[58,158,260][i%3],cy=500+Math.floor(i/3)*107;rr(cx-44,cy-48,88,96,8,'#fff','#dfe5e1');txt(n,cx,cy+34,12,400,1,'center',0,'#2a3a32');ln([[cx-18,cy-8],[cx-8,cy-8],[cx-4,cy-18],[cx+4,cy+2],[cx+8,cy-8],[cx+18,cy-8]],2,'#3a4a42')});
+ rr(30,942,170,53,26,'#0b0d0c');txt('Feedback',115,975,18,600,1,'center');
+ rr(345,232,1555,740,16,'#fbfaf7');x.fillStyle='rgba(0,0,0,.10)';for(let a=390;a<1890;a+=40)for(let b=270;b<960;b+=40)x.fillRect(a,b,2,2);
+ rr(1502,898,368,74,12,'#fff','#dfe5e1');txt('100%',1784,942,16,400,1,'center',0,'#2a3a32');
+ x.fillStyle='#06371f';x.fillRect(0,995,1917,26);const dn=t>=74;x.fillStyle='#2ee08a';x.beginPath();x.arc(20,1008,4,0,7);x.fill();txt('Ready',31,1013,13,500,1,'left',0,'#2ee08a',FM);txt('ngspice (WASM)',118,1013,13,500,1,'left',0,'#2ee08a',FM);
+ const cn=CT.filter(c=>t>=c).length,wn=(t>=30.2)+(t>=32.9)+(t>=58.3);txt(`Components: ${cn}   Wires: ${wn}`,288,1013,13,400,1,'left',0,'#9cc9b0',FM);
+ if(dn)txt('Simulation completed',1721,1013,13,500,1,'right',0,'#2ee08a',FM);txt('Share this circuit',1897,1013,13,500,1,'right',0,'#5fb0ff',FM);
+}
+const CT=[9.4,20.8,38.6,44.8,48,53.4,55];
+// ---------- circuit ----------
+function dio(a,b){const m=[(a[0]+b[0])/2,(a[1]+b[1])/2],L=Math.hypot(b[0]-a[0],b[1]-a[1]),d=[(b[0]-a[0])/L,(b[1]-a[1])/L],n=[-d[1],d[0]],e=13;x.fillStyle=K;x.beginPath();x.moveTo(m[0]-d[0]*e+n[0]*e,m[1]-d[1]*e+n[1]*e);x.lineTo(m[0]-d[0]*e-n[0]*e,m[1]-d[1]*e-n[1]*e);x.lineTo(m[0]+d[0]*e,m[1]+d[1]*e);x.fill();ln([[m[0]+d[0]*e+n[0]*e,m[1]+d[1]*e+n[1]*e],[m[0]+d[0]*e-n[0]*e,m[1]+d[1]*e-n[1]*e]],4)}
+const gnd=(px,py)=>{pin(px,py);ln([[px,py+7],[px,py+18]]);ln([[px-24,py+18],[px+24,py+18]]);ln([[px-16,py+27],[px+16,py+27]]);ln([[px-8,py+36],[px+8,py+36]])};
+const SY={
+V(){ln([[765,467],[765,488]]);ln([[765,558],[765,580]]);x.strokeStyle=K;x.lineWidth=3.5;x.beginPath();x.arc(765,523,35,0,7);x.stroke();x.beginPath();x.moveTo(748,527);x.bezierCurveTo(752,510,762,510,766,523);x.bezierCurveTo(770,536,780,536,783,519);x.stroke();ln([[783,523],[795,523]],3);ln([[789,517],[789,529]],3);pin(765,467);pin(765,580)},
+BR(){const v={t:[1027,580],r:[1103,655],b:[1027,730],l:[951,655]};ln([v.l,v.t,v.r,v.b,v.l]);dio(v.l,v.t);dio(v.r,v.t);dio(v.b,v.l);dio(v.b,v.r);ln([[915,655],[951,655]]);ln([[1103,655],[1140,655]]);ln([[1027,542],[1027,580]]);ln([[1027,730],[1027,768]]);[[915,655],[1140,655],[1027,542],[1027,768]].forEach(p=>pin(p[0],p[1]))},
+C(){ln([[1265,542],[1265,590]]);ln([[1245,590],[1285,590]],4);ln([[1245,608],[1285,608]],4);ln([[1265,608],[1265,656]]);pin(1265,542)},
+R(){const p=[[1390,542],[1390,560]];for(let i=0;i<6;i++)p.push([1390+(i%2?12:-12),568+i*13]);p.push([1390,640],[1390,656]);ln(p);pin(1390,542);pin(1390,656)},
+G2(){gnd(1265,656)},G3(){gnd(1390,656)},G4(){gnd(1027,768)}};
+const BB={V:[715,455,100,135],BR:[900,530,255,255],C:[1230,530,70,140],R:[1360,530,60,140],G2:[1230,645,70,60],G3:[1355,645,70,60],G4:[990,757,70,60]};
+function comp(t,id,fn){const td=DT[id],dr=DR.find(d=>d[2]==id);if(t<dr[0])return;const c=cur(t),d=DEST[id];
+ if(t<td){x.save();x.globalAlpha=.55;x.translate(c[0]-d[0],c[1]-d[1]);fn();x.restore();return}
+ fn();const h=1-sg(t,td,td+1.3);if(h>0&&BB[id]){const b=BB[id];rr(b[0],b[1],b[2],b[3],12,null,`rgba(22,168,103,${h})`,3)}}
+function lbl(t,t0,s,px,py,sz,w,col,aa){const a=sg(t,t0,t0+.4);if(a>0)txt(s,px,py,sz,w,a,aa||'left',0,col||'#222')}
+function wire(t,pts,a,b,col,mid){const u=eo(sg(t,a,b));if(u<=0)return;const done=t>=74,c=done?col:K;let L=0;for(let i=1;i<pts.length;i++)L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);let r=L*u,o=[pts[0]];for(let i=1;i<pts.length;i++){const s=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);if(r>=s){o.push(pts[i]);r-=s}else{o.push([lp(pts[i-1][0],pts[i][0],r/s),lp(pts[i-1][1],pts[i][1],r/s)]);break}}ln(o,3.5,c);if(mid&&u>=1){x.fillStyle='#fff';x.strokeStyle=c;x.lineWidth=2;x.beginPath();x.arc(mid[0],mid[1],5,0,7);x.fill();x.stroke()}}
+function tag(t,s,px,py,col,w){const a=sg(t,74.4,74.9);if(a<=0)return;x.save();x.globalAlpha*=a;rr(px-w/2,py-14,w,28,5,'#fff',col,2);txt(s,px,py+5,14,600,1,'center',0,col,FM);x.restore()}
+function probe(t,id,px,py,nx,fin){const dr=DR.find(d=>d[2]==id),td=dr[1];if(t<dr[0])return;const c=cur(t),d=DEST[id];if(t<td){x.save();x.globalAlpha=.55;x.translate(c[0]-d[0],c[1]-d[1])}
+ txt(nx,px,py-70,15,400,1,'center',0,'#667');const v=t<74.3?'—':(fin*eo(sg(t,74.3,75.4))).toFixed(3),lk=sg(t,75.4,75.7)*(1-sg(t,76.4,77.5));rr(px-44,py-52,88,30,6,'#fff',lk>0?GN:'#16a867',2+lk*2);txt('V: '+v,px,py-32,14,600,1,'center',0,'#0b3d24',FM);
+ x.fillStyle='#1fc77a';x.beginPath();x.moveTo(px-12,py-20);x.lineTo(px+12,py-20);x.lineTo(px,py-2);x.fill();if(t<td)x.restore()}
+function pop(t,a,b,px,py,ti,rows,okT){const al=io(t,a,a+.3,b-.3,b);if(al<=0)return;x.save();x.globalAlpha*=al;x.shadowColor='rgba(0,0,0,.25)';x.shadowBlur=24;rr(px,py,280,96+rows.length*56,12,'#fff','#cfd8d2');x.shadowBlur=0;txt(ti,px+20,py+34,17,600,1,'left',0,'#0b3d24');
+ rows.forEach((r,i)=>{const yy=py+70+i*56;txt(r[0],px+20,yy+24,15,400,1,'left',0,'#5b6b62');rr(px+130,yy,130,36,8,'#f4f6f4','#cfd8d2');txt(tp(r[1],sg(t,r[2],r[3])),px+142,yy+25,17,500,1,'left',0,'#111',FM)});
+ const oy=py+96+rows.length*56-34,ok=t>okT;rr(px+150,oy-16,110,32,8,ok?'#16a867':'#0b6b3d');txt('OK',px+205,oy+6,15,600,1,'center',0,'#fff');x.restore()}
+function circuit(t){
+ comp(t,'V',SY.V);comp(t,'BR',SY.BR);comp(t,'C',SY.C);comp(t,'R',SY.R);comp(t,'G2',SY.G2);comp(t,'G3',SY.G3);comp(t,'G4',SY.G4);
+ wire(t,[[765,580],[765,655],[915,655]],28.5,30.2,'#1e9e4a',[866,655]);wire(t,[[765,467],[1140,467],[1140,655]],30.8,32.9,'#c01818',[887,467]);wire(t,[[1027,542],[1390,542]],56,58.3,'#c01818',[1142,542]);
+ lbl(t,9.4,'V1',830,531,18,700);lbl(t,15.9,'120V 60Hz',737,527,16,400,'#555','right');lbl(t,20.8,'BR1',1121,544,18,700);lbl(t,21.5,'1N4007',1095,769,16,400,'#555');lbl(t,20.9,'~',925,636,18,400);lbl(t,20.9,'~',1113,636,18,400);lbl(t,20.9,'+',1044,572,20,400);lbl(t,20.9,'−',1046,762,20,400);
+ lbl(t,41.3,'1000u',1177,600,16,400,'#555');lbl(t,44.8,'G2',1294,665,16,700);lbl(t,48,'R1',1445,600,18,700);lbl(t,50.4,'100',1311,600,16,400,'#555');lbl(t,53.4,'G3',1409,665,16,700);lbl(t,55,'G4',1046,777,16,700);
+ tag(t,'-0.521V',803,641,'#1e9e4a',76);tag(t,'118V',1046,453,'#c01818',60);tag(t,'118V',1208,528,'#c01818',60);
+ probe(t,'P1',765,467,'PRB1',118.199);probe(t,'P2',1265,542,'PRB2',117.678);
+ const hl=io(t,22,22.6,26.5,27);if(hl>0)[[915,655,'AC',-30],[1140,655,'AC',30],[1027,542,'DC +',-34],[1027,768,'DC −',34]].forEach(p=>{x.save();x.globalAlpha*=hl;x.strokeStyle=GN;x.lineWidth=3;x.beginPath();x.arc(p[0],p[1],14+3*Math.sin(t*6),0,7);x.stroke();txt(p[2],p[0],p[1]+p[3],15,600,1,'center',1,GN,FM);x.restore()});
+ const fl=io(t,64.2,64.8,69.5,70);if(fl>0){const PA=[[765,467],[1140,467],[1140,655],[1103,655],[1027,580],[1027,542],[1390,542]],ls=[];let L=0;for(let i=1;i<PA.length;i++){ls.push(Math.hypot(PA[i][0]-PA[i-1][0],PA[i][1]-PA[i-1][1]));L+=ls[i-1]}for(let k=0;k<7;k++){let r=((t*.12+k/7)%1)*L,i=0;while(r>ls[i]&&i<ls.length-1){r-=ls[i];i++}const f=r/ls[i];x.fillStyle=`rgba(22,168,103,${fl})`;x.beginPath();x.arc(lp(PA[i][0],PA[i+1][0],f),lp(PA[i][1],PA[i+1][1],f),5,0,7);x.fill()}}
+ pop(t,10,15.9,830,290,'V1 · AC Source (illustrative)',[['Voltage','120 V',10.8,11.8],['Frequency','60 Hz',13.1,13.9]],15.5);pop(t,39.2,41.6,1330,380,'Capacitor (illustrative)',[['Capacitance','1000 µF',40.2,41]],41.2);pop(t,48.4,50.6,1460,420,'R1 · Resistor (illustrative)',[['Resistance','100 Ω',49.4,50]],50.3);
+}
+function cursor(t){const c=cur(t),a=sg(t,5,5.6);x.save();x.globalAlpha*=a;CL.forEach(k=>{const d=t-k;if(d>=0&&d<.5){x.strokeStyle=`rgba(22,168,103,${1-d*2})`;x.lineWidth=3;x.beginPath();x.arc(c[0],c[1],8+d*70,0,7);x.stroke()}});
+ x.translate(c[0],c[1]);x.fillStyle='#fff';x.strokeStyle='#111';x.lineWidth=2;x.beginPath();x.moveTo(0,0);x.lineTo(0,22);x.lineTo(6,17);x.lineTo(11,28);x.lineTo(15,26);x.lineTo(10,16);x.lineTo(18,16);x.closePath();x.fill();x.stroke();x.restore()}
+// ---------- overlays ----------
+function wv(px,py,w,h,fn,col,u){x.strokeStyle=col;x.lineWidth=3;x.beginPath();const n=Math.floor(w*u);for(let i=0;i<=n;i++){const y=py-fn(i/w*Math.PI*6)*h;i?x.lineTo(px+i,y):x.moveTo(px,y)}x.stroke()}
+function result(t){const a=sg(t,78.4,79.2);if(a<=0)return;x.save();x.globalAlpha*=a;rr(1190,110,700,880,14,'#0b0e0c','rgba(255,255,255,.1)');txt('ANALYZE THE OUTPUT',1222,156,16,500,1,'left',4,'#9aa59f',FM);
+ const u=eo(sg(t,79,82)),W=640,px=1222;let v=0;const ripple=s=>{const r=Math.abs(Math.sin(s));v=Math.max(r,v*.93);return v};
+ [['AC INPUT','120 V / 60 Hz',s=>Math.sin(s),'#d9dfdb'],['RECTIFIED','Full-wave',s=>Math.abs(Math.sin(s)),'#d9dfdb'],['FILTERED','1000 µF · 100 Ω load',null,GN]].forEach((r,i)=>{const y0=200+i*230;rr(px,y0,W,200,8,'#070908','rgba(255,255,255,.07)');txt(r[0],px+16,y0+28,14,500,.9,'left',3,r[3]==GN?GN:'#9aa59f',FM);txt(r[1],px+W-16,y0+28,14,400,.8,'right',0,'#9aa59f',FM);
+  x.save();x.beginPath();x.rect(px,y0,W,200);x.clip();if(r[2])wv(px,y0+(i?170:110),W,i?100:70,r[2],r[3],u);else{v=0;wv(px,y0+170,W,100,s=>{const k=Math.abs(Math.sin(s));v=Math.max(k,v*.955);return v},r[3],u)}x.restore()});
+ rr(1222,890,300,26,13,null,'rgba(255,255,255,.25)');txt('ILLUSTRATIVE SHAPES · NOT MEASURED DATA',1372,908,11,500,.9,'center',1,'#9aa59f',FM);
+ txt('PRB1  118.199 V     PRB2  117.678 V',1222,950,18,500,sg(t,80,80.8),'left',0,'#e8ece9',FM);txt('snapshot at t = 4.592 ms',1222,974,13,400,sg(t,80,80.8)*.8,'left',0,'#9aa59f',FM);x.restore()}
+function chain(t){const a=io(t,64.4,65,69.4,70);if(a<=0)return;x.save();x.globalAlpha*=a;['120 V / 60 Hz AC','1N4007 Bridge','1000 µF Filter','100 Ω Load'].forEach((s,i)=>{const px=225+i*380;rr(px,880,330,76,10,'rgba(5,7,6,.88)','rgba(255,255,255,.15)');txt(s,px+165,926,24,500,1,'center',0,'#e8ece9',FM);if(i<3)txt('→',px+355,926,28,400,1,'center',0,GN)});txt('FINAL CIRCUIT',960,860,16,500,1,'center',6,GN,FM);x.restore()}
+function bands(t){x.fillStyle='#050706';x.fillRect(0,0,1920,77);x.fillRect(0,1002,1920,78);
+ let s=null;STEP.forEach((p,i)=>{if(t>=p[0])s=[p,i]});if(s){const al=sg(t,s[0][0],s[0][0]+.5);txt(String(s[1]+1).padStart(2,'0'),60,46,18,500,al,'left',4,GN,FM);txt(s[0][1],104,46,18,500,al*.9,'left',5,'#c9d1cc',FM);if(s[0][2])txt(s[0][2],1860,46,18,500,al,'right',2,'#e8ece9',FM)}
+ txt('NodeSim · Full-Wave Rectifier',960,46,15,400,.5*sg(t,4,5),'center',2,'#8c9791',FM);
+ CAP.forEach(c=>{const al=io(t,c[0],c[0]+.4,c[1]-.4,c[1]);if(al>0)txt(c[2],960,1049,29,400,al,'center',0,'#e8ece9')})}
+function titles(t){const a=1-sg(t,3.4,4.2);if(a>0){x.fillStyle=`rgba(4,5,4,${.62*a})`;x.fillRect(0,77,1920,925);txt('Build a Full-Wave Rectifier',960,520,86,600,a*sg(t,.4,1.4),'center',-2,'#fff',FT);txt('120 V AC → DC',960,590,32,400,a*sg(t,1,2),'center',6,GN,FM)}
+ const e=sg(t,92,93.2);if(e>0){x.fillStyle=`rgba(4,5,4,${e})`;x.fillRect(0,0,1920,1080);ln([[900,360],[912,330],[921,352],[932,324]],5,'#2ee08a');txt('NodeSim',958,372,72,600,e,'center',-1,'#fff',FT);txt('Build. Simulate. Understand.',960,500,60,300,sg(t,92.8,94),'center',-1,'#e8ece9',FT);txt('ENGINEERING SIMULATION. REIMAGINED FOR THE BROWSER.',960,560,18,400,sg(t,93.4,94.4),'center',6,'#8c9791',FM);
+  rr(710,620,500,84,42,GN);txt('Try it in NodeSim',960,672,32,600,sg(t,94,95),'center',0,'#04110a');txt('nodesimapp.com/simulator',960,770,28,400,sg(t,94.6,95.4),'center',3,'#b8c2bc',FM);txt('Software simulation only. Do not build live mains circuits without proper electrical safety procedures.',960,1030,16,400,sg(t,95,96),'center',0,'#8c9791')}}
+function render(t){
+ x.globalAlpha=1;x.fillStyle='#050706';x.fillRect(0,0,1920,1080);
+ const[a,b,p]=seg(CK,t),cx=lp(a[1],b[1],p),cy=lp(a[2],b[2],p),z=lp(a[3],b[3],p);
+ x.save();x.beginPath();x.rect(0,77,1920,925);x.clip();x.translate(960,540);x.scale(z,z);x.translate(-cx,-cy);
+ shell(t);circuit(t);cursor(t);x.restore();
+ result(t);chain(t);bands(t);titles(t);
+}
+// ---------- player ----------
+const pp=document.getElementById('pp'),rs=document.getElementById('rs'),sc=document.getElementById('sc'),tl=document.getElementById('tl');
+let T=0,on=false,last=performance.now(),ci=0;
+const seek=v=>{T=v;ci=cues.findIndex(c=>c[0]>=T);if(ci<0)ci=cues.length};
+function frame(n){const dt=Math.min(.1,(n-last)/1000);last=n;if(on){T=Math.min(D,T+dt);while(ci<cues.length&&cues[ci][0]<=T){cues[ci][1]();ci++}if(T>=D){on=false;pp.textContent='▶ Replay';if(AC)AC.suspend()}}render(T);sc.value=T;tl.textContent=T.toFixed(1)+' / 98s';requestAnimationFrame(frame)}
+pp.onclick=()=>{if(T>=D)seek(0);on=!on;if(on)au();else if(AC)AC.suspend();pp.textContent=on?'❚❚ Pause':'▶ Play (with sound)'};
+rs.onclick=()=>{seek(0);on=true;au();pp.textContent='❚❚ Pause'};
+sc.oninput=()=>{seek(+sc.value);on=false;pp.textContent='▶ Play (with sound)'};
+document.addEventListener('keydown',e=>{if(e.code=='Space'){e.preventDefault();pp.onclick()}});
+Promise.all(['600 20px "Inter Tight"','400 20px Inter','500 20px "JetBrains Mono"'].map(f=>document.fonts.load(f))).catch(()=>{}).finally(()=>requestAnimationFrame(frame));
+</script></body></html>
