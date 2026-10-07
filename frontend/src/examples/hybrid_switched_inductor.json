@@ -2,65 +2,76 @@
   "version": 1,
   "components": [
     {
-      "id": "xs99of0",
+      "id": "sqvtpyv",
       "type": "DCSource",
       "position": {
         "x": 100,
-        "y": 100
+        "y": 280
       },
       "rotation": 90,
       "value": "20",
       "label": "Vin"
     },
     {
-      "id": "e0glupi",
+      "id": "loapn69",
       "type": "Ground",
       "position": {
         "x": 100,
-        "y": 370
+        "y": 400
       },
       "rotation": 0,
       "value": "",
       "label": ""
     },
     {
-      "id": "oizgodb",
+      "id": "scwvn4p",
       "type": "Inductor",
       "position": {
-        "x": 200,
+        "x": 100,
         "y": 100
       },
       "rotation": 0,
-      "value": "100u",
+      "value": "1m",
       "label": "L1"
     },
     {
-      "id": "hpfd4jm",
+      "id": "b8geaem",
       "type": "Diode",
       "position": {
-        "x": 200,
-        "y": 100
+        "x": 100,
+        "y": 190
       },
-      "rotation": 90,
+      "rotation": 0,
       "value": "",
       "label": "D1"
     },
     {
-      "id": "w6j1p4r",
+      "id": "q3xerp8",
+      "type": "Diode",
+      "position": {
+        "x": 190,
+        "y": 100
+      },
+      "rotation": 90,
+      "value": "",
+      "label": "D3"
+    },
+    {
+      "id": "vf15akf",
       "type": "Inductor",
       "position": {
-        "x": 200,
+        "x": 190,
         "y": 190
       },
       "rotation": 0,
-      "value": "100u",
+      "value": "1m",
       "label": "L2"
     },
     {
-      "id": "zmv2h4i",
+      "id": "kkreruz",
       "type": "Diode",
       "position": {
-        "x": 290,
+        "x": 280,
         "y": 100
       },
       "rotation": 90,
@@ -68,21 +79,10 @@
       "label": "D2"
     },
     {
-      "id": "t05i8iv",
-      "type": "Diode",
-      "position": {
-        "x": 200,
-        "y": 145
-      },
-      "rotation": 0,
-      "value": "",
-      "label": "D3"
-    },
-    {
-      "id": "bzk460n",
+      "id": "1v1pung",
       "type": "MosfetN",
       "position": {
-        "x": 233,
+        "x": 223,
         "y": 235
       },
       "rotation": 0,
@@ -90,21 +90,21 @@
       "label": "Q1"
     },
     {
-      "id": "syfoo8w",
+      "id": "q7ftomb",
       "type": "Ground",
       "position": {
-        "x": 290,
-        "y": 370
+        "x": 280,
+        "y": 400
       },
       "rotation": 0,
       "value": "",
       "label": ""
     },
     {
-      "id": "seso24r",
+      "id": "1aw0dge",
       "type": "PulseVoltage",
       "position": {
-        "x": 143,
+        "x": 133,
         "y": 235
       },
       "rotation": 90,
@@ -112,21 +112,21 @@
       "label": "PWM"
     },
     {
-      "id": "qxvc7q0",
+      "id": "ildzsu9",
       "type": "Ground",
       "position": {
-        "x": 143,
-        "y": 370
+        "x": 133,
+        "y": 400
       },
       "rotation": 0,
       "value": "",
       "label": ""
     },
     {
-      "id": "9858cab",
+      "id": "dqq3igz",
       "type": "Diode",
       "position": {
-        "x": 290,
+        "x": 280,
         "y": 190
       },
       "rotation": 0,
@@ -134,21 +134,21 @@
       "label": "D4"
     },
     {
-      "id": "56bnq4m",
+      "id": "ux95q2q",
       "type": "Capacitor",
       "position": {
-        "x": 380,
+        "x": 370,
         "y": 190
       },
       "rotation": 90,
-      "value": "47u",
+      "value": "1u",
       "label": "C1"
     },
     {
-      "id": "30vnnuw",
+      "id": "fsv5utt",
       "type": "Diode",
       "position": {
-        "x": 380,
+        "x": 370,
         "y": 190
       },
       "rotation": 0,
@@ -156,43 +156,43 @@
       "label": "D5"
     },
     {
-      "id": "2yqc1ut",
+      "id": "jjkt1gc",
       "type": "Inductor",
       "position": {
-        "x": 470,
+        "x": 460,
         "y": 190
       },
       "rotation": 90,
-      "value": "100u",
+      "value": "1m",
       "label": "L3"
     },
     {
-      "id": "b8b7qhf",
+      "id": "fbzodfq",
       "type": "Ground",
       "position": {
-        "x": 470,
-        "y": 370
+        "x": 460,
+        "y": 400
       },
       "rotation": 0,
       "value": "",
       "label": ""
     },
     {
-      "id": "xdvivjx",
+      "id": "61yquba",
       "type": "Capacitor",
       "position": {
-        "x": 470,
+        "x": 460,
         "y": 190
       },
       "rotation": 270,
-      "value": "47u",
+      "value": "1u",
       "label": "C2"
     },
     {
-      "id": "d0f5aw2",
+      "id": "9hsi7lm",
       "type": "Diode",
       "position": {
-        "x": 470,
+        "x": 460,
         "y": 100
       },
       "rotation": 180,
@@ -200,10 +200,10 @@
       "label": "D6"
     },
     {
-      "id": "ivfug36",
+      "id": "08j2rai",
       "type": "Diode",
       "position": {
-        "x": 470,
+        "x": 460,
         "y": 190
       },
       "rotation": 0,
@@ -211,32 +211,32 @@
       "label": "D7"
     },
     {
-      "id": "58ckzfd",
+      "id": "82fnqre",
       "type": "Capacitor",
       "position": {
-        "x": 560,
+        "x": 550,
         "y": 190
       },
       "rotation": 90,
-      "value": "220u",
+      "value": "4.7u",
       "label": "Cout"
     },
     {
-      "id": "lkb2ib2",
+      "id": "zjrexs1",
       "type": "Ground",
       "position": {
-        "x": 560,
-        "y": 370
+        "x": 550,
+        "y": 400
       },
       "rotation": 0,
       "value": "",
       "label": ""
     },
     {
-      "id": "olvumix",
+      "id": "juzdpe4",
       "type": "Resistor",
       "position": {
-        "x": 650,
+        "x": 640,
         "y": 190
       },
       "rotation": 90,
@@ -244,21 +244,21 @@
       "label": "Rload"
     },
     {
-      "id": "v3o2bk3",
+      "id": "ns3bor2",
       "type": "Ground",
       "position": {
-        "x": 650,
-        "y": 370
+        "x": 640,
+        "y": 400
       },
       "rotation": 0,
       "value": "",
       "label": ""
     },
     {
-      "id": "g2drxxx",
+      "id": "elf3ps5",
       "type": "Voltmeter",
       "position": {
-        "x": 720,
+        "x": 730,
         "y": 235
       },
       "rotation": 0,
@@ -268,114 +268,101 @@
   ],
   "wires": [
     {
-      "id": "rpno878",
+      "id": "3x27e2z",
       "points": [
-        {
-          "x": 100,
-          "y": 190
-        },
         {
           "x": 100,
           "y": 370
+        },
+        {
+          "x": 100,
+          "y": 400
         }
       ]
     },
     {
-      "id": "8e6xugz",
+      "id": "wz74g0h",
       "points": [
         {
           "x": 100,
-          "y": 100
-        },
-        {
-          "x": 200,
-          "y": 100
-        }
-      ]
-    },
-    {
-      "id": "d8s5m01",
-      "points": [
-        {
-          "x": 200,
-          "y": 190
-        },
-        {
-          "x": 200,
-          "y": 145
-        }
-      ]
-    },
-    {
-      "id": "owp2jw7",
-      "points": [
-        {
-          "x": 290,
-          "y": 145
-        },
-        {
-          "x": 290,
-          "y": 100
-        }
-      ]
-    },
-    {
-      "id": "1t38q4p",
-      "points": [
-        {
-          "x": 290,
           "y": 280
         },
         {
-          "x": 290,
-          "y": 370
+          "x": 100,
+          "y": 100
         }
       ]
     },
     {
-      "id": "t6v88ma",
+      "id": "nbmdunh",
       "points": [
         {
-          "x": 143,
+          "x": 190,
+          "y": 100
+        },
+        {
+          "x": 280,
+          "y": 100
+        }
+      ]
+    },
+    {
+      "id": "mdqq6d3",
+      "points": [
+        {
+          "x": 280,
+          "y": 280
+        },
+        {
+          "x": 280,
+          "y": 400
+        }
+      ]
+    },
+    {
+      "id": "0g9ipmj",
+      "points": [
+        {
+          "x": 133,
           "y": 235
         },
         {
-          "x": 233,
+          "x": 223,
           "y": 235
         }
       ]
     },
     {
-      "id": "tnbw45c",
+      "id": "5vr3coz",
       "points": [
         {
-          "x": 143,
+          "x": 133,
           "y": 325
         },
         {
-          "x": 143,
-          "y": 370
+          "x": 133,
+          "y": 400
         }
       ]
     },
     {
-      "id": "wbedoa4",
+      "id": "g86oh79",
       "points": [
         {
-          "x": 380,
+          "x": 370,
           "y": 280
         },
         {
-          "x": 380,
+          "x": 370,
           "y": 450
         }
       ]
     },
     {
-      "id": "8eytngv",
+      "id": "3mzlepg",
       "points": [
         {
-          "x": 380,
+          "x": 370,
           "y": 450
         },
         {
@@ -385,7 +372,7 @@
       ]
     },
     {
-      "id": "eem4tg8",
+      "id": "6q90cwd",
       "points": [
         {
           "x": 50,
@@ -398,7 +385,7 @@
       ]
     },
     {
-      "id": "zrkbsq4",
+      "id": "z5s46qw",
       "points": [
         {
           "x": 50,
@@ -411,186 +398,203 @@
       ]
     },
     {
-      "id": "klhzysq",
+      "id": "enxb74v",
       "points": [
         {
-          "x": 380,
-          "y": 190
-        },
-        {
-          "x": 380,
-          "y": 191
-        }
-      ]
-    },
-    {
-      "id": "7y7ipj5",
-      "points": [
-        {
-          "x": 470,
-          "y": 190
-        },
-        {
-          "x": 470,
-          "y": 191
-        }
-      ]
-    },
-    {
-      "id": "4g1n322",
-      "points": [
-        {
-          "x": 470,
-          "y": 100
-        },
-        {
-          "x": 470,
-          "y": 101
-        }
-      ]
-    },
-    {
-      "id": "xm1i4qq",
-      "points": [
-        {
-          "x": 470,
+          "x": 460,
           "y": 280
         },
         {
-          "x": 470,
-          "y": 370
+          "x": 460,
+          "y": 400
         }
       ]
     },
     {
-      "id": "syblady",
+      "id": "6w160wl",
       "points": [
         {
-          "x": 380,
+          "x": 370,
           "y": 100
         },
         {
-          "x": 330,
-          "y": 100
-        }
-      ]
-    },
-    {
-      "id": "07efxio",
-      "points": [
-        {
-          "x": 330,
-          "y": 100
-        },
-        {
-          "x": 330,
+          "x": 370,
           "y": 190
         }
       ]
     },
     {
-      "id": "yd2c3i0",
+      "id": "lsmx936",
       "points": [
         {
-          "x": 330,
-          "y": 190
-        },
-        {
-          "x": 290,
-          "y": 190
-        }
-      ]
-    },
-    {
-      "id": "gneyy72",
-      "points": [
-        {
-          "x": 560,
+          "x": 550,
           "y": 280
         },
         {
-          "x": 560,
-          "y": 370
+          "x": 550,
+          "y": 400
         }
       ]
     },
     {
-      "id": "pbd41dk",
+      "id": "j8wcez5",
       "points": [
         {
-          "x": 560,
+          "x": 550,
           "y": 190
         },
         {
-          "x": 650,
+          "x": 640,
           "y": 190
         }
       ]
     },
     {
-      "id": "5zuqyhf",
+      "id": "pe7uh66",
       "points": [
         {
-          "x": 650,
+          "x": 640,
           "y": 280
         },
         {
-          "x": 650,
-          "y": 370
+          "x": 640,
+          "y": 400
         }
       ]
     },
     {
-      "id": "6888v4j",
+      "id": "ecqw9xf",
       "points": [
         {
-          "x": 650,
+          "x": 640,
           "y": 190
         },
         {
-          "x": 720,
+          "x": 730,
           "y": 190
         }
       ]
     },
     {
-      "id": "hqbw39q",
+      "id": "9dl1b4v",
       "points": [
         {
-          "x": 720,
+          "x": 730,
           "y": 190
         },
         {
-          "x": 720,
+          "x": 730,
           "y": 215
         }
       ]
     },
     {
-      "id": "rwz8x7y",
+      "id": "63li7cj",
       "points": [
         {
-          "x": 650,
-          "y": 370
+          "x": 640,
+          "y": 400
         },
         {
-          "x": 720,
-          "y": 370
+          "x": 730,
+          "y": 400
         }
       ]
     },
     {
-      "id": "iuw5ltu",
+      "id": "om9e87r",
       "points": [
         {
-          "x": 720,
-          "y": 370
+          "x": 730,
+          "y": 400
         },
         {
-          "x": 720,
+          "x": 730,
           "y": 255
         }
       ]
+    },
+    {
+      "id": "y6yq11m",
+      "points": [
+        {
+          "x": 190,
+          "y": 100
+        },
+        {
+          "x": 190,
+          "y": 101
+        }
+      ]
+    },
+    {
+      "id": "kpypcx1",
+      "points": [
+        {
+          "x": 190,
+          "y": 190
+        },
+        {
+          "x": 190,
+          "y": 191
+        }
+      ]
+    },
+    {
+      "id": "5qc127h",
+      "points": [
+        {
+          "x": 280,
+          "y": 190
+        },
+        {
+          "x": 280,
+          "y": 191
+        }
+      ]
+    },
+    {
+      "id": "bm7qwd7",
+      "points": [
+        {
+          "x": 370,
+          "y": 190
+        },
+        {
+          "x": 370,
+          "y": 191
+        }
+      ]
+    },
+    {
+      "id": "5pnuvyg",
+      "points": [
+        {
+          "x": 460,
+          "y": 190
+        },
+        {
+          "x": 460,
+          "y": 191
+        }
+      ]
+    },
+    {
+      "id": "r877bzf",
+      "points": [
+        {
+          "x": 460,
+          "y": 100
+        },
+        {
+          "x": 460,
+          "y": 101
+        }
+      ]
     }
-  ]
+  ],
+  "transientSettings": {
+    "endTime": "10ms",
+    "step": "1us"
+  }
 }
