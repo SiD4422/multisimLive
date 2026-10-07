@@ -43,8 +43,6 @@ export default function Layout() {
             <Link to="/features" className={pathname === '/features' ? 'active' : ''}>Features</Link>
             <Link to="/about" className={pathname === '/about' ? 'active' : ''}>About</Link>
             <Link to="/circuits" className={pathname.startsWith('/circuits') ? 'active' : ''}>Circuits</Link>
-            <Link to="/procedure" className={pathname === '/procedure' ? 'active' : ''}>How to Use</Link>
-
             {/* ── Learn dropdown ── */}
             <div
               style={dropdownStyle}
@@ -130,7 +128,6 @@ export default function Layout() {
             <Link to="/features" className={pathname === '/features' ? 'active' : ''}>Features</Link>
             <Link to="/about" className={pathname === '/about' ? 'active' : ''}>About</Link>
             <Link to="/circuits" className={pathname.startsWith('/circuits') ? 'active' : ''}>Circuits</Link>
-            <Link to="/procedure" className={pathname === '/procedure' ? 'active' : ''}>How to Use</Link>
             <Link to="/resources" className={pathname === '/resources' ? 'active' : ''}>Resources</Link>
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '6px 0', paddingTop: '6px' }}>
               <div style={{ fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 0' }}>Tutorials</div>
@@ -186,7 +183,7 @@ export default function Layout() {
               <li><Link to="/showcase">Showcase</Link></li>
             <li><Link to="/tutorials">Tutorials</Link></li>
             <li><Link to="/compare">Comparisons</Link></li>
-            <li><Link to="/procedure">How to Use</Link></li>
+            <li></li>
             <li><Link to="/resources">Resources</Link></li>
             <li><Link to="/privacy">Privacy</Link></li>
             <li><Link to="/terms">Terms</Link></li>
