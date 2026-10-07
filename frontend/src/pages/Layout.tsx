@@ -35,7 +35,7 @@ export default function Layout() {
       <header className="msl-site-header">
         <div className="msl-container msl-nav-row">
           <Link className="msl-brand" to="/" aria-label="NodeSim home" style={{ textDecoration: 'none' }}>
-            <img src="/logo_main_transparent.png" alt="NodeSim Logo" style={{ height: '44px', objectFit: 'contain' }} />
+            <img src="/logo_main_transparent.png" alt="NodeSim Logo" style={{ height: '34px', objectFit: 'contain' }} />
           </Link>
 
           <nav className="msl-nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
