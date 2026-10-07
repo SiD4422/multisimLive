@@ -58,7 +58,7 @@ export const EXAMPLES = [
 
   // ── RECTIFIERS ─────────────────────────────────────────────────
   { id: 'half_wave', name: 'Half-Wave Rectifier', category: 'Rectifiers', description: 'Simplest AC-to-DC converter. A single diode passes only the positive half-cycle.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Beginner', components: ['Diode', 'Resistor', 'AC Source'], Icon: Zap, accent: '#d97706', data: halfWaveRectifier },
-  { id: 'rectifier', name: 'Full-Wave Rectifier', category: 'Rectifiers', description: 'Full-wave rectification using 4 diodes. Converts AC to pulsating DC with smoothing cap.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Bridge Rect.', 'Capacitor', 'AC Source'], Icon: GitMerge, accent: '#dc2626', data: bridgeRectifier },
+  { id: 'rectifier', name: 'Full-Wave Rectifier', category: 'Rectifiers', description: 'Full-wave rectification using 4 diodes. Converts AC to pulsating DC with smoothing cap.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Bridge Rect.', 'Capacitor', 'AC Source'], Icon: GitMerge, accent: '#dc2626', data: bridgeRectifier, videoUrl: '/animations/full_wave_rectifier.html' },
   { id: 'transformer', name: 'Step-Down Transformer', category: 'Rectifiers', description: '120V → 12V step-down using a 10:1 transformer. Core of any AC power supply design.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Transformer', 'Resistor', 'AC Source'], Icon: ArrowUpDown, accent: '#be185d', data: transformerStepdown },
 
   // ── AMPLIFIERS ─────────────────────────────────────────────────
