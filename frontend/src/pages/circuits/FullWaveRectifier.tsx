@@ -29,6 +29,22 @@ export default function FullWaveRectifier() {
         The full wave bridge rectifier uses four diodes arranged in a bridge topology to convert both positive and negative half-cycles of an AC waveform into a smooth, pulsating DC output. With nearly double the average DC output of a half-wave rectifier and a theoretical efficiency of 81.2 %, the bridge rectifier is the standard circuit used in virtually every AC-to-DC power supply — from phone chargers to industrial motor drives.
       </p>
 
+      {/* Animation Video Reference */}
+      <div style={{ marginBottom: '2.5rem', borderRadius: 16, overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+        <div style={{ background: '#f8fafc', padding: '12px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ background: '#10b981', color: '#fff', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', paddingLeft: 3 }}>▶</div>
+          <div style={{ fontWeight: 600, color: '#334155' }}>Play for reference: How to build this circuit</div>
+        </div>
+        <iframe 
+          src="/animations/full_wave_rectifier.html" 
+          style={{ width: '100%', aspectRatio: '16/9', border: 'none', display: 'block' }}
+          title="Full Wave Rectifier Build Tutorial"
+        />
+        <div style={{ padding: '12px 20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', fontSize: '14px', color: '#64748b' }}>
+          Watch this reference video to learn how to make your own circuit step-by-step in NodeSim.
+        </div>
+      </div>
+
       {/* Simulate CTA */}
       <div style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #86efac', borderRadius: 16, padding: '24px', marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
         <div>

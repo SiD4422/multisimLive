@@ -23,6 +23,7 @@ import rlLowPass            from '../examples/rl_low_pass.json';
 import mosfetSwitch         from '../examples/mosfet_switch.json';
 import rcIntegrator         from '../examples/rc_integrator.json';
 import commonEmitter        from '../examples/common_emitter.json';
+import hybridSwitchedInductor from '../examples/hybrid_switched_inductor.json';
 import comparatorCircuit    from '../examples/comparator_circuit.json';
 
 // Site Light Theme Palette
@@ -72,6 +73,7 @@ export const EXAMPLES = [
 
   // ── SWITCHING ──────────────────────────────────────────────────
   { id: 'mosfet_sw', name: 'MOSFET Switch', category: 'Switching', description: 'N-Channel MOSFET as a digital switch. Gate voltage controls the drain-source resistance.', analysis: 'DC Sweep', analysisColor: C.dcSweep, difficulty: 'Beginner', components: ['N-MOSFET', 'Resistor', 'DC Source'], Icon: ToggleRight, accent: '#0284c7', data: mosfetSwitch },
+  { id: 'ss_hsic_ecgc', name: 'SS-HSIC-ECGC Converter', category: 'Switching', description: 'Single-Switch Hybrid Switched-Inductor Enhanced Cubic Gain Converter. High voltage gain DC-DC conversion.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Advanced', components: ['MOSFET', 'Inductors', 'Diodes'], Icon: Layers, accent: '#0369a1', data: hybridSwitchedInductor },
 
   // ── SOURCES ────────────────────────────────────────────────────
   { id: '555', name: '555 Astable Oscillator', category: 'Sources', description: '555 timer in astable mode generates a continuous square wave at adjustable frequency.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Transistor Amplifier', 'RC Network'], Icon: Cpu, accent: '#e11d48', data: astable555 },
