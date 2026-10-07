@@ -82,7 +82,7 @@
 
   /* ---------- Header ---------- */
   .msl-site-header{position:sticky;top:0;z-index:80;background:var(--header-bg);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--line);}
-  .msl-nav-row{display:flex;align-items:center;gap:28px;height:76px;}
+  .msl-nav-row{display:flex;align-items:center;gap:20px;height:76px;}
   .msl-brand{display:flex;align-items:center;gap:11px;flex:none;}
   .brand-mark{width:32px;height:32px;flex:none;}
   .brand-text{display:flex;flex-direction:column;line-height:1.05;}
@@ -91,7 +91,7 @@
   .brand-name .n2{color:var(--green-dark);}
   .brand-tag{font-size:9px;letter-spacing:.15em;color:var(--muted);font-weight:600;margin-top:2px;}
 
-  .msl-nav-links{display:flex;align-items:center;gap:26px;flex:1;}
+  .msl-nav-links{display:flex;align-items:center;gap:18px;flex:1;white-space:nowrap;}
   .msl-nav-links a{font-size:14.5px;font-weight:500;color:var(--ink-soft);padding:8px 1px;position:relative;transition:color .15s ease;}
   .msl-nav-links a:hover{color:var(--ink);}
   .msl-nav-links a.active{color:var(--ink);}
