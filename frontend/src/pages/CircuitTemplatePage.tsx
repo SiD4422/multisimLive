@@ -102,8 +102,26 @@ export default function CircuitTemplatePage() {
                   This template comes pre-configured with a {circuit.analysis.toLowerCase()} profile. Just click the "Run" button inside the simulator to instantly view the waveform output.
                 </p>
               </div>
-
             </div>
+
+            {/* Optional Video Section */}
+            {(circuit as any).videoUrl && (
+              <div style={{ padding: '0 48px 48px', borderTop: `1px solid ${C.border}`, marginTop: -20, paddingTop: 40 }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Play size={20} color={C.primary} /> Video Reference
+                </h3>
+                <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+                  <iframe 
+                    src={(circuit as any).videoUrl} 
+                    style={{ width: '100%', aspectRatio: '16/9', border: 'none', display: 'block' }}
+                    title={`${circuit.name} Build Tutorial`}
+                  />
+                  <div style={{ padding: '12px 20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', fontSize: '14px', color: '#64748b' }}>
+                    Watch this reference video to learn how to build this circuit step-by-step.
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
         </div>
