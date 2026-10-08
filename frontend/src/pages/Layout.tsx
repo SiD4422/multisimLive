@@ -27,15 +27,16 @@ const dropdownMenuStyle: React.CSSProperties = {
 export default function Layout() {
   const { pathname } = useLocation();
   const isLearnActive = pathname.startsWith('/tutorials') || pathname.startsWith('/compare');
+  const isDarkPage = pathname === '/about' || pathname === '/showcase' || pathname.startsWith('/showcase');
 
   return (
     <div className="landing-page">
 
       {/* ─── NAVBAR: matches LandingPage exactly ─── */}
-      <header className="msl-site-header">
+      <header className={`msl-site-header ${isDarkPage ? 'msl-header-dark' : ''}`}>
         <div className="msl-container msl-nav-row">
           <Link className="msl-brand" to="/" aria-label="NodeSim home" style={{ textDecoration: 'none' }}>
-            <img src="/logo_main_transparent.png" alt="NodeSim Logo" style={{ height: '34px', objectFit: 'contain' }} />
+            <img src={isDarkPage ? "/logo_dark_transparent.png" : "/logo_main_transparent.png"} alt="NodeSim Logo" style={{ height: '34px', objectFit: 'contain' }} />
           </Link>
 
           <nav className="msl-nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>

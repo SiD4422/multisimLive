@@ -302,3 +302,25 @@
 .lp-learn-menu { display: none; }
 div:hover > .lp-learn-menu,
 div:focus-within > .lp-learn-menu { display: block !important; }
+
+
+/* Dark Header overrides for About and Showcase pages */
+.msl-header-dark {
+  background: rgba(6, 10, 8, 0.72) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+.msl-header-dark .msl-nav-links a,
+.msl-header-dark .msl-nav-links span {
+  color: #c8d8ce !important;
+}
+.msl-header-dark .msl-nav-links a:hover,
+.msl-header-dark .msl-nav-links a.active,
+.msl-header-dark .msl-nav-links span:hover {
+  color: #ffffff !important;
+}
+.msl-header-dark .burger {
+  color: #c8d8ce !important;
+}
+.msl-header-dark .msl-mobile-menu {
+  background: #070b09 !important;
+}
