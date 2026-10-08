@@ -73,6 +73,11 @@ export default function Layout() {
               </span>
               <div className="learn-dropdown-menu" style={dropdownMenuStyle}>
                 <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Community
+                </div>
+                <a href="#" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">YouTube Channel</a>
+                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
+                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Inspiration
                 </div>
                 <Link to="/showcase" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Video Showcase</Link>
@@ -189,16 +194,14 @@ export default function Layout() {
           </div>
           <ul className="msl-footer-links">
             <li><Link to="/features">Features</Link></li>
-              <li><Link to="/about">About</Link></li>
+            <li><Link to="/about">About</Link></li>
             <li><Link to="/circuits">Circuits</Link></li>
-              <li><Link to="/showcase">Showcase</Link></li>
+            <li><Link to="/showcase">Video Showcase</Link></li>
             <li><Link to="/tutorials">Tutorials</Link></li>
             <li><Link to="/compare">Comparisons</Link></li>
-            <li></li>
             <li><Link to="/resources">Resources</Link></li>
-            <li><Link to="/privacy">Privacy</Link></li>
-            <li><Link to="/terms">Terms</Link></li>
             <li><a href="https://github.com/SiD4422/multisimLive" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+            <li><a href="#" target="_blank" rel="noopener noreferrer">YouTube</a></li>
           </ul>
           <p>&copy; {new Date().getFullYear()} NodeSim. Open source under the MIT License.</p>
         </div>
