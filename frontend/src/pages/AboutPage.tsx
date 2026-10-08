@@ -56,7 +56,7 @@ export function AboutPage() {
 <span class="pill up"><i></i>FREE · OPEN SOURCE · NO ACCOUNT NEEDED</span>
 <h1 class="up" style="--d:.08s">Making Circuit Simulation <em>Accessible</em> to Everyone.</h1>
 <p class="lead up" style="--d:.16s">NodeSim is a modern, browser-based circuit simulation platform built for students, engineers, educators, researchers, and electronics enthusiasts. We combine the power of ngspice with the flexibility of the web to bring professional-grade simulation directly to your browser.</p>
-<div class="cta up" style="--d:.24s"><a class="btn" href="https://www.nodesimapp.com/simulator">Try NodeSim <span class="ar">→</span></a><a class="btn ghost" href="showcase.html#full-showcase">Watch Product Demo <span class="ar">→</span></a></div>
+<div class="cta up" style="--d:.24s"><a class="btn" href="https://www.nodesimapp.com/simulator">Try NodeSim <span class="ar">→</span></a><a class="btn ghost" href="https://youtu.be/JSuCJqfbF9E" target="_blank" rel="noopener noreferrer">Watch Product Demo <span class="ar">→</span></a></div>
 <ul class="facts up" style="--d:.32s"><li>ngspice compiled to WebAssembly</li><li>Transient · AC sweep · DC</li><li>MIT License</li></ul>
 <div class="stage up" style="--d:.4s">
 <div class="frame">
@@ -82,7 +82,7 @@ export function AboutPage() {
 <section class="alt" id="demo"><div class="wrap"><div class="center rv"><p class="eyebrow">See NodeSim in action</p><h2>From Circuit to <em>Simulation.</em></h2><p class="sub">See how NodeSim takes a circuit from design to simulation and waveform analysis.</p></div>
 <div class="rv" style="margin-top:56px"><button class="vid" data-mode="dialog" data-src="videos/product-showcase.html" data-preview="__PV_SHOWCASE__" aria-label="Play the NodeSim product showcase" onclick="playVideo(this)"><img src="assets/poster-showcase.jpg" width="1280" height="720" alt="Frame from the NodeSim product showcase video" loading="lazy"><span class="play"></span><span class="meta"><span>Product showcase</span><span>Real NodeSim captures</span></span></button></div>
 <div class="chaps rv"><span>Schematic</span><span>Simulation</span><span>Grapher</span><span>AI Debugger</span><span>Circuit Library</span><span>Publish</span></div>
-<div class="center rv" style="margin-top:44px"><a class="btn" href="showcase.html#full-showcase">Watch the Full Product Showcase <span class="ar">→</span></a></div></div></section>
+<div class="center rv" style="margin-top:44px"><a class="btn" href="https://youtu.be/JSuCJqfbF9E" target="_blank" rel="noopener noreferrer">Watch the Full Product Showcase <span class="ar">→</span></a></div></div></section>
 <section class="final gridbg"><div class="wrap rv" style="position:relative"><p class="eyebrow">Open &amp; improving</p><h2>Be Part of the <em>Journey.</em></h2><p class="sub" style="margin-inline:auto">NodeSim is an open project, and we are constantly improving. Explore, give feedback, contribute, or just spread the word.</p>
 <div class="cta"><a class="btn" href="https://www.nodesimapp.com/simulator">Open Simulator <span class="ar">→</span></a><a class="btn ghost" href="#github" data-todo="Add the real GitHub repository URL">View on GitHub <span class="ar">→</span></a></div></div></section>
 </main>
