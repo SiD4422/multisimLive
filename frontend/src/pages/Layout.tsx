@@ -102,8 +102,6 @@ export default function Layout() {
                 <Link to="/tools/resistor-color-code" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Resistor Color Code</Link>
               </div>
             </div>
-
-            <Link to="/resources" className={pathname === '/resources' ? 'active' : ''}>Resources</Link>
           </nav>
 
           <div className="nav-actions">
