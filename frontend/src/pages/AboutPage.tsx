@@ -58,10 +58,13 @@ export function AboutPage() {
 <p class="lead up" style="--d:.16s">NodeSim is a modern, browser-based circuit simulation platform built for students, engineers, educators, researchers, and electronics enthusiasts. We combine the power of ngspice with the flexibility of the web to bring professional-grade simulation directly to your browser.</p>
 <div class="cta up" style="--d:.24s"><a class="btn" href="https://www.nodesimapp.com/simulator">Try NodeSim <span class="ar">→</span></a><a class="btn ghost" href="showcase.html#full-showcase">Watch Product Demo <span class="ar">→</span></a></div>
 <ul class="facts up" style="--d:.32s"><li>ngspice compiled to WebAssembly</li><li>Transient · AC sweep · DC</li><li>MIT License</li></ul>
-<div class="stage up" style="--d:.4s"><div class="frame"><div class="bar"><i></i><i></i><i></i><span>nodesimapp.com/simulator</span></div><img src="assets/sim-opamp.jpg" width="1500" height="855" alt="NodeSim simulator showing an op-amp circuit with voltage probes after a completed run"></div>
-<div class="frame second" id="par"><div class="bar"><i></i><i></i><i></i><span>Grapher · Transient</span></div><img src="assets/grapher.jpg" width="1500" height="780" alt="NodeSim Grapher showing transient analysis traces and a cursor readout"></div>
-<div class="chip p"><img src="assets/chip-probe.jpg" width="360" height="107" alt="Probe reading V: −8.823 V"></div><div class="chip s"><img src="assets/chip-status.jpg" width="640" height="64" alt="Status bar: ngspice (WASM), 6 components, 4 wires"></div></div>
-<p class="cap" style="margin:0;padding-bottom:40px">Real NodeSim interface — op-amp circuit with probes (main) and the Grapher with a cursor readout from the SS-HSIC-ECGC converter (overlay).</p>
+<div class="stage up" style="--d:.4s">
+<div class="frame">
+<div class="bar"><i></i><i></i><i></i><span>nodesimapp.com/simulator</span></div>
+<video src="videos/hero-demo.mp4" autoplay loop muted playsinline style="width: 100%; height: auto; display: block; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"></video>
+</div>
+</div>
+<p class="cap" style="margin:0;padding-bottom:40px">Real NodeSim interface — complete browser-based SPICE simulation in action.</p>
 </div></section>
 <section id="story"><div class="wrap split"><div class="rv"><p class="eyebrow">Our Story</p><h2>Built by Engineers, for Engineers.</h2><p class="sub">Traditional circuit simulators are powerful, but they often come with installation, complex setup, desktop environments, or licensing. NodeSim explores a simpler approach.</p></div>
 <ol class="stepper rv" style="--d:.1s"><li><b>01</b><h3>Open the browser</h3><p>No installation. No account needed.</p></li><li><b>02</b><h3>Build the circuit</h3><p>Drag components from the library onto the schematic canvas.</p></li><li><b>03</b><h3>Run the simulation</h3><p>ngspice, compiled to WebAssembly, solves it in the page.</p></li><li><b>04</b><h3>Analyze the result</h3><p>Transient, AC and DC analysis, with cursors, FFT and PNG/CSV export in the Grapher.</p></li></ol></div></section>
