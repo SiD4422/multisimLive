@@ -68,6 +68,24 @@ export function AboutPage() {
 </div></section>
 <section id="story"><div class="wrap split"><div class="rv"><p class="eyebrow">Our Story</p><h2>Built by Engineers, for Engineers.</h2><p class="sub">Traditional circuit simulators are powerful, but they often come with installation, complex setup, desktop environments, or licensing. NodeSim explores a simpler approach.</p></div>
 <ol class="stepper rv" style="--d:.1s"><li><b>01</b><h3>Open the browser</h3><p>No installation. No account needed.</p></li><li><b>02</b><h3>Build the circuit</h3><p>Drag components from the library onto the schematic canvas.</p></li><li><b>03</b><h3>Run the simulation</h3><p>ngspice, compiled to WebAssembly, solves it in the page.</p></li><li><b>04</b><h3>Analyze the result</h3><p>Transient, AC and DC analysis, with cursors, FFT and PNG/CSV export in the Grapher.</p></li></ol></div></section>
+<section class="alt" id="mentorship">
+<div class="wrap">
+<div class="rv" style="text-align: center;">
+<p class="eyebrow">Mentorship &amp; Guidance</p>
+<h2>Project Advisory Board.</h2>
+<p class="sub" style="margin-inline: auto;">NodeSim was built independently, but its foundation relies on the strong academic and technical guidance of our mentors.</p>
+</div>
+<div class="cards" style="margin-top: 56px; justify-content: center; display: flex;">
+<article class="card spot rv" style="max-width: 400px; text-align: center; padding: 48px 32px; display: flex; flex-direction: column; alignItems: center;">
+<div style="width: 80px; height: 80px; border-radius: 50%; background: var(--green); margin: 0 auto 24px; display: grid; place-items: center; color: var(--forest-950); font-size: 32px; font-weight: 700; letter-spacing: -1px;">US</div>
+<h3 style="font-size: 24px; margin-bottom: 8px;">Prof. Usha S</h3>
+<p style="color: var(--green); font-weight: 700; margin-bottom: 16px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em;">Technical Advisor &amp; Mentor</p>
+<p style="font-size: 15px; color: var(--mu); line-height: 1.6; margin: 0;">Providing invaluable guidance, technical review, and academic mentorship to ensure NodeSim meets the highest standards of engineering education.</p>
+</article>
+</div>
+</div>
+</section>
+
 <section class="alt" id="tour"><div class="wrap"><div class="rv"><p class="eyebrow">The product</p><h2>Real circuits. Real results. In a tab.</h2><p class="sub">Everything below is the live NodeSim interface — not a mock-up.</p></div>
 <div class="bento"><article class="tile spot t1 rv"><div class="im"><img src="assets/converter.jpg" alt="NodeSim schematic of the SS-HSIC-ECGC converter with node voltage overlays" width="1200" height="800"></div><div class="tx"><h3>Schematic and simulation</h3><p>Draw circuits on a schematic canvas and run them. Node voltages are overlaid on the wires (SS-HSIC-ECGC converter, t = 7.739 ms).</p></div></article><article class="tile spot t2 rv"><div class="im"><img src="assets/tile-grapher.jpg" alt="NodeSim Grapher with transient traces and a readout" width="1200" height="800" loading="lazy"></div><div class="tx"><h3>Grapher</h3><p>Transient analysis with cursor readouts, FFT, scope and digital views, and PNG and CSV export.</p></div></article><article class="tile spot t3 rv"><div class="im"><img src="assets/tile-ai.jpg" alt="NodeSim AI Circuit Debugger panel" width="1200" height="800" loading="lazy"></div><div class="tx"><h3>AI Circuit Debugger</h3><p>Diagnose, Chat and Explain. The netlist goes to Google Gemini; the API key stays local.</p></div></article><article class="tile spot t4 rv"><div class="im"><img src="assets/tile-library.jpg" alt="NodeSim Circuit Library with search, filters and circuit cards" width="1200" height="800" loading="lazy"></div><div class="tx"><h3>Circuit Library</h3><p>Simulation-ready circuits — filters, rectifiers, amplifiers, switching, sources — that open in the simulator.</p></div></article><article class="tile spot t5 rv"><div class="im"><img src="assets/tile-publish.jpg" alt="NodeSim Publish to Gallery dialog" width="1200" height="800" loading="lazy"></div><div class="tx"><h3>Publish to Gallery</h3><p>Share a circuit publicly with the NodeSim community.</p></div></article></div></div></section>
 <section id="mission"><div class="wrap"><div class="cards">
