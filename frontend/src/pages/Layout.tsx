@@ -72,40 +72,49 @@ export default function Layout() {
                 </svg>
               </span>
               <div className="learn-dropdown-menu" style={dropdownMenuStyle}>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                {/* Community */}
+                <div className="dd-section-head">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
                   Community
                 </div>
-                <a href="https://www.youtube.com/@NODESIM-simulation" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">YouTube Channel</a>
-                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Inspiration
-                </div>
-                <Link to="/showcase" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Video Showcase</Link>
-                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <a href="https://www.youtube.com/@NODESIM-simulation" target="_blank" rel="noopener noreferrer" className="dd-item">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="#ef4444"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.54C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon fill="white" points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+                  YouTube Channel
+                  <span className="dd-yt-pill">NEW</span>
+                </a>
+                <hr className="dd-divider"/>
+                {/* Tutorials */}
+                <div className="dd-section-head">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/></svg>
                   Tutorials
                 </div>
-                <Link to="/tutorials/rc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RC Circuit</Link>
-                <Link to="/tutorials/op-amp" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Op-Amp Amplifier</Link>
-                <Link to="/tutorials/555-timer" style={{ display:'block', padding:'7px 16px', color:'#c8d8ce', fontSize:'13px', textDecoration:'none' }} className="dropdown-item">555 Timer</Link><Link to="/tutorials/transistor-amplifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Transistor Amplifier</Link>
-                <Link to="/tutorials/rlc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RLC Circuit</Link>
-                <Link to="/tutorials/diode-rectifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Diode Rectifier</Link>
-                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <Link to="/showcase"  className={`dd-item ${pathname === '/showcase' ? 'active' : ''}`}>↗ Video Showcase</Link>
+                <Link to="/tutorials/rc-circuit" className={`dd-item ${pathname === '/tutorials/rc-circuit' ? 'active' : ''}`}>RC Circuit</Link>
+                <Link to="/tutorials/op-amp" className={`dd-item ${pathname === '/tutorials/op-amp' ? 'active' : ''}`}>Op-Amp Amplifier</Link>
+                <Link to="/tutorials/555-timer" className={`dd-item ${pathname === '/tutorials/555-timer' ? 'active' : ''}`}>555 Timer</Link>
+                <Link to="/tutorials/transistor-amplifier" className={`dd-item ${pathname === '/tutorials/transistor-amplifier' ? 'active' : ''}`}>Transistor Amplifier</Link>
+                <Link to="/tutorials/rlc-circuit" className={`dd-item ${pathname === '/tutorials/rlc-circuit' ? 'active' : ''}`}>RLC Circuit</Link>
+                <Link to="/tutorials/diode-rectifier" className={`dd-item ${pathname === '/tutorials/diode-rectifier' ? 'active' : ''}`}>Diode Rectifier</Link>
+                <hr className="dd-divider"/>
+                {/* Comparisons */}
+                <div className="dd-section-head">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 3h5v5M8 21H3v-5M21 3l-7 7M3 21l7-7"/></svg>
                   Comparisons
                 </div>
-                <Link to="/compare/ltspice" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs LTspice</Link>
-                <Link to="/compare/falstad" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Falstad</Link>
-                <Link to="/compare/multisim" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Multisim</Link>
-                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <Link to="/compare/ltspice" className={`dd-item ${pathname === '/compare/ltspice' ? 'active' : ''}`}>NodeSim vs LTspice</Link>
+                <Link to="/compare/falstad" className={`dd-item ${pathname === '/compare/falstad' ? 'active' : ''}`}>NodeSim vs Falstad</Link>
+                <Link to="/compare/multisim" className={`dd-item ${pathname === '/compare/multisim' ? 'active' : ''}`}>NodeSim vs Multisim</Link>
+                <hr className="dd-divider"/>
+                {/* Free Calculators */}
+                <div className="dd-section-head">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="8" y1="14" x2="8" y2="18"/></svg>
                   Free Calculators
                 </div>
-                <Link to="/tools/ohms-law" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Ohm's Law Calculator</Link>
-                <Link to="/tools/voltage-divider" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Voltage Divider</Link>
-                <Link to="/tools/rc-calculator" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RC Calculator</Link>
-                <Link to="/tools/555-timer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">555 Timer</Link>
-                <Link to="/tools/resistor-color-code" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Resistor Color Code</Link>
+                <Link to="/tools/ohms-law" className={`dd-item ${pathname === '/tools/ohms-law' ? 'active' : ''}`}>Ohm's Law (V = IR)</Link>
+                <Link to="/tools/voltage-divider" className={`dd-item ${pathname === '/tools/voltage-divider' ? 'active' : ''}`}>Voltage Divider</Link>
+                <Link to="/tools/rc-calculator" className={`dd-item ${pathname === '/tools/rc-calculator' ? 'active' : ''}`}>RC Calculator</Link>
+                <Link to="/tools/555-timer" className={`dd-item ${pathname === '/tools/555-timer' ? 'active' : ''}`}>555 Timer Calc</Link>
+                <Link to="/tools/resistor-color-code" className={`dd-item ${pathname === '/tools/resistor-color-code' ? 'active' : ''}`}>Resistor Color Code</Link>
               </div>
             </div>
           </nav>

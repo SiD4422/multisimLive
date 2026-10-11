@@ -304,6 +304,78 @@ div:hover > .lp-learn-menu,
 div:focus-within > .lp-learn-menu { display: block !important; }
 
 
+
+/* ===== Learn Dropdown Polish (NO structural changes) ===== */
+/* Fade-in animation */
+@keyframes dropFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.learn-dropdown-menu {
+  animation: dropFadeIn 0.15s ease forwards;
+}
+
+/* Section headings */
+.learn-dropdown-menu .dd-section-head {
+  padding: 8px 16px 4px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #4ade80;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Dividers */
+.learn-dropdown-menu .dd-divider {
+  margin: 4px 14px;
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+/* Individual items */
+.learn-dropdown-menu .dd-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px;
+  color: #b8cfc8;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 7px;
+  margin: 1px 6px;
+  transition: background 0.13s ease, color 0.13s ease;
+  cursor: pointer;
+}
+
+.learn-dropdown-menu .dd-item:hover {
+  background: rgba(255,255,255,0.07);
+  color: #ffffff;
+}
+
+/* Active item */
+.learn-dropdown-menu .dd-item.active {
+  color: #4ade80;
+  background: rgba(74,222,128,0.08);
+}
+
+/* YouTube special pill */
+.learn-dropdown-menu .dd-yt-pill {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(239,68,68,0.18);
+  color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.35);
+  margin-left: auto;
+  letter-spacing: 0.04em;
+}
+
 /* Dark Header overrides for About and Showcase pages */
 .landing-page-dark {
   background: #060a08 !important;
