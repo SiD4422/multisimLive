@@ -30,7 +30,7 @@ export default function Layout() {
   const isDarkPage = pathname === '/about' || pathname === '/showcase' || pathname.startsWith('/showcase');
 
   return (
-    <div className="landing-page">
+    <div className={`landing-page ${isDarkPage ? 'landing-page-dark' : ''}`} style={isDarkPage ? { background: '#060a08', color: '#eef3f0' } : undefined}>
 
       {/* ─── NAVBAR: matches LandingPage exactly ─── */}
       <header className={`msl-site-header ${isDarkPage ? 'msl-header-dark' : ''}`}>
@@ -75,7 +75,7 @@ export default function Layout() {
                 <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Community
                 </div>
-                <a href="#" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">YouTube Channel</a>
+                <a href="https://www.youtube.com/@NODESIM-simulation" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">YouTube Channel</a>
                 <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
                 <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Inspiration
@@ -201,7 +201,7 @@ export default function Layout() {
             <li><Link to="/compare">Comparisons</Link></li>
             <li><Link to="/resources">Resources</Link></li>
             <li><a href="https://github.com/SiD4422/multisimLive" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-            <li><a href="#" target="_blank" rel="noopener noreferrer">YouTube</a></li>
+            <li><a href="https://www.youtube.com/@NODESIM-simulation" target="_blank" rel="noopener noreferrer">YouTube</a></li>
           </ul>
           <p>&copy; {new Date().getFullYear()} NodeSim. Open source under the MIT License.</p>
         </div>

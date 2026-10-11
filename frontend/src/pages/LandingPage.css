@@ -305,9 +305,20 @@ div:focus-within > .lp-learn-menu { display: block !important; }
 
 
 /* Dark Header overrides for About and Showcase pages */
+.landing-page-dark {
+  background: #060a08 !important;
+  color: #eef3f0 !important;
+  min-height: 100vh;
+}
+.landing-page-dark .msl-site-footer {
+  background: #060a08 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
 .msl-header-dark {
-  background: rgba(6, 10, 8, 0.72) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  background: #060a08 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 .msl-header-dark .msl-nav-links a,
 .msl-header-dark .msl-nav-links span {
