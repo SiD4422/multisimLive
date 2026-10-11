@@ -81,15 +81,7 @@
   html[data-theme="dark"] .theme-toggle .icon-sun{display:block;}
 
   /* ---------- Header ---------- */
-  .msl-site-header {
-    position: sticky;
-    top: 0;
-    z-index: 99999 !important;
-    background: var(--header-bg);
-    backdrop-filter: saturate(160%) blur(12px);
-    -webkit-backdrop-filter: saturate(160%) blur(12px);
-    border-bottom: 1px solid var(--line);
-  }
+  .msl-site-header{position:sticky;top:0;z-index:80;background:var(--header-bg);backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--line);}
   .msl-nav-row{display:flex;align-items:center;gap:20px;height:76px;}
   .msl-brand{display:flex;align-items:center;gap:11px;flex:none;}
   .brand-mark{width:32px;height:32px;flex:none;}
@@ -135,7 +127,7 @@
   }
 
   /* ---------- Hero ---------- */
-  .msl-hero{position:relative;z-index:1;padding:20px 0 48px;overflow:hidden;
+  .msl-hero{position:relative;padding:20px 0 48px;overflow:hidden;
     background:
       radial-gradient(1100px 620px at 12% -12%, rgba(15,169,104,.09), transparent 60%),
       radial-gradient(820px 520px at 104% 6%, rgba(15,169,104,.07), transparent 55%),
@@ -346,14 +338,20 @@ div:focus-within > .lp-learn-menu { display: block !important; }
 
 /* ==================== LEARN MEGA MENU ==================== */
 .learn-dropdown-parent {
-    position: relative;
-    display: inline-block;
-    padding-bottom: 14px;
-    z-index: 100000 !important;
-  }
+  position: relative;
+  display: inline-block;
+  padding-bottom: 14px; /* Extends hover hitbox */
+}
 
 .learn-dropdown-parent:hover .msl-mega-menu,
 .learn-dropdown-parent:focus-within .msl-mega-menu {
+  display: grid !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateX(-50%) translateY(0) !important;
+}
+
+.msl-mega-menu {
   display: none;
   opacity: 0;
   visibility: hidden;
@@ -362,14 +360,14 @@ div:focus-within > .lp-learn-menu { display: block !important; }
   left: 50%;
   transform: translateX(-50%) translateY(6px);
   width: 740px;
-  background: #08120c !important;
-  border: 1px solid rgba(52, 224, 142, 0.25);
+  background: #08120c;
+  border: 1px solid rgba(52, 224, 142, 0.2);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.04);
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
-  z-index: 100001 !important;
+  z-index: 1000;
   transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
   text-align: left;
 }
