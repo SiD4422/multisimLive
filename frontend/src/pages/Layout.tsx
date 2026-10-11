@@ -71,43 +71,111 @@ export default function Layout() {
                   <path d="M6 9l6 6 6-6"/>
                 </svg>
               </span>
-              <div className="learn-dropdown-menu" style={dropdownMenuStyle}>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Community
+              
+                <div className="msl-mega-menu">
+                  {/* Column 1: Tutorials */}
+                  <div className="mega-col">
+                    <div className="mega-col-header">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+                      Tutorials &amp; Guides
+                    </div>
+                    <Link to="/tutorials/rc-circuit" className="mega-link">
+                      <div className="mega-link-title">RC Low-Pass Filter</div>
+                      <div className="mega-link-desc">Step response, cutoff frequency &amp; time constant</div>
+                    </Link>
+                    <Link to="/tutorials/op-amp" className="mega-link">
+                      <div className="mega-link-title">Inverting Op-Amp</div>
+                      <div className="mega-link-desc">Virtual ground, feedback loop &amp; gain analysis</div>
+                    </Link>
+                    <Link to="/tutorials/555-timer" className="mega-link">
+                      <div className="mega-link-title">555 Timer Astable</div>
+                      <div className="mega-link-desc">Square wave generation, duty cycle &amp; timing</div>
+                    </Link>
+                    <Link to="/tutorials/transistor-amplifier" className="mega-link">
+                      <div className="mega-link-title">Common Emitter BJT</div>
+                      <div className="mega-link-desc">Q-point biasing, AC amplification &amp; clipping</div>
+                    </Link>
+                    <Link to="/tutorials/rlc-circuit" className="mega-link">
+                      <div className="mega-link-title">RLC Resonance</div>
+                      <div className="mega-link-desc">Bandwidth, damping factor &amp; Q-factor curves</div>
+                    </Link>
+                    <Link to="/tutorials" className="mega-all-link">
+                      Explore All Tutorials →
+                    </Link>
+                  </div>
+
+                  {/* Column 2: Free Calculators */}
+                  <div className="mega-col">
+                    <div className="mega-col-header">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="14.01"/><line x1="12" y1="14" x2="12" y2="14.01"/><line x1="8" y1="14" x2="8" y2="14.01"/><line x1="16" y1="18" x2="16" y2="18.01"/><line x1="12" y1="18" x2="12" y2="18.01"/><line x1="8" y1="18" x2="8" y2="18.01"/></svg>
+                      Interactive Tools
+                    </div>
+                    <Link to="/tools/ohms-law" className="mega-link">
+                      <div className="mega-link-title">Ohm's Law (V = IR)</div>
+                      <div className="mega-link-desc">Solve for voltage, current, or resistance</div>
+                    </Link>
+                    <Link to="/tools/voltage-divider" className="mega-link">
+                      <div className="mega-link-title">Voltage Divider</div>
+                      <div className="mega-link-desc">Dual resistor divider ratio &amp; output voltage</div>
+                    </Link>
+                    <Link to="/tools/rc-calculator" className="mega-link">
+                      <div className="mega-link-title">RC Time Constant</div>
+                      <div className="mega-link-desc">Tau (τ), cutoff frequency (fc) &amp; charge time</div>
+                    </Link>
+                    <Link to="/tools/555-timer" className="mega-link">
+                      <div className="mega-link-title">555 Frequency &amp; Duty</div>
+                      <div className="mega-link-desc">Oscillator frequency, Ton, Toff &amp; duty cycle</div>
+                    </Link>
+                    <Link to="/tools/resistor-color-code" className="mega-link">
+                      <div className="mega-link-title">Resistor Color Code</div>
+                      <div className="mega-link-desc">4-band color decoder with tolerance ranges</div>
+                    </Link>
+                    <Link to="/tools" className="mega-all-link">
+                      All Engineering Tools →
+                    </Link>
+                  </div>
+
+                  {/* Column 3: Community & Demos */}
+                  <div className="mega-col">
+                    <div className="mega-col-header">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+                      Community &amp; Demos
+                    </div>
+                    <a href="https://www.youtube.com/@NODESIM-simulation" target="_blank" rel="noopener noreferrer" className="mega-link">
+                      <div className="mega-link-title">
+                        <span>YouTube Channel</span>
+                        <span className="mega-badge-yt">NEW</span>
+                      </div>
+                      <div className="mega-link-desc">Video tutorials, lab walkthroughs &amp; demos</div>
+                    </a>
+                    <Link to="/showcase" className="mega-link">
+                      <div className="mega-link-title">Interactive Showcase</div>
+                      <div className="mega-link-desc">Animated canvas replays of real simulations</div>
+                    </Link>
+                    <Link to="/compare/ltspice" className="mega-link">
+                      <div className="mega-link-title">NodeSim vs LTspice</div>
+                      <div className="mega-link-desc">WebAssembly SPICE vs desktop traditional</div>
+                    </Link>
+                    <Link to="/compare/falstad" className="mega-link">
+                      <div className="mega-link-title">NodeSim vs Falstad</div>
+                      <div className="mega-link-desc">True ngspice accuracy vs idealized animation</div>
+                    </Link>
+                    <Link to="/compare/multisim" className="mega-link">
+                      <div className="mega-link-title">NodeSim vs NI Multisim</div>
+                      <div className="mega-link-desc">Free, open-access cloud alternative</div>
+                    </Link>
+                    <Link to="/compare" className="mega-all-link">
+                      View All Comparisons →
+                    </Link>
+                  </div>
+
+                  {/* Bottom Banner */}
+                  <div className="mega-footer-bar">
+                    <span>⚡ Real SPICE simulation directly in your browser — zero installation.</span>
+                    <Link to="/simulator">Launch Simulator →</Link>
+                  </div>
                 </div>
-                <a href="https://www.youtube.com/@NODESIM-simulation" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">YouTube Channel</a>
-                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Inspiration
-                </div>
-                <Link to="/showcase" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Video Showcase</Link>
-                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Tutorials
-                </div>
-                <Link to="/tutorials/rc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RC Circuit</Link>
-                <Link to="/tutorials/op-amp" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Op-Amp Amplifier</Link>
-                <Link to="/tutorials/555-timer" style={{ display:'block', padding:'7px 16px', color:'#c8d8ce', fontSize:'13px', textDecoration:'none' }} className="dropdown-item">555 Timer</Link><Link to="/tutorials/transistor-amplifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Transistor Amplifier</Link>
-                <Link to="/tutorials/rlc-circuit" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RLC Circuit</Link>
-                <Link to="/tutorials/diode-rectifier" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Diode Rectifier</Link>
-                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Comparisons
-                </div>
-                <Link to="/compare/ltspice" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs LTspice</Link>
-                <Link to="/compare/falstad" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Falstad</Link>
-                <Link to="/compare/multisim" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">NodeSim vs Multisim</Link>
-                <div style={{ margin: '6px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}/>
-                <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Free Calculators
-                </div>
-                <Link to="/tools/ohms-law" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Ohm's Law Calculator</Link>
-                <Link to="/tools/voltage-divider" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Voltage Divider</Link>
-                <Link to="/tools/rc-calculator" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">RC Calculator</Link>
-                <Link to="/tools/555-timer" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">555 Timer</Link>
-                <Link to="/tools/resistor-color-code" style={{ display: 'block', padding: '7px 16px', color: '#c8d8ce', fontSize: '13px', textDecoration: 'none' }} className="dropdown-item">Resistor Color Code</Link>
               </div>
-            </div>
           </nav>
 
           <div className="nav-actions">
