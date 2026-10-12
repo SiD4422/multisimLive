@@ -119,4 +119,105 @@ describe('api/gemini proxy', () => {
     expect(ok.status).toBe(200);
     expect((upstream.mock.calls.at(-1) as [string])[0]).toContain('alt=sse');
   });
+
+  describe('simple { prompt } contract (LabReportModal & Grapher)', () => {
+    it('forwards a simple prompt request and returns { result }', async () => {
+      upstream = vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            candidates: [{ content: { parts: [{ text: 'RC low pass filter attenuates high frequencies.' }] } }],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        )
+      );
+      globalThis.fetch = upstream as unknown as typeof fetch;
+
+      const res = await handler(
+        new Request('https://www.nodesimapp.com/api/gemini', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', origin: ORIGIN, 'x-real-ip': '10.0.0.100' },
+          body: JSON.stringify({ prompt: 'Explain an RC low pass filter' }),
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const json = await res.json() as { result?: string };
+      expect(json.result).toBe('RC low pass filter attenuates high frequencies.');
+
+      const [url, init] = upstream.mock.calls[0] as [string, RequestInit];
+      expect(url).toContain('/models/gemini-3.5-flash-lite:generateContent');
+      expect((init.headers as Record<string, string>)['x-goog-api-key']).toBe('test-key');
+
+      const sentBody = JSON.parse(init.body as string);
+      expect(sentBody.contents[0].parts[0].text).toBe('Explain an RC low pass filter');
+    });
+
+    it('rejects an empty prompt in simple mode without charging quota', async () => {
+      process.env.RATE_LIMIT_MAX = '1';
+      const ip = '192.0.2.88';
+
+      const invalid = await handler(
+        new Request('https://www.nodesimapp.com/api/gemini', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', origin: ORIGIN, 'x-real-ip': ip },
+          body: JSON.stringify({ prompt: '   ' }),
+        })
+      );
+      expect(invalid.status).toBe(400);
+      expect(upstream).not.toHaveBeenCalled();
+
+      // Subsequent valid request should still be within quota (limit = 1)
+      const valid = await handler(
+        new Request('https://www.nodesimapp.com/api/gemini', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', origin: ORIGIN, 'x-real-ip': ip },
+          body: JSON.stringify({ prompt: 'Valid prompt' }),
+        })
+      );
+      expect(valid.status).toBe(200);
+
+      // Next request should hit rate limit (429)
+      const rateLimited = await handler(
+        new Request('https://www.nodesimapp.com/api/gemini', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', origin: ORIGIN, 'x-real-ip': ip },
+          body: JSON.stringify({ prompt: 'Second valid prompt' }),
+        })
+      );
+      expect(rateLimited.status).toBe(429);
+    });
+
+    it('rejects untrusted origins in simple mode', async () => {
+      const res = await handler(
+        new Request('https://www.nodesimapp.com/api/gemini', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', origin: 'https://malicious.example' },
+          body: JSON.stringify({ prompt: 'Test' }),
+        })
+      );
+      expect(res.status).toBe(403);
+      expect(upstream).not.toHaveBeenCalled();
+    });
+
+    it('relays upstream errors with status code in simple mode', async () => {
+      upstream = vi.fn(async () =>
+        new Response(
+          JSON.stringify({ error: { message: 'Quota exceeded for project' } }),
+          { status: 429, headers: { 'Content-Type': 'application/json' } }
+        )
+      );
+      globalThis.fetch = upstream as unknown as typeof fetch;
+
+      const res = await handler(
+        new Request('https://www.nodesimapp.com/api/gemini', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', origin: ORIGIN, 'x-real-ip': '10.0.0.101' },
+          body: JSON.stringify({ prompt: 'Test' }),
+        })
+      );
+      expect(res.status).toBe(429);
+      const json = await res.json() as { error?: string };
+      expect(json.error).toBe('Quota exceeded for project');
+    });
+  });
 });
