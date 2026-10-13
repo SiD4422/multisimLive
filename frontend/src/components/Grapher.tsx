@@ -1137,7 +1137,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
   const chartAreaHeight = Math.max(0, containerSize.height - TOOLBAR_H);
 
   return (
-    <div ref={chartRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: '#fff' }}>
+    <div ref={chartRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: '#fff', display: 'flex', flexDirection: 'column' }}>
       {renderCursorPanel()}
 
       {showAiPanel && (
@@ -1150,7 +1150,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
       )}
 
       {/* Fixed-height toolbar at top */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: TOOLBAR_H, display: 'flex', alignItems: 'center', gap: 16, padding: '0 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', zIndex: 5 }}>
+      <div style={{ height: TOOLBAR_H, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 16, padding: '0 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', zIndex: 5 }}>
         {/* Analysis mode badge */}
         <div style={{ 
           display: 'flex', alignItems: 'center', gap: 4,
@@ -1218,7 +1218,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <button
             onClick={handleAiAnalyze}
-            title="Analyze waveform with AI"
+            title="Analyze waveform with Gemini AI"
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '4px 12px', borderRadius: 6,
@@ -1241,8 +1241,38 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
         </div>
       </div>
 
+      {formattedData.length > 0 && traces.length > 0 && (
+        <div style={{
+          display: 'flex', gap: 16, padding: '6px 16px',
+          background: '#0f172a', borderBottom: '1px solid #1e293b',
+          fontSize: 11, fontFamily: 'monospace', overflowX: 'auto',
+          flexShrink: 0,
+        }}>
+          {traces.slice(0, 4).map((trace, i) => {
+            const vals = formattedData.map(r => r[trace] as number).filter(v => typeof v === 'number' && isFinite(v));
+            if (!vals.length) return null;
+            const vmax = Math.max(...vals);
+            const vmin = Math.min(...vals);
+            const vpp = vmax - vmin;
+            const vrms = Math.sqrt(vals.reduce((s, v) => s + v * v, 0) / vals.length);
+            const fmt = (n: number) => Math.abs(n) >= 1 ? n.toFixed(3) : n.toExponential(2);
+            const color = COLORS[i % COLORS.length];
+            return (
+              <div key={trace} style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ color: '#64748b' }}>{formatTraceName(trace)}:</span>
+                <span style={{ color: '#10b981' }}>Vpp={fmt(vpp)}</span>
+                <span style={{ color: '#94a3b8' }}>max={fmt(vmax)}</span>
+                <span style={{ color: '#94a3b8' }}>min={fmt(vmin)}</span>
+                {plotType === 'transient' && <span style={{ color: '#f59e0b' }}>rms={fmt(vrms)}</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Chart area: positioned exactly below toolbar */}
-      <div style={{ position: 'absolute', top: TOOLBAR_H, left: 0, right: 0, bottom: 0 }}>
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, width: '100%' }}>
         {PlotComponent}
         <MeasurementsPanel data={formattedData} traces={traces} plotType={plotType} probeMap={probeMap} />
       </div>
