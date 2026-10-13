@@ -44,6 +44,9 @@ const DiodeHalfWaveRectifier = lazy(() => import('./pages/circuits/DiodeHalfWave
 const FullWaveRectifier = lazy(() => import('./pages/circuits/FullWaveRectifier'));
 const CommonEmitterAmplifier = lazy(() => import('./pages/circuits/CommonEmitterAmplifier'));
 const BuckConverter = lazy(() => import('./pages/circuits/BuckConverter'));
+const VoltageDividerCircuit = lazy(() => import('./pages/circuits/VoltageDividerCircuit'));
+const ZenerDiodeCircuit = lazy(() => import('./pages/circuits/ZenerDiodeCircuit'));
+const MosfetSwitchCircuit = lazy(() => import('./pages/circuits/MosfetSwitchCircuit'));
 
 import NotFound from './pages/NotFound';
 
@@ -106,6 +109,9 @@ function App() {
           <Route path="/circuits/full-wave-rectifier" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><FullWaveRectifier /></Suspense>} />
           <Route path="/circuits/common-emitter-amplifier" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><CommonEmitterAmplifier /></Suspense>} />
           <Route path="/circuits/buck-converter" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><BuckConverter /></Suspense>} />
+          <Route path="/circuits/voltage-divider" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><VoltageDividerCircuit /></Suspense>} />
+          <Route path="/circuits/zener-diode" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><ZenerDiodeCircuit /></Suspense>} />
+          <Route path="/circuits/mosfet-switch" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><MosfetSwitchCircuit /></Suspense>} />
           
           <Route path="/tools" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><ToolsIndex /></Suspense>} />
           <Route path="/tools/ohms-law" element={<Suspense fallback={<div style={{padding:'2rem'}}>Loading...</div>}><OhmsLawCalculator /></Suspense>} />
