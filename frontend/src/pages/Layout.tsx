@@ -30,7 +30,7 @@ export default function Layout() {
   const { pathname } = useLocation();
   const { theme, toggleTheme } = useTheme();
   const isLearnActive = pathname.startsWith('/tutorials') || pathname.startsWith('/compare');
-  const isDarkPage = pathname === '/about' || pathname === '/showcase' || pathname.startsWith('/showcase');
+  const isDarkPage = true; // All pages unify to dark emerald aesthetic
 
   return (
     <div className={`landing-page ${isDarkPage ? 'landing-page-dark' : ''}`} style={isDarkPage ? { background: '#060a08', color: '#eef3f0' } : undefined}>

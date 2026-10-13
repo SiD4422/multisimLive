@@ -3,14 +3,14 @@ import { BookOpen, FileText, PlayCircle, Code, ChevronRight, Download } from 'lu
 import { useNavigate } from 'react-router-dom';
 
 const C = {
-  bgApp: '#f9fafb',
-  bgCard: '#ffffff',
-  textPrimary: '#1f2937',
-  textSecondary: '#4b5563',
-  border: '#e5e7eb',
+  bgApp: '#060a08',
+  bgCard: '#0d1a12',
+  textPrimary: '#f1f5f9',
+  textSecondary: '#94a3b8',
+  border: 'rgba(255,255,255,0.08)',
   primary: '#16a34a',
   primaryHover: '#15803d',
-  primaryLight: '#dcfce7',
+  primaryLight: 'rgba(74,222,128,0.15)',
 };
 
 import SEO from '../components/SEO';
@@ -102,12 +102,12 @@ export default function ResourcesPage() {
             ].map((sheet, idx) => (
               <div key={idx} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '16px 20px', backgroundColor: '#fff', borderRadius: 12,
+                padding: '16px 20px', backgroundColor: '#0a140e', borderRadius: 12,
                 border: `1px solid ${C.border}`, cursor: 'pointer',
                 transition: 'box-shadow 0.2s, border-color 0.2s',
               }} onMouseEnter={e => e.currentTarget.style.borderColor = C.primary} onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
                 <div>
-                  <h4 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 600 }}>{sheet.title}</h4>
+                  <h4 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 600, color: C.textPrimary }}>{sheet.title}</h4>
                   <p style={{ margin: 0, color: C.textSecondary, fontSize: '0.9rem' }}>{sheet.desc}</p>
                 </div>
                 <Download size={20} color={C.primary} />
@@ -118,10 +118,10 @@ export default function ResourcesPage() {
 
         {/* SECTION: Video Tutorials */}
         <section style={{ marginBottom: '56px' }}>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '2rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '2rem', fontWeight: 700, color: C.textPrimary, marginBottom: '8px' }}>
             <PlayCircle color="#ef4444" size={32} /> Video Tutorials
           </h2>
-          <p style={{ color: '#64748b', marginBottom: '24px', fontSize: '15px' }}>Recommended YouTube channels and videos for learning circuit simulation.</p>
+          <p style={{ color: C.textSecondary, marginBottom: '24px', fontSize: '15px' }}>Recommended YouTube channels and videos for learning circuit simulation.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
             {[
               { title: 'The Organic Chemistry Tutor', desc: 'Clear explanations of RC, RL, RLC circuits, transistors, and op-amps.', url: 'https://www.youtube.com/@TheOrganicChemistryTutor', tag: 'Circuit Theory' },
@@ -134,15 +134,15 @@ export default function ResourcesPage() {
                 href={v.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', textDecoration: 'none', color: 'inherit', transition: 'border-color 0.2s' }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#0a140e', border: `1px solid ${C.border}`, borderRadius: '12px', padding: '20px', textDecoration: 'none', color: 'inherit', transition: 'border-color 0.2s' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ background: '#fef2f2', color: '#ef4444', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 }}>{v.tag}</span>
+                  <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 }}>{v.tag}</span>
                   <PlayCircle size={18} color="#ef4444" />
                 </div>
-                <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>{v.title}</div>
-                <div style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.6 }}>{v.desc}</div>
-                <div style={{ color: '#3b82f6', fontSize: '12px', fontWeight: 600 }}>Watch on YouTube →</div>
+                <div style={{ fontWeight: 700, fontSize: '15px', color: C.textPrimary }}>{v.title}</div>
+                <div style={{ fontSize: '13px', color: C.textSecondary, lineHeight: 1.6 }}>{v.desc}</div>
+                <div style={{ color: '#4ade80', fontSize: '12px', fontWeight: 600 }}>Watch on YouTube →</div>
               </a>
             ))}
           </div>

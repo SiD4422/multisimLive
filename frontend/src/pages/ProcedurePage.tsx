@@ -2,14 +2,14 @@ import { CheckCircle2, MousePointerClick, Play, Search, Crosshair } from 'lucide
 import { useNavigate } from 'react-router-dom';
 
 const C = {
-  bgApp: '#f9fafb',
-  bgCard: '#ffffff',
-  textPrimary: '#1f2937',
-  textSecondary: '#4b5563',
-  border: '#e5e7eb',
+  bgApp: '#060a08',
+  bgCard: '#0d1a12',
+  textPrimary: '#f1f5f9',
+  textSecondary: '#94a3b8',
+  border: 'rgba(255,255,255,0.08)',
   primary: '#16a34a',
   primaryHover: '#15803d',
-  primaryLight: '#dcfce7',
+  primaryLight: 'rgba(74,222,128,0.15)',
 };
 
 import SEO from '../components/SEO';
@@ -88,9 +88,9 @@ export default function ProcedurePage() {
                 <p style={{ color: C.textSecondary, fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '16px' }}>
                   To draw wires, simply <strong>click and drag</strong> from one component pin to another. You can also click in empty space to create wire corners.
                 </p>
-                <div style={{ backgroundColor: '#fef3c7', padding: '16px', borderRadius: '12px', border: '1px solid #fde68a' }}>
-                  <strong style={{ color: '#d97706', display: 'block', marginBottom: '8px' }}>CRITICAL STEP:</strong>
-                  <span style={{ color: '#92400e', fontSize: '1rem', lineHeight: 1.5 }}>
+                <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
+                  <strong style={{ color: '#fbbf24', display: 'block', marginBottom: '8px' }}>CRITICAL STEP:</strong>
+                  <span style={{ color: '#fde68a', fontSize: '1rem', lineHeight: 1.5 }}>
                     You <strong>MUST</strong> place a Ground component in your circuit! The SPICE mathematical engine requires a 0V reference node. Without a ground, your simulation will immediately fail with a "Singular Matrix" error.
                   </span>
                 </div>

@@ -175,7 +175,7 @@ export default function CircuitsPage() {
               placeholder="Search by name, component…"
               style={{
                 width: '100%', padding: '12px 16px 12px 46px',
-                backgroundColor: C.bgApp,
+                backgroundColor: '#0a140e',
                 border: `1px solid ${C.border}`,
                 borderRadius: 12, color: C.textPrimary, fontSize: 15,
                 outline: 'none', boxSizing: 'border-box',
@@ -210,7 +210,7 @@ export default function CircuitsPage() {
                     transform: isActive ? 'translateY(-1px)' : 'none',
                   }}
                   onMouseEnter={e => {
-                    if (!isActive) e.currentTarget.style.backgroundColor = C.bgApp;
+                    if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)';
                   }}
                   onMouseLeave={e => {
                     if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
@@ -225,18 +225,18 @@ export default function CircuitsPage() {
 
         {/* ── Grid ── */}
         {/* Tab Switcher */}
-        <div style={{ display: 'flex', gap: 0, background: '#f1f5f9', borderRadius: 10, padding: 4, marginBottom: 24, width: 'fit-content' }}>
+        <div style={{ display: 'flex', gap: 0, background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 4, marginBottom: 24, width: 'fit-content' }}>
           <button
             onClick={() => setActiveTab('featured')}
             style={{ padding: '8px 20px', borderRadius: 7, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
               background: activeTab === 'featured' ? '#16a34a' : 'transparent',
-              color: activeTab === 'featured' ? '#fff' : '#6b7280' }}
+              color: activeTab === 'featured' ? '#fff' : '#94a3b8' }}
           >⭐ Featured ({EXAMPLES.length})</button>
           <button
             onClick={() => setActiveTab('community')}
             style={{ padding: '8px 20px', borderRadius: 7, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
               background: activeTab === 'community' ? '#16a34a' : 'transparent',
-              color: activeTab === 'community' ? '#fff' : '#6b7280' }}
+              color: activeTab === 'community' ? '#fff' : '#94a3b8' }}
           >🌐 Community {communityCircuits.length > 0 ? `(${communityCircuits.length})` : ''}</button>
         </div>
 

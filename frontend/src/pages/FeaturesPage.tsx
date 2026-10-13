@@ -47,7 +47,7 @@ export default function FeaturesPage() {
           <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: 16, background: C.primaryLight, color: C.primary, marginBottom: 24 }}>
             <Zap size={32} />
           </div>
-          <h1 style={{ fontSize: '3.5rem', fontWeight: 800, margin: '0 0 20px', letterSpacing: '-1.5px', color: '#111827' }}>
+          <h1 style={{ fontSize: '3.5rem', fontWeight: 800, margin: '0 0 20px', letterSpacing: '-1.5px', color: '#f1f5f9' }}>
             Everything you need to<br />simulate, learn & build
           </h1>
           <p style={{ fontSize: '1.2rem', color: C.textSecondary, maxWidth: 680, margin: '0 auto 32px', lineHeight: 1.7 }}>
@@ -134,7 +134,7 @@ export default function FeaturesPage() {
             </p>
             <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {['Basic', 'Analog', 'Digital', 'Power', 'Sensors', 'ICs'].map(cat => (
-                <span key={cat} style={{ background: '#fef9c3', color: '#a16207', padding: '2px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>{cat}</span>
+                <span key={cat} style={{ background: 'rgba(255,255,255,0.06)', color: '#e2e8f0', padding: '2px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700 }}>{cat}</span>
               ))}
             </div>
           </div>
@@ -159,9 +159,9 @@ export default function FeaturesPage() {
               <h3 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: 12 }}>Smart Wire Routing</h3>
               <p style={{ color: C.textSecondary, lineHeight: 1.7, fontSize: '1.05rem' }}>Wires snap to grid, auto-route cleanly around components, and visually encode voltage via color heatmaps. The animated current flow overlay makes SPICE data tangible for visual learners.</p>
             </div>
-            <div style={{ flex: 1, background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', borderRadius: 16, minHeight: 160, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, border: '1px solid #bbf7d0' }}>
+            <div style={{ flex: 1, background: 'linear-gradient(135deg, #071e12, #0d321d)', borderRadius: 16, minHeight: 160, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, border: '1px solid rgba(74,222,128,0.25)' }}>
               <span style={{ fontSize: 36 }}>⚡</span>
-              <span style={{ color: '#15803d', fontWeight: 700, fontSize: 13 }}>Live Voltage + Current Animation</span>
+              <span style={{ color: '#4ade80', fontWeight: 700, fontSize: 13 }}>Live Voltage + Current Animation</span>
               <span style={{ color: '#6b7280', fontSize: 11 }}>After simulation, toggle "Flow" mode</span>
             </div>
           </div>
@@ -180,7 +180,7 @@ export default function FeaturesPage() {
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}>
             <div style={{ width: 48, height: 48, backgroundColor: '#e0f2fe', color: '#0284c7', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><FileCode size={24} /></div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 10 }}>Full SPICE Netlist Control</h3>
-            <p style={{ color: C.textSecondary, lineHeight: 1.7 }}>Import/export <code style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: 4, fontSize: '0.85em' }}>.cir</code> netlists, load custom SPICE <code style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: 4, fontSize: '0.85em' }}>.lib</code> model files for any manufacturer component, and view the raw SPICE netlist update live as you draw.</p>
+            <p style={{ color: C.textSecondary, lineHeight: 1.7 }}>Import/export <code style={{ background: 'rgba(255,255,255,0.08)', color: '#4ade80', padding: '1px 5px', borderRadius: 4, fontSize: '0.85em' }}>.cir</code> netlists, load custom SPICE <code style={{ background: 'rgba(255,255,255,0.08)', color: '#4ade80', padding: '1px 5px', borderRadius: 4, fontSize: '0.85em' }}>.lib</code> model files for any manufacturer component, and view the raw SPICE netlist update live as you draw.</p>
           </div>
 
           <div style={{ backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`, transition: 'transform 0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', cursor: 'default' }}
@@ -197,26 +197,26 @@ export default function FeaturesPage() {
         <div style={{ marginTop: 80 }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.primary, marginBottom: 10 }}>Honest Comparison</p>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.03em', margin: '0 0 10px' }}>NodeSim vs. The Alternatives</h2>
-            <p style={{ color: '#64748b', fontSize: '1rem', margin: 0 }}>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.03em', margin: '0 0 10px' }}>NodeSim vs. The Alternatives</h2>
+            <p style={{ color: '#94a3b8', fontSize: '1rem', margin: 0 }}>
               NI Multisim Live shut down on September 15, 2026. NodeSim is the open successor.
             </p>
           </div>
           <div style={{ overflowX: 'auto', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.07)', border: `1px solid ${C.border}`, maxWidth: 900, margin: '0 auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0d1a12' }}>
               <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                  <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</th>
+                <tr style={{ background: '#08120c', borderBottom: '2px solid rgba(255,255,255,0.1)' }}>
+                  <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</th>
                   <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: C.primary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>NodeSim <span style={{ background: '#dcfce7', color: '#15803d', borderRadius: 9999, padding: '2px 8px', fontSize: '0.7rem', marginLeft: 4 }}>Free</span></th>
-                  <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Falstad / CircuitLab</th>
+                  <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Falstad / CircuitLab</th>
                 </tr>
               </thead>
               <tbody>
                 {COMPARISON.map((row, i) => (
-                  <tr key={row.feature} style={{ borderBottom: i < COMPARISON.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                    <td style={{ padding: '13px 20px', fontWeight: 600, color: '#1e293b', fontSize: '0.92rem' }}>{row.feature}</td>
-                    <td style={{ padding: '13px 20px', fontSize: '0.92rem', fontWeight: row.usWin ? 500 : 400, background: row.usWin ? '#f0fdf4' : 'transparent' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: row.usWin ? '#15803d' : '#475569' }}>
+                  <tr key={row.feature} style={{ borderBottom: i < COMPARISON.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                    <td style={{ padding: '13px 20px', fontWeight: 600, color: '#e2e8f0', fontSize: '0.92rem' }}>{row.feature}</td>
+                    <td style={{ padding: '13px 20px', fontSize: '0.92rem', fontWeight: row.usWin ? 500 : 400, background: row.usWin ? 'rgba(74,222,128,0.06)' : 'transparent' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: row.usWin ? '#4ade80' : '#94a3b8' }}>
                         {row.usWin && <Check size={14} color="#16a34a" />}
                         {row.us}
                       </span>
