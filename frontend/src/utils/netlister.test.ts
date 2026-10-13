@@ -15,8 +15,8 @@ describe('parseSpiceToFloat', () => {
     expect(parseSpiceToFloat('100')).toBe(100);
     expect(parseSpiceToFloat('4.7k')).toBe(4700);
     expect(parseSpiceToFloat('2.2M')).toBe(2200000);
-    // expect(parseSpiceToFloat('1kOhm')).toBe(1000); // UI may handle this via match regex fallback
-    // expect(parseSpiceToFloat('1kohm')).toBe(1000);
+    expect(parseSpiceToFloat('1kOhm')).toBe(1000);
+    expect(parseSpiceToFloat('1kohm')).toBe(1000);
     expect(parseSpiceToFloat('0')).toBe(0);
     expect(parseSpiceToFloat('')).toBe(0);
   });

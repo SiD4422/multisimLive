@@ -14,7 +14,6 @@ import halfWaveRectifier    from '../examples/half_wave_rectifier.json';
 import invertingOpamp       from '../examples/inverting_opamp.json';
 import astable555           from '../examples/astable_555.json';
 import voltageDivider       from '../examples/voltage_divider.json';
-import voltageDividerFixed  from '../examples/voltage_divider_fixed.json';
 import lcBandpassFilter     from '../examples/lc_bandpass_filter.json';
 import zenerClipper         from '../examples/zener_clipper.json';
 import npnAmplifier         from '../examples/npn_amplifier.json';
@@ -227,18 +226,6 @@ const EXAMPLES = [
     Icon: Filter,
     accent: '#059669',
     data: voltageDivider,
-  },
-  {
-    id: 'c1_fixed',
-    name: 'Voltage Divider (Fixed)',
-    category: 'Power',
-    description: 'Perfectly wired resistive voltage divider, bypassing browser cache.',
-    analysis: 'DC Sweep', analysisColor: C.warning,
-    difficulty: 'Beginner',
-    components: ['2x Resistors', 'DC Source'],
-    Icon: Filter,
-    accent: '#059669',
-    data: voltageDividerFixed,
   },
 
   // ── SWITCHING ──────────────────────────────────────────────────
