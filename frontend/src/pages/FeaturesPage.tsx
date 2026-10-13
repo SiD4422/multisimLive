@@ -3,8 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
 
 const C = {
-  bgApp: '#f9fafb', bgCard: '#ffffff', textPrimary: '#1f2937', textSecondary: '#4b5563',
-  border: '#e5e7eb', primary: '#16a34a', primaryHover: '#15803d', primaryLight: '#dcfce7',
+  bgApp: '#060a08',
+  bgCard: '#0d1a12',
+  textPrimary: '#f1f5f9',
+  textSecondary: '#94a3b8',
+  border: 'rgba(255,255,255,0.08)',
+  primary: '#16a34a',
+  primaryHover: '#15803d',
+  primaryLight: 'rgba(74,222,128,0.15)',
 };
 
 const COMPARISON = [
@@ -127,7 +133,7 @@ export default function FeaturesPage() {
           <div style={{ backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`, transition: 'transform 0.2s, box-shadow 0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', cursor: 'default' }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}>
-            <div style={{ width: 48, height: 48, backgroundColor: '#fef3c7', color: '#d97706', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><Layers size={24} /></div>
+            <div style={{ width: 48, height: 48, backgroundColor: 'rgba(217, 119, 6, 0.15)', color: '#fbbf24', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><Layers size={24} /></div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 10 }}>85+ Component Library</h3>
             <p style={{ color: C.textSecondary, lineHeight: 1.7 }}>
               Resistors, capacitors, BJTs, MOSFETs, IGBTs, op-amps, logic gates, flip-flops, 555 timer, optocouplers, SCR thyristors, LDR, varistors, TVS diodes, varactors, voltage regulators (7805, 7809, AMS1117), and more — growing every week.
@@ -143,7 +149,7 @@ export default function FeaturesPage() {
           <div style={{ backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`, transition: 'transform 0.2s, box-shadow 0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', cursor: 'default' }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}>
-            <div style={{ width: 48, height: 48, backgroundColor: '#fce7f3', color: '#db2777', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><Users size={24} /></div>
+            <div style={{ width: 48, height: 48, backgroundColor: 'rgba(219, 39, 119, 0.15)', color: '#f472b6', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><Users size={24} /></div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 10 }}>Community Circuit Gallery</h3>
             <p style={{ color: C.textSecondary, lineHeight: 1.7 }}>
               Build something cool? Publish it to the community gallery with one click. Browse circuits shared by other engineers and students, open any of them in the simulator instantly — no download, no account needed.
@@ -167,10 +173,10 @@ export default function FeaturesPage() {
           </div>
 
           {/* Share + SPICE */}
-          <div style={{ backgroundColor: '#111827', color: '#fff', padding: '32px', borderRadius: 24, transition: 'transform 0.2s', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)', cursor: 'default' }}
+          <div style={{ backgroundColor: C.bgCard, color: '#fff', padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`, transition: 'transform 0.2s', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)', cursor: 'default' }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}>
-            <div style={{ width: 48, height: 48, backgroundColor: '#374151', color: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><Share2 size={24} /></div>
+            <div style={{ width: 48, height: 48, backgroundColor: 'rgba(255,255,255,0.08)', color: '#fff', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><Share2 size={24} /></div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: 10 }}>Share Anywhere</h3>
             <p style={{ color: '#9ca3af', lineHeight: 1.7 }}>Generate a compressed shareable link and share your exact circuit to WhatsApp, Twitter, or LinkedIn — anyone who opens it sees your circuit loaded instantly, no account needed.</p>
           </div>
@@ -178,7 +184,7 @@ export default function FeaturesPage() {
           <div style={{ backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`, transition: 'transform 0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', cursor: 'default' }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}>
-            <div style={{ width: 48, height: 48, backgroundColor: '#e0f2fe', color: '#0284c7', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><FileCode size={24} /></div>
+            <div style={{ width: 48, height: 48, backgroundColor: 'rgba(2, 132, 199, 0.15)', color: '#38bdf8', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><FileCode size={24} /></div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 10 }}>Full SPICE Netlist Control</h3>
             <p style={{ color: C.textSecondary, lineHeight: 1.7 }}>Import/export <code style={{ background: 'rgba(255,255,255,0.08)', color: '#4ade80', padding: '1px 5px', borderRadius: 4, fontSize: '0.85em' }}>.cir</code> netlists, load custom SPICE <code style={{ background: 'rgba(255,255,255,0.08)', color: '#4ade80', padding: '1px 5px', borderRadius: 4, fontSize: '0.85em' }}>.lib</code> model files for any manufacturer component, and view the raw SPICE netlist update live as you draw.</p>
           </div>
@@ -186,7 +192,7 @@ export default function FeaturesPage() {
           <div style={{ backgroundColor: C.bgCard, padding: '32px', borderRadius: 24, border: `1px solid ${C.border}`, transition: 'transform 0.2s', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', cursor: 'default' }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}>
-            <div style={{ width: 48, height: 48, backgroundColor: '#f3e8ff', color: '#9333ea', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><LineChart size={24} /></div>
+            <div style={{ width: 48, height: 48, backgroundColor: 'rgba(147, 51, 234, 0.15)', color: '#c084fc', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><LineChart size={24} /></div>
             <h3 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 10 }}>Live Oscilloscope Grapher</h3>
             <p style={{ color: C.textSecondary, lineHeight: 1.7 }}>Oscilloscope-style waveform viewer with measurement cursors. Plot multiple channels, zoom in on glitches, export as PNG or CSV — all in the browser with zero plugins.</p>
           </div>

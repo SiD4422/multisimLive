@@ -26,19 +26,18 @@ import commonEmitter        from '../examples/common_emitter.json';
 import hybridSwitchedInductor from '../examples/hybrid_switched_inductor.json';
 import comparatorCircuit    from '../examples/comparator_circuit.json';
 
-// Site Light Theme Palette
+// Site Dark Emerald Palette
 const C = {
-  bgApp: '#f9fafb',        // Page bg
-  bgCard: '#ffffff',       // Card bg
-  textPrimary: '#1f2937',  // Main text
-  textSecondary: '#4b5563',// Subtitles
-  textMuted: '#9ca3af',    // Muted
-  border: '#e5e7eb',       // Subtle borders
+  bgApp: '#060a08',
+  bgCard: '#0d1a12',
+  textPrimary: '#f1f5f9',
+  textSecondary: '#94a3b8',
+  textMuted: '#64748b',
+  border: 'rgba(255,255,255,0.08)',
   
-  // Accents matching the site's Green theme (#15803d, #16a34a)
   primary: '#16a34a',
   primaryHover: '#15803d',
-  primaryLight: '#dcfce7',
+  primaryLight: 'rgba(74,222,128,0.15)',
   
   // Specific Analysis Colors
   acSweep: '#0ea5e9',

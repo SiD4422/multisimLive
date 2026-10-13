@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { SimulationData, SimulationRow } from '../utils/spiceTypes';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { getSpiceNodeForPoint } from '../utils/netlister';
@@ -50,7 +50,7 @@ function formatTraceName(t: string): string {
 
   // AC sweep suffixes
   if (sl.endsWith('_db')) return formatTraceName(s.slice(0, -3)) + ' (dB)';
-  if (sl.endsWith('_phase')) return formatTraceName(s.slice(0, -6)) + ' Phase (Â°)';
+  if (sl.endsWith('_phase')) return formatTraceName(s.slice(0, -6)) + ' Phase (°)';
 
   // Axis keys
   if (sl === 'frequency' || sl === 'freq') return 'Frequency (Hz)';
@@ -81,7 +81,7 @@ function fmtNum(value: number): string {
 
 function getYAxisLabel(traces: string[], isAcMagnitude: boolean = false, isAcPhase: boolean = false): string {
   if (isAcMagnitude) return 'Magnitude (dB)';
-  if (isAcPhase) return 'Phase (Â°)';
+  if (isAcPhase) return 'Phase (°)';
   const hasV = traces.some(t => t.toLowerCase().startsWith('v('));
   const hasI = traces.some(t => t.toLowerCase().startsWith('i('));
   if (hasV && hasI) return 'Value';
@@ -269,7 +269,7 @@ const ErrorView = ({ error }: { error: string }) => {
             <ul style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: 0, padding: 0, listStyle: 'none' }}>
               {smart.hints.map((hint, i) => (
                 <li key={i} style={{ fontSize: 14, color: '#78350f', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <span style={{ marginTop: 2, flexShrink: 0 }}>â€¢</span>
+                  <span style={{ marginTop: 2, flexShrink: 0 }}>•</span>
                   <span>{hint}</span>
                 </li>
               ))}
@@ -311,7 +311,7 @@ const ErrorView = ({ error }: { error: string }) => {
           onClick={() => setShowRaw(!showRaw)}
           style={{ fontSize: 12, color: '#9ca3af', textDecoration: 'underline', textAlign: 'left', marginBottom: 8, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
         >
-          {showRaw ? 'â–² Hide raw ngspice output' : 'â–¼ Show raw ngspice output'}
+          {showRaw ? '▲ Hide raw ngspice output' : '▼ Show raw ngspice output'}
         </button>
         {showRaw && (
           <div style={{ background: '#111827', borderRadius: 8, padding: 12, overflowX: 'auto' }}>
@@ -542,16 +542,16 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
 
       {/* Phase chart - bottom half */}
       <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, bottom: 0 }}>
-        <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: 48, paddingBottom: 4, color: isOscilloscope ? '#22c55e' : '#6b7280', margin: 0 }}>Phase (Â°)</p>
+        <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: 48, paddingBottom: 4, color: isOscilloscope ? '#22c55e' : '#6b7280', margin: 0 }}>Phase (°)</p>
         <div style={{ position: 'absolute', top: 20, left: 0, right: 0, bottom: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
           <LineChart {...commonChartProps}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             {commonXAxis}
-            <YAxis label={{ value: 'Phase (Â°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
+            <YAxis label={{ value: 'Phase (°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
             <Tooltip
               labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
-              formatter={(val: any, name: any) => [fmtNum(val as number) + 'Â°', name]}
+              formatter={(val: any, name: any) => [fmtNum(val as number) + '°', name]}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
@@ -916,8 +916,6 @@ export default function Grapher() {
     if (displayData.length === 0) return { traces: [], sweepKey: 'time' };
 
     const allKeys = Object.keys(displayData[0]);
-    console.log('GRAPHER DATA KEYS:', allKeys);
-    console.log('GRAPHER DATA [0]:', formattedData[0]);
 
     const plotType = (simulationBuffer as SimulationData)?.__plotType || 'transient';
 
@@ -1079,7 +1077,7 @@ export default function Grapher() {
               <th style={{ paddingRight: 8, fontWeight: 400, fontStyle: 'italic' }}>Signal</th>
               <th style={{ paddingRight: 8, color: '#ef4444' }}>A</th>
               <th style={{ paddingRight: 8, color: '#d946ef' }}>B</th>
-              <th style={{ fontWeight: 700 }}>Î”</th>
+              <th style={{ fontWeight: 700 }}>Δ</th>
             </tr>
           </thead>
           <tbody>
@@ -1197,9 +1195,9 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
           border: `1px solid ${plotType === 'ac' ? '#bfdbfe' : plotType === 'dc' ? '#fde68a' : '#bbf7d0'}`,
           borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700
         }}>
-          {plotType === 'ac' ? 'ã€œ AC Sweep' : plotType === 'dc' ? 'âŽ DC Sweep' : 'âš¡ Transient'}
+          {plotType === 'ac' ? '∿ AC Sweep' : plotType === 'dc' ? '⎓ DC Sweep' : '⚡ Transient'}
         </div>
-        {/* FFT toggle â€” only shown for transient */}
+        {/* FFT toggle — only shown for transient */}
         {plotType === 'transient' && (
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }} title="FFT Spectrum Analyzer">
             <div style={{ position: 'relative', width: 36, height: 20, flexShrink: 0 }}>
@@ -1231,13 +1229,13 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
             <div style={{ position: 'absolute', top: 2, left: isOscilloscope ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 4, color: isOscilloscope ? '#16a34a' : '#6b7280' }}>
-            <Activity size={13} /> Ã¢Ë†Â¿Scope
+            <Activity size={13} /> ∿ Scope
           </span>
         </label>
 
         <button
           onClick={() => setIsDigitalMode(d => !d)}
-          title="Digital Mode â€” snaps waveforms to HIGH/LOW"
+          title="Digital Mode — snaps waveforms to HIGH/LOW"
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
             padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,
