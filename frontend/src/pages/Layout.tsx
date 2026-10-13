@@ -16,11 +16,11 @@ const dropdownMenuStyle: React.CSSProperties = {
   transform: 'translateX(-50%)',
   background: '#0d2818',
   border: '1px solid rgba(255,255,255,0.12)',
-  borderRadius: '10px',
-  padding: '8px 0',
-  minWidth: '220px',
+  borderRadius: '12px',
+  padding: '6px 0',
+  minWidth: '260px',
   zIndex: 1000,
-  boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+  boxShadow: '0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)',
   marginTop: '0',
 };
 
