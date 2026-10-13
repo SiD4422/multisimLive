@@ -6,10 +6,12 @@ export function WelcomeTour() {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    // Only show once
+    // Only show once; suppressed by ?embed=true or ?notour=1
     const seen = localStorage.getItem('nodesim_tour_seen');
-    const isEmbed = new URLSearchParams(window.location.search).get('embed') === 'true';
-    if (!seen && !isEmbed) {
+    const params = new URLSearchParams(window.location.search);
+    const isEmbed = params.get('embed') === 'true';
+    const noTour = params.get('notour') === '1';
+    if (!seen && !isEmbed && !noTour) {
       setIsOpen(true);
     }
   }, []);
