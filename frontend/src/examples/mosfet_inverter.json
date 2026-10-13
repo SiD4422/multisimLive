@@ -1,0 +1,34 @@
+{
+  "id": "mosfet_inverter",
+  "name": "MOSFET Inverter",
+  "description": "NMOS transistor digital logic NOT gate with a 10kΩ pull-up resistor driven by a 0-5V 1kHz square wave",
+  "category": "Switching",
+  "tags": ["MOSFET", "NMOS", "inverter", "digital logic", "NOT gate", "transient"],
+  "components": [
+    { "id": "Vdd", "type": "DCSource", "position": { "x": 80, "y": 100 }, "value": "5V", "rotation": 90 },
+    { "id": "G1", "type": "Ground", "position": { "x": 80, "y": 190 }, "rotation": 0 },
+    { "id": "RD", "type": "Resistor", "position": { "x": 337, "y": 80 }, "value": "10k", "rotation": 90 },
+    { "id": "M1", "type": "MosfetN", "position": { "x": 280, "y": 250 }, "value": "2N7000", "rotation": 0 },
+    { "id": "G2", "type": "Ground", "position": { "x": 337, "y": 295 }, "rotation": 0 },
+    { "id": "Vin", "type": "ClockVoltage", "position": { "x": 80, "y": 250 }, "value": "5V", "rotation": 90 },
+    { "id": "G3", "type": "Ground", "position": { "x": 80, "y": 340 }, "rotation": 0 }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 80, "y": 100 }, { "x": 80, "y": 40 }, { "x": 337, "y": 40 }, { "x": 337, "y": 80 }] },
+    { "id": "W2", "points": [{ "x": 80, "y": 250 }, { "x": 280, "y": 250 }] },
+    { "id": "W3", "points": [{ "x": 337, "y": 170 }, { "x": 337, "y": 205 }] }
+  ],
+  "probes": [
+    { "id": "PRB_IN", "position": { "x": 80, "y": 250 }, "type": "Voltage" },
+    { "id": "PRB_OUT", "position": { "x": 337, "y": 205 }, "type": "Voltage" }
+  ],
+  "scale": 1,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": {
+    "endTime": "3m",
+    "step": "0.01m",
+    "stopTime": "3m",
+    "stepSize": "0.01m"
+  }
+}

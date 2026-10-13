@@ -29,6 +29,10 @@ import pnpAmplifier         from '../examples/pnp_amplifier.json';
 import voltageRegulator5V   from '../examples/voltage_regulator_5v.json';
 import schmittOscillator    from '../examples/schmitt_oscillator.json';
 import wienBridgeOscillator from '../examples/wien_bridge_oscillator.json';
+import bjtCommonBaseAmp       from '../examples/bjt_common_base_amp.json';
+import zenerVoltageRegulator  from '../examples/zener_voltage_regulator.json';
+import fullWaveBridgeRectifier from '../examples/full_wave_bridge_rectifier.json';
+import mosfetInverter         from '../examples/mosfet_inverter.json';
 
 // ── Palette (matches site CSS vars) ─────────────────────────────────────────
 const C = {
@@ -141,6 +145,16 @@ const EXAMPLES = [
     accent: '#be185d',
     data: transformerStepdown,
   },
+  {
+    id: 'full_wave_bridge', name: 'Full-Wave Bridge Rectifier', category: 'Rectifiers',
+    description: '4-diode bridge rectifier converting 12V 60Hz AC to smooth DC with a 1000µF capacitor.',
+    analysis: 'Transient', analysisColor: '#16a34a',
+    difficulty: 'Beginner',
+    components: ['4x Diodes', 'Capacitor', 'Resistor', 'AC Source'],
+    Icon: GitMerge,
+    accent: '#dc2626',
+    data: fullWaveBridgeRectifier,
+  },
 
   // ── AMPLIFIERS ─────────────────────────────────────────────────
   {
@@ -193,6 +207,16 @@ const EXAMPLES = [
     accent: '#8b5cf6',
     data: pnpAmplifier,
   },
+  {
+    id: 'cb_amp', name: 'Common-Base BJT Amp', category: 'Amplifiers',
+    description: 'NPN BJT in common-base configuration. Low input impedance and high frequency bandwidth.',
+    analysis: 'Transient', analysisColor: '#16a34a',
+    difficulty: 'Intermediate',
+    components: ['NPN BJT', 'Resistors', 'Capacitors', 'AC + DC'],
+    Icon: GitBranch,
+    accent: '#2563eb',
+    data: bjtCommonBaseAmp,
+  },
 
   // ── POWER ──────────────────────────────────────────────────────
   {
@@ -227,6 +251,16 @@ const EXAMPLES = [
     accent: '#059669',
     data: voltageDivider,
   },
+  {
+    id: 'zener_reg', name: 'Zener Voltage Regulator', category: 'Power',
+    description: '5.1V Zener shunt regulator maintaining stable load voltage across a 0–15V DC sweep.',
+    analysis: 'DC Sweep', analysisColor: C.warning,
+    difficulty: 'Beginner',
+    components: ['Zener Diode', 'Resistors', 'DC Source'],
+    Icon: Sliders,
+    accent: '#d97706',
+    data: zenerVoltageRegulator,
+  },
 
   // ── SWITCHING ──────────────────────────────────────────────────
   {
@@ -248,6 +282,16 @@ const EXAMPLES = [
     Icon: ToggleRight,
     accent: '#0284c7',
     data: mosfetSwitch,
+  },
+  {
+    id: 'mosfet_inv', name: 'MOSFET Inverter', category: 'Switching',
+    description: 'NMOS digital NOT gate with 10kΩ pull-up resistor driven by a 1kHz square wave.',
+    analysis: 'Transient', analysisColor: '#16a34a',
+    difficulty: 'Beginner',
+    components: ['N-MOSFET', 'Resistor', 'Clock Source'],
+    Icon: ToggleRight,
+    accent: '#0284c7',
+    data: mosfetInverter,
   },
 
   // ── SOURCES ────────────────────────────────────────────────────

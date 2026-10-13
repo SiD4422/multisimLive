@@ -1,0 +1,40 @@
+{
+  "id": "full_wave_bridge_rectifier",
+  "name": "Full-Wave Bridge Rectifier",
+  "description": "Full-wave AC to DC converter using 4 discrete diodes with a 1000µF smoothing filter capacitor driving a 100Ω resistive load",
+  "category": "Rectifiers",
+  "tags": ["rectifier", "diodes", "full-wave", "bridge rectifier", "power supply", "filtering"],
+  "components": [
+    { "id": "V1", "type": "ACSource", "position": { "x": 100, "y": 140 }, "value": "12V 60Hz", "rotation": 90 },
+    { "id": "D1", "type": "Diode", "position": { "x": 260, "y": 140 }, "value": "1N4007", "rotation": 270 },
+    { "id": "D2", "type": "Diode", "position": { "x": 260, "y": 320 }, "value": "1N4007", "rotation": 270 },
+    { "id": "D3", "type": "Diode", "position": { "x": 360, "y": 140 }, "value": "1N4007", "rotation": 270 },
+    { "id": "D4", "type": "Diode", "position": { "x": 360, "y": 320 }, "value": "1N4007", "rotation": 270 },
+    { "id": "G1", "type": "Ground", "position": { "x": 260, "y": 320 }, "rotation": 0 },
+    { "id": "C1", "type": "Capacitor", "position": { "x": 480, "y": 50 }, "value": "1000uF", "rotation": 90 },
+    { "id": "R1", "type": "Resistor", "position": { "x": 580, "y": 50 }, "value": "100", "rotation": 90 }
+  ],
+  "wires": [
+    { "id": "W_AC_HI", "points": [{ "x": 100, "y": 140 }, { "x": 260, "y": 140 }] },
+    { "id": "W_LEG1_MID", "points": [{ "x": 260, "y": 140 }, { "x": 260, "y": 230 }] },
+    { "id": "W_AC_LO", "points": [{ "x": 100, "y": 230 }, { "x": 360, "y": 230 }] },
+    { "id": "W_LEG2_MID", "points": [{ "x": 360, "y": 140 }, { "x": 360, "y": 230 }] },
+    { "id": "W_DC_POS", "points": [{ "x": 260, "y": 50 }, { "x": 360, "y": 50 }, { "x": 480, "y": 50 }, { "x": 580, "y": 50 }] },
+    { "id": "W_DC_NEG", "points": [{ "x": 260, "y": 320 }, { "x": 360, "y": 320 }, { "x": 480, "y": 320 }, { "x": 580, "y": 320 }] },
+    { "id": "W_C1_GND", "points": [{ "x": 480, "y": 140 }, { "x": 480, "y": 320 }] },
+    { "id": "W_R1_GND", "points": [{ "x": 580, "y": 140 }, { "x": 580, "y": 320 }] }
+  ],
+  "probes": [
+    { "id": "PRB_AC", "position": { "x": 100, "y": 140 }, "type": "Voltage" },
+    { "id": "PRB_DC", "position": { "x": 480, "y": 50 }, "type": "Voltage" }
+  ],
+  "scale": 1,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": {
+    "endTime": "50m",
+    "step": "0.1m",
+    "stopTime": "50m",
+    "stepSize": "0.1m"
+  }
+}

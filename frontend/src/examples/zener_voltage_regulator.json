@@ -1,0 +1,34 @@
+{
+  "id": "zener_voltage_regulator",
+  "name": "Zener Voltage Regulator",
+  "description": "DC voltage regulator using a 5.1V Zener diode with 470Ω series resistor and 1kΩ load, demonstrating voltage clamping across a 0-15V input sweep",
+  "category": "Power",
+  "tags": ["zener", "voltage regulator", "diode", "power", "DC sweep", "voltage reference"],
+  "components": [
+    { "id": "V1", "type": "DCSource", "position": { "x": 100, "y": 100 }, "value": "12V", "rotation": 90 },
+    { "id": "G1", "type": "Ground", "position": { "x": 100, "y": 190 }, "rotation": 0 },
+    { "id": "RS", "type": "Resistor", "position": { "x": 160, "y": 100 }, "value": "470", "rotation": 0 },
+    { "id": "D1", "type": "DiodeZener", "position": { "x": 300, "y": 190 }, "value": "5.1V", "rotation": 270 },
+    { "id": "G2", "type": "Ground", "position": { "x": 300, "y": 190 }, "rotation": 0 },
+    { "id": "RL", "type": "Resistor", "position": { "x": 400, "y": 100 }, "value": "1k", "rotation": 90 },
+    { "id": "G3", "type": "Ground", "position": { "x": 400, "y": 190 }, "rotation": 0 }
+  ],
+  "wires": [
+    { "id": "W1", "points": [{ "x": 100, "y": 100 }, { "x": 160, "y": 100 }] },
+    { "id": "W2", "points": [{ "x": 250, "y": 100 }, { "x": 300, "y": 100 }] },
+    { "id": "W3", "points": [{ "x": 300, "y": 100 }, { "x": 400, "y": 100 }] }
+  ],
+  "probes": [
+    { "id": "PRB1", "position": { "x": 100, "y": 100 }, "type": "Voltage" },
+    { "id": "PRB2", "position": { "x": 300, "y": 100 }, "type": "Voltage" }
+  ],
+  "scale": 1,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "dc",
+  "dcSettings": {
+    "source": "V_V1",
+    "start": "0",
+    "stop": "15",
+    "step": "0.1"
+  }
+}

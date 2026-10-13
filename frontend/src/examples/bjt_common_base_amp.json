@@ -1,0 +1,47 @@
+{
+  "id": "bjt_common_base_amp",
+  "name": "BJT Common Base Amplifier",
+  "description": "High-frequency NPN amplifier in common-base configuration with low input impedance and non-inverting voltage gain",
+  "category": "Amplifiers",
+  "tags": ["BJT", "amplifier", "transistor", "common-base", "RF"],
+  "components": [
+    { "id": "Vcc", "type": "DCSource", "position": { "x": 80, "y": 100 }, "value": "12V", "rotation": 90 },
+    { "id": "G_Vcc", "type": "Ground", "position": { "x": 80, "y": 190 }, "rotation": 0 },
+    { "id": "RC", "type": "Resistor", "position": { "x": 357, "y": 80 }, "value": "2k", "rotation": 90 },
+    { "id": "RB1", "type": "Resistor", "position": { "x": 240, "y": 120 }, "value": "39k", "rotation": 90 },
+    { "id": "RB2", "type": "Resistor", "position": { "x": 240, "y": 270 }, "value": "10k", "rotation": 90 },
+    { "id": "G_RB2", "type": "Ground", "position": { "x": 240, "y": 360 }, "rotation": 0 },
+    { "id": "CB", "type": "Capacitor", "position": { "x": 300, "y": 270 }, "value": "10uF", "rotation": 90 },
+    { "id": "G_CB", "type": "Ground", "position": { "x": 300, "y": 360 }, "rotation": 0 },
+    { "id": "Q1", "type": "TransistorNPN", "position": { "x": 300, "y": 250 }, "value": "2N3904", "rotation": 0 },
+    { "id": "RE", "type": "Resistor", "position": { "x": 357, "y": 340 }, "value": "500", "rotation": 90 },
+    { "id": "G_RE", "type": "Ground", "position": { "x": 357, "y": 430 }, "rotation": 0 },
+    { "id": "Vin", "type": "ACSource", "position": { "x": 80, "y": 295 }, "value": "10mV 1kHz", "rotation": 90 },
+    { "id": "G_Vin", "type": "Ground", "position": { "x": 80, "y": 385 }, "rotation": 0 },
+    { "id": "Cin", "type": "Capacitor", "position": { "x": 140, "y": 295 }, "value": "10uF", "rotation": 0 }
+  ],
+  "wires": [
+    { "id": "W_VCC_BUS", "points": [{ "x": 80, "y": 100 }, { "x": 80, "y": 40 }, { "x": 357, "y": 40 }, { "x": 357, "y": 80 }] },
+    { "id": "W_RB1_TOP", "points": [{ "x": 240, "y": 40 }, { "x": 240, "y": 120 }] },
+    { "id": "W_BASE_DIV", "points": [{ "x": 240, "y": 210 }, { "x": 240, "y": 250 }, { "x": 300, "y": 250 }] },
+    { "id": "W_RB2_TOP", "points": [{ "x": 240, "y": 250 }, { "x": 240, "y": 270 }] },
+    { "id": "W_CB_TOP", "points": [{ "x": 300, "y": 250 }, { "x": 300, "y": 270 }] },
+    { "id": "W_COLLECTOR", "points": [{ "x": 357, "y": 170 }, { "x": 357, "y": 205 }] },
+    { "id": "W_VIN_CIN", "points": [{ "x": 80, "y": 295 }, { "x": 140, "y": 295 }] },
+    { "id": "W_CIN_EMITTER", "points": [{ "x": 230, "y": 295 }, { "x": 357, "y": 295 }] },
+    { "id": "W_EMITTER_RE", "points": [{ "x": 357, "y": 295 }, { "x": 357, "y": 340 }] }
+  ],
+  "probes": [
+    { "id": "PRB_IN", "position": { "x": 80, "y": 295 }, "type": "Voltage" },
+    { "id": "PRB_OUT", "position": { "x": 357, "y": 205 }, "type": "Voltage" }
+  ],
+  "scale": 1,
+  "stagePos": { "x": 0, "y": 0 },
+  "analysisMode": "transient",
+  "transientSettings": {
+    "endTime": "5m",
+    "step": "0.01m",
+    "stopTime": "5m",
+    "stepSize": "0.01m"
+  }
+}
