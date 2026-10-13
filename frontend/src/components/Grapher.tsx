@@ -865,7 +865,10 @@ export default function Grapher() {
 
     // Transient
     const timeKey = 'time';
-    let valueKeys = allKeys.filter(k => k !== timeKey);
+    // Exclude internal engine/parser metadata keys (e.g. __parsedVars, __plotType).
+    // NC_* floating-node keys are intentionally kept — they surface wiring defects visibly.
+    const INTERNAL_METADATA_KEYS = /^__/;
+    let valueKeys = allKeys.filter(k => k !== timeKey && !INTERNAL_METADATA_KEYS.test(k));
 
     // Filter out internal SPICE sub-circuit nodes (e.g. x_u1.latch, x_u1.ref_lo)
     // These are implementation details the user never needs to see.

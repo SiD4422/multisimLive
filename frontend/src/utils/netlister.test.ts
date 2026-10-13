@@ -124,3 +124,45 @@ describe('Netlister DRC tests', () => {
     expect(netlist).toContain('R_R1');
   });
 });
+
+describe('Netlister semantic correctness', () => {
+  it('ACSource emits AC <amp> small-signal token for .ac analysis', () => {
+    const components: SchematicComponent[] = [
+      { id: 'V1', type: 'ACSource', value: '1Vpk 1kHz', position: { x: 0, y: 0 } },
+      { id: 'R1', type: 'Resistor', value: '1k', position: { x: 100, y: 0 } },
+      { id: 'GND1', type: 'Ground', position: { x: 200, y: 0 } },
+    ];
+    const wires: Wire[] = [
+      { id: 'w1', points: [{ x: 90, y: 0 }, { x: 100, y: 0 }] },
+      { id: 'w2', points: [{ x: 190, y: 0 }, { x: 200, y: 0 }] },
+      { id: 'w3', points: [{ x: 0, y: 0 }, { x: 0, y: 50 }, { x: 200, y: 50 }, { x: 200, y: 0 }] },
+    ];
+    const netlist = generateNetlist(components, wires, []);
+
+    // Must include AC <value> token before SINE(...)
+    expect(netlist).toMatch(/V_V1 \S+ \S+ AC \S+ SINE\(/);
+    // Must NOT be bare SINE-only (the pre-fix broken form)
+    expect(netlist).not.toMatch(/V_V1 \S+ \S+ SINE\(/);
+  });
+
+  it('VoltageRegulator7805 uses ngspice B-source, not PSpice VALUE={IF()}', () => {
+    const components: SchematicComponent[] = [
+      { id: 'U1', type: 'VoltageRegulator7805', position: { x: 0, y: 0 } },
+    ];
+    const netlist = generateNetlist(components, [], []);
+
+    // Must NOT contain PSpice-only syntax
+    expect(netlist).not.toContain('VALUE={IF(');
+    // Must contain ngspice B-source ternary
+    expect(netlist).toMatch(/B_reg OUT GND V=\(V\(IN,GND\)>7\) \? 5 : \(V\(IN,GND\)-2\)/);
+  });
+
+  it('ACCurrent already correctly emits AC token (regression guard)', () => {
+    const components: SchematicComponent[] = [
+      { id: 'I1', type: 'ACCurrent', value: '1Apk 1kHz', position: { x: 0, y: 0 } },
+    ];
+    const netlist = generateNetlist(components, [], []);
+    expect(netlist).toMatch(/I_I1 \S+ \S+ AC \S+ SINE\(/);
+  });
+});
+

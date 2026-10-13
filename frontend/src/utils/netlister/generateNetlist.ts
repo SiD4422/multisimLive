@@ -587,7 +587,7 @@ S_dis DIS GND dis_gate GND SMOD555
       const freqSpice = freqHz >= 1e6 ? `${(freqHz / 1e6).toFixed(3)}Meg`
                       : freqHz >= 1e3 ? `${(freqHz / 1e3).toFixed(3)}k`
                       : `${freqHz}`;
-      netlist += `V_${comp.id} ${nodes[0]} ${nodes[1]} SINE(0 ${amp} ${freqSpice})\n`;
+      netlist += `V_${comp.id} ${nodes[0]} ${nodes[1]} AC ${amp} SINE(0 ${amp} ${freqSpice})\n`;
     }
     else if (comp.type === 'ACCurrent') {
       const parts = (comp.value || "1Apk 1kHz").split(' ');
@@ -819,19 +819,19 @@ S_dis DIS GND dis_gate GND SMOD555
       
       if (val === 'VoltageRegulator7805') {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM7805_MODEL\n`;
-        models.add(`.SUBCKT LM7805_MODEL IN OUT GND\nE_reg OUT GND VALUE={IF(V(IN,GND)>7, 5, V(IN,GND)-2)}\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT LM7805_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>7) ? 5 : (V(IN,GND)-2)\nR_out OUT 0 10Meg\n.ENDS`);
       } else if (val === 'VoltageRegulator7812') {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM7812_MODEL\n`;
-        models.add(`.SUBCKT LM7812_MODEL IN OUT GND\nE_reg OUT GND VALUE={IF(V(IN,GND)>14, 12, V(IN,GND)-2)}\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT LM7812_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>14) ? 12 : (V(IN,GND)-2)\nR_out OUT 0 10Meg\n.ENDS`);
       } else if (val === 'VoltageRegulator7809') {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM7809_MODEL\n`;
-        models.add(`.SUBCKT LM7809_MODEL IN OUT GND\nE_reg OUT GND VALUE={IF(V(IN,GND)>11, 9, V(IN,GND)-2)}\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT LM7809_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>11) ? 9 : (V(IN,GND)-2)\nR_out OUT 0 10Meg\n.ENDS`);
       } else if (val === 'VoltageRegulatorAMS1117') {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} AMS1117_MODEL\n`;
-        models.add(`.SUBCKT AMS1117_MODEL IN OUT GND\nE_reg OUT GND VALUE={IF(V(IN,GND)>4.3, 3.3, V(IN,GND)-1)}\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT AMS1117_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>4.3) ? 3.3 : (V(IN,GND)-1)\nR_out OUT 0 10Meg\n.ENDS`);
       } else {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM317_MODEL\n`;
-        models.add(`.SUBCKT LM317_MODEL IN OUT ADJ\nE_reg OUT ADJ VALUE={IF(V(IN,ADJ)>3, 1.25, V(IN,ADJ)*0.4)}\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT LM317_MODEL IN OUT ADJ\nB_reg OUT ADJ V=(V(IN,ADJ)>3) ? 1.25 : (V(IN,ADJ)*0.4)\nR_out OUT 0 10Meg\n.ENDS`);
       }
     }
     else if (comp.type === 'BuckConverter') {
