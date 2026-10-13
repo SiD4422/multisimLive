@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 import './LandingPage.css';
 
 // Inline styles for the Learn dropdown
@@ -26,6 +28,7 @@ const dropdownMenuStyle: React.CSSProperties = {
 
 export default function Layout() {
   const { pathname } = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const isLearnActive = pathname.startsWith('/tutorials') || pathname.startsWith('/compare');
   const isDarkPage = pathname === '/about' || pathname === '/showcase' || pathname.startsWith('/showcase');
 
@@ -175,6 +178,13 @@ export default function Layout() {
             </div>
           </div>
           <div className="mp-actions">
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '6px 8px', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', marginRight: 8 }}
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
             <Link className="msl-btn msl-btn-primary" to="/simulator">Launch Simulator</Link>
           </div>
         </div>

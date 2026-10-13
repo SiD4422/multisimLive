@@ -168,6 +168,18 @@ function Simulator() {
   };
 
   const bootSource = useCircuitBoot();
+  // Load circuit from share URL hash: /simulator#circuit=<lz-encoded>
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#circuit=')) {
+      const encoded = hash.slice('#circuit='.length);
+      try {
+        const json = LZString.decompressFromEncodedURIComponent(encoded);
+        if (json) importState(json);
+      } catch { /* ignore malformed hashes */ }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   // Global Keyboard Shortcuts
   useEffect(() => {
