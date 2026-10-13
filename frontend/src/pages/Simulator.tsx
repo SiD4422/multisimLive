@@ -44,13 +44,13 @@ class GrapherErrorBoundary extends React.Component<{children: React.ReactNode}, 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-500 p-8">
-          <div className="text-4xl mb-4">⚠️</div>
-          <h3 className="text-lg font-bold text-red-600 mb-2">Grapher Error</h3>
-          <p className="text-sm text-center max-w-md text-gray-600 mb-4">{this.state.error}</p>
+        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', color: '#6b7280', padding: '2rem' }}>
+          <div style={{ fontSize: '2.25rem', marginBottom: '1rem' }}>⚠️</div>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#dc2626', marginBottom: '0.5rem' }}>Grapher Error</h3>
+          <p style={{ fontSize: '0.875rem', textAlign: 'center', maxWidth: '28rem', color: '#4b5563', marginBottom: '1rem' }}>{this.state.error}</p>
           <button
             onClick={() => this.setState({ hasError: false, error: '' })}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700"
+            style={{ background: '#16a34a', color: '#fff', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.875rem', fontWeight: 600, border: 'none', cursor: 'pointer' }}
           >
             Retry
           </button>
@@ -430,11 +430,20 @@ function Simulator() {
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[1000] px-4 py-3 rounded-lg shadow-xl border flex items-center gap-3 transition-all ${
-          toast.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-amber-50 border-amber-200 text-amber-800'
-        }`}>
-          {toast.type === 'success' ? <CheckCircle2 size={20} className="text-green-600" /> : <AlertTriangle size={20} className="text-amber-600" />}
-          <span className="font-medium">{toast.message}</span>
+        <div style={{
+          position: 'fixed', top: '1rem', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 1000, padding: '0.75rem 1rem', borderRadius: '0.5rem',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+          border: `1px solid ${toast.type === 'success' ? '#bbf7d0' : '#fde68a'}`,
+          background: toast.type === 'success' ? '#f0fdf4' : '#fffbeb',
+          color: toast.type === 'success' ? '#166534' : '#92400e',
+          display: 'flex', alignItems: 'center', gap: '0.75rem',
+          transition: 'all 0.2s',
+        }}>
+          {toast.type === 'success'
+            ? <CheckCircle2 size={20} style={{ color: '#16a34a' }} />
+            : <AlertTriangle size={20} style={{ color: '#d97706' }} />}
+          <span style={{ fontWeight: 500 }}>{toast.message}</span>
         </div>
       )}
 
@@ -616,16 +625,16 @@ function Simulator() {
               >
                 
                 <div className="floating-toolbar">
-                  <FileCode size={20} className="cursor-pointer hover:text-black" onClick={handleExportNetlist} />
+                  <FileCode size={20} style={{ cursor: 'pointer' }} onClick={handleExportNetlist} />
                   <div style={{ width: '1px', backgroundColor: '#e5e7eb', margin: '0 4px' }} />
-                  <Undo size={20} className={`cursor-pointer ${past.length > 0 ? 'hover:text-black' : 'opacity-30 cursor-not-allowed'}`} onClick={undo} />
-                  <Redo size={20} className={`cursor-pointer ${future.length > 0 ? 'hover:text-black' : 'opacity-30 cursor-not-allowed'}`} onClick={redo} />
+                  <Undo size={20} style={{ cursor: past.length > 0 ? 'pointer' : 'not-allowed', opacity: past.length > 0 ? 1 : 0.3 }} onClick={undo} />
+                  <Redo size={20} style={{ cursor: future.length > 0 ? 'pointer' : 'not-allowed', opacity: future.length > 0 ? 1 : 0.3 }} onClick={redo} />
                   <div style={{ width: '1px', backgroundColor: '#e5e7eb', margin: '0 4px' }} />
                   
                   {/* Zoom Controls */}
-                  <ZoomOut size={20} className="cursor-pointer hover:text-green-600 transition-colors" onClick={() => setScale(Math.max(0.5, scale - 0.1))} />
-                  <span className="text-sm font-semibold w-12 text-center select-none cursor-pointer hover:text-green-600 transition-colors" onClick={() => setScale(1)}>{Math.round(scale * 100)}%</span>
-                  <ZoomIn size={20} className="cursor-pointer hover:text-green-600 transition-colors" onClick={() => setScale(Math.min(2, scale + 0.1))} />
+                  <ZoomOut size={20} style={{ cursor: 'pointer' }} onClick={() => setScale(Math.max(0.5, scale - 0.1))} />
+                  <span style={{ fontSize: 14, fontWeight: 600, width: 48, textAlign: 'center', userSelect: 'none', cursor: 'pointer' }} onClick={() => setScale(1)}>{Math.round(scale * 100)}%</span>
+                  <ZoomIn size={20} style={{ cursor: 'pointer' }} onClick={() => setScale(Math.min(2, scale + 0.1))} />
                 </div>
 
                 <SchematicEditor />

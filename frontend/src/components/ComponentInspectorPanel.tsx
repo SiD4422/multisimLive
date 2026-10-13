@@ -131,9 +131,9 @@ const DEFAULT_VALUES: Record<string, string> = {
 // ── Field Sub-components ─────────────────────────────────────────────────────
 
 const InputGroup = ({ label, value, onChange, placeholder, icon: Icon, type = 'text' }: any) => (
-  <div className="flex flex-col gap-1 mb-3">
-    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-      {Icon && <Icon size={12} className="text-blue-500" />}
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+    <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6 }}>
+      {Icon && <Icon size={12} style={{ color: '#3b82f6' }} />}
       {label}
     </label>
     <input
@@ -141,7 +141,7 @@ const InputGroup = ({ label, value, onChange, placeholder, icon: Icon, type = 't
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-400 transition-colors shadow-sm"
+      style={{ width: '100%', border: '1px solid #d1d5db', borderRadius: 6, padding: '8px 12px', fontSize: 13, fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
     />
   </div>
 );
@@ -201,7 +201,7 @@ const [designator, setDesignator] = useState('');
 
     if (fields.amplitude !== undefined && fields.frequency !== undefined) {
       return (
-        <div className="grid grid-cols-2 gap-2">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <InputGroup label="Amplitude" value={fields.amplitude} onChange={(v: string) => updateField('amplitude', v)} placeholder="e.g. 5" icon={Waves} />
           <InputGroup label="Frequency" value={fields.frequency} onChange={(v: string) => updateField('frequency', v)} placeholder="e.g. 1k" icon={Activity} />
         </div>
@@ -211,16 +211,16 @@ const [designator, setDesignator] = useState('');
     if (fields.v1 !== undefined) {
       return (
         <>
-          <div className="grid grid-cols-2 gap-2">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <InputGroup label="V_Initial" value={fields.v1} onChange={(v: string) => updateField('v1', v)} placeholder="0" />
             <InputGroup label="V_Pulse" value={fields.v2} onChange={(v: string) => updateField('v2', v)} placeholder="5" />
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
             <InputGroup label="Delay" value={fields.delay} onChange={(v: string) => updateField('delay', v)} placeholder="0" />
             <InputGroup label="Rise Time" value={fields.rise} onChange={(v: string) => updateField('rise', v)} placeholder="1u" />
             <InputGroup label="Fall Time" value={fields.fall} onChange={(v: string) => updateField('fall', v)} placeholder="1u" />
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <InputGroup label="Pulse Width" value={fields.width} onChange={(v: string) => updateField('width', v)} placeholder="10u" icon={Timer} />
             <InputGroup label="Period" value={fields.period} onChange={(v: string) => updateField('period', v)} placeholder="20u" icon={ActivitySquare} />
           </div>
@@ -238,12 +238,12 @@ const [designator, setDesignator] = useState('');
     const units = UNIT_OPTIONS[activeComponent.type];
 
     return (
-      <div className="flex flex-col gap-1 mb-3">
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-          <Settings size={12} className="text-blue-500" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+        <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Settings size={12} style={{ color: '#3b82f6' }} />
           Value / Parameter
         </label>
-        <div className="flex gap-2">
+        <div style={{ display: 'flex', gap: 8 }}>
           <input
             type="text"
             value={fields.main || ''}
@@ -265,15 +265,15 @@ const [designator, setDesignator] = useState('');
               }
             }}
             placeholder={DEFAULT_VALUES[activeComponent.type] ? `Default: ${DEFAULT_VALUES[activeComponent.type]}` : 'e.g. 1k, 5V, 10u'}
-            className={`w-full border rounded-md px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 transition-colors shadow-sm ${
-              valueError
-                ? 'border-red-400 focus:border-red-500 focus:ring-red-400'
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-400'
-            }`}
+            style={{
+              flex: 1, border: `1px solid ${valueError ? '#f87171' : '#d1d5db'}`,
+              borderRadius: 6, padding: '8px 12px', fontSize: 13, fontFamily: 'monospace',
+              outline: 'none', background: '#fff', boxSizing: 'border-box',
+            }}
           />
           {units && (
             <select
-              className="border border-gray-300 rounded-md px-2 py-2 text-sm bg-white"
+              style={{ border: '1px solid #d1d5db', borderRadius: 6, padding: '8px', fontSize: 13, background: '#fff' }}
               onChange={(e) => {
                 const val = parseSpiceToFloat(fields.main || '0');
                 if (!isNaN(val)) {
@@ -304,22 +304,22 @@ const [designator, setDesignator] = useState('');
         )}
         
         {activeComponent.type === 'Resistor' && (
-          <div className="grid grid-cols-2 gap-2 mt-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Tolerance</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Tolerance</label>
               <select 
                  value={activeComponent.metadata?.tolerance || '±5%'} 
                  onChange={e => updateComponentProperties(activeComponent.id, { metadata: { ...activeComponent.metadata, tolerance: e.target.value } })}
-                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
+                 style={{ width: '100%', border: '1px solid #d1d5db', borderRadius: 6, padding: '8px 12px', fontSize: 13, background: '#fff' }}>
                 {['±1%', '±5%', '±10%', '±20%'].map(o => <option key={o}>{o}</option>)}
               </select>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Power Rating</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Power Rating</label>
               <select 
                  value={activeComponent.metadata?.powerRating || '0.25W'} 
                  onChange={e => updateComponentProperties(activeComponent.id, { metadata: { ...activeComponent.metadata, powerRating: e.target.value } })}
-                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
+                 style={{ width: '100%', border: '1px solid #d1d5db', borderRadius: 6, padding: '8px 12px', fontSize: 13, background: '#fff' }}>
                 {['0.125W', '0.25W', '0.5W', '1W', '2W'].map(o => <option key={o}>{o}</option>)}
               </select>
             </div>
@@ -327,23 +327,23 @@ const [designator, setDesignator] = useState('');
         )}
         
         {activeComponent.type === 'Capacitor' && (
-          <div className="grid grid-cols-2 gap-2 mt-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Tolerance</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Tolerance</label>
               <select 
                  value={activeComponent.metadata?.tolerance || '±20%'} 
                  onChange={e => updateComponentProperties(activeComponent.id, { metadata: { ...activeComponent.metadata, tolerance: e.target.value } })}
-                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white">
+                 style={{ width: '100%', border: '1px solid #d1d5db', borderRadius: 6, padding: '8px 12px', fontSize: 13, background: '#fff' }}>
                 {['±5%', '±10%', '±20%'].map(o => <option key={o}>{o}</option>)}
               </select>
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-gray-500 uppercase">Voltage Rating</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Voltage Rating</label>
               <input 
                  type="text"
                  value={activeComponent.metadata?.voltageRating || '50V'} 
                  onChange={e => updateComponentProperties(activeComponent.id, { metadata: { ...activeComponent.metadata, voltageRating: e.target.value } })}
-                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white" />
+                 style={{ width: '100%', border: '1px solid #d1d5db', borderRadius: 6, padding: '8px 12px', fontSize: 13, background: '#fff', boxSizing: 'border-box' }} />
             </div>
           </div>
         )}
@@ -407,15 +407,15 @@ const [designator, setDesignator] = useState('');
           ) : (
             <>
               {/* Component Info */}
-              <div className="flex items-start gap-4 p-4 mb-4 bg-white border border-gray-200 rounded-xl shadow-sm">
-                <div className="flex-shrink-0 w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center border border-blue-100">
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: 16, marginBottom: 16, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
+                <div style={{ flexShrink: 0, width: 40, height: 40, background: '#eff6ff', color: '#2563eb', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #dbeafe' }}>
                   <Activity size={24} />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-gray-900 m-0">
+                  <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0 }}>
                     {meta?.title || activeComponent.type}
                   </h2>
-                  <p className="text-xs text-gray-500 mt-1 mb-0 leading-relaxed">
+                  <p style={{ fontSize: 12, color: '#6b7280', marginTop: 4, marginBottom: 0, lineHeight: 1.5 }}>
                     {COMPONENT_DESCRIPTIONS[activeComponent.type] || meta?.description || 'Circuit Component'}
                   </p>
                 </div>
@@ -427,10 +427,10 @@ const [designator, setDesignator] = useState('');
                   <Settings size={12} /> Configuration
                 </h4>
                 <div className="input-group" style={{ marginBottom: '12px' }}>
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5 mb-1">
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     Label
                   </label>
-                  <div className="w-full border border-gray-200 bg-gray-50 rounded-md px-3 py-2 text-sm font-mono text-gray-700">
+                  <div style={{ width: '100%', border: '1px solid #e5e7eb', background: '#f9fafb', borderRadius: 6, padding: '8px 12px', fontSize: 13, fontFamily: 'monospace', color: '#374151' }}>
                     {activeComponent.id}
                   </div>
                 </div>
@@ -452,32 +452,32 @@ const [designator, setDesignator] = useState('');
               </div>
 
                 {/* Visual Section */}
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f3f4f6' }}>
                   <button 
                     onClick={() => setShowVisual(!showVisual)} 
-                    className="flex items-center gap-2 text-sm font-bold text-gray-700 w-full text-left focus:outline-none"
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: '#374151', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                   >
-                    {showVisual ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronRight size={16} className="text-gray-400" />}
+                    {showVisual ? <ChevronDown size={16} style={{ color: '#9ca3af' }} /> : <ChevronRight size={16} style={{ color: '#9ca3af' }} />}
                     Visual
                   </button>
                   {showVisual && (
-                    <div className="mt-3 flex flex-col gap-3 pl-6">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-gray-600">Show Label</span>
-                        <input type="checkbox" checked={localVisual.showLabel} onChange={e => setLocalVisual({...localVisual, showLabel: e.target.checked})} className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4" />
+                    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12, paddingLeft: 24 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: '#4b5563' }}>Show Label</span>
+                        <input type="checkbox" checked={localVisual.showLabel} onChange={e => setLocalVisual({...localVisual, showLabel: e.target.checked})} style={{ width: 16, height: 16 }} />
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-gray-600">Label Position</span>
-                        <select value={localVisual.labelPosition} onChange={e => setLocalVisual({...localVisual, labelPosition: e.target.value})} className="border border-gray-300 rounded px-2 py-1 text-xs bg-white">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: '#4b5563' }}>Label Position</span>
+                        <select value={localVisual.labelPosition} onChange={e => setLocalVisual({...localVisual, labelPosition: e.target.value})} style={{ border: '1px solid #d1d5db', borderRadius: 4, padding: '4px 8px', fontSize: 12, background: '#fff' }}>
                           <option>Top</option>
                           <option>Bottom</option>
                           <option>Left</option>
                           <option>Right</option>
                         </select>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-gray-600">Color</span>
-                        <select value={localVisual.color} onChange={e => setLocalVisual({...localVisual, color: e.target.value})} className="border border-gray-300 rounded px-2 py-1 text-xs bg-white">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: '#4b5563' }}>Color</span>
+                        <select value={localVisual.color} onChange={e => setLocalVisual({...localVisual, color: e.target.value})} style={{ border: '1px solid #d1d5db', borderRadius: 4, padding: '4px 8px', fontSize: 12, background: '#fff' }}>
                           <option>Default</option>
                           <option>Blue</option>
                           <option>Red</option>
@@ -490,19 +490,19 @@ const [designator, setDesignator] = useState('');
                 </div>
 
                 {/* Advanced Section */}
-                <div className="mt-2 pt-4 border-t border-gray-100">
+                <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid #f3f4f6' }}>
                   <button 
                     onClick={() => setShowAdvanced(!showAdvanced)} 
-                    className="flex items-center gap-2 text-sm font-bold text-gray-700 w-full text-left focus:outline-none"
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: '#374151', width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                   >
-                    {showAdvanced ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronRight size={16} className="text-gray-400" />}
+                    {showAdvanced ? <ChevronDown size={16} style={{ color: '#9ca3af' }} /> : <ChevronRight size={16} style={{ color: '#9ca3af' }} />}
                     Advanced
                   </button>
                   {showAdvanced && (
-                    <div className="mt-3 pl-6">
-                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                        <strong className="block text-xs font-bold text-gray-500 uppercase mb-1">SPICE Format Hint</strong>
-                        <div className="text-xs text-gray-600 font-mono whitespace-pre-line leading-relaxed">
+                    <div style={{ marginTop: 12, paddingLeft: 24 }}>
+                      <div style={{ background: '#f9fafb', padding: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                        <strong style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: 4 }}>SPICE Format Hint</strong>
+                        <div style={{ fontSize: 12, color: '#4b5563', fontFamily: 'monospace', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
                           [value][unit]
                           <br/>Example: 4.7k (4.7kΩ), 100n (100nF)
                           {meta?.parameters && <><br/><br/>Guide:<br/>{meta.parameters}</>}
@@ -513,13 +513,15 @@ const [designator, setDesignator] = useState('');
                 </div>
                 
                 {/* Delete Button */}
-                <div className="mt-6">
+                <div style={{ marginTop: 24 }}>
                   <button
                     onClick={() => {
                       deleteComponent(activeComponent.id);
                       setIsConfigOpen(false);
                     }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold rounded-lg transition-colors border border-red-200"
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 16px', background: '#fff5f5', border: '1px solid #fecaca', borderRadius: 8, color: '#dc2626', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#fee2e2'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#fff5f5'; }}
                   >
                     <Trash2 size={16} />
                     Delete Component
