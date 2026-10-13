@@ -30,6 +30,11 @@ export default function OhmsLawCalculator() {
         <title>Ohm's Law Calculator | V = IR | NodeSim Tools</title>
         <meta name="description" content="Free Ohm's Law calculator. Calculate voltage, current, or resistance using V = IR. Instant results. Verify with circuit simulation." />
         <meta name="keywords" content="ohm's law calculator, V=IR, voltage calculator, current calculator, resistance calculator, electronics calculator" />
+        <meta property="og:title" content="Ohm's Law Calculator | NodeSim" />
+        <meta property="og:description" content="Free Ohm's Law calculator. Calculate voltage, current, or resistance instantly." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://nodesimapp.com/tools/ohms-law" />
+        <link rel="canonical" href="https://nodesimapp.com/tools/ohms-law" />
       </Helmet>
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › <Link to="/tools" style={{ color: '#16a34a' }}>Tools</Link> › Ohm's Law</div>

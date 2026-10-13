@@ -50,6 +50,11 @@ export default function Timer555Calculator() {
         <title>555 Timer Astable Calculator | NodeSim Tools</title>
         <meta name="description" content="Free 555 timer calculator. Calculate frequency, duty cycle, Ton, and Toff for astable mode. Instant results. Verify with circuit simulation." />
         <meta name="keywords" content="555 timer calculator, 555 astable frequency, NE555 calculator, electronics calculator" />
+        <meta property="og:title" content="555 Timer Calculator | NodeSim" />
+        <meta property="og:description" content="Free 555 timer astable calculator. Calculate frequency, duty cycle, and timing instantly." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://nodesimapp.com/tools/555-timer" />
+        <link rel="canonical" href="https://nodesimapp.com/tools/555-timer" />
       </Helmet>
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › <Link to="/tools" style={{ color: '#16a34a' }}>Tools</Link> › 555 Timer</div>

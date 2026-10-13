@@ -17,6 +17,25 @@ export default function ToolsIndex() {
         <title>Free Engineering Calculators | NodeSim</title>
         <meta name="description" content="Free online electronics and engineering calculators. Ohm's Law, Voltage Divider, RC circuits, 555 timers, and more." />
         <meta name="keywords" content="free engineering calculators, electronics calculators online, circuit calculators" />
+        <meta property="og:title" content="Free Engineering Calculators | NodeSim" />
+        <meta property="og:description" content="Free online electronics and engineering calculators. Ohm's Law, Voltage Divider, RC circuits, 555 timers, and more." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://nodesimapp.com/tools" />
+        <link rel="canonical" href="https://nodesimapp.com/tools" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Free Engineering Calculators",
+          "description": "Free online electronics calculators for engineering students.",
+          "url": "https://nodesimapp.com/tools",
+          "hasPart": [
+            { "@type": "SoftwareApplication", "name": "Ohm's Law Calculator", "url": "https://nodesimapp.com/tools/ohms-law", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" },
+            { "@type": "SoftwareApplication", "name": "Voltage Divider Calculator", "url": "https://nodesimapp.com/tools/voltage-divider", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" },
+            { "@type": "SoftwareApplication", "name": "RC Time Constant Calculator", "url": "https://nodesimapp.com/tools/rc-calculator", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" },
+            { "@type": "SoftwareApplication", "name": "555 Timer Calculator", "url": "https://nodesimapp.com/tools/555-timer", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" },
+            { "@type": "SoftwareApplication", "name": "Resistor Color Code Calculator", "url": "https://nodesimapp.com/tools/resistor-color-code", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" }
+          ]
+        })}</script>
       </Helmet>
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › Tools</div>
