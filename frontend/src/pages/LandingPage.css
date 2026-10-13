@@ -407,3 +407,27 @@ div:focus-within > .lp-learn-menu { display: block !important; }
 .msl-header-dark .msl-mobile-menu {
   background: #070b09 !important;
 }
+/* ── Mobile mp-actions polish ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .mp-actions {
+    gap: 6px;
+  }
+  .mp-actions button {
+    padding: 5px 7px;
+  }
+}
+
+/* ── Light-mode overrides via [data-theme='light'] ────────────── */
+:root[data-theme='light'] {
+  --header-bg: rgba(255,255,255,0.95);
+  --forest-950: #f8fafc;
+  --forest-900: #f1f5f9;
+  --line: #e2e8f0;
+  --ink: #0f172a;
+  --ink-soft: #334155;
+  --muted: #64748b;
+}
+:root[data-theme='light'] .landing-page-dark {
+  background: #060a08 !important;
+  color: #eef3f0 !important;
+}

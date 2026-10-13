@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { SimulationData, SimulationRow } from '../utils/spiceTypes';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { getSpiceNodeForPoint } from '../utils/netlister';
@@ -22,35 +22,35 @@ const OSC_COLORS = [
   '#39ff14', '#00ffff', '#ff00ff', '#ffff00', '#ff4500', '#00bfff'
 ];
 
-// ðŸ”§ Helpers ðŸ”§
+// Ã°Å¸â€Â§ Helpers Ã°Å¸â€Â§
 
 function formatTraceName(t: string): string {
   const s = t.trim();
   const sl = s.toLowerCase();
 
-  // v(n001), v(n002) — auto-numbered nodes
+  // v(n001), v(n002) â€” auto-numbered nodes
   const autoNode = sl.match(/^v\(n(\d+)\)$/);
   if (autoNode) return `Node ${parseInt(autoNode[1])} Voltage`;
 
-  // v(1), v(2) — plain numbered nodes
+  // v(1), v(2) â€” plain numbered nodes
   const numNode = sl.match(/^v\((\d+)\)$/);
   if (numNode) return `Node ${numNode[1]} Voltage`;
 
-  // i(v_xxx) — current through a voltage source
+  // i(v_xxx) â€” current through a voltage source
   const srcCurrent = sl.match(/^i\(v_([^)]+)\)$/);
   if (srcCurrent) return `I through ${srcCurrent[1].toUpperCase()}`;
 
-  // i(r_xxx), i(c_xxx) etc — current through any component
+  // i(r_xxx), i(c_xxx) etc â€” current through any component
   const compCurrent = sl.match(/^i\(([a-z])_([^)]+)\)$/);
   if (compCurrent) return `I through ${compCurrent[1].toUpperCase()}${compCurrent[2].toUpperCase()}`;
 
-  // v(out), v(in), v(vcc), v(gnd) — named nodes
+  // v(out), v(in), v(vcc), v(gnd) â€” named nodes
   const namedNode = sl.match(/^v\(([^)]+)\)$/);
   if (namedNode) return `${namedNode[1].toUpperCase()} Voltage`;
 
   // AC sweep suffixes
   if (sl.endsWith('_db')) return formatTraceName(s.slice(0, -3)) + ' (dB)';
-  if (sl.endsWith('_phase')) return formatTraceName(s.slice(0, -6)) + ' Phase (°)';
+  if (sl.endsWith('_phase')) return formatTraceName(s.slice(0, -6)) + ' Phase (Â°)';
 
   // Axis keys
   if (sl === 'frequency' || sl === 'freq') return 'Frequency (Hz)';
@@ -60,7 +60,7 @@ function formatTraceName(t: string): string {
   return s; // fallback
 }
 
-// ⚡⚡ Helpers ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
+// âš¡âš¡ Helpers âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡
 
 function formatHz(val: number): string {
   if (val >= 1e6) return `${(val / 1e6).toFixed(1)}MHz`;
@@ -81,7 +81,7 @@ function fmtNum(value: number): string {
 
 function getYAxisLabel(traces: string[], isAcMagnitude: boolean = false, isAcPhase: boolean = false): string {
   if (isAcMagnitude) return 'Magnitude (dB)';
-  if (isAcPhase) return 'Phase (°)';
+  if (isAcPhase) return 'Phase (Â°)';
   const hasV = traces.some(t => t.toLowerCase().startsWith('v('));
   const hasI = traces.some(t => t.toLowerCase().startsWith('i('));
   if (hasV && hasI) return 'Value';
@@ -90,7 +90,7 @@ function getYAxisLabel(traces: string[], isAcMagnitude: boolean = false, isAcPha
   return 'Value';
 }
 
-// ⚡⚡ Subcomponents ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡â”€
+// âš¡âš¡ Subcomponents âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡Ã¢â€â‚¬
 
 const LoadingSpinner = () => (
   <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', color: '#6b7280' }}>
@@ -269,7 +269,7 @@ const ErrorView = ({ error }: { error: string }) => {
             <ul style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: 0, padding: 0, listStyle: 'none' }}>
               {smart.hints.map((hint, i) => (
                 <li key={i} style={{ fontSize: 14, color: '#78350f', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <span style={{ marginTop: 2, flexShrink: 0 }}>•</span>
+                  <span style={{ marginTop: 2, flexShrink: 0 }}>â€¢</span>
                   <span>{hint}</span>
                 </li>
               ))}
@@ -311,7 +311,7 @@ const ErrorView = ({ error }: { error: string }) => {
           onClick={() => setShowRaw(!showRaw)}
           style={{ fontSize: 12, color: '#9ca3af', textDecoration: 'underline', textAlign: 'left', marginBottom: 8, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
         >
-          {showRaw ? '▲ Hide raw ngspice output' : '▼ Show raw ngspice output'}
+          {showRaw ? 'â–² Hide raw ngspice output' : 'â–¼ Show raw ngspice output'}
         </button>
         {showRaw && (
           <div style={{ background: '#111827', borderRadius: 8, padding: 12, overflowX: 'auto' }}>
@@ -329,7 +329,7 @@ const EmptyView = () => (
   </div>
 );
 
-// ⚡⚡ FFT Spectrum Plot ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡â”€
+// âš¡âš¡ FFT Spectrum Plot âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡Ã¢â€â‚¬
 
 function FftPlot({ simulationBuffer, traces, probeMap, isOscilloscope, isDigitalMode }: {
   simulationBuffer: SimulationData;
@@ -434,7 +434,7 @@ function FftPlot({ simulationBuffer, traces, probeMap, isOscilloscope, isDigital
   );
 }
 
-// ⚡⚡ ErrorView ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡â”€
+// âš¡âš¡ ErrorView âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡Ã¢â€â‚¬
 
 /**
  * Resolve the data row under the pointer for a recharts chart event.
@@ -542,16 +542,16 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
 
       {/* Phase chart - bottom half */}
       <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, bottom: 0 }}>
-        <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: 48, paddingBottom: 4, color: isOscilloscope ? '#22c55e' : '#6b7280', margin: 0 }}>Phase (°)</p>
+        <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: 48, paddingBottom: 4, color: isOscilloscope ? '#22c55e' : '#6b7280', margin: 0 }}>Phase (Â°)</p>
         <div style={{ position: 'absolute', top: 20, left: 0, right: 0, bottom: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart {...commonChartProps}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             {commonXAxis}
-            <YAxis label={{ value: 'Phase (°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
+            <YAxis label={{ value: 'Phase (Â°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
             <Tooltip
               labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
-              formatter={(val: any, name: any) => [fmtNum(val as number) + '°', name]}
+              formatter={(val: any, name: any) => [fmtNum(val as number) + 'Â°', name]}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
@@ -569,7 +569,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
   );
 }
 
-// ⚡⚡ DC Sweep Plot ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡â”€
+// âš¡âš¡ DC Sweep Plot âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡Ã¢â€â‚¬
 
 function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
   data: SimulationData; traces: string[]; sweepKey: string; probeMap: Record<string, string>; isOscilloscope: boolean;
@@ -635,7 +635,7 @@ function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCurso
   );
 }
 
-// ⚡⚡ Transient Plot ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
+// âš¡âš¡ Transient Plot âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡
 
 function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: {
   data: SimulationData; traces: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
@@ -747,12 +747,56 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
   );
 }
 
-// ⚡⚡ Main Grapher ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
+// âš¡âš¡ Main Grapher âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡
 
+// -- DC Operating Point Table ------------------------------------------------
+function OpPointView({ data }: { data: { node: string; value: number; unit: string }[] }) {
+  const nodeRows = data.filter(d => d.node && !d.node.startsWith('i('));
+  const branchRows = data.filter(d => d.node && d.node.startsWith('i('));
+  const fmt = (v: number, u: string) => {
+    const abs = Math.abs(v);
+    if (u === 'V') return abs >= 1000 ? `${(v/1000).toFixed(4)} kV` : `${v.toFixed(4)} V`;
+    if (u === 'A') return abs < 1e-6 ? `${(v*1e9).toFixed(3)} nA` : abs < 1e-3 ? `${(v*1e6).toFixed(3)} uA` : abs < 1 ? `${(v*1e3).toFixed(3)} mA` : `${v.toFixed(4)} A`;
+    return `${v.toFixed(4)} ${u}`;
+  };
+  const rowBg = (i: number): React.CSSProperties => ({ background: i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.05)' });
+  const thS: React.CSSProperties = { padding: '8px 16px', color: '#4ade80', fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left', borderBottom: '2px solid rgba(74,222,128,0.3)' };
+  const tdL: React.CSSProperties = { padding: '7px 16px', color: '#cbd5e1', fontFamily: 'monospace', fontSize: 13 };
+  const tdR: React.CSSProperties = { padding: '7px 16px', color: '#f1f5f9', fontFamily: 'monospace', fontSize: 13, textAlign: 'right', fontWeight: 600 };
+  return (
+    <div style={{ position: 'absolute', inset: 0, overflow: 'auto', background: '#060f1a', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 16px' }}>
+      <div style={{ width: '100%', maxWidth: 560 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+          <div style={{ width: 8, height: 36, borderRadius: 4, background: '#4ade80', flexShrink: 0 }} />
+          <div><div style={{ fontSize: 17, fontWeight: 700, color: '#f1f5f9' }}>DC Operating Point</div><div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Bias point converged · {data.length} variable{data.length !== 1 ? 's' : ''} solved</div></div>
+        </div>
+        {nodeRows.length > 0 && (
+          <div style={{ background: '#0d1f0d', border: '1px solid rgba(74,222,128,0.18)', borderRadius: 12, overflow: 'hidden', marginBottom: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.5)' }}>
+            <div style={{ padding: '10px 16px', background: 'rgba(74,222,128,0.06)', borderBottom: '1px solid rgba(74,222,128,0.12)', fontSize: 11, fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Node Voltages</div>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead><tr><th style={thS}>Node</th><th style={{ ...thS, textAlign: 'right' }}>Voltage</th></tr></thead>
+              <tbody>{nodeRows.map((d, i) => (<tr key={d.node} style={rowBg(i)}><td style={tdL}>{d.node}</td><td style={tdR}>{fmt(d.value, d.unit || 'V')}</td></tr>))}</tbody>
+            </table>
+          </div>
+        )}
+        {branchRows.length > 0 && (
+          <div style={{ background: '#0d1824', border: '1px solid rgba(96,165,250,0.18)', borderRadius: 12, overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.5)' }}>
+            <div style={{ padding: '10px 16px', background: 'rgba(96,165,250,0.06)', borderBottom: '1px solid rgba(96,165,250,0.12)', fontSize: 11, fontWeight: 700, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Branch Currents</div>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead><tr><th style={{ ...thS, color: '#60a5fa', borderBottom: '2px solid rgba(96,165,250,0.3)' }}>Branch</th><th style={{ ...thS, color: '#60a5fa', borderBottom: '2px solid rgba(96,165,250,0.3)', textAlign: 'right' }}>Current</th></tr></thead>
+              <tbody>{branchRows.map((d, i) => (<tr key={d.node} style={rowBg(i)}><td style={tdL}>{d.node}</td><td style={{ ...tdR, color: '#93c5fd' }}>{fmt(d.value, d.unit || 'A')}</td></tr>))}</tbody>
+            </table>
+          </div>
+        )}
+        {data.length === 0 && <div style={{ color: '#64748b', textAlign: 'center', padding: 32 }}>No operating point data available.</div>}
+      </div>
+    </div>
+  );
+}
 export default function Grapher() {
   const {
     simulationBuffer, playbackTime, isSimulating, simulationError,
-    probes, components, wires, analysisMode, isPlaying
+    probes, components, wires, analysisMode, isPlaying, opData
   } = useSchematicStore();
   
   const [isOscilloscope, setIsOscilloscope] = useState(false);
@@ -761,6 +805,7 @@ export default function Grapher() {
   const [showFft, setShowFft] = useState(false);
   const [cursorA, setCursorA] = useState<SimulationRow | null>(null);
   const [cursorB, setCursorB] = useState<SimulationRow | null>(null);
+  const [showDcBias, setShowDcBias] = useState(true);
   
   const [showAiPanel, setShowAiPanel] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
@@ -790,9 +835,9 @@ export default function Grapher() {
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []); // [] — only mount/unmount; chartRef.current is stable after first render
+  }, []); // [] â€” only mount/unmount; chartRef.current is stable after first render
 
-  // Build a map: raw data key → probe display name
+  // Build a map: raw data key â†’ probe display name
   const probeMap = useMemo(() => {
     const map: Record<string, string> = {};
     probes.forEach((probe, idx) => {
@@ -831,7 +876,7 @@ export default function Grapher() {
         return true;
       });
 
-      // ðŸš€ PERFORMANCE FIX: Recharts lags heavily with thousands of SVG nodes.
+      // Ã°Å¸Å¡â‚¬ PERFORMANCE FIX: Recharts lags heavily with thousands of SVG nodes.
       // We decimate the dataset to a maximum of ~800 points to keep 60FPS rendering.
       const MAX_POINTS = 800;
       if (processed.length > MAX_POINTS) {
@@ -910,7 +955,7 @@ export default function Grapher() {
     // Transient
     const timeKey = 'time';
     // Exclude internal engine/parser metadata keys (e.g. __parsedVars, __plotType).
-    // NC_* floating-node keys are intentionally kept — they surface wiring defects visibly.
+    // NC_* floating-node keys are intentionally kept â€” they surface wiring defects visibly.
     const INTERNAL_METADATA_KEYS = /^__/;
     let valueKeys = allKeys.filter(k => k !== timeKey && !INTERNAL_METADATA_KEYS.test(k));
 
@@ -926,10 +971,11 @@ export default function Grapher() {
     return { traces: valueKeys, sweepKey: timeKey };
   }, [formattedData, probes, probeMap, simulationBuffer]);
 
-  // ⚡⚡ Render ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
+  // âš¡âš¡ Render âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡
 
   if (isSimulating) return <div style={{ position: 'absolute', inset: 0 }}><LoadingSpinner /></div>;
   if (simulationError) return <div style={{ position: 'absolute', inset: 0 }}><ErrorView error={simulationError} /></div>;
+  if (analysisMode === 'op' && opData) return <div style={{ position: 'absolute', inset: 0 }}><OpPointView data={opData} /></div>;
   if (!formattedData || formattedData.length === 0) return <div style={{ position: 'absolute', inset: 0 }}><EmptyView /></div>;
 
   const plotType = (simulationBuffer as SimulationData)?.__plotType || analysisMode || 'transient';
@@ -1033,7 +1079,7 @@ export default function Grapher() {
               <th style={{ paddingRight: 8, fontWeight: 400, fontStyle: 'italic' }}>Signal</th>
               <th style={{ paddingRight: 8, color: '#ef4444' }}>A</th>
               <th style={{ paddingRight: 8, color: '#d946ef' }}>B</th>
-              <th style={{ fontWeight: 700 }}>Δ</th>
+              <th style={{ fontWeight: 700 }}>Î”</th>
             </tr>
           </thead>
           <tbody>
@@ -1151,9 +1197,9 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
           border: `1px solid ${plotType === 'ac' ? '#bfdbfe' : plotType === 'dc' ? '#fde68a' : '#bbf7d0'}`,
           borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700
         }}>
-          {plotType === 'ac' ? '〜 AC Sweep' : plotType === 'dc' ? '⎍ DC Sweep' : '⚡ Transient'}
+          {plotType === 'ac' ? 'ã€œ AC Sweep' : plotType === 'dc' ? 'âŽ DC Sweep' : 'âš¡ Transient'}
         </div>
-        {/* FFT toggle — only shown for transient */}
+        {/* FFT toggle â€” only shown for transient */}
         {plotType === 'transient' && (
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }} title="FFT Spectrum Analyzer">
             <div style={{ position: 'relative', width: 36, height: 20, flexShrink: 0 }}>
@@ -1185,13 +1231,13 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
             <div style={{ position: 'absolute', top: 2, left: isOscilloscope ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 4, color: isOscilloscope ? '#16a34a' : '#6b7280' }}>
-            <Activity size={13} /> âˆ¿Scope
+            <Activity size={13} /> Ã¢Ë†Â¿Scope
           </span>
         </label>
 
         <button
           onClick={() => setIsDigitalMode(d => !d)}
-          title="Digital Mode — snaps waveforms to HIGH/LOW"
+          title="Digital Mode â€” snaps waveforms to HIGH/LOW"
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
             padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,
@@ -1260,6 +1306,36 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* DC Bias mean-value strip — transient only */}
+      {plotType === 'transient' && formattedData.length > 0 && traces.length > 0 && (
+        <div style={{ background: '#0d1f0d', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+          <div
+            onClick={() => setShowDcBias(s => !s)}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 14px', cursor: 'pointer', userSelect: 'none', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}
+          >
+            <span style={{ fontSize: 10, display: 'inline-block', transform: showDcBias ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }}>?</span>
+            DC Bias (mean values)
+          </div>
+          {showDcBias && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '4px 14px 8px', overflowX: 'auto' }}>
+              {traces.map((trace, i) => {
+                const vals = formattedData.map(r => r[trace] as number).filter(v => typeof v === 'number' && isFinite(v));
+                if (!vals.length) return null;
+                const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+                const fmtMean = Math.abs(mean) >= 1 ? mean.toFixed(3) : mean.toExponential(2);
+                return (
+                  <div key={trace} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, padding: '3px 10px', fontSize: 11, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: COLORS[i % COLORS.length], flexShrink: 0, display: 'inline-block' }} />
+                    <span style={{ color: '#94a3b8' }}>{formatTraceName(trace)}</span>
+                    <span style={{ color: '#4ade80', fontWeight: 700 }}>{fmtMean} V</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

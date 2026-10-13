@@ -227,6 +227,16 @@ function Simulator() {
         useSchematicStore.getState().redo();
       }
 
+      // Clear canvas (Ctrl+Shift+Delete)
+      if (e.ctrlKey && e.shiftKey && e.key === 'Delete') {
+        e.preventDefault();
+        if (window.confirm('Clear the canvas? This cannot be undone.')) {
+          useSchematicStore.getState().importState(JSON.stringify({ components: [], wires: [], probes: [] }));
+          showToast('Canvas cleared', 'success');
+        }
+        return;
+      }
+
       // Escape -> clear selection
       if (e.key === 'Escape') {
         useSchematicStore.getState().clearSelection();
