@@ -58,14 +58,14 @@ export function SimulatorHeader({
   return (
     <header className="header-top relative" style={{ zIndex: 10 }}>
       <div className="flex items-center gap-6" style={{ flex: 1, minWidth: 0 }}>
-        <div className="flex items-center gap-2" style={{ marginLeft: '-95px' }}>
+        <div className="flex items-center gap-2" style={{ marginLeft: '-60px' }}>
           <a href="https://nodesimapp.com" target="_blank" rel="noopener noreferrer" title="Open NodeSim" className="flex items-center">
-            <Logo style={{ width: '250px', height: '52px', transform: 'scale(1.3)', transformOrigin: 'left center' }} />
+            <Logo style={{ width: '180px', height: '44px', transform: 'scale(1.1)', transformOrigin: 'left center' }} />
           </a>
         </div>
         
         {!isEmbed && (
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '20px', marginLeft: '30px', height: '30px' }}>
+          <nav className="sim-header-nav" style={{ display: 'flex', alignItems: 'center', gap: '20px', marginLeft: '30px', height: '30px' }}>
              <Link to="/" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Home</Link>
              <Link to="/features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</Link>
              <Link to="/circuits" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Circuits</Link>
@@ -126,7 +126,7 @@ export function SimulatorHeader({
           onMouseLeave={e => { e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a, #15803d)'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(22,163,74,0.3)'; }}
         >
           <Sparkles size={13} />
-          AI Tutor
+          <span className="sim-header-pill-text">AI Tutor</span>
         </button>
         {/* Divider */}
         <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
@@ -200,7 +200,7 @@ export function SimulatorHeader({
             <line x1="15" y1="8"  x2="18" y2="8" />
             <line x1="15" y1="12" x2="18" y2="12" />
           </svg>
-          → KiCad
+          <span className="sim-header-pill-text">→ KiCad</span>
         </button>
         {/* Lab Report — AI-generated PDF */}
         <button
@@ -221,7 +221,7 @@ export function SimulatorHeader({
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(22,163,74,0.15)'; e.currentTarget.style.color = '#86efac'; }}
         >
           <FileText size={13} />
-          Lab Report
+          <span className="sim-header-pill-text">Lab Report</span>
         </button>
 
         {/* Support NodeSim */}
@@ -243,7 +243,7 @@ export function SimulatorHeader({
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(236,72,153,0.15)'; e.currentTarget.style.color = '#f9a8d4'; }}
         >
           <Coffee size={13} />
-          Support
+          <span className="sim-header-pill-text">Support</span>
         </button>
 
         {/* Divider */}

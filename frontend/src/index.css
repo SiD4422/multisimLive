@@ -946,3 +946,42 @@ body {
   background: rgba(74,222,128,0.12);
   border-color: #4ade80;
 }
+
+/* ── Mobile Responsive Overrides (≤ 640px) ────────────────────── */
+@media (max-width: 640px) {
+  /* Header: allow wrapping, auto height */
+  .header-top {
+    height: auto;
+    min-height: 48px;
+    flex-wrap: wrap;
+    padding: 6px 10px;
+    gap: 6px;
+    overflow: visible;
+  }
+
+  /* Toolbar: allow wrapping */
+  .header-bottom {
+    height: auto;
+    min-height: 36px;
+    flex-wrap: wrap;
+    padding: 4px 8px;
+    gap: 4px;
+    row-gap: 4px;
+  }
+
+  /* Grapher padding fix for mobile (sidebar is gone) */
+  .grapher-container {
+    padding: 12px;
+  }
+
+  /* Canvas fills full width when sidebar hidden on mobile */
+  .main-content {
+    flex-direction: column;
+  }
+
+  /* Hide nav links on mobile */
+  .sim-header-nav { display: none !important; }
+
+  /* Hide text labels in header pill buttons, keep icons */
+  .sim-header-pill-text { display: none; }
+}

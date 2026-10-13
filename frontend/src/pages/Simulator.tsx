@@ -79,7 +79,7 @@ function Simulator() {
   const [isEmbedModalOpen, setIsEmbedModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const isEmbed = new URLSearchParams(window.location.search).get('embed') === 'true';
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth > 640);
   const [activeView, setActiveView] = useState<'schematic' | 'grapher' | 'split'>('schematic');
   const [toast, setToast] = useState<{message: string, type: 'success' | 'warning'} | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
