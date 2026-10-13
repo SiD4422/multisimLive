@@ -2,8 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   BookOpen, FolderOpen, Save, Share, Code, 
-  Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles, FileText, Coffee
+  Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles, FileText, Coffee,
+  Play, Trash2, Undo2, Redo2, Trash
 } from 'lucide-react';
+import { useSchematicStore } from '../store/useSchematicStore';
 import { Logo } from './icons/Logo';
 
 export interface SimulatorHeaderProps {
@@ -101,6 +103,43 @@ export function SimulatorHeader({
       </div>
 
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', minWidth: 0 }}>
+        {/* Run Simulation button */}
+        <button
+          id="run-simulation-btn"
+          title="Run Simulation (Ctrl+Enter)"
+          onClick={() => {
+            const state = useSchematicStore.getState();
+            if (state.isSimulating) return;
+            if (state.isPlaying) {
+              state.stopSimulation();
+            } else {
+              state.runSimulation();
+            }
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            background: isSimulating ? '#4b5563' : 'linear-gradient(135deg, #16a34a, #15803d)',
+            border: '1px solid #22c55e40',
+            borderRadius: '8px',
+            cursor: isSimulating ? 'not-allowed' : 'pointer',
+            color: '#fff',
+            fontSize: '12px',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
+            transition: 'all 0.15s ease',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 1px 4px rgba(22,163,74,0.3)',
+          }}
+          onMouseEnter={e => { if (!isSimulating) { e.currentTarget.style.background = 'linear-gradient(135deg, #15803d, #166534)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(22,163,74,0.5)'; } }}
+          onMouseLeave={e => { if (!isSimulating) { e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a, #15803d)'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(22,163,74,0.3)'; } }}
+        >
+          <Play size={13} fill="white" />
+          <span className="sim-header-pill-text">{isSimulating ? 'Simulating...' : 'Run'}</span>
+        </button>
+
         {/* AI Tutor button — labeled and prominent so users can find it */}
         <button
           onClick={onOpenAi}
@@ -131,6 +170,37 @@ export function SimulatorHeader({
         {/* Divider */}
         <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
         {[
+          { icon: <Undo2 size={16}/>, label: 'Undo (Ctrl+Z)', action: () => useSchematicStore.getState().undo(), color: undefined },
+          { icon: <Redo2 size={16}/>, label: 'Redo (Ctrl+Y)', action: () => useSchematicStore.getState().redo(), color: undefined },
+          { 
+            icon: <Trash size={16}/>, 
+            label: 'Delete selected (Del)', 
+            action: () => {
+              const state = useSchematicStore.getState();
+              if (state.selectedComponentIds && state.selectedComponentIds.length > 0) {
+                state.deleteSelectedComponents();
+              } else if (state.selectedComponentId) {
+                state.deleteComponent(state.selectedComponentId);
+              } else if (state.selectedWireId) {
+                state.deleteWire(state.selectedWireId);
+              } else if (state.selectedProbeId) {
+                state.deleteProbe(state.selectedProbeId);
+              }
+            }, 
+            color: undefined 
+          },
+          { 
+            icon: <Trash2 size={16}/>, 
+            label: 'Clear Canvas', 
+            action: () => {
+              if (window.confirm('Clear the canvas? This cannot be undone.')) {
+                useSchematicStore.getState().importState(
+                  JSON.stringify({ components: [], wires: [], probes: [] })
+                );
+              }
+            }, 
+            color: '#f87171' 
+          },
           { icon: <BookOpen size={16}/>, label: 'Example Library', action: () => setIsLibraryOpen(true), color: undefined },
           { icon: <FolderOpen size={16}/>, label: 'Load Circuit (.json)', action: onLoadClick, color: undefined },
           { icon: <Save size={16}/>, label: 'Save Circuit (.json)', action: onSave, color: undefined },

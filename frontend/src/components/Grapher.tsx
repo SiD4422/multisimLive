@@ -960,28 +960,20 @@ export default function Grapher() {
     );
   }
 
-  const handleExportPNG = async () => {
-    if (chartRef.current) {
-      try {
-        // Apply padding to prevent clipping of shadows in oscilloscope mode
-        const originalStyle = chartRef.current.style.cssText;
-        if (isOscilloscope) {
-          chartRef.current.style.padding = '10px';
-          chartRef.current.style.backgroundColor = '#001100';
-        }
-        
-        const dataUrl = await toPng(chartRef.current, { backgroundColor: isOscilloscope ? '#001100' : '#ffffff' });
-        
-        // Restore
-        chartRef.current.style.cssText = originalStyle;
-
-        const link = document.createElement('a');
-        link.download = `simulation_plot.png`;
-        link.href = dataUrl;
-        link.click();
-      } catch (err) {
-        console.error('Failed to export PNG', err);
-      }
+  const handleDownloadPng = async () => {
+    if (!chartRef.current) return;
+    try {
+      const dataUrl = await toPng(chartRef.current, {
+        backgroundColor: '#0f172a',
+        pixelRatio: 2,  // high-res
+        cacheBust: true,
+      });
+      const link = document.createElement('a');
+      link.download = `nodesim-waveform-${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error('PNG export failed:', e);
     }
   };
 
@@ -1134,10 +1126,9 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
     }
   };
 
-  const chartAreaHeight = Math.max(0, containerSize.height - TOOLBAR_H);
 
   return (
-    <div ref={chartRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: '#fff', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: '#fff', display: 'flex', flexDirection: 'column' }}>
       {renderCursorPanel()}
 
       {showAiPanel && (
@@ -1233,7 +1224,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
             <Sparkles size={13} />
             AI Analyze
           </button>
-          <button onClick={handleExportPNG} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#374151' }} title="Download PNG">
+          <button onClick={handleDownloadPng} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#374151' }} title="Download PNG">
             <Download size={15} /> PNG
           </button>
           <button onClick={handleExportCSV} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#374151' }} title="Download CSV">
@@ -1273,7 +1264,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
       )}
 
       {/* Chart area: positioned exactly below toolbar */}
-      <div style={{ position: 'relative', flex: 1, minHeight: 0, width: '100%' }}>
+      <div ref={chartRef} style={{ position: 'relative', flex: 1, minHeight: 0, width: '100%' }}>
         {PlotComponent}
         <MeasurementsPanel data={formattedData} traces={traces} plotType={plotType} probeMap={probeMap} />
       </div>

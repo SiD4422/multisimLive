@@ -171,44 +171,70 @@ function Simulator() {
 
   // Global Keyboard Shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Rotation
+    const handleKey = (e: KeyboardEvent) => {
+      // Don't fire shortcuts when user is typing in an input/textarea/select
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+
+      // Rotation (Ctrl+R)
       if (e.ctrlKey && e.key.toLowerCase() === 'r') {
-        e.preventDefault(); // Prevent browser refresh
-        if (selectedComponentId) {
-          const comp = components.find(c => c.id === selectedComponentId);
+        e.preventDefault();
+        const state = useSchematicStore.getState();
+        if (state.selectedComponentId) {
+          const comp = state.components.find(c => c.id === state.selectedComponentId);
           if (comp) {
             const currentRotation = comp.rotation || 0;
             const newRotation = (currentRotation + 90) % 360;
-            updateComponentRotation(selectedComponentId, newRotation);
+            state.updateComponentRotation(state.selectedComponentId, newRotation);
           }
         }
       }
-      
-      // Deletion
+
+      // Delete selected components / wires / probes
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        // Prevent deleting if user is typing in an input field
-        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
-          return;
-        }
-        
-        if (selectedComponentId) {
-          deleteComponent(selectedComponentId);
-        } else if (selectedWireId) {
-          deleteWire(selectedWireId);
-        } else if (selectedProbeId) {
-          deleteProbe(selectedProbeId);
+        const state = useSchematicStore.getState();
+        if (state.selectedComponentIds && state.selectedComponentIds.length > 0) {
+          state.deleteSelectedComponents();
+        } else if (state.selectedComponentId) {
+          state.deleteComponent(state.selectedComponentId);
+        } else if (state.selectedWireId) {
+          state.deleteWire(state.selectedWireId);
+        } else if (state.selectedProbeId) {
+          state.deleteProbe(state.selectedProbeId);
         }
       }
-      
-      // Undo/Redo
-      if (e.ctrlKey && e.key === 'z') undo();
-      if (e.ctrlKey && e.key === 'y') redo();
+
+      // Undo (Ctrl+Z / Cmd+Z)
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
+        e.preventDefault();
+        useSchematicStore.getState().undo();
+      }
+
+      // Redo (Ctrl+Y / Cmd+Y or Ctrl+Shift+Z / Cmd+Shift+Z)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+        e.preventDefault();
+        useSchematicStore.getState().redo();
+      }
+
+      // Escape -> clear selection
+      if (e.key === 'Escape') {
+        useSchematicStore.getState().clearSelection();
+      }
+
+      // Run simulation (Ctrl+Enter / Cmd+Enter)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        const runBtn = document.getElementById('run-simulation-btn');
+        if (runBtn) {
+          runBtn.click();
+        } else {
+          useSchematicStore.getState().runSimulation();
+        }
+      }
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedComponentId, selectedWireId, selectedProbeId, components, updateComponentRotation, deleteComponent, deleteWire, deleteProbe, undo, redo]);
+
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   // Prevent accidental refresh if there are components placed
   useEffect(() => {
