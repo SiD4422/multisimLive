@@ -9,7 +9,7 @@ import {
   Legend, ResponsiveContainer, Brush, ReferenceLine
 } from 'recharts';
 import type { MouseHandlerDataParam } from 'recharts';
-import { Activity, Download, Crosshair, Table2, BarChart2, Sparkles } from 'lucide-react';
+import { Activity, Download, Crosshair, Table2, BarChart2, Sparkles, ChevronDown } from 'lucide-react';
 import { AiWaveformPanel } from './AiWaveformPanel';
 import { toPng } from 'html-to-image';
 import { generateCSV } from '../utils/csvExport';
@@ -99,7 +99,15 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const MeasurementsPanel = ({ data, traces, plotType, probeMap }: { data: SimulationData, traces: string[], plotType: string, probeMap: Record<string, string> }) => {
+const MeasurementsPanel = ({ data, traces, plotType, probeMap, isOscilloscope }: {
+  data: SimulationData;
+  traces: string[];
+  plotType: string;
+  probeMap: Record<string, string>;
+  isOscilloscope?: boolean;
+}) => {
+  const [isMinimized, setIsMinimized] = useState(false);
+
   if (plotType !== 'transient' || !data || data.length < 2 || traces.length === 0) return null;
 
   const measurements = traces.map(trace => {
@@ -175,68 +183,107 @@ const MeasurementsPanel = ({ data, traces, plotType, probeMap }: { data: Simulat
     return { trace, min, max, pkpk, rms, freqStr };
   });
 
+  const colors = isOscilloscope ? OSC_COLORS : COLORS;
+
   return (
     <div style={{
       position: 'absolute',
       bottom: 16,
       left: 16,
       right: 16,
-      background: 'rgba(255, 255, 255, 0.9)',
-      backdropFilter: 'blur(4px)',
-      border: '1px solid #e5e7eb',
+      background: isOscilloscope ? 'rgba(5, 14, 8, 0.95)' : 'rgba(255, 255, 255, 0.96)',
+      backdropFilter: 'blur(8px)',
+      border: isOscilloscope ? '1px solid rgba(74, 222, 128, 0.25)' : '1px solid #cbd5e1',
       borderRadius: 12,
-      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      boxShadow: isOscilloscope ? '0 10px 25px -3px rgba(0, 0, 0, 0.6)' : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
       pointerEvents: 'auto',
       zIndex: 10,
       fontSize: 12,
+      color: isOscilloscope ? '#f1f5f9' : '#0f172a',
     }}>
-      <div style={{
-        background: '#f3f4f6',
-        padding: '6px 12px',
-        borderBottom: '1px solid #e5e7eb',
-        fontWeight: 700,
-        color: '#374151',
-        display: 'flex',
-        justifyContent: 'space-between',
-      }}>
-        <span>Measurements</span>
+      <div
+        onClick={() => setIsMinimized(m => !m)}
+        style={{
+          background: isOscilloscope ? '#0d2818' : '#f1f5f9',
+          padding: '6px 12px',
+          borderBottom: isMinimized ? 'none' : (isOscilloscope ? '1px solid rgba(74, 222, 128, 0.2)' : '1px solid #cbd5e1'),
+          fontWeight: 700,
+          color: isOscilloscope ? '#4ade80' : '#1e293b',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <ChevronDown
+            size={13}
+            style={{
+              transform: isMinimized ? 'rotate(-90deg)' : 'rotate(0deg)',
+              transition: 'transform 0.15s ease',
+            }}
+          />
+          Measurements
+        </span>
+        <span style={{ fontSize: 11, fontWeight: 500, color: isOscilloscope ? '#86efac' : '#64748b' }}>
+          {isMinimized ? 'Click to expand' : `${measurements.length} trace${measurements.length > 1 ? 's' : ''}`}
+        </span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'auto', padding: 8, gap: 16 }}>
-        {measurements.map((m, idx) => {
-          const displayName = probeMap[m.trace] || formatTraceName(m.trace);
-          return (
-            <div key={m.trace} style={{ display: 'flex', flexDirection: 'column', minWidth: 120, background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, fontSize: 12 }}>
-              <span
+      {!isMinimized && (
+        <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'auto', padding: 8, gap: 16 }}>
+          {measurements.map((m, idx) => {
+            const displayName = probeMap[m.trace] || formatTraceName(m.trace);
+            return (
+              <div
+                key={m.trace}
                 style={{
-                  fontWeight: 700,
-                  marginBottom: 4,
-                  borderBottom: '1px solid #e5e7eb',
-                  paddingBottom: 4,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  color: COLORS[idx % COLORS.length],
+                  display: 'flex',
+                  flexDirection: 'column',
+                  minWidth: 120,
+                  background: isOscilloscope ? '#060a08' : '#f8fafc',
+                  border: isOscilloscope ? '1px solid rgba(74, 222, 128, 0.2)' : '1px solid #cbd5e1',
+                  borderRadius: 8,
+                  padding: 8,
+                  fontSize: 12,
+                  color: isOscilloscope ? '#f1f5f9' : '#0f172a',
                 }}
-                title={displayName}
               >
-                {displayName}
-              </span>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Vpp:</span> <span style={{ fontFamily: 'monospace' }}>{fmtNum(m.pkpk)}V</span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    marginBottom: 4,
+                    borderBottom: isOscilloscope ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #e2e8f0',
+                    paddingBottom: 4,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    color: colors[idx % colors.length],
+                  }}
+                  title={displayName}
+                >
+                  {displayName}
+                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, color: isOscilloscope ? '#f1f5f9' : '#0f172a' }}>
+                  <span style={{ color: isOscilloscope ? '#94a3b8' : '#64748b', fontWeight: 500 }}>Vpp:</span>
+                  <span style={{ fontFamily: 'monospace', color: isOscilloscope ? '#4ade80' : '#0f172a', fontWeight: 600 }}>{fmtNum(m.pkpk)}V</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, color: isOscilloscope ? '#f1f5f9' : '#0f172a' }}>
+                  <span style={{ color: isOscilloscope ? '#94a3b8' : '#64748b', fontWeight: 500 }}>RMS:</span>
+                  <span style={{ fontFamily: 'monospace', color: isOscilloscope ? '#38bdf8' : '#0f172a', fontWeight: 600 }}>{fmtNum(m.rms)}V</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, color: isOscilloscope ? '#f1f5f9' : '#0f172a' }}>
+                  <span style={{ color: isOscilloscope ? '#94a3b8' : '#64748b', fontWeight: 500 }}>Freq:</span>
+                  <span style={{ fontFamily: 'monospace', color: isOscilloscope ? '#facc15' : '#0f172a', fontWeight: 600 }}>{m.freqStr}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>RMS:</span> <span style={{ fontFamily: 'monospace' }}>{fmtNum(m.rms)}V</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Freq:</span> <span style={{ fontFamily: 'monospace' }}>{m.freqStr}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -1314,7 +1361,15 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
             onClick={() => setShowDcBias(s => !s)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 14px', cursor: 'pointer', userSelect: 'none', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}
           >
-            <span style={{ fontSize: 10, display: 'inline-block', transform: showDcBias ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }}>?</span>
+            <ChevronDown
+              size={12}
+              style={{
+                transform: showDcBias ? 'rotate(0deg)' : 'rotate(-90deg)',
+                transition: 'transform 0.15s ease',
+                flexShrink: 0,
+                color: '#64748b',
+              }}
+            />
             DC Bias (mean values)
           </div>
           {showDcBias && (
@@ -1340,7 +1395,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
       {/* Chart area: positioned exactly below toolbar */}
       <div ref={chartRef} style={{ position: 'relative', flex: 1, minHeight: 0, width: '100%' }}>
         {PlotComponent}
-        <MeasurementsPanel data={formattedData} traces={traces} plotType={plotType} probeMap={probeMap} />
+        <MeasurementsPanel data={formattedData} traces={traces} plotType={plotType} probeMap={probeMap} isOscilloscope={isOscilloscope} />
       </div>
     </div>
   );
