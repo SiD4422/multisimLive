@@ -93,8 +93,8 @@ function getYAxisLabel(traces: string[], isAcMagnitude: boolean = false, isAcPha
 // ⚡⚡ Subcomponents ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡â”€
 
 const LoadingSpinner = () => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 text-gray-500">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4" />
+  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', color: '#6b7280' }}>
+    <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', borderBottom: '2px solid #3b82f6', marginBottom: '1rem', animation: 'spin 1s linear infinite' }} />
     <p>Running SPICE Simulation...</p>
   </div>
 );
@@ -176,20 +176,64 @@ const MeasurementsPanel = ({ data, traces, plotType, probeMap }: { data: Simulat
   });
 
   return (
-    <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur border border-gray-200 rounded shadow-lg overflow-hidden flex flex-col pointer-events-auto z-10 text-xs">
-      <div className="bg-gray-100 px-3 py-1.5 border-b border-gray-200 font-bold text-gray-700 flex justify-between">
+    <div style={{
+      position: 'absolute',
+      bottom: 16,
+      left: 16,
+      right: 16,
+      background: 'rgba(255, 255, 255, 0.9)',
+      backdropFilter: 'blur(4px)',
+      border: '1px solid #e5e7eb',
+      borderRadius: 12,
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+      pointerEvents: 'auto',
+      zIndex: 10,
+      fontSize: 12,
+    }}>
+      <div style={{
+        background: '#f3f4f6',
+        padding: '6px 12px',
+        borderBottom: '1px solid #e5e7eb',
+        fontWeight: 700,
+        color: '#374151',
+        display: 'flex',
+        justifyContent: 'space-between',
+      }}>
         <span>Measurements</span>
       </div>
-      <div className="flex flex-row overflow-x-auto p-2 gap-4">
+      <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'auto', padding: 8, gap: 16 }}>
         {measurements.map((m, idx) => {
           const displayName = probeMap[m.trace] || formatTraceName(m.trace);
           return (
-          <div key={m.trace} className="flex flex-col min-w-[120px] bg-gray-50 border border-gray-200 rounded p-2">
-            <span className="font-bold mb-1 border-b pb-1 truncate" style={{color: COLORS[idx % COLORS.length]}} title={displayName}>{displayName}</span>
-            <div className="flex justify-between"><span>Vpp:</span> <span className="font-mono">{fmtNum(m.pkpk)}V</span></div>
-            <div className="flex justify-between"><span>RMS:</span> <span className="font-mono">{fmtNum(m.rms)}V</span></div>
-            <div className="flex justify-between"><span>Freq:</span> <span className="font-mono">{m.freqStr}</span></div>
-          </div>
+            <div key={m.trace} style={{ display: 'flex', flexDirection: 'column', minWidth: 120, background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, fontSize: 12 }}>
+              <span
+                style={{
+                  fontWeight: 700,
+                  marginBottom: 4,
+                  borderBottom: '1px solid #e5e7eb',
+                  paddingBottom: 4,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  color: COLORS[idx % COLORS.length],
+                }}
+                title={displayName}
+              >
+                {displayName}
+              </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Vpp:</span> <span style={{ fontFamily: 'monospace' }}>{fmtNum(m.pkpk)}V</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>RMS:</span> <span style={{ fontFamily: 'monospace' }}>{fmtNum(m.rms)}V</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Freq:</span> <span style={{ fontFamily: 'monospace' }}>{m.freqStr}</span>
+              </div>
+            </div>
           );
         })}
       </div>
@@ -202,30 +246,30 @@ const ErrorView = ({ error }: { error: string }) => {
   const [showRaw, setShowRaw] = React.useState(false);
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 overflow-y-auto">
-      <div className="flex flex-col max-w-2xl w-full">
+    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', padding: 24, overflowY: 'auto' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', maxWidth: 672, width: '100%' }}>
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-            <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg style={{ width: 24, height: 24, color: '#ef4444' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h3 className="text-lg font-bold text-red-700">{smart.title}</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#b91c1c', margin: 0 }}>{smart.title}</h3>
         </div>
 
         {/* Message */}
-        <p className="text-sm text-gray-700 mb-4 leading-relaxed">{smart.message}</p>
+        <p style={{ fontSize: 14, color: '#374151', marginBottom: 16, lineHeight: 1.625 }}>{smart.message}</p>
 
         {/* Hints */}
         {smart.hints.length > 0 && (
-          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-amber-700 mb-2">Possible Causes</p>
-            <ul className="space-y-1">
+          <div style={{ marginBottom: 16, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: 12 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#b45309', marginBottom: 8, marginTop: 0 }}>Possible Causes</p>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: 4, margin: 0, padding: 0, listStyle: 'none' }}>
               {smart.hints.map((hint, i) => (
-                <li key={i} className="text-sm text-amber-900 flex items-start gap-2">
-                  <span className="mt-0.5 flex-shrink-0">â€¢</span>
+                <li key={i} style={{ fontSize: 14, color: '#78350f', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <span style={{ marginTop: 2, flexShrink: 0 }}>•</span>
                   <span>{hint}</span>
                 </li>
               ))}
@@ -235,11 +279,11 @@ const ErrorView = ({ error }: { error: string }) => {
 
         {/* Fix Steps */}
         {smart.fixSteps.length > 0 && (
-          <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-blue-700 mb-2">How to Fix</p>
-            <ol className="space-y-1 list-decimal list-inside">
+          <div style={{ marginBottom: 16, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: 12 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#1d4ed8', marginBottom: 8, marginTop: 0 }}>How to Fix</p>
+            <ol style={{ display: 'flex', flexDirection: 'column', gap: 4, listStyle: 'decimal inside', margin: 0, padding: 0 }}>
               {smart.fixSteps.map((step, i) => (
-                <li key={i} className="text-sm text-blue-900">{step}</li>
+                <li key={i} style={{ fontSize: 14, color: '#1e3a8a' }}>{step}</li>
               ))}
             </ol>
           </div>
@@ -247,15 +291,15 @@ const ErrorView = ({ error }: { error: string }) => {
 
         {/* Offending node/model badge */}
         {(smart.offendingNode || smart.offendingModel) && (
-          <div className="mb-4 flex items-center gap-2 text-xs text-gray-500">
+          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#6b7280' }}>
             <span>Affected:</span>
             {smart.offendingNode && (
-              <span className="font-mono bg-gray-100 border border-gray-300 px-2 py-0.5 rounded text-red-700">
+              <span style={{ fontFamily: 'monospace', background: '#f3f4f6', border: '1px solid #d1d5db', padding: '2px 8px', borderRadius: 4, color: '#b91c1c' }}>
                 node: {smart.offendingNode}
               </span>
             )}
             {smart.offendingModel && (
-              <span className="font-mono bg-gray-100 border border-gray-300 px-2 py-0.5 rounded text-red-700">
+              <span style={{ fontFamily: 'monospace', background: '#f3f4f6', border: '1px solid #d1d5db', padding: '2px 8px', borderRadius: 4, color: '#b91c1c' }}>
                 model: {smart.offendingModel}
               </span>
             )}
@@ -265,13 +309,13 @@ const ErrorView = ({ error }: { error: string }) => {
         {/* Raw error toggle */}
         <button
           onClick={() => setShowRaw(!showRaw)}
-          className="text-xs text-gray-400 hover:text-gray-600 underline text-left mb-2"
+          style={{ fontSize: 12, color: '#9ca3af', textDecoration: 'underline', textAlign: 'left', marginBottom: 8, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
         >
           {showRaw ? '▲ Hide raw ngspice output' : '▼ Show raw ngspice output'}
         </button>
         {showRaw && (
-          <div className="bg-gray-900 rounded p-3 overflow-x-auto">
-            <pre className="text-xs font-mono text-red-300 whitespace-pre-wrap">{error}</pre>
+          <div style={{ background: '#111827', borderRadius: 8, padding: 12, overflowX: 'auto' }}>
+            <pre style={{ fontSize: 12, fontFamily: 'monospace', color: '#fca5a5', whiteSpace: 'pre-wrap', margin: 0 }}>{error}</pre>
           </div>
         )}
       </div>
@@ -280,7 +324,7 @@ const ErrorView = ({ error }: { error: string }) => {
 };
 
 const EmptyView = () => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 text-gray-500">
+  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', color: '#6b7280' }}>
     <p>No simulation data. Go to Schematic and click <strong>Run</strong>.</p>
   </div>
 );
@@ -457,7 +501,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: isOscilloscope ? '#001100' : '#fff', display: 'flex', flexDirection: 'column' }}>
       {/* Magnitude chart - top half */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: '50%' }}>
-        <p className={`text-xs font-bold uppercase tracking-wide pl-12 pb-1 ${isOscilloscope ? 'text-green-500' : 'text-gray-500'}`}>Magnitude (dB)</p>
+        <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: 48, paddingBottom: 4, color: isOscilloscope ? '#22c55e' : '#6b7280', margin: 0 }}>Magnitude (dB)</p>
         <div style={{ position: 'absolute', top: 20, left: 0, right: 0, bottom: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart {...commonChartProps}>
@@ -498,7 +542,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
 
       {/* Phase chart - bottom half */}
       <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, bottom: 0 }}>
-        <p className={`text-xs font-bold uppercase tracking-wide pl-12 pb-1 ${isOscilloscope ? 'text-green-500' : 'text-gray-500'}`}>Phase (°)</p>
+        <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', paddingLeft: 48, paddingBottom: 4, color: isOscilloscope ? '#22c55e' : '#6b7280', margin: 0 }}>Phase (°)</p>
         <div style={{ position: 'absolute', top: 20, left: 0, right: 0, bottom: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart {...commonChartProps}>
@@ -969,23 +1013,43 @@ export default function Grapher() {
     const xLabel = xKey === 'time' ? 'Time (s)' : xKey === 'frequency' ? 'Freq (Hz)' : 'Voltage (V)';
 
     return (
-      <div className={`absolute left-4 top-4 z-20 p-3 rounded-lg shadow-xl border text-sm max-w-sm overflow-auto max-h-64 ${isOscilloscope ? 'bg-[#002200] border-green-500 text-green-400' : 'bg-white border-gray-200 text-gray-800'}`}>
-        <div className="font-bold mb-2 border-b pb-1 border-opacity-30">Measurement Cursors</div>
-        <table className="w-full text-left">
+      <div style={{
+        position: 'absolute',
+        left: 16,
+        top: 16,
+        zIndex: 20,
+        padding: 12,
+        borderRadius: 8,
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        border: isOscilloscope ? '1px solid #22c55e' : '1px solid #e5e7eb',
+        fontSize: 14,
+        maxWidth: 384,
+        overflow: 'auto',
+        maxHeight: 256,
+        background: isOscilloscope ? '#002200' : '#ffffff',
+        color: isOscilloscope ? '#4ade80' : '#1f2937',
+      }}>
+        <div style={{
+          fontWeight: 700,
+          marginBottom: 8,
+          borderBottom: isOscilloscope ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(0, 0, 0, 0.1)',
+          paddingBottom: 4,
+        }}>Measurement Cursors</div>
+        <table style={{ width: '100%', textAlign: 'left' }}>
           <thead>
             <tr>
-              <th className="pr-2 font-normal italic">Signal</th>
-              <th className="pr-2 text-red-500">A</th>
-              <th className="pr-2 text-fuchsia-500">B</th>
-              <th className="font-bold">Î”</th>
+              <th style={{ paddingRight: 8, fontWeight: 400, fontStyle: 'italic' }}>Signal</th>
+              <th style={{ paddingRight: 8, color: '#ef4444' }}>A</th>
+              <th style={{ paddingRight: 8, color: '#d946ef' }}>B</th>
+              <th style={{ fontWeight: 700 }}>Δ</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className="pr-2 truncate max-w-[80px]">{xLabel}</td>
-              <td className="pr-2">{ax !== null ? fmtNum(ax) : '-'}</td>
-              <td className="pr-2">{bx !== null ? fmtNum(bx) : '-'}</td>
-              <td className="font-bold">{dx !== null ? fmtNum(dx) : '-'}</td>
+              <td style={{ paddingRight: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 80 }}>{xLabel}</td>
+              <td style={{ paddingRight: 8 }}>{ax !== null ? fmtNum(ax) : '-'}</td>
+              <td style={{ paddingRight: 8 }}>{bx !== null ? fmtNum(bx) : '-'}</td>
+              <td style={{ fontWeight: 700 }}>{dx !== null ? fmtNum(dx) : '-'}</td>
             </tr>
             {traces.map((t: string) => {
               const ay = cursorA ? cursorA[t] : null;
@@ -994,10 +1058,10 @@ export default function Grapher() {
               const displayName = probeMap[t] || formatTraceName(t);
               return (
                 <tr key={t}>
-                  <td className="pr-2 truncate max-w-[80px]" title={displayName}>{displayName}</td>
-                  <td className="pr-2">{ay !== null ? fmtNum(ay) : '-'}</td>
-                  <td className="pr-2">{by !== null ? fmtNum(by) : '-'}</td>
-                  <td className="font-bold">{dy !== null ? fmtNum(dy) : '-'}</td>
+                  <td style={{ paddingRight: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 80 }} title={displayName}>{displayName}</td>
+                  <td style={{ paddingRight: 8 }}>{ay !== null ? fmtNum(ay) : '-'}</td>
+                  <td style={{ paddingRight: 8 }}>{by !== null ? fmtNum(by) : '-'}</td>
+                  <td style={{ fontWeight: 700 }}>{dy !== null ? fmtNum(dy) : '-'}</td>
                 </tr>
               );
             })}
