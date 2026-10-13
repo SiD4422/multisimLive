@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Layout from './pages/Layout';
 import LandingPage from './pages/LandingPage';
 import FeaturesPage from './pages/FeaturesPage';
@@ -54,11 +54,18 @@ const Timer555Calculator = lazy(() => import('./pages/tools/Timer555Calculator')
 const ResistorColorCodeCalculator = lazy(() => import('./pages/tools/ResistorColorCodeCalculator'));
 const ToolsIndex = lazy(() => import('./pages/tools/ToolsIndex'));
 
+/** Renders the feedback widget only outside the simulator to avoid overlapping the status bar. */
+function ConditionalFeedback() {
+  const { pathname } = useLocation();
+  if (pathname === '/simulator') return null;
+  return <FeedbackWidget />;
+}
+
 function App() {
   return (
     <HelmetProvider>
       <BrowserRouter>
-      <FeedbackWidget />
+      <ConditionalFeedback />
       <Analytics />
       <Routes>
         {/* Standalone Landing Page with its own header */}

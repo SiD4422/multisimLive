@@ -947,6 +947,17 @@ body {
   border-color: #4ade80;
 }
 
+/* ── Desktop Header Icon Flex Protection (≤ 1366px) ─────────────── */
+/* Prevents the 11 action icons from crushing to sub-pixel width on 1280px laptops */
+@media (max-width: 1366px) {
+  .header-top > div:last-child {
+    flex-shrink: 0;
+  }
+  .header-top > div:last-child > button {
+    flex-shrink: 0;
+  }
+}
+
 /* ── Mobile Responsive Overrides (≤ 640px) ────────────────────── */
 @media (max-width: 640px) {
   /* Header: allow wrapping, auto height */
@@ -957,6 +968,11 @@ body {
     padding: 6px 10px;
     gap: 6px;
     overflow: visible;
+  }
+
+  /* Clamp the negative logo margin that bleeds AI Tutor behind the logo */
+  .header-top .sim-logo-wrap {
+    margin-left: 0 !important;
   }
 
   /* Toolbar: allow wrapping */
@@ -974,9 +990,35 @@ body {
     padding: 12px;
   }
 
-  /* Canvas fills full width when sidebar hidden on mobile */
+  /* ── Component Palette: Absolute overlay drawer on mobile ───
+     Instead of stacking vertically (which collapses #canvas-wrapper
+     to 0px height), the palette floats as an overlay above the canvas.
+     The canvas always fills the full viewport width and height.       */
   .main-content {
-    flex-direction: column;
+    flex-direction: row;   /* keep row layout — palette will overlay, not stack */
+    position: relative;
+  }
+
+  /* Palette slides in from the left as an absolute overlay */
+  .component-palette {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100% !important;
+    width: 260px;
+    max-width: 82vw;
+    z-index: 40;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.45);
+    transform: translateX(0);
+  }
+
+  /* Canvas wrapper always fills full area — never collapses */
+  #canvas-wrapper,
+  .canvas-container {
+    width: 100% !important;
+    min-height: 200px;
+    flex: 1;
   }
 
   /* Hide nav links on mobile */
@@ -984,4 +1026,18 @@ body {
 
   /* Hide text labels in header pill buttons, keep icons */
   .sim-header-pill-text { display: none; }
+}
+
+/* ── Mobile palette backdrop (tap-outside to close) ─────────────── */
+.mobile-palette-backdrop {
+  display: none;
+}
+@media (max-width: 640px) {
+  .mobile-palette-backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 39;
+  }
 }

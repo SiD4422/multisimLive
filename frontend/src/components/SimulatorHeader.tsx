@@ -58,7 +58,7 @@ export function SimulatorHeader({
   return (
     <header className="header-top relative" style={{ zIndex: 10 }}>
       <div className="flex items-center gap-6" style={{ flex: 1, minWidth: 0 }}>
-        <div className="flex items-center gap-2" style={{ marginLeft: '-60px' }}>
+        <div className="flex items-center gap-2 sim-logo-wrap" style={{ marginLeft: '-60px' }}>
           <a href="https://nodesimapp.com" target="_blank" rel="noopener noreferrer" title="Open NodeSim" className="flex items-center">
             <Logo style={{ width: '180px', height: '44px', transform: 'scale(1.1)', transformOrigin: 'left center' }} />
           </a>

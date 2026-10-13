@@ -586,6 +586,14 @@ function Simulator() {
           </div>
         )}
         <div className="main-content">
+        {/* Mobile backdrop — closes palette when tapping outside on narrow screens */}
+          {isSidebarOpen && (activeView === 'schematic' || activeView === 'split') && (
+            <div
+              className="mobile-palette-backdrop"
+              onClick={() => setIsSidebarOpen(false)}
+              aria-hidden="true"
+            />
+          )}
         {/* Multisim Dark Vertical Toolbar */}
           {isSidebarOpen && (activeView === 'schematic' || activeView === 'split') && (
             <ComponentPalette 
@@ -596,6 +604,7 @@ function Simulator() {
             />
           
           )}
+
 
           {/* Canvas Area */}
           <div id="main-content" className="canvas-container flex-1 flex flex-col md:flex-row overflow-hidden">
