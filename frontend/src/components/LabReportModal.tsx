@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, FileText, Loader2, Download, Sparkles, LogIn } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
+import { generateNetlist } from '../utils/netlister/generateNetlist';
 import { useAuth } from '../hooks/useAuth';
 import { checkAndIncrementUsage } from '../utils/dbUsage';
 
@@ -50,23 +51,43 @@ export function LabReportModal({ isOpen, onClose, schematicDataUrl, graphDataUrl
         return;
       }
 
-      const prompt = `You are a professional electronics lab report writer for undergraduate engineering students.
+      const { components, wires, simulationBuffer, analysisMode } = useSchematicStore.getState();
+      const netlist = generateNetlist(components, wires);
 
-Generate a complete, formal lab report for the following circuit simulation experiment.
-Circuit components used: ${componentTypes || 'basic electronic components'}
-Experiment Title: ${formData.title}
-Subject: ${formData.subject}
+      // Summarize simulation results
+      let simSummary = 'No simulation data.';
+      const simRows: Record<string, number>[] = simulationBuffer
+        ? (Array.isArray(simulationBuffer) ? simulationBuffer : (simulationBuffer as any).data || [])
+        : [];
+      if (simRows.length > 0) {
+        const keys = Object.keys(simRows[0]).filter(k => k !== 'time' && k !== 'frequency' && k !== 'v_sweep');
+        simSummary = keys.map(k => {
+          const vals = simRows.map((r: Record<string, number>) => r[k]).filter((v: number) => isFinite(v));
+          const min = Math.min(...vals).toFixed(4);
+          const max = Math.max(...vals).toFixed(4);
+          return `${k}: min=${min}V, max=${max}V`;
+        }).join('\n');
+      }
 
-Respond with ONLY a valid JSON object (no markdown, no code blocks) with exactly these keys:
-{
-  "aim": "One sentence describing the objective of the experiment.",
-  "theory": "3-4 sentences explaining the circuit theory, how it works, key formulas if any.",
-  "procedure": "Step by step numbered procedure (as a single string with steps separated by \\n). Include simulation steps specific to browser-based SPICE simulation.",
-  "result": "2-3 sentences describing the expected simulation result and waveform observations.",
-  "conclusion": "2-3 sentences concluding what was verified and what was learned."
-}
+      const prompt = `You are an expert electronics engineering lab report writer. Write a complete formal lab report for the following SPICE simulation experiment.
 
-Keep language formal but easy to understand for a 2nd or 3rd year engineering student.`;
+Analysis type: ${analysisMode || 'transient'}
+
+SPICE Netlist:
+${netlist}
+
+Simulation Results:
+${simSummary}
+
+Write sections:
+1. AIM: One sentence stating the experiment objective based on the circuit.
+2. THEORY: 2-3 paragraphs explaining the circuit operation and key formulas relevant to this specific circuit type.
+3. PROCEDURE: Step-by-step procedure (numbered) for setting up and running this simulation.
+4. OBSERVATIONS: Based on the simulation results above, describe what the waveforms show. Include specific values.
+5. RESULT: State the measured values (from simulation data) and whether the circuit behaved as expected.
+6. CONCLUSION: 2-3 sentences summarizing what was learned.
+
+Be specific to THIS circuit. Do not write a generic report. Use engineering language appropriate for a 3rd-year B.Tech student.`;
 
       const response = await fetch('/api/gemini', {
         method: 'POST',
@@ -76,14 +97,35 @@ Keep language formal but easy to understand for a 2nd or 3rd year engineering st
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Gemini API error');
       
-      // Parse JSON from result
-      let parsed;
+      // Parse JSON from result, or extract sections from text response
+      let parsed: { aim: string; theory: string; procedure: string; result: string; conclusion: string };
       try {
         // Strip possible markdown code fences
         const cleaned = (data.result as string).replace(/```json\n?|```/g, '').trim();
         parsed = JSON.parse(cleaned);
       } catch {
-        throw new Error('Could not parse AI response. Please try again.');
+        const text = (data.result as string) || '';
+        const extract = (header: string, nextHeaders: string[]) => {
+          const nextPattern = nextHeaders.length ? `(?=(?:\\n\\s*(?:\\d+\\.\\s*|#{1,3}\\s*)?(?:${nextHeaders.join('|')}):?)|$)` : '$';
+          const regex = new RegExp(`(?:^|\\n)\\s*(?:\\d+\\.\\s*|#{1,3}\\s*)?${header}:?\\s*\\n?([\\s\\S]*?)${nextPattern}`, 'i');
+          const match = text.match(regex);
+          return match ? match[1].trim() : '';
+        };
+
+        const aim = extract('AIM', ['THEORY', 'PROCEDURE', 'OBSERVATIONS', 'RESULT', 'CONCLUSION']);
+        const theory = extract('THEORY', ['PROCEDURE', 'OBSERVATIONS', 'RESULT', 'CONCLUSION']);
+        const procedure = extract('PROCEDURE', ['OBSERVATIONS', 'RESULT', 'CONCLUSION']);
+        const observations = extract('OBSERVATIONS', ['RESULT', 'CONCLUSION']);
+        const res = extract('RESULT', ['CONCLUSION']);
+        const conclusion = extract('CONCLUSION', []);
+
+        parsed = {
+          aim: aim || formData.title,
+          theory: theory || text,
+          procedure: procedure || '1. Setup circuit schematic in NodeSim.\n2. Run SPICE simulation.\n3. Analyze waveforms.',
+          result: [observations, res].filter(Boolean).join('\n\n') || res || observations || simSummary,
+          conclusion: conclusion || 'Experiment completed successfully.',
+        };
       }
       setReportContent(parsed);
       setStep('preview');

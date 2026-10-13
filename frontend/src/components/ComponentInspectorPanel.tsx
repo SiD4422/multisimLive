@@ -42,6 +42,20 @@ import { getComponentMetadata as _unused } from '../utils/ComponentDescriptions'
 import { AnalysisSettings } from './AnalysisSettings';
 import { componentDisplayValue, normalizeValue, validateValue, COMPONENT_UNITS } from '../utils/valueFormatter';
 
+function parseValueWithUnit(raw: string): { num: string; unit: string } {
+  const m = raw.trim().match(/^([\d.]+)\s*([kKmMuU\u00b5nNpP]?)(\u03a9|F|H|ohm|ohms?)?$/i);
+  if (!m) return { num: raw, unit: '' };
+  const prefix = m[2] || '';
+  if (prefix === 'M') return { num: m[1], unit: 'M' };
+  if (prefix === 'µ' || prefix === '\u00b5') return { num: m[1], unit: 'u' };
+  return { num: m[1], unit: prefix.toLowerCase() };
+}
+
+function buildValueString(num: string, unit: string, compType: string): string {
+  const suffix = compType === 'Resistor' ? '\u03a9' : compType === 'Capacitor' ? 'F' : 'H';
+  return `${num}${unit}${suffix}`;
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseValue(type: string, rawVal: string) {
@@ -150,6 +164,10 @@ const InputGroup = ({ label, value, onChange, placeholder, icon: Icon, type = 't
 
 export const ComponentInspectorPanel: React.FC = () => {
   const { components, selectedComponentId, isConfigOpen, setIsConfigOpen, updateComponentProperties, deleteComponent } = useSchematicStore();
+  const updateComponent = (id: string, newProps: { value: string }) => {
+    updateField('main', newProps.value);
+    updateComponentProperties(id, newProps);
+  };
   const [activeTab, setActiveTab] = useState<'properties' | 'simulation'>('properties');
 
 const [designator, setDesignator] = useState('');
@@ -229,6 +247,8 @@ const [designator, setDesignator] = useState('');
     }
 
     // Simple single-value component — add normalize-on-blur, validation, and display hint
+    const comp = activeComponent;
+    const isRCL = comp.type === 'Resistor' || comp.type === 'Capacitor' || comp.type === 'Inductor';
     const isSimpleType = !!COMPONENT_UNITS[activeComponent.type];
     const displayHint = isSimpleType && fields.main
       ? componentDisplayValue(fields.main, activeComponent.type)
@@ -243,61 +263,105 @@ const [designator, setDesignator] = useState('');
           <Settings size={12} style={{ color: '#3b82f6' }} />
           Value / Parameter
         </label>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            type="text"
-            value={fields.main || ''}
-            onChange={(v) => {
-              updateField('main', v.target.value);
-              if (isSimpleType) {
-                const result = validateValue(v.target.value, activeComponent.type);
-                setValueError(result.valid ? null : (result.error ?? null));
-              }
-            }}
-            onBlur={() => {
-              if (isSimpleType && fields.main) {
-                const normalized = normalizeValue(fields.main, activeComponent.type);
-                if (normalized !== fields.main) {
-                  updateField('main', normalized);
-                }
-                const result = validateValue(normalized || fields.main, activeComponent.type);
-                setValueError(result.valid ? null : (result.error ?? null));
-              }
-            }}
-            placeholder={DEFAULT_VALUES[activeComponent.type] ? `Default: ${DEFAULT_VALUES[activeComponent.type]}` : 'e.g. 1k, 5V, 10u'}
-            style={{
-              flex: 1, border: `1px solid ${valueError ? '#f87171' : '#d1d5db'}`,
-              borderRadius: 6, padding: '8px 12px', fontSize: 13, fontFamily: 'monospace',
-              outline: 'none', background: '#fff', boxSizing: 'border-box',
-            }}
-          />
-          {units && (
+        {isRCL ? (
+          <div style={{ display: 'flex', gap: 4 }}>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={parseValueWithUnit(comp.value || '').num}
+              onChange={e => {
+                const { unit } = parseValueWithUnit(comp.value || '');
+                updateComponent(comp.id, { value: buildValueString(e.target.value, unit, comp.type) });
+              }}
+              style={{ flex: 1, padding: '6px 8px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#e2e8f0', fontSize: 13 }}
+            />
             <select
-              style={{ border: '1px solid #d1d5db', borderRadius: 6, padding: '8px', fontSize: 13, background: '#fff' }}
-              onChange={(e) => {
-                const val = parseSpiceToFloat(fields.main || '0');
-                if (!isNaN(val)) {
-                  const newStr = formatWithUnit(val, e.target.value);
-                  updateField('main', newStr);
-                  
-                  // trigger a save directly:
-                  const newValue = newStr; // we know we're in the simple component view
-                  updateComponentProperties(activeComponent.id, {
-                    value: newValue.trim()
-                  });
+              value={parseValueWithUnit(comp.value || '').unit}
+              onChange={e => {
+                const { num } = parseValueWithUnit(comp.value || '');
+                updateComponent(comp.id, { value: buildValueString(num, e.target.value, comp.type) });
+              }}
+              style={{ padding: '6px 4px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#e2e8f0', fontSize: 13, cursor: 'pointer' }}
+            >
+              {comp.type === 'Resistor' && (<>
+                <option value="">Ω</option>
+                <option value="k">kΩ</option>
+                <option value="m">mΩ</option>
+                <option value="M">MΩ</option>
+              </>)}
+              {comp.type === 'Capacitor' && (<>
+                <option value="u">µF</option>
+                <option value="n">nF</option>
+                <option value="p">pF</option>
+                <option value="m">mF</option>
+                <option value="">F</option>
+              </>)}
+              {comp.type === 'Inductor' && (<>
+                <option value="m">mH</option>
+                <option value="u">µH</option>
+                <option value="n">nH</option>
+                <option value="">H</option>
+              </>)}
+            </select>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              type="text"
+              value={fields.main || ''}
+              onChange={(v) => {
+                updateField('main', v.target.value);
+                if (isSimpleType) {
+                  const result = validateValue(v.target.value, activeComponent.type);
+                  setValueError(result.valid ? null : (result.error ?? null));
                 }
               }}
-            >
-              {units.map(u => <option key={u} value={u}>{u}</option>)}
-            </select>
-          )}
-        </div>
-        {valueError && (
+              onBlur={() => {
+                if (isSimpleType && fields.main) {
+                  const normalized = normalizeValue(fields.main, activeComponent.type);
+                  if (normalized !== fields.main) {
+                    updateField('main', normalized);
+                  }
+                  const result = validateValue(normalized || fields.main, activeComponent.type);
+                  setValueError(result.valid ? null : (result.error ?? null));
+                }
+              }}
+              placeholder={DEFAULT_VALUES[activeComponent.type] ? `Default: ${DEFAULT_VALUES[activeComponent.type]}` : 'e.g. 1k, 5V, 10u'}
+              style={{
+                flex: 1, border: `1px solid ${valueError ? '#f87171' : '#d1d5db'}`,
+                borderRadius: 6, padding: '8px 12px', fontSize: 13, fontFamily: 'monospace',
+                outline: 'none', background: '#fff', boxSizing: 'border-box',
+              }}
+            />
+            {units && (
+              <select
+                style={{ border: '1px solid #d1d5db', borderRadius: 6, padding: '8px', fontSize: 13, background: '#fff' }}
+                onChange={(e) => {
+                  const val = parseSpiceToFloat(fields.main || '0');
+                  if (!isNaN(val)) {
+                    const newStr = formatWithUnit(val, e.target.value);
+                    updateField('main', newStr);
+                    
+                    // trigger a save directly:
+                    const newValue = newStr; // we know we're in the simple component view
+                    updateComponentProperties(activeComponent.id, {
+                      value: newValue.trim()
+                    });
+                  }
+                }}
+              >
+                {units.map(u => <option key={u} value={u}>{u}</option>)}
+              </select>
+            )}
+          </div>
+        )}
+        {!isRCL && valueError && (
           <p style={{ fontSize: '11px', color: '#ef4444', margin: '2px 0 0 0', lineHeight: 1.4 }}>
             ⚠ {valueError}
           </p>
         )}
-        {!valueError && showHint && (
+        {!isRCL && !valueError && showHint && (
           <p style={{ fontSize: '11px', color: '#6b7280', margin: '2px 0 0 0', fontFamily: 'monospace' }}>
             = {displayHint}
           </p>

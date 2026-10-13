@@ -1,14 +1,28 @@
 import React from 'react';
 import { Sparkles, X, Loader2, AlertCircle } from 'lucide-react';
 
+function getErrorMessage(error: string): { title: string; detail: string } {
+  if (error.includes('429') || error.toLowerCase().includes('quota') || error.toLowerCase().includes('rate limit')) {
+    return { title: 'AI quota reached', detail: 'The AI service is temporarily rate-limited. Wait a few seconds and try again.' };
+  }
+  if (error.includes('503') || error.toLowerCase().includes('overloaded')) {
+    return { title: 'AI service busy', detail: 'Gemini is overloaded right now. Try again in a moment.' };
+  }
+  if (error.includes('401') || error.toLowerCase().includes('key')) {
+    return { title: 'AI not configured', detail: 'The AI API key is missing or invalid. Contact the site owner.' };
+  }
+  return { title: 'AI analysis failed', detail: error };
+}
+
 interface AiWaveformPanelProps {
   onClose: () => void;
+  onRetry: () => void;
   analysis: string | null;
   isLoading: boolean;
   error: string | null;
 }
 
-export function AiWaveformPanel({ onClose, analysis, isLoading, error }: AiWaveformPanelProps) {
+export function AiWaveformPanel({ onClose, onRetry, analysis, isLoading, error }: AiWaveformPanelProps) {
   return (
     <div style={{
       position: 'absolute',
@@ -44,9 +58,19 @@ export function AiWaveformPanel({ onClose, analysis, isLoading, error }: AiWavef
       )}
 
       {error && (
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: '#7f1d1d33', border: '1px solid #ef4444', borderRadius: 8, padding: '10px 12px' }}>
-          <AlertCircle size={14} style={{ color: '#ef4444', flexShrink: 0, marginTop: 1 }} />
-          <span style={{ fontSize: 12, color: '#fca5a5', lineHeight: 1.5 }}>{error}</span>
+        <div>
+          {(() => { const { title, detail } = getErrorMessage(error!); return (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: '#7f1d1d33', border: '1px solid #ef4444', borderRadius: 8, padding: '10px 12px' }}>
+              <AlertCircle size={14} style={{ color: '#ef4444', flexShrink: 0, marginTop: 1 }} />
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#fca5a5', marginBottom: 2 }}>{title}</div>
+                <div style={{ fontSize: 11, color: '#fca5a5', lineHeight: 1.5 }}>{detail}</div>
+              </div>
+            </div>
+          );})()}
+          <button onClick={onRetry} style={{ marginTop: 8, padding: '6px 12px', borderRadius: 6, border: '1px solid #ef4444', background: 'transparent', color: '#fca5a5', cursor: 'pointer', fontSize: 11, fontWeight: 600 }}>
+            Try again
+          </button>
         </div>
       )}
 

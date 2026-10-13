@@ -1143,6 +1143,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
       {showAiPanel && (
         <AiWaveformPanel
           onClose={() => setShowAiPanel(false)}
+          onRetry={handleAiAnalyze}
           analysis={aiAnalysis}
           isLoading={aiLoading}
           error={aiError}
