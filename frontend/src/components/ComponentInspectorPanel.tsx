@@ -272,15 +272,23 @@ const [designator, setDesignator] = useState('');
               value={parseValueWithUnit(comp.value || '').num}
               onChange={e => {
                 const { unit } = parseValueWithUnit(comp.value || '');
-                updateComponent(comp.id, { value: buildValueString(e.target.value, unit, comp.type) });
+                const valStr = buildValueString(e.target.value, unit, comp.type);
+                updateComponent(comp.id, { value: valStr });
+                updateField('main', valStr);
+                const result = validateValue(valStr, comp.type);
+                setValueError(result.valid ? null : (result.error ?? null));
               }}
-              style={{ flex: 1, padding: '6px 8px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#e2e8f0', fontSize: 13 }}
+              style={{ flex: 1, padding: '6px 8px', background: '#1e293b', border: `1px solid ${valueError ? '#ef4444' : '#334155'}`, borderRadius: 6, color: '#e2e8f0', fontSize: 13 }}
             />
             <select
               value={parseValueWithUnit(comp.value || '').unit}
               onChange={e => {
                 const { num } = parseValueWithUnit(comp.value || '');
-                updateComponent(comp.id, { value: buildValueString(num, e.target.value, comp.type) });
+                const valStr = buildValueString(num, e.target.value, comp.type);
+                updateComponent(comp.id, { value: valStr });
+                updateField('main', valStr);
+                const result = validateValue(valStr, comp.type);
+                setValueError(result.valid ? null : (result.error ?? null));
               }}
               style={{ padding: '6px 4px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#e2e8f0', fontSize: 13, cursor: 'pointer' }}
             >
@@ -356,8 +364,8 @@ const [designator, setDesignator] = useState('');
             )}
           </div>
         )}
-        {!isRCL && valueError && (
-          <p style={{ fontSize: '11px', color: '#ef4444', margin: '2px 0 0 0', lineHeight: 1.4 }}>
+        {valueError && (
+          <p style={{ fontSize: '11px', color: '#ef4444', margin: '4px 0 0 0', lineHeight: 1.4 }}>
             ⚠ {valueError}
           </p>
         )}

@@ -15,10 +15,24 @@ export function useCircuitBoot() {
     ranRef.current = true;
 
     const hash = window.location.hash;
+    let rawParam: string | null = null;
     if (hash && hash.startsWith('#circuit=')) {
+      rawParam = hash.substring(9);
+    } else {
+      const searchParams = new URLSearchParams(window.location.search);
+      rawParam = searchParams.get('circuit');
+    }
+
+    if (rawParam) {
       try {
-        const compressed = hash.substring(9);
-        const jsonStr = LZString.decompressFromEncodedURIComponent(compressed);
+        let jsonStr: string | null = LZString.decompressFromEncodedURIComponent(rawParam);
+        if (!jsonStr) {
+          try {
+            jsonStr = decodeURIComponent(atob(rawParam));
+          } catch {
+            jsonStr = null;
+          }
+        }
         if (jsonStr) {
           // Wrap in setTimeout to ensure Zustand store hydration finishes before we override it
           setTimeout(() => {

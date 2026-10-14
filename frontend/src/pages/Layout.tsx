@@ -123,6 +123,24 @@ export default function Layout() {
           </nav>
 
           <div className="nav-actions">
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              style={{
+                background: 'none',
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: 8,
+                padding: '6px 8px',
+                cursor: 'pointer',
+                color: '#94a3b8',
+                display: 'flex',
+                alignItems: 'center',
+                marginRight: 4
+              }}
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+
             <Link to="/simulator" className="msl-btn msl-btn-primary">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7L7 5Z"/></svg>
               Launch Simulator

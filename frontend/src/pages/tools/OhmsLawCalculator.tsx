@@ -18,7 +18,19 @@ export default function OhmsLawCalculator() {
     return null;
   };
 
+  const calculatePower = () => {
+    const vn = parseFloat(v);
+    const inn = parseFloat(i);
+    const rn = parseFloat(r);
+    if (solve === 'V' && !isNaN(inn) && !isNaN(rn)) return (inn * inn * rn).toFixed(4);
+    if (solve === 'I' && !isNaN(vn) && !isNaN(rn) && rn !== 0) return ((vn * vn) / rn).toFixed(4);
+    if (solve === 'R' && !isNaN(vn) && !isNaN(inn)) return (vn * inn).toFixed(4);
+    if (!isNaN(vn) && !isNaN(inn)) return (vn * inn).toFixed(4);
+    return null;
+  };
+
   const result = calculate();
+  const power = calculatePower();
   const unit = solve === 'V' ? 'V' : solve === 'I' ? 'A' : 'Ω';
 
   const inputStyle: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 15, outline: 'none', boxSizing: 'border-box' };
@@ -68,7 +80,15 @@ export default function OhmsLawCalculator() {
       {/* Result */}
       <div style={{ background: result ? '#f0fdf4' : '#f9fafb', border: `2px solid ${result ? '#16a34a' : '#e5e7eb'}`, borderRadius: 12, padding: '20px', textAlign: 'center', marginBottom: '2rem' }}>
         {result ? (
-          <><div style={{ fontSize: 13, color: '#6b7280', marginBottom: 4 }}>{solve === 'V' ? 'Voltage' : solve === 'I' ? 'Current' : 'Resistance'}</div><div style={{ fontSize: 36, fontWeight: 800, color: '#16a34a' }}>{result} <span style={{ fontSize: 20 }}>{unit}</span></div></>
+          <>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 4 }}>{solve === 'V' ? 'Voltage' : solve === 'I' ? 'Current' : 'Resistance'}</div>
+            <div style={{ fontSize: 36, fontWeight: 800, color: '#16a34a' }}>{result} <span style={{ fontSize: 20 }}>{unit}</span></div>
+            {power && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #dcfce7', fontSize: 14, color: '#15803d', fontWeight: 600 }}>
+                Dissipated Power (P = V × I): <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{power} W</span>
+              </div>
+            )}
+          </>
         ) : (
           <div style={{ color: '#9ca3af', fontSize: 14 }}>Enter values above to calculate</div>
         )}

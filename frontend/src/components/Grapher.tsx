@@ -525,7 +525,6 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
     margin: { top: 5, right: 30, left: 20, bottom: 5 },
     onClick: isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'frequency'); if (r) setCursorA(r); } : undefined,
     onMouseMove: isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'frequency'); if (r) setCursorB(r); } : undefined,
-    onMouseLeave: isCursorMode ? () => setCursorB(null) : undefined,
   };
 
   const colors = isOscilloscope ? OSC_COLORS : COLORS;
@@ -639,7 +638,6 @@ function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCurso
           <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
             onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r) setCursorA(r); } : undefined}
             onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r) setCursorB(r); } : undefined}
-            onMouseLeave={isCursorMode ? () => setCursorB(null) : undefined}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis
@@ -738,7 +736,6 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
             <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
               onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r) setCursorA(r); } : undefined}
               onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r) setCursorB(r); } : undefined}
-              onMouseLeave={isCursorMode ? () => setCursorB(null) : undefined}
             >
               {isOscilloscope && (
                 <defs>
@@ -891,9 +888,11 @@ export default function Grapher() {
       const name = probe.id || `${probe.type} Probe ${idx + 1}`;
       if (probe.type === 'Voltage') {
         const nodeId = getSpiceNodeForPoint(probe.position, components, wires);
-        map[`v(${nodeId})`] = name;
+        const key = `v(${nodeId})`;
+        map[key] = map[key] ? `${map[key]}, ${name}` : name;
       } else if (probe.type === 'Current') {
-        map[`i(v_probe_${probe.id.toLowerCase()})`] = name;
+        const key = `i(v_probe_${probe.id.toLowerCase()})`;
+        map[key] = map[key] ? `${map[key]}, ${name}` : name;
       }
     });
     return map;
@@ -983,6 +982,7 @@ export default function Grapher() {
           const probedPhaseKeys = probedDbKeys.map(k => k.replace('_db', '_phase')).filter(k => phaseKeys.includes(k));
           return { traces: [...probedDbKeys, ...probedPhaseKeys], sweepKey: 'frequency' };
         }
+        return { traces: [], sweepKey: 'frequency' };
       }
       return { traces: [...dbKeys, ...phaseKeys], sweepKey: 'frequency' };
     }
@@ -993,6 +993,7 @@ export default function Grapher() {
       if (probes.length > 0) {
         const probedKeys = Object.keys(probeMap).filter(k => valueKeys.includes(k));
         if (probedKeys.length > 0) return { traces: probedKeys, sweepKey: xKey };
+        return { traces: [], sweepKey: xKey };
       }
       return { traces: valueKeys, sweepKey: xKey };
     }
@@ -1000,7 +1001,7 @@ export default function Grapher() {
     // Transient
     const timeKey = 'time';
     // Exclude internal engine/parser metadata keys (e.g. __parsedVars, __plotType).
-    // NC_* floating-node keys are intentionally kept â€” they surface wiring defects visibly.
+    // NC_* floating-node keys are intentionally kept — they surface wiring defects visibly.
     const INTERNAL_METADATA_KEYS = /^__/;
     let valueKeys = allKeys.filter(k => k !== timeKey && !INTERNAL_METADATA_KEYS.test(k));
 
@@ -1012,16 +1013,27 @@ export default function Grapher() {
     if (probes.length > 0) {
       const probedKeys = Object.keys(probeMap).filter(k => valueKeys.includes(k));
       if (probedKeys.length > 0) return { traces: probedKeys, sweepKey: timeKey };
+      return { traces: [], sweepKey: timeKey };
     }
     return { traces: valueKeys, sweepKey: timeKey };
   }, [formattedData, probes, probeMap, simulationBuffer]);
 
-  // âš¡âš¡ Render âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡
+  // ⚡⚡ Render ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
 
   if (isSimulating) return <div style={{ position: 'absolute', inset: 0 }}><LoadingSpinner /></div>;
   if (simulationError) return <div style={{ position: 'absolute', inset: 0 }}><ErrorView error={simulationError} /></div>;
   if (analysisMode === 'op' && opData) return <div style={{ position: 'absolute', inset: 0 }}><OpPointView data={opData} /></div>;
   if (!formattedData || formattedData.length === 0) return <div style={{ position: 'absolute', inset: 0 }}><EmptyView /></div>;
+  if (probes.length > 0 && traces.length === 0) {
+    return (
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: isOscilloscope ? '#001100' : '#f9fafb', color: isOscilloscope ? '#22c55e' : '#6b7280', padding: 24, textAlign: 'center' }}>
+        <p style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: '#f59e0b' }}>⚠️ Voltage Probes Disconnected</p>
+        <p style={{ fontSize: 13, maxWidth: 460, lineHeight: 1.6, color: isOscilloscope ? '#4ade80' : '#4b5563' }}>
+          All placed voltage probes are currently floating or not connected to a circuit wire/pin. Connect the probe to an electrical junction on the canvas and click <strong>Run</strong> to view its waveform.
+        </p>
+      </div>
+    );
+  }
 
   const plotType = (simulationBuffer as SimulationData)?.__plotType || analysisMode || 'transient';
   let PlotComponent = null;
@@ -1092,6 +1104,7 @@ export default function Grapher() {
     const ax = cursorA ? cursorA[xKey] : null;
     const bx = cursorB ? cursorB[xKey] : null;
     const dx = (ax !== null && bx !== null) ? Math.abs(bx - ax) : null;
+    const freq = (xKey === 'time' && dx !== null && dx > 0) ? 1 / dx : null;
 
     const xLabel = xKey === 'time' ? 'Time (s)' : xKey === 'frequency' ? 'Freq (Hz)' : 'Voltage (V)';
 
@@ -1134,6 +1147,14 @@ export default function Grapher() {
               <td style={{ paddingRight: 8 }}>{bx !== null ? fmtNum(bx) : '-'}</td>
               <td style={{ fontWeight: 700 }}>{dx !== null ? fmtNum(dx) : '-'}</td>
             </tr>
+            {xKey === 'time' && (
+              <tr>
+                <td style={{ paddingRight: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 80 }}>1/ΔT (Freq)</td>
+                <td style={{ paddingRight: 8 }}>-</td>
+                <td style={{ paddingRight: 8 }}>-</td>
+                <td style={{ fontWeight: 700, color: '#f59e0b' }}>{freq !== null ? formatHz(freq) : '-'}</td>
+              </tr>
+            )}
             {traces.map((t: string) => {
               const ay = cursorA ? cursorA[t] : null;
               const by = cursorB ? cursorB[t] : null;

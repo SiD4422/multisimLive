@@ -303,12 +303,13 @@ export const useSchematicStore = create<SchematicState>()(
       if (data && data.default) {
         data = data.default;
       }
+      if (!data || typeof data !== 'object') return;
       set({
-        components: data.components || [],
-        wires: data.wires || [],
-        probes: data.probes || [],
-        stagePos: data.stagePos || { x: 0, y: 0 },
-        scale: data.scale || 0.34,
+        components: Array.isArray(data.components) ? data.components : [],
+        wires: Array.isArray(data.wires) ? data.wires : [],
+        probes: Array.isArray(data.probes) ? data.probes : [],
+        stagePos: (data.stagePos && typeof data.stagePos.x === 'number' && typeof data.stagePos.y === 'number') ? data.stagePos : { x: 0, y: 0 },
+        scale: typeof data.scale === 'number' && !isNaN(data.scale) ? data.scale : 0.34,
         past: [],
         future: [],
         selectedComponentId: null,
@@ -333,7 +334,6 @@ export const useSchematicStore = create<SchematicState>()(
     } catch (e) {
       console.error("Failed to import state", e);
     }
-
   },
 
   setScale: (scaleOrFn) => set((state) => ({
@@ -447,6 +447,18 @@ export const useSchematicStore = create<SchematicState>()(
     
     if (!isSilent) track('Simulation_Run', { mode: analysisMode });
 
+    // Empty canvas preflight check
+    if (components.length === 0) {
+      if (!isSilent) {
+        set({
+          simulationError: 'Canvas is empty. Place components and connect them with wires to run simulation.',
+          isSimulating: false,
+          isPlaying: false,
+        });
+      }
+      return;
+    }
+
     // DRC: Require at least one Ground component
     // Without a ground, the netlister silently assigns node 0 to the first wire in
     // insertion order — producing wrong results with no warning. Surface it early.
@@ -470,7 +482,7 @@ export const useSchematicStore = create<SchematicState>()(
       if (comp.type === 'Resistor' || comp.type === 'Load') {
         const ohms = parseSpiceToFloat(comp.value || '1k');
         if (Math.abs(ohms) < ZERO_THRESHOLD) {
-          const errorMsg = `Resistor is 0Î© â€” this can cause infinite current. Use a small nonzero value (e.g. 1m) or remove it.`;
+          const errorMsg = `Resistor is 0Ω — this can cause infinite current. Use a small nonzero value (e.g. 1m) or remove it.`;
           if (!isSilent) track('Simulation_Error', { type: 'DRC', details: 'Zero Ohm Resistor' });
           set({ 
             simulationError: errorMsg, 
