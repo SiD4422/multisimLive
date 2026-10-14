@@ -39,7 +39,7 @@ export default function Layout() {
       <header className={`msl-site-header ${isDarkPage ? 'msl-header-dark' : ''}`}>
         <div className="msl-container msl-nav-row">
           <Link className="msl-brand" to="/" aria-label="NodeSim home" style={{ textDecoration: 'none' }}>
-            <img src={isDarkPage ? "/logo_dark_transparent.png" : "/logo_main_transparent.png"} alt="NodeSim Logo" style={{ height: '34px', objectFit: 'contain' }} />
+            <img src={theme === 'light' ? "/logo_main_transparent.png" : "/logo_sim.png"} alt="NodeSim Logo" style={{ height: '40px', objectFit: 'contain' }} />
           </Link>
 
           <nav className="msl-nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
@@ -168,7 +168,6 @@ export default function Layout() {
             <Link to="/features" className={pathname === '/features' ? 'active' : ''}>Features</Link>
             <Link to="/about" className={pathname === '/about' ? 'active' : ''}>About</Link>
             <Link to="/circuits" className={pathname.startsWith('/circuits') ? 'active' : ''}>Circuits</Link>
-            <Link to="/resources" className={pathname === '/resources' ? 'active' : ''}>Resources</Link>
             <Link to="/resources" className={pathname === '/resources' ? 'active' : ''}>Resources</Link>
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', margin: '6px 0', paddingTop: '6px' }}>
                 <div style={{ padding: '6px 16px 4px', fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
