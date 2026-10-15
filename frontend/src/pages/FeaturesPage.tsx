@@ -1,17 +1,7 @@
 import { Zap, Activity, Waves, LineChart, Code, Layers, MousePointer2, Check, X as XIcon, Sparkles, Globe, Share2, Cpu, Users, FileCode } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
-
-const C = {
-  bgApp: '#060a08',
-  bgCard: '#0d1a12',
-  textPrimary: '#f1f5f9',
-  textSecondary: '#94a3b8',
-  border: 'rgba(255,255,255,0.08)',
-  primary: '#16a34a',
-  primaryHover: '#15803d',
-  primaryLight: 'rgba(74,222,128,0.15)',
-};
+import { useTheme } from '../contexts/ThemeContext';
 
 const COMPARISON = [
   { feature: 'Price',                   us: 'Free forever',                     them: '~$79/yr (CircuitLab)',      usWin: true },
@@ -37,6 +27,19 @@ const NEW_BADGES = [
 
 export default function FeaturesPage() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const C = {
+    bgApp: isDark ? '#060a08' : '#f8fafc',
+    bgCard: isDark ? '#0d1a12' : '#ffffff',
+    textPrimary: isDark ? '#f1f5f9' : '#0f172a',
+    textSecondary: isDark ? '#94a3b8' : '#475569',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+    primary: '#16a34a',
+    primaryHover: '#15803d',
+    primaryLight: isDark ? 'rgba(74,222,128,0.15)' : 'rgba(22,163,74,0.1)',
+  };
 
   return (
     <>
@@ -45,7 +48,7 @@ export default function FeaturesPage() {
         description="NodeSim features: real ngspice WASM engine, Gemini AI tutor, KiCad PCB export, animated current flow, 85+ components, community gallery. No account required."
         url="https://nodesimapp.com/features"
       />
-      <div style={{ minHeight: '100vh', backgroundColor: C.bgApp, padding: '80px 20px', color: C.textPrimary, fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ minHeight: '100vh', backgroundColor: C.bgApp, padding: '80px 20px', color: C.textPrimary, fontFamily: "'Inter', sans-serif", transition: 'background-color 0.25s ease, color 0.25s ease' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
 
         {/* HEADER */}
@@ -53,7 +56,7 @@ export default function FeaturesPage() {
           <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: 16, background: C.primaryLight, color: C.primary, marginBottom: 24 }}>
             <Zap size={32} />
           </div>
-          <h1 style={{ fontSize: '3.5rem', fontWeight: 800, margin: '0 0 20px', letterSpacing: '-1.5px', color: '#f1f5f9' }}>
+          <h1 style={{ fontSize: '3.5rem', fontWeight: 800, margin: '0 0 20px', letterSpacing: '-1.5px', color: C.textPrimary }}>
             Everything you need to<br />simulate, learn & build
           </h1>
           <p style={{ fontSize: '1.2rem', color: C.textSecondary, maxWidth: 680, margin: '0 auto 32px', lineHeight: 1.7 }}>
@@ -203,31 +206,31 @@ export default function FeaturesPage() {
         <div style={{ marginTop: 80 }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.primary, marginBottom: 10 }}>Honest Comparison</p>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.03em', margin: '0 0 10px' }}>NodeSim vs. The Alternatives</h2>
-            <p style={{ color: '#94a3b8', fontSize: '1rem', margin: 0 }}>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: C.textPrimary, letterSpacing: '-0.03em', margin: '0 0 10px' }}>NodeSim vs. The Alternatives</h2>
+            <p style={{ color: C.textSecondary, fontSize: '1rem', margin: 0 }}>
               NI Multisim Live shut down on September 15, 2026. NodeSim is the open successor.
             </p>
           </div>
           <div style={{ overflowX: 'auto', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.07)', border: `1px solid ${C.border}`, maxWidth: 900, margin: '0 auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0d1a12' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', background: C.bgCard }}>
               <thead>
-                <tr style={{ background: '#08120c', borderBottom: '2px solid rgba(255,255,255,0.1)' }}>
-                  <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</th>
+                <tr style={{ background: isDark ? '#08120c' : '#f1f5f9', borderBottom: `2px solid ${C.border}` }}>
+                  <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</th>
                   <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: C.primary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>NodeSim <span style={{ background: '#dcfce7', color: '#15803d', borderRadius: 9999, padding: '2px 8px', fontSize: '0.7rem', marginLeft: 4 }}>Free</span></th>
-                  <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Falstad / CircuitLab</th>
+                  <th style={{ padding: '14px 20px', textAlign: 'left', fontSize: '0.82rem', fontWeight: 700, color: C.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Falstad / CircuitLab</th>
                 </tr>
               </thead>
               <tbody>
                 {COMPARISON.map((row, i) => (
-                  <tr key={row.feature} style={{ borderBottom: i < COMPARISON.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
-                    <td style={{ padding: '13px 20px', fontWeight: 600, color: '#e2e8f0', fontSize: '0.92rem' }}>{row.feature}</td>
-                    <td style={{ padding: '13px 20px', fontSize: '0.92rem', fontWeight: row.usWin ? 500 : 400, background: row.usWin ? 'rgba(74,222,128,0.06)' : 'transparent' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: row.usWin ? '#4ade80' : '#94a3b8' }}>
+                  <tr key={row.feature} style={{ borderBottom: i < COMPARISON.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+                    <td style={{ padding: '13px 20px', fontWeight: 600, color: C.textPrimary, fontSize: '0.92rem' }}>{row.feature}</td>
+                    <td style={{ padding: '13px 20px', fontSize: '0.92rem', fontWeight: row.usWin ? 500 : 400, background: row.usWin ? (isDark ? 'rgba(74,222,128,0.06)' : 'rgba(22,163,74,0.08)') : 'transparent' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: row.usWin ? (isDark ? '#4ade80' : '#15803d') : C.textSecondary }}>
                         {row.usWin && <Check size={14} color="#16a34a" />}
                         {row.us}
                       </span>
                     </td>
-                    <td style={{ padding: '13px 20px', fontSize: '0.92rem', color: '#64748b' }}>
+                    <td style={{ padding: '13px 20px', fontSize: '0.92rem', color: isDark ? '#64748b' : '#64748b' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         {row.usWin && <XIcon size={13} color="#ef4444" style={{ opacity: 0.6 }} />}
                         {!row.usWin && <Check size={14} color="#6b7280" />}

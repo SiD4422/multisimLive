@@ -1,22 +1,25 @@
 import React from 'react';
 import { BookOpen, FileText, PlayCircle, Code, ChevronRight, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const C = {
-  bgApp: '#060a08',
-  bgCard: '#0d1a12',
-  textPrimary: '#f1f5f9',
-  textSecondary: '#94a3b8',
-  border: 'rgba(255,255,255,0.08)',
-  primary: '#16a34a',
-  primaryHover: '#15803d',
-  primaryLight: 'rgba(74,222,128,0.15)',
-};
-
+import { useTheme } from '../contexts/ThemeContext';
 import SEO from '../components/SEO';
 
 export default function ResourcesPage() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const C = {
+    bgApp: isDark ? '#060a08' : '#f8fafc',
+    bgCard: isDark ? '#0d1a12' : '#ffffff',
+    bgSubCard: isDark ? '#0a140e' : '#f8fafc',
+    textPrimary: isDark ? '#f1f5f9' : '#0f172a',
+    textSecondary: isDark ? '#94a3b8' : '#475569',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+    primary: '#16a34a',
+    primaryHover: '#15803d',
+    primaryLight: isDark ? 'rgba(74,222,128,0.15)' : 'rgba(22,163,74,0.1)',
+  };
 
   return (
     <>
@@ -102,7 +105,7 @@ export default function ResourcesPage() {
             ].map((sheet, idx) => (
               <div key={idx} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '16px 20px', backgroundColor: '#0a140e', borderRadius: 12,
+                padding: '16px 20px', backgroundColor: C.bgSubCard, borderRadius: 12,
                 border: `1px solid ${C.border}`, cursor: 'pointer',
                 transition: 'box-shadow 0.2s, border-color 0.2s',
               }} onMouseEnter={e => e.currentTarget.style.borderColor = C.primary} onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
@@ -134,7 +137,7 @@ export default function ResourcesPage() {
                 href={v.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#0a140e', border: `1px solid ${C.border}`, borderRadius: '12px', padding: '20px', textDecoration: 'none', color: 'inherit', transition: 'border-color 0.2s' }}
+                style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: C.bgSubCard, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '20px', textDecoration: 'none', color: 'inherit', transition: 'border-color 0.2s' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#f87171', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 }}>{v.tag}</span>

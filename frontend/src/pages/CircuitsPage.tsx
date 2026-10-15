@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { getCommunityCircuits, incrementViews, type CommunityCircuit } from '../lib/firebase';
+import { useTheme } from '../contexts/ThemeContext';
 
 import lowPassFilter        from '../examples/low_pass_filter.json';
 import rcHighPassFilter     from '../examples/rc_high_pass_filter.json';
@@ -26,20 +27,7 @@ import commonEmitter        from '../examples/common_emitter.json';
 import hybridSwitchedInductor from '../examples/hybrid_switched_inductor.json';
 import comparatorCircuit    from '../examples/comparator_circuit.json';
 
-// Site Dark Emerald Palette
-const C = {
-  bgApp: '#060a08',
-  bgCard: '#0d1a12',
-  textPrimary: '#f1f5f9',
-  textSecondary: '#94a3b8',
-  textMuted: '#64748b',
-  border: 'rgba(255,255,255,0.08)',
-  
-  primary: '#16a34a',
-  primaryHover: '#15803d',
-  primaryLight: 'rgba(74,222,128,0.15)',
-  
-  // Specific Analysis Colors
+const ANALYSIS_COLORS = {
   acSweep: '#0ea5e9',
   transient: '#16a34a',
   dcSweep: '#f59e0b'
@@ -49,33 +37,33 @@ const CATEGORIES = ['All', 'Filters', 'Rectifiers', 'Amplifiers', 'Power', 'Swit
 
 export const EXAMPLES = [
   // ── FILTERS ────────────────────────────────────────────────────
-  { id: 'lpf', name: 'RC Low-Pass Filter', category: 'Filters', description: 'Passes low frequencies, attenuates highs. The foundation of analog signal processing.', analysis: 'AC Sweep', analysisColor: C.acSweep, difficulty: 'Beginner', components: ['Resistor', 'Capacitor', 'AC Source'], Icon: Waves, accent: '#0284c7', data: lowPassFilter },
-  { id: 'hpf', name: 'RC High-Pass Filter', category: 'Filters', description: 'Blocks DC and low frequencies, passes high-frequency signals. Coupling & noise removal.', analysis: 'AC Sweep', analysisColor: C.acSweep, difficulty: 'Beginner', components: ['Capacitor', 'Resistor', 'AC Source'], Icon: TrendingUp, accent: '#0891b2', data: rcHighPassFilter },
-  { id: 'rl_lp', name: 'RL Low-Pass Filter', category: 'Filters', description: 'Inductor-resistor low-pass filter. Used in power supplies and EMI filtering applications.', analysis: 'AC Sweep', analysisColor: C.acSweep, difficulty: 'Beginner', components: ['Inductor', 'Resistor', 'AC Source'], Icon: Radio, accent: '#7c3aed', data: rlLowPass },
-  { id: 'lc_bp', name: 'LC Bandpass Filter', category: 'Filters', description: 'Series LC resonates at center frequency. Used in radio tuners and RF signal selection.', analysis: 'AC Sweep', analysisColor: C.acSweep, difficulty: 'Intermediate', components: ['Inductor', 'Capacitor', 'Resistor'], Icon: Radio, accent: '#b45309', data: lcBandpassFilter },
-  { id: 'integrator', name: 'RC Integrator', category: 'Filters', description: 'Converts a square wave to a triangle wave. An essential waveform shaping circuit.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Beginner', components: ['Pulse Source', 'Resistor', 'Capacitor'], Icon: Triangle, accent: '#16a34a', data: rcIntegrator },
+  { id: 'lpf', name: 'RC Low-Pass Filter', category: 'Filters', description: 'Passes low frequencies, attenuates highs. The foundation of analog signal processing.', analysis: 'AC Sweep', analysisColor: ANALYSIS_COLORS.acSweep, difficulty: 'Beginner', components: ['Resistor', 'Capacitor', 'AC Source'], Icon: Waves, accent: '#0284c7', data: lowPassFilter },
+  { id: 'hpf', name: 'RC High-Pass Filter', category: 'Filters', description: 'Blocks DC and low frequencies, passes high-frequency signals. Coupling & noise removal.', analysis: 'AC Sweep', analysisColor: ANALYSIS_COLORS.acSweep, difficulty: 'Beginner', components: ['Capacitor', 'Resistor', 'AC Source'], Icon: TrendingUp, accent: '#0891b2', data: rcHighPassFilter },
+  { id: 'rl_lp', name: 'RL Low-Pass Filter', category: 'Filters', description: 'Inductor-resistor low-pass filter. Used in power supplies and EMI filtering applications.', analysis: 'AC Sweep', analysisColor: ANALYSIS_COLORS.acSweep, difficulty: 'Beginner', components: ['Inductor', 'Resistor', 'AC Source'], Icon: Radio, accent: '#7c3aed', data: rlLowPass },
+  { id: 'lc_bp', name: 'LC Bandpass Filter', category: 'Filters', description: 'Series LC resonates at center frequency. Used in radio tuners and RF signal selection.', analysis: 'AC Sweep', analysisColor: ANALYSIS_COLORS.acSweep, difficulty: 'Intermediate', components: ['Inductor', 'Capacitor', 'Resistor'], Icon: Radio, accent: '#b45309', data: lcBandpassFilter },
+  { id: 'integrator', name: 'RC Integrator', category: 'Filters', description: 'Converts a square wave to a triangle wave. An essential waveform shaping circuit.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Beginner', components: ['Pulse Source', 'Resistor', 'Capacitor'], Icon: Triangle, accent: '#16a34a', data: rcIntegrator },
 
   // ── RECTIFIERS ─────────────────────────────────────────────────
-  { id: 'half_wave', name: 'Half-Wave Rectifier', category: 'Rectifiers', description: 'Simplest AC-to-DC converter. A single diode passes only the positive half-cycle.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Beginner', components: ['Diode', 'Resistor', 'AC Source'], Icon: Zap, accent: '#d97706', data: halfWaveRectifier },
-  { id: 'rectifier', name: 'Full-Wave Rectifier', category: 'Rectifiers', description: 'Full-wave rectification using 4 diodes. Converts AC to pulsating DC with smoothing cap.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Bridge Rect.', 'Capacitor', 'AC Source'], Icon: GitMerge, accent: '#dc2626', data: bridgeRectifier, videoUrl: '/animations/full_wave_rectifier.html' },
-  { id: 'transformer', name: 'Step-Down Transformer', category: 'Rectifiers', description: '120V → 12V step-down using a 10:1 transformer. Core of any AC power supply design.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Transformer', 'Resistor', 'AC Source'], Icon: ArrowUpDown, accent: '#be185d', data: transformerStepdown },
+  { id: 'half_wave', name: 'Half-Wave Rectifier', category: 'Rectifiers', description: 'Simplest AC-to-DC converter. A single diode passes only the positive half-cycle.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Beginner', components: ['Diode', 'Resistor', 'AC Source'], Icon: Zap, accent: '#d97706', data: halfWaveRectifier },
+  { id: 'rectifier', name: 'Full-Wave Rectifier', category: 'Rectifiers', description: 'Full-wave rectification using 4 diodes. Converts AC to pulsating DC with smoothing cap.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Intermediate', components: ['Bridge Rect.', 'Capacitor', 'AC Source'], Icon: GitMerge, accent: '#dc2626', data: bridgeRectifier, videoUrl: '/animations/full_wave_rectifier.html' },
+  { id: 'transformer', name: 'Step-Down Transformer', category: 'Rectifiers', description: '120V → 12V step-down using a 10:1 transformer. Core of any AC power supply design.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Intermediate', components: ['Transformer', 'Resistor', 'AC Source'], Icon: ArrowUpDown, accent: '#be185d', data: transformerStepdown },
 
   // ── AMPLIFIERS ─────────────────────────────────────────────────
-  { id: 'opamp', name: 'Inverting Op-Amp', category: 'Amplifiers', description: 'Op-Amp with negative feedback. Output is 180° phase-shifted with gain set by resistor ratio.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Op-Amp', 'Resistors', 'AC Source'], Icon: Activity, accent: '#0f766e', data: invertingOpamp },
-  { id: 'ce_amp', name: 'Common-Emitter Amp', category: 'Amplifiers', description: 'Classic NPN BJT amplifier. High voltage gain, 180° phase inversion, widely used in audio.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['NPN BJT', 'Resistors', 'DC + AC'], Icon: TrendingUp, accent: '#4f46e5', data: commonEmitter },
-  { id: 'npn_amp', name: 'NPN Transistor Bias', category: 'Amplifiers', description: 'Biased NPN amplifier with collector resistor. Shows Q-point and small-signal amplification.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['NPN BJT', 'Resistors', 'DC + AC'], Icon: GitBranch, accent: '#2563eb', data: npnAmplifier },
-  { id: 'comparator', name: 'Voltage Comparator', category: 'Amplifiers', description: 'Op-Amp as comparator. Output swings rail-to-rail when Vin crosses the reference voltage.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Comparator', 'DC Ref', 'AC Source'], Icon: ToggleRight, accent: '#7e22ce', data: comparatorCircuit },
+  { id: 'opamp', name: 'Inverting Op-Amp', category: 'Amplifiers', description: 'Op-Amp with negative feedback. Output is 180° phase-shifted with gain set by resistor ratio.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Intermediate', components: ['Op-Amp', 'Resistors', 'AC Source'], Icon: Activity, accent: '#0f766e', data: invertingOpamp },
+  { id: 'ce_amp', name: 'Common-Emitter Amp', category: 'Amplifiers', description: 'Classic NPN BJT amplifier. High voltage gain, 180° phase inversion, widely used in audio.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Intermediate', components: ['NPN BJT', 'Resistors', 'DC + AC'], Icon: TrendingUp, accent: '#4f46e5', data: commonEmitter },
+  { id: 'npn_amp', name: 'NPN Transistor Bias', category: 'Amplifiers', description: 'Biased NPN amplifier with collector resistor. Shows Q-point and small-signal amplification.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Intermediate', components: ['NPN BJT', 'Resistors', 'DC + AC'], Icon: GitBranch, accent: '#2563eb', data: npnAmplifier },
+  { id: 'comparator', name: 'Voltage Comparator', category: 'Amplifiers', description: 'Op-Amp as comparator. Output swings rail-to-rail when Vin crosses the reference voltage.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Intermediate', components: ['Comparator', 'DC Ref', 'AC Source'], Icon: ToggleRight, accent: '#7e22ce', data: comparatorCircuit },
 
   // ── POWER ──────────────────────────────────────────────────────
-  { id: 'zener', name: 'Zener Voltage Clipper', category: 'Power', description: 'Zener diode clamps signal to breakdown voltage. Overvoltage protection and waveform clipping.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Beginner', components: ['Zener Diode', 'Resistor', 'AC Source'], Icon: Sliders, accent: '#ea580c', data: zenerClipper },
-  { id: 'vdivider', name: 'Voltage Divider', category: 'Power', description: 'Two resistors split a voltage proportionally. Fundamental circuit for biasing and sensing.', analysis: 'DC Sweep', analysisColor: C.dcSweep, difficulty: 'Beginner', components: ['2× Resistors', 'DC Source'], Icon: Filter, accent: '#059669', data: voltageDivider },
+  { id: 'zener', name: 'Zener Voltage Clipper', category: 'Power', description: 'Zener diode clamps signal to breakdown voltage. Overvoltage protection and waveform clipping.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Beginner', components: ['Zener Diode', 'Resistor', 'AC Source'], Icon: Sliders, accent: '#ea580c', data: zenerClipper },
+  { id: 'vdivider', name: 'Voltage Divider', category: 'Power', description: 'Two resistors split a voltage proportionally. Fundamental circuit for biasing and sensing.', analysis: 'DC Sweep', analysisColor: ANALYSIS_COLORS.dcSweep, difficulty: 'Beginner', components: ['2× Resistors', 'DC Source'], Icon: Filter, accent: '#059669', data: voltageDivider },
 
   // ── SWITCHING ──────────────────────────────────────────────────
-  { id: 'mosfet_sw', name: 'MOSFET Switch', category: 'Switching', description: 'N-Channel MOSFET as a digital switch. Gate voltage controls the drain-source resistance.', analysis: 'DC Sweep', analysisColor: C.dcSweep, difficulty: 'Beginner', components: ['N-MOSFET', 'Resistor', 'DC Source'], Icon: ToggleRight, accent: '#0284c7', data: mosfetSwitch },
-  { id: 'ss_hsic_ecgc', name: 'SS-HSIC-ECGC Converter', category: 'Switching', description: 'Single-Switch Hybrid Switched-Inductor Enhanced Cubic Gain Converter. High voltage gain DC-DC conversion.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Advanced', components: ['MOSFET', 'Inductors', 'Diodes'], Icon: Layers, accent: '#0369a1', data: hybridSwitchedInductor },
+  { id: 'mosfet_sw', name: 'MOSFET Switch', category: 'Switching', description: 'N-Channel MOSFET as a digital switch. Gate voltage controls the drain-source resistance.', analysis: 'DC Sweep', analysisColor: ANALYSIS_COLORS.dcSweep, difficulty: 'Beginner', components: ['N-MOSFET', 'Resistor', 'DC Source'], Icon: ToggleRight, accent: '#0284c7', data: mosfetSwitch },
+  { id: 'ss_hsic_ecgc', name: 'SS-HSIC-ECGC Converter', category: 'Switching', description: 'Single-Switch Hybrid Switched-Inductor Enhanced Cubic Gain Converter. High voltage gain DC-DC conversion.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Advanced', components: ['MOSFET', 'Inductors', 'Diodes'], Icon: Layers, accent: '#0369a1', data: hybridSwitchedInductor },
 
   // ── SOURCES ────────────────────────────────────────────────────
-  { id: '555', name: '555 Astable Oscillator', category: 'Sources', description: '555 timer in astable mode generates a continuous square wave at adjustable frequency.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Transistor Amplifier', 'RC Network'], Icon: Cpu, accent: '#e11d48', data: astable555 },
+  { id: '555', name: '555 Astable Oscillator', category: 'Sources', description: '555 timer in astable mode generates a continuous square wave at adjustable frequency.', analysis: 'Transient', analysisColor: ANALYSIS_COLORS.transient, difficulty: 'Intermediate', components: ['Transistor Amplifier', 'RC Network'], Icon: Cpu, accent: '#e11d48', data: astable555 },
 ];
 
 const DIFFICULTY_COLOR: Record<string, string> = {
@@ -89,6 +77,22 @@ import SEO from '../components/SEO';
 export default function CircuitsPage() {
   const navigate = useNavigate();
   const importState = useSchematicStore(s => s.importState);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const C = {
+    bgApp: isDark ? '#060a08' : '#f8fafc',
+    bgCard: isDark ? '#0d1a12' : '#ffffff',
+    textPrimary: isDark ? '#f1f5f9' : '#0f172a',
+    textSecondary: isDark ? '#94a3b8' : '#475569',
+    textMuted: isDark ? '#64748b' : '#94a3b8',
+    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+    
+    primary: '#16a34a',
+    primaryHover: '#15803d',
+    primaryLight: isDark ? 'rgba(74,222,128,0.15)' : 'rgba(22,163,74,0.1)',
+    ...ANALYSIS_COLORS
+  };
   
   const [activeCategory, setActiveCategory] = useState('All');
   const [search, setSearch] = useState('');
@@ -174,7 +178,7 @@ export default function CircuitsPage() {
               placeholder="Search by name, component…"
               style={{
                 width: '100%', padding: '12px 16px 12px 46px',
-                backgroundColor: '#0a140e',
+                backgroundColor: isDark ? '#0a140e' : '#f8fafc',
                 border: `1px solid ${C.border}`,
                 borderRadius: 12, color: C.textPrimary, fontSize: 15,
                 outline: 'none', boxSizing: 'border-box',
@@ -209,7 +213,7 @@ export default function CircuitsPage() {
                     transform: isActive ? 'translateY(-1px)' : 'none',
                   }}
                   onMouseEnter={e => {
-                    if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)';
+                    if (!isActive) e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
                   }}
                   onMouseLeave={e => {
                     if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
@@ -224,18 +228,18 @@ export default function CircuitsPage() {
 
         {/* ── Grid ── */}
         {/* Tab Switcher */}
-        <div style={{ display: 'flex', gap: 0, background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 4, marginBottom: 24, width: 'fit-content' }}>
+        <div style={{ display: 'flex', gap: 0, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 10, padding: 4, marginBottom: 24, width: 'fit-content' }}>
           <button
             onClick={() => setActiveTab('featured')}
             style={{ padding: '8px 20px', borderRadius: 7, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
               background: activeTab === 'featured' ? '#16a34a' : 'transparent',
-              color: activeTab === 'featured' ? '#fff' : '#94a3b8' }}
+              color: activeTab === 'featured' ? '#fff' : C.textSecondary }}
           >⭐ Featured ({EXAMPLES.length})</button>
           <button
             onClick={() => setActiveTab('community')}
             style={{ padding: '8px 20px', borderRadius: 7, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
               background: activeTab === 'community' ? '#16a34a' : 'transparent',
-              color: activeTab === 'community' ? '#fff' : '#94a3b8' }}
+              color: activeTab === 'community' ? '#fff' : C.textSecondary }}
           >🌐 Community {communityCircuits.length > 0 ? `(${communityCircuits.length})` : ''}</button>
         </div>
 

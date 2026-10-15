@@ -10,36 +10,44 @@ const dropdownStyle: React.CSSProperties = {
   display: 'inline-block',
   paddingBottom: '12px',  // extends hover zone so mouse doesn't leave before reaching menu
 };
-const dropdownMenuStyle: React.CSSProperties = {
+const getDropdownMenuStyle = (isDark: boolean): React.CSSProperties => ({
   display: 'none',
   position: 'absolute',
   top: '100%',
   left: '50%',
   transform: 'translateX(-50%)',
-  background: '#0d2818',
-  border: '1px solid rgba(255,255,255,0.12)',
+  background: isDark ? '#0d2818' : '#ffffff',
+  border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid #e2e8f0',
   borderRadius: '12px',
   padding: '6px 0',
   minWidth: '260px',
   zIndex: 1000,
-  boxShadow: '0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)',
+  boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)' : '0 12px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)',
   marginTop: '0',
-};
+});
 
 export default function Layout() {
   const { pathname } = useLocation();
   const { theme, toggleTheme } = useTheme();
   const isLearnActive = pathname.startsWith('/tutorials') || pathname.startsWith('/compare');
-  const isDarkPage = true; // All pages unify to dark emerald aesthetic
+  const isDark = theme === 'dark';
 
   return (
-    <div className={`landing-page ${isDarkPage ? 'landing-page-dark' : ''}`} style={isDarkPage ? { background: '#060a08', color: '#eef3f0' } : undefined}>
+    <div
+      className={`landing-page ${isDark ? 'landing-page-dark' : ''}`}
+      style={{
+        minHeight: '100vh',
+        background: isDark ? '#060a08' : 'var(--paper, #FBFEFC)',
+        color: isDark ? '#eef3f0' : 'var(--ink, #0B1220)',
+        transition: 'background 0.25s ease, color 0.25s ease',
+      }}
+    >
 
       {/* ─── NAVBAR: matches LandingPage exactly ─── */}
-      <header className={`msl-site-header ${isDarkPage ? 'msl-header-dark' : ''}`}>
+      <header className={`msl-site-header ${isDark ? 'msl-header-dark' : ''}`}>
         <div className="msl-container msl-nav-row">
           <Link className="msl-brand" to="/" aria-label="NodeSim home" style={{ textDecoration: 'none' }}>
-            <img src={theme === 'light' ? "/logo_main_transparent.png" : "/logo_sim.png"} alt="NodeSim Logo" style={{ height: '40px', objectFit: 'contain' }} />
+            <img src={isDark ? "/logo_sim.png" : "/logo_main_transparent.png"} alt="NodeSim Logo" style={{ height: '40px', objectFit: 'contain' }} />
           </Link>
 
           <nav className="msl-nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
@@ -74,7 +82,7 @@ export default function Layout() {
                   <path d="M6 9l6 6 6-6"/>
                 </svg>
               </span>
-              <div className="learn-dropdown-menu" style={dropdownMenuStyle}>
+              <div className="learn-dropdown-menu" style={getDropdownMenuStyle(isDark)}>
                 {/* Community */}
                 <div className="dd-section-head">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
@@ -128,11 +136,11 @@ export default function Layout() {
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               style={{
                 background: 'none',
-                border: '1px solid rgba(255,255,255,0.15)',
+                border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.15)',
                 borderRadius: 8,
                 padding: '6px 8px',
                 cursor: 'pointer',
-                color: '#94a3b8',
+                color: isDark ? '#94a3b8' : '#475569',
                 display: 'flex',
                 alignItems: 'center',
                 marginRight: 4
@@ -198,7 +206,17 @@ export default function Layout() {
             <button
               onClick={toggleTheme}
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, padding: '6px 8px', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', marginRight: 8 }}
+              style={{
+                background: 'none',
+                border: isDark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.15)',
+                borderRadius: 8,
+                padding: '6px 8px',
+                cursor: 'pointer',
+                color: isDark ? '#94a3b8' : '#475569',
+                display: 'flex',
+                alignItems: 'center',
+                marginRight: 8
+              }}
             >
               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>

@@ -1,4 +1,4 @@
-﻿  :root{
+  :root{
     --paper:#FBFEFC;
     --surface:#FFFFFF;
     --header-bg:#ffffff;
@@ -419,15 +419,85 @@ div:focus-within > .lp-learn-menu { display: block !important; }
 
 /* ── Light-mode overrides via [data-theme='light'] ────────────── */
 :root[data-theme='light'] {
-  --header-bg: rgba(255,255,255,0.95);
+  --header-bg: #ffffff;
   --forest-950: #f8fafc;
   --forest-900: #f1f5f9;
   --line: #e2e8f0;
   --ink: #0f172a;
   --ink-soft: #334155;
   --muted: #64748b;
+  --paper: #f8fafc;
+  --surface: #ffffff;
 }
-:root[data-theme='light'] .landing-page-dark {
-  background: #060a08 !important;
-  color: #eef3f0 !important;
+
+:root[data-theme='light'] .msl-site-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+:root[data-theme='light'] .msl-nav-links a {
+  color: #334155 !important;
+}
+
+:root[data-theme='light'] .msl-nav-links a:hover {
+  color: #0f172a !important;
+}
+
+:root[data-theme='light'] .msl-nav-links a.active {
+  color: #16a34a !important;
+}
+
+:root[data-theme='light'] .msl-nav-links a.active::after {
+  background: #16a34a !important;
+}
+
+:root[data-theme='light'] .learn-dropdown-menu {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.08) !important;
+}
+
+:root[data-theme='light'] .learn-dropdown-menu .dd-item {
+  color: #334155 !important;
+}
+
+:root[data-theme='light'] .learn-dropdown-menu .dd-item:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+:root[data-theme='light'] .learn-dropdown-menu .dd-divider {
+  border-top: 1px solid #f1f5f9 !important;
+}
+
+:root[data-theme='light'] .mobile-panel {
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+:root[data-theme='light'] .mobile-panel .mp-links a {
+  color: #334155 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+:root[data-theme='light'] .mobile-panel .mp-links a.active {
+  color: #16a34a !important;
+}
+
+:root[data-theme='light'] .msl-site-footer {
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+:root[data-theme='light'] .msl-footer-brand {
+  color: #0f172a !important;
+}
+
+:root[data-theme='light'] .msl-footer-links a {
+  color: #475569 !important;
+}
+
+:root[data-theme='light'] .msl-footer-links a:hover {
+  color: #0f172a !important;
 }
