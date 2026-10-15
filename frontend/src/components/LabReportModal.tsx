@@ -40,15 +40,23 @@ export function LabReportModal({ isOpen, onClose, schematicDataUrl, graphDataUrl
 
   const handleGenerate = async () => {
     if (!formData.title.trim()) return;
-    if (!user) return;
     
     setStep('generating');
     setErrorMsg('');
     try {
-      const usage = await checkAndIncrementUsage(user.uid);
-      if (!usage.allowed) {
-        setStep('paywall');
-        return;
+      if (user) {
+        const usage = await checkAndIncrementUsage(user.uid);
+        if (!usage.allowed) {
+          setStep('paywall');
+          return;
+        }
+      } else {
+        const guestUsage = parseInt(localStorage.getItem('nodesim_guest_reports') || '0', 10);
+        if (guestUsage >= 3) {
+          setStep('paywall');
+          return;
+        }
+        localStorage.setItem('nodesim_guest_reports', (guestUsage + 1).toString());
       }
 
       const { components, wires, simulationBuffer, analysisMode } = useSchematicStore.getState();
@@ -307,38 +315,41 @@ Be specific to THIS circuit. Do not write a generic report. Use engineering lang
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <Loader2 size={40} style={{ color: '#16a34a', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
           </div>
-        ) : !user ? (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Generate AI Lab Reports</div>
-            <div style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.6, marginBottom: 24 }}>
-              Sign in to automatically generate comprehensive PDF lab records for your circuits. You get 3 free reports per month.
-            </div>
-            <button
-              onClick={signInWithGoogle}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
-            >
-              <LogIn size={18} /> Sign in with Google
-            </button>
-          </div>
         ) : (
           <>
             {step === 'paywall' && (
               <div style={{ textAlign: 'center', padding: '8px 0' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.4)', borderRadius: 20, padding: '5px 14px', marginBottom: 18 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24' }}>⚡ Free monthly limit reached (3/3 used)</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24' }}>⚡ Monthly Free Report Limit Reached</span>
                 </div>
-                <div style={{ fontSize: 26, marginBottom: 10 }}>☕</div>
-                <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>You've used your 3 free reports</div>
-                <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginBottom: 20 }}>NodeSim is built by a solo student. If it helped you, consider supporting it to keep AI features running!</div>
-                <a href="upi://pay?pa=spartensid12@oksbi&pn=NodeSim&cu=INR"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#16a34a', color: '#fff', textDecoration: 'none', padding: '12px', borderRadius: 9, fontWeight: 700, fontSize: 14, marginBottom: 10 }}
-                >☕ Support via UPI (any amount)</a>
-                <div style={{ fontSize: 11, color: '#475569' }}>Your 3 free reports reset on the 1st of next month.</div>
+                <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#f1f5f9' }}>Institutional & Academic Access</div>
+                <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginBottom: 20 }}>
+                  Need unlimited lab report generation for your university department, faculty, or student batch?
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360, margin: '0 auto' }}>
+                  <a 
+                    href="mailto:nodesimapp@gmail.com?subject=Institutional%20Access%20Request%20-%20NodeSim"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#16a34a', color: '#fff', textDecoration: 'none', padding: '12px', borderRadius: 9, fontWeight: 700, fontSize: 14 }}
+                  >
+                    Request Institutional Department Access
+                  </a>
+                  <p style={{ fontSize: 12, color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+                    Or configure your personal Gemini API key in Simulator Settings to continue generating reports.
+                  </p>
+                </div>
               </div>
             )}
 
             {step === 'form' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {!user && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#93c5fd' }}>
+                    <span>Academic Guest Mode (3 free reports)</span>
+                    <button onClick={signInWithGoogle} style={{ background: 'none', border: 'none', color: '#60a5fa', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, padding: 0 }}>
+                      <LogIn size={13} /> Sign in
+                    </button>
+                  </div>
+                )}
                 <div>
                   <label style={labelStyle}>Experiment Title *</label>
                   <input style={inputStyle} value={formData.title} onChange={e => setFormData(p => ({ ...p, title: e.target.value }))} placeholder="e.g. RC Low Pass Filter Frequency Response" />

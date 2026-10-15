@@ -102,7 +102,7 @@ export function AboutPage() {
 <div class="chaps rv"><span>Schematic</span><span>Simulation</span><span>Grapher</span><span>AI Debugger</span><span>Circuit Library</span><span>Publish</span></div>
 <div class="center rv" style="margin-top:44px"><a class="btn" href="https://youtu.be/JSuCJqfbF9E" target="_blank" rel="noopener noreferrer">Watch the Full Product Showcase <span class="ar">→</span></a></div></div></section>
 <section class="final gridbg"><div class="wrap rv" style="position:relative"><p class="eyebrow">Open &amp; improving</p><h2>Be Part of the <em>Journey.</em></h2><p class="sub" style="margin-inline:auto">NodeSim is an open project, and we are constantly improving. Explore, give feedback, contribute, or just spread the word.</p>
-<div class="cta"><a class="btn" href="https://www.nodesimapp.com/simulator">Open Simulator <span class="ar">→</span></a><a class="btn ghost" href="#github" data-todo="Add the real GitHub repository URL">View on GitHub <span class="ar">→</span></a></div></div></section>
+<div class="cta"><a class="btn" href="/simulator">Open Simulator <span class="ar">→</span></a><a class="btn ghost" href="https://github.com/SiD4422/multisimLive" target="_blank" rel="noopener noreferrer">View on GitHub <span class="ar">→</span></a></div></div></section>
 </main>
 </main>` }} />
       
