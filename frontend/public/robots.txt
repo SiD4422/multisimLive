@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /simulator
-Sitemap: https://nodesimapp.com/sitemap.xml
+Sitemap: https://www.nodesimapp.com/sitemap.xml
