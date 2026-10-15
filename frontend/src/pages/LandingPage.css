@@ -257,7 +257,7 @@
   .testimonial cite{font-size:13px;color:var(--muted);font-style:normal;}
 
   /* ---------- Dark feature section ---------- */
-  .features-dark{position:relative;overflow:hidden;background:linear-gradient(180deg,var(--forest-950),var(--forest-900));padding:96px 0;color:#EAF6EF;}
+  .features-dark{position:relative;overflow:hidden;background:linear-gradient(180deg,#071A14,#0C2A1F) !important;padding:96px 0;color:#EAF6EF !important;}
   .features-dark::before{
     content:"";position:absolute;inset:0;pointer-events:none;
     background-image:linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
@@ -267,7 +267,7 @@
   }
   .msl-features-inner{position:relative;z-index:1;}
   .msl-features-head{max-width:600px;margin-bottom:60px;}
-  .features-dark h2{font-family:var(--font-display);font-weight:700;letter-spacing:-.01em;font-size:clamp(1.9rem,2.6vw + 1rem,2.5rem);color:#fff;}
+  .features-dark h2{font-family:var(--font-display);font-weight:700;letter-spacing:-.01em;font-size:clamp(1.9rem,2.6vw + 1rem,2.5rem);color:#fff !important;}
   .msl-feature-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.12);}
   @media(max-width:860px){.msl-feature-grid{grid-template-columns:repeat(2,1fr);}}
   @media(max-width:560px){.msl-feature-grid{grid-template-columns:1fr;}}
@@ -284,8 +284,8 @@
     .feature-item:last-child{border-bottom:0;}
   }
   .feature-item .ico{width:32px;height:32px;color:var(--green-light);margin-bottom:20px;}
-  .feature-item h3{font-size:16px;font-weight:700;color:#fff;margin:0 0 6px;}
-  .feature-item p{font-size:13.5px;color:#93A99F;line-height:1.5;}
+  .feature-item h3{font-size:16px;font-weight:700;color:#fff !important;margin:0 0 6px;}
+  .feature-item p{font-size:13.5px;color:#93A99F !important;line-height:1.5;}
 
   /* ---------- Footer ---------- */
   .msl-site-footer{background:var(--forest-950);border-top:1px solid rgba(255,255,255,.08);padding:36px 0;color:#7E958B;font-size:13px;}
@@ -420,8 +420,6 @@ div:focus-within > .lp-learn-menu { display: block !important; }
 /* ── Light-mode overrides via [data-theme='light'] ────────────── */
 :root[data-theme='light'] {
   --header-bg: #ffffff;
-  --forest-950: #f8fafc;
-  --forest-900: #f1f5f9;
   --line: #e2e8f0;
   --ink: #0f172a;
   --ink-soft: #334155;
