@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   BookOpen, FolderOpen, Save, Share, Code, 
-  Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles, FileText, Coffee,
+  Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles, FileText,
   Play, Trash2, Undo2, Redo2, Trash
 } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
@@ -30,7 +30,6 @@ export interface SimulatorHeaderProps {
   onOpenAi: () => void;
   onExportKiCad: () => void;
   onLabReport: () => void;
-  onOpenSupport: () => void;
 }
 
 export function SimulatorHeader({
@@ -55,7 +54,6 @@ export function SimulatorHeader({
   onOpenAi,
   onExportKiCad,
   onLabReport,
-  onOpenSupport
 }: SimulatorHeaderProps) {
   return (
     <header className="header-top relative" style={{ zIndex: 10 }}>
@@ -292,28 +290,6 @@ export function SimulatorHeader({
         >
           <FileText size={13} />
           <span className="sim-header-pill-text">Lab Report</span>
-        </button>
-
-        {/* Support NodeSim */}
-        <button
-          onClick={onOpenSupport}
-          title="Support NodeSim — Buy me a coffee!"
-          style={{
-            display: 'flex', alignItems: 'center', gap: '5px',
-            padding: '6px 11px',
-            background: 'rgba(236,72,153,0.15)', // pink-500
-            border: '1px solid rgba(236,72,153,0.4)',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            color: '#f9a8d4', // pink-300
-            fontSize: '12px', fontWeight: 700,
-            whiteSpace: 'nowrap', transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(236,72,153,0.3)'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(236,72,153,0.15)'; e.currentTarget.style.color = '#f9a8d4'; }}
-        >
-          <Coffee size={13} />
-          <span className="sim-header-pill-text">Support</span>
         </button>
 
         {/* Divider */}
