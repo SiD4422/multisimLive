@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
 /* ============================================================
-   MultiSimLab Design System — v2.0
+   NodeSim Design System — v2.0
    ============================================================
    Design Principles:
    - 8px spacing grid (all spacing is a multiple of 8)
@@ -950,11 +950,20 @@ body {
 /* ── Desktop Header Icon Flex Protection (≤ 1366px) ─────────────── */
 /* Prevents the 11 action icons from crushing to sub-pixel width on 1280px laptops */
 @media (max-width: 1366px) {
+  .sim-header-nav {
+    display: none !important;
+  }
   .header-top > div:last-child {
     flex-shrink: 0;
   }
   .header-top > div:last-child > button {
     flex-shrink: 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .sim-header-pill-text {
+    display: none !important;
   }
 }
 

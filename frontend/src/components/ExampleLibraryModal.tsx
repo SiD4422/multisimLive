@@ -664,7 +664,7 @@ export function ExampleLibraryModal({ isOpen, onClose }: { isOpen: boolean; onCl
             {filtered.length} of {EXAMPLES.length} circuits
           </span>
           <span style={{ fontSize:11, color: C.brand800, fontWeight:500 }}>
-            MultiSimLab · Circuit Library
+            NodeSim · Circuit Library
           </span>
         </div>
       </div>

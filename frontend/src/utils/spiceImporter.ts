@@ -4,7 +4,7 @@
 
 import type { SchematicComponent } from '../store/useSchematicStore';
 
-// SPICE letter prefix → MultiSimLab component type (null = skip/unsupported)
+// SPICE letter prefix → NodeSim component type (null = skip/unsupported)
 const PREFIX_TYPE_MAP: Record<string, string | null> = {
   R: 'Resistor',
   C: 'Capacitor',

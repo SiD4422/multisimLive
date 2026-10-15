@@ -57,21 +57,10 @@ export function SimulatorHeader({
 }: SimulatorHeaderProps) {
   return (
     <header className="header-top relative" style={{ zIndex: 10 }}>
-      <div className="flex items-center gap-6" style={{ flex: 1, minWidth: 0 }}>
-        <div className="flex items-center gap-2 sim-logo-wrap" style={{ marginLeft: '-60px' }}>
-          <a href="https://nodesimapp.com" target="_blank" rel="noopener noreferrer" title="Open NodeSim" className="flex items-center">
-            <Logo style={{ width: '180px', height: '44px', transform: 'scale(1.1)', transformOrigin: 'left center' }} />
-          </a>
-        </div>
-        
-        {!isEmbed && (
-          <nav className="sim-header-nav" style={{ display: 'flex', alignItems: 'center', gap: '20px', marginLeft: '30px', height: '30px' }}>
-             <Link to="/" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Home</Link>
-             <Link to="/features" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Features</Link>
-             <Link to="/circuits" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Circuits</Link>
-             <Link to="/procedure" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Procedure</Link>
-          </nav>
-        )}
+      <div className="flex items-center gap-4 sim-logo-wrap" style={{ flex: '0 0 auto', minWidth: 0 }}>
+        <Link to="/" title="NodeSim Home" className="flex items-center">
+          <img src="/logo_sim.png" alt="NodeSim" style={{ height: '36px', objectFit: 'contain' }} />
+        </Link>
       </div>
 
       <div style={{ flex: '0 1 auto', display: 'flex', justifyContent: 'center', whiteSpace: 'nowrap', overflow: 'hidden', padding: '0 10px' }}>
@@ -100,44 +89,7 @@ export function SimulatorHeader({
         )}
       </div>
 
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', minWidth: 0 }}>
-        {/* Run Simulation button */}
-        <button
-          id="run-simulation-btn"
-          title="Run Simulation (Ctrl+Enter)"
-          onClick={() => {
-            const state = useSchematicStore.getState();
-            if (state.isSimulating) return;
-            if (state.isPlaying) {
-              state.stopSimulation();
-            } else {
-              state.runSimulation();
-            }
-          }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 12px',
-            background: isSimulating ? '#4b5563' : 'linear-gradient(135deg, #16a34a, #15803d)',
-            border: '1px solid #22c55e40',
-            borderRadius: '8px',
-            cursor: isSimulating ? 'not-allowed' : 'pointer',
-            color: '#fff',
-            fontSize: '12px',
-            fontWeight: 700,
-            letterSpacing: '0.02em',
-            transition: 'all 0.15s ease',
-            whiteSpace: 'nowrap',
-            boxShadow: '0 1px 4px rgba(22,163,74,0.3)',
-          }}
-          onMouseEnter={e => { if (!isSimulating) { e.currentTarget.style.background = 'linear-gradient(135deg, #15803d, #166534)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(22,163,74,0.5)'; } }}
-          onMouseLeave={e => { if (!isSimulating) { e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a, #15803d)'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(22,163,74,0.3)'; } }}
-        >
-          <Play size={13} fill="white" />
-          <span className="sim-header-pill-text">{isSimulating ? 'Simulating...' : 'Run'}</span>
-        </button>
-
+      <div style={{ flex: '1 1 auto', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', minWidth: 0 }}>
         {/* AI Tutor button — labeled and prominent so users can find it */}
         <button
           onClick={onOpenAi}
@@ -158,6 +110,7 @@ export function SimulatorHeader({
             transition: 'all 0.15s ease',
             whiteSpace: 'nowrap',
             boxShadow: '0 1px 4px rgba(22,163,74,0.3)',
+            flexShrink: 0,
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'linear-gradient(135deg, #15803d, #166534)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(22,163,74,0.5)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'linear-gradient(135deg, #16a34a, #15803d)'; e.currentTarget.style.boxShadow = '0 1px 4px rgba(22,163,74,0.3)'; }}
@@ -166,7 +119,7 @@ export function SimulatorHeader({
           <span className="sim-header-pill-text">AI Tutor</span>
         </button>
         {/* Divider */}
-        <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
+        <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px', flexShrink: 0 }} />
         {[
           { icon: <Undo2 size={16}/>, label: 'Undo (Ctrl+Z)', action: () => useSchematicStore.getState().undo(), color: undefined },
           { icon: <Redo2 size={16}/>, label: 'Redo (Ctrl+Y)', action: () => useSchematicStore.getState().redo(), color: undefined },
@@ -222,6 +175,7 @@ export function SimulatorHeader({
               cursor: 'pointer',
               color: color || 'rgba(255,255,255,0.65)',
               transition: 'all 0.12s ease',
+              flexShrink: 0,
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = color || '#fff'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = color || 'rgba(255,255,255,0.65)'; }}
@@ -248,6 +202,7 @@ export function SimulatorHeader({
             letterSpacing: '0.02em',
             whiteSpace: 'nowrap',
             transition: 'all 0.15s ease',
+            flexShrink: 0,
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.32)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(139,92,246,0.7)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(139,92,246,0.18)'; e.currentTarget.style.color = '#c4b5fd'; e.currentTarget.style.borderColor = 'rgba(139,92,246,0.45)'; }}
@@ -284,6 +239,7 @@ export function SimulatorHeader({
             color: '#86efac',
             fontSize: '12px', fontWeight: 700,
             whiteSpace: 'nowrap', transition: 'all 0.15s ease',
+            flexShrink: 0,
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(22,163,74,0.3)'; e.currentTarget.style.color = '#fff'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(22,163,74,0.15)'; e.currentTarget.style.color = '#86efac'; }}
@@ -293,7 +249,7 @@ export function SimulatorHeader({
         </button>
 
         {/* Divider */}
-        <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px' }} />
+        <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.12)', margin: '0 4px', flexShrink: 0 }} />
         <button
           title="Fullscreen"
           onClick={onToggleFullscreen}
@@ -302,6 +258,7 @@ export function SimulatorHeader({
             width: '32px', height: '32px', background: 'transparent',
             border: '1px solid transparent', borderRadius: '6px',
             cursor: 'pointer', color: 'rgba(255,255,255,0.65)', transition: 'all 0.12s ease',
+            flexShrink: 0,
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}
@@ -316,6 +273,7 @@ export function SimulatorHeader({
             width: '32px', height: '32px', background: 'transparent',
             border: '1px solid transparent', borderRadius: '6px',
             cursor: 'pointer', color: 'rgba(255,255,255,0.65)', transition: 'all 0.12s ease',
+            flexShrink: 0,
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; }}

@@ -155,7 +155,7 @@ export default function CircuitsPage() {
             Circuit Library
           </h1>
           <p style={{ fontSize: '1.1rem', color: C.textSecondary, maxWidth: 600, margin: '0 auto', lineHeight: 1.6 }}>
-            Explore our collection of fully functional, simulation-ready electronic circuits. Click any card to load it directly into the MultiSimLab simulator.
+            Explore our collection of fully functional, simulation-ready electronic circuits. Click any card to load it directly into the NodeSim simulator.
           </p>
         </div>
 

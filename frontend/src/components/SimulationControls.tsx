@@ -15,6 +15,7 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
   
   const hasData = simulationBuffer && simulationBuffer.length > 0;
   const maxTime = hasData ? simulationBuffer[simulationBuffer.length - 1].time : 0;
+  const [showDrcTooltip, setShowDrcTooltip] = useState(false);
 
   const lastTimeRef = React.useRef<number>(0);
   const animationFrameIdRef = React.useRef<number | null>(null);
@@ -58,6 +59,7 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
     <div className="flex items-center gap-3 mr-6 shrink-0">
       {/* Run / Stop button */}
       <div 
+        id="run-simulation-btn"
         className={`flex items-center gap-2 cursor-pointer ${
           isPlaying ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'
         } text-white px-4 py-2 rounded-md shadow-sm transition-colors`}
@@ -69,7 +71,7 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
             runSimulation();
           }
         }}
-        style={{ opacity: isSimulating ? 0.7 : 1 }}
+        style={{ opacity: isSimulating ? 0.7 : 1, position: 'relative' }}
       >
         {isSimulating ? (
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
@@ -82,21 +84,37 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
           {isSimulating ? 'Simulating...' : isPlaying ? 'Stop' : 'Run'}
         </span>
         {drcIssues.length > 0 && !isPlaying && !isSimulating && (
-          <div className="relative group flex items-center ml-1">
-            <div className="bg-amber-500 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold text-white shadow-sm border border-amber-400 cursor-help animate-pulse">
+          <div 
+            style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}
+            onMouseEnter={() => setShowDrcTooltip(true)}
+            onMouseLeave={() => setShowDrcTooltip(false)}
+          >
+            <div style={{
+              background: '#f59e0b', borderRadius: '50%', width: 20, height: 20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 12, fontWeight: 700, color: '#fff', border: '1px solid #fbbf24',
+              cursor: 'help'
+            }}>
               !
             </div>
-            {/* Tooltip / Popover */}
-            <div className="absolute top-full mt-2 right-0 w-64 bg-white rounded-lg shadow-xl border border-gray-200 p-3 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[1000] text-left">
-              <div className="flex items-center gap-2 text-amber-600 font-bold mb-2">
-                <AlertTriangle size={16} /> Pre-Flight Warnings
+            {/* Tooltip / Popover - only visible on hover */}
+            {showDrcTooltip && (
+              <div style={{
+                position: 'absolute', top: '100%', right: 0, marginTop: 8, width: 270,
+                background: '#1e293b', borderRadius: 8, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.6)',
+                border: '1px solid #334155', padding: 12, zIndex: 1000, textAlign: 'left',
+                color: '#f8fafc', pointerEvents: 'none'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#fbbf24', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
+                  <AlertTriangle size={15} /> Pre-Flight Warnings
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#cbd5e1', lineHeight: 1.5 }}>
+                  {drcIssues.map((issue, idx) => (
+                    <li key={idx} style={{ marginBottom: 4 }}>{issue}</li>
+                  ))}
+                </ul>
               </div>
-              <ul className="text-sm text-gray-700 list-disc pl-4 space-y-1">
-                {drcIssues.map((issue, idx) => (
-                  <li key={idx}>{issue}</li>
-                ))}
-              </ul>
-            </div>
+            )}
           </div>
         )}
       </div>

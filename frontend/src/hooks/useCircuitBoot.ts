@@ -4,7 +4,28 @@ import LZString from 'lz-string';
 
 type BootSource = 'url' | 'restored' | 'fresh' | 'demo';
 
-const demoCircuit = {"components":[{"id":"r1","type":"Resistor","position":{"x":380,"y":240},"value":"1k","rotation":0},{"id":"c1","type":"Capacitor","position":{"x":520,"y":300},"value":"10u","rotation":0},{"id":"v1","type":"DCVoltage","position":{"x":240,"y":280},"value":"5","rotation":0},{"id":"g1","type":"Ground","position":{"x":240,"y":370},"value":"","rotation":0},{"id":"g2","type":"Ground","position":{"x":520,"y":370},"value":"","rotation":0},{"id":"p1","type":"VoltageProbe","position":{"x":520,"y":240},"value":"","rotation":0}],"wires":[{"id":"w1","points":[{"x":240,"y":240},{"x":340,"y":240}]},{"id":"w2","points":[{"x":420,"y":240},{"x":520,"y":240}]},{"id":"w3","points":[{"x":520,"y":260},{"x":520,"y":280}]},{"id":"w4","points":[{"x":240,"y":300},{"x":240,"y":370}]},{"id":"w5","points":[{"x":520,"y":320},{"x":520,"y":370}]}],"probes":[],"stagePos":{"x":0,"y":0},"scale":1};
+const demoCircuit = {
+  components: [
+    { id: 'V1', type: 'ACSource', position: { x: 260, y: 220 }, value: '1V 1kHz', rotation: 90 },
+    { id: 'R1', type: 'Resistor', position: { x: 340, y: 220 }, value: '1k', rotation: 0 },
+    { id: 'C1', type: 'Capacitor', position: { x: 500, y: 220 }, value: '1u', rotation: 90 },
+    { id: 'G1', type: 'Ground', position: { x: 260, y: 350 }, value: '', rotation: 0 },
+    { id: 'G2', type: 'Ground', position: { x: 500, y: 350 }, value: '', rotation: 0 }
+  ],
+  wires: [
+    { id: 'w1', points: [{ x: 260, y: 220 }, { x: 340, y: 220 }] },
+    { id: 'w2', points: [{ x: 430, y: 220 }, { x: 500, y: 220 }] },
+    { id: 'w3', points: [{ x: 260, y: 310 }, { x: 260, y: 350 }] },
+    { id: 'w4', points: [{ x: 500, y: 310 }, { x: 500, y: 350 }] }
+  ],
+  probes: [
+    { id: 'PRB1', position: { x: 500, y: 220 }, type: 'Voltage', label: 'V(out)' }
+  ],
+  stagePos: { x: 0, y: 0 },
+  scale: 1,
+  analysisMode: 'ac',
+  acSettings: { fStart: '10', fStop: '100k', points: '100' }
+};
 
 export function useCircuitBoot() {
   const ranRef = useRef(false);

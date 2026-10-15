@@ -148,9 +148,14 @@ export default function SchematicEditor() {
 
   // Handle Schematic Export
   useEffect(() => {
-    const handleExport = () => {
+    const handleExport = (e: Event) => {
+      const detail = (e as CustomEvent)?.detail;
       if (stageRef.current) {
         const dataURL = stageRef.current.toDataURL({ pixelRatio: 2 });
+        if (detail?.returnDataUrl) {
+          window.dispatchEvent(new CustomEvent('schematic-exported', { detail: { dataUrl: dataURL } }));
+          return;
+        }
         const link = document.createElement('a');
         link.download = 'schematic_snapshot.png';
         link.href = dataURL;
