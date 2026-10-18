@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { 
   BookOpen, FolderOpen, Save, Share, Code, 
   Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles, FileText,
-  Play, Trash2, Undo2, Redo2, Trash
+  Play, Trash2, Undo2, Redo2, Trash, Layers, FileCheck2
 } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
+import { downloadBOMCsv } from '../utils/bomExport';
 import { Logo } from './icons/Logo';
 
 export interface SimulatorHeaderProps {
@@ -55,6 +56,15 @@ export function SimulatorHeader({
   onExportKiCad,
   onLabReport,
 }: SimulatorHeaderProps) {
+  const handleExportBOM = () => {
+    const { components } = useSchematicStore.getState();
+    if (!components || components.length === 0) {
+      alert('Cannot export BOM: Canvas has no components.');
+      return;
+    }
+    downloadBOMCsv(components, circuitName);
+  };
+
   return (
     <header className="header-top relative" style={{ zIndex: 10 }}>
       <div className="flex items-center gap-4 sim-logo-wrap" style={{ flex: '0 0 auto', minWidth: 0 }}>
@@ -161,6 +171,7 @@ export function SimulatorHeader({
           { icon: <Upload size={16}/>, label: 'Import SPICE Netlist (.cir)', action: onImportCir, color: '#60a5fa' },
           { icon: <Download size={16}/>, label: 'Export SPICE Netlist (.cir)', action: onExportNetlist, color: '#60a5fa' },
           { icon: <Copy size={16}/>, label: 'Copy Netlist to Clipboard', action: onCopyNetlist, color: '#60a5fa' },
+          { icon: <Layers size={16}/>, label: 'Export BOM (.csv)', action: handleExportBOM, color: '#38bdf8' },
         ].map(({ icon, label, action, color }) => (
           <button
             key={label}
@@ -225,10 +236,10 @@ export function SimulatorHeader({
           </svg>
           <span className="sim-header-pill-text">→ KiCad</span>
         </button>
-        {/* Lab Report — AI-generated PDF */}
+        {/* Design Verification Report (DVR) — AI-generated PDF */}
         <button
           onClick={onLabReport}
-          title="Generate AI Lab Report PDF — Aim, Theory, Procedure, Result, Conclusion"
+          title="Generate Design Verification Report (PDF) — SPICE Netlist, Bias Point & Dynamic Sign-off"
           style={{
             display: 'flex', alignItems: 'center', gap: '5px',
             padding: '6px 11px',
@@ -244,8 +255,8 @@ export function SimulatorHeader({
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(22,163,74,0.3)'; e.currentTarget.style.color = '#fff'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(22,163,74,0.15)'; e.currentTarget.style.color = '#86efac'; }}
         >
-          <FileText size={13} />
-          <span className="sim-header-pill-text">Lab Report</span>
+          <FileCheck2 size={13} />
+          <span className="sim-header-pill-text">Design Report</span>
         </button>
 
         {/* Divider */}
