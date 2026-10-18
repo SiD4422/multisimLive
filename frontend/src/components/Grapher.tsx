@@ -237,7 +237,7 @@ const MeasurementsPanel = ({ data, traces, plotType, probeMap, isOscilloscope }:
       {!isMinimized && (
         <div style={{ display: 'flex', flexDirection: 'row', overflowX: 'auto', padding: 8, gap: 16 }}>
           {measurements.map((m, idx) => {
-            const displayName = probeMap[m.trace] || formatTraceName(m.trace);
+            const displayName = probeMap[m.trace] || probeMap[m.trace.toLowerCase()] || formatTraceName(m.trace);
             return (
               <div
                 key={m.trace}
@@ -465,7 +465,7 @@ function FftPlot({ simulationBuffer, traces, probeMap, isOscilloscope, isDigital
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
             {traces.map((t, i) => {
-              const displayName = probeMap[t] || formatTraceName(t);
+              const displayName = probeMap[t] || probeMap[t.toLowerCase()] || formatTraceName(t);
               return (
               <Line
                 key={t} name={displayName} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
@@ -658,7 +658,7 @@ function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCurso
             {isCursorMode && cursorA && <ReferenceLine x={cursorA[sweepKey]} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {traces.map((t, i) => {
-              const displayName = probeMap[t] || formatTraceName(t);
+              const displayName = probeMap[t] || probeMap[t.toLowerCase()] || formatTraceName(t);
               return (
               <Line key={t} name={displayName} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
@@ -769,7 +769,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
               {isCursorMode && cursorA && <ReferenceLine x={cursorA.time} stroke="#ff0000" strokeWidth={2} />}
               {isCursorMode && cursorB && <ReferenceLine x={cursorB.time} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
               {traces.map((traceName, idx) => {
-                const displayName = probeMap[traceName] || formatTraceName(traceName);
+                const displayName = probeMap[traceName] || probeMap[traceName.toLowerCase()] || formatTraceName(traceName);
                 return (
                   <Line key={traceName} name={displayName} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={traceName}
                     stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} filter={isOscilloscope ? 'url(#glow)' : undefined} />
@@ -882,7 +882,7 @@ export default function Grapher() {
     return () => ro.disconnect();
   }, []); // [] â€” only mount/unmount; chartRef.current is stable after first render
 
-  // Build a map: raw data key â†’ probe display name
+  // Build a map: raw data key → probe display name
   const probeMap = useMemo(() => {
     const map: Record<string, string> = {};
     probes.forEach((probe, idx) => {
@@ -890,10 +890,14 @@ export default function Grapher() {
       if (probe.type === 'Voltage') {
         const nodeId = getSpiceNodeForPoint(probe.position, components, wires);
         const key = `v(${nodeId})`;
-        map[key] = map[key] ? `${map[key]}, ${name}` : name;
+        const combined = map[key] ? `${map[key]}, ${name}` : name;
+        map[key] = combined;
+        map[key.toLowerCase()] = combined;
       } else if (probe.type === 'Current') {
         const key = `i(v_probe_${probe.id.toLowerCase()})`;
-        map[key] = map[key] ? `${map[key]}, ${name}` : name;
+        const combined = map[key] ? `${map[key]}, ${name}` : name;
+        map[key] = combined;
+        map[key.toLowerCase()] = combined;
       }
     });
     return map;
@@ -992,7 +996,8 @@ export default function Grapher() {
       const xKey = allKeys[0]; // first key is the sweep variable
       const valueKeys = allKeys.filter(k => k !== xKey);
       if (probes.length > 0) {
-        const probedKeys = Object.keys(probeMap).filter(k => valueKeys.includes(k));
+        const probeKeysLower = Object.keys(probeMap).map(k => k.toLowerCase());
+        const probedKeys = valueKeys.filter(k => probeKeysLower.includes(k.toLowerCase()));
         if (probedKeys.length > 0) return { traces: probedKeys, sweepKey: xKey };
         return { traces: [], sweepKey: xKey };
       }
@@ -1012,7 +1017,8 @@ export default function Grapher() {
     if (userKeys.length > 0) valueKeys = userKeys;
 
     if (probes.length > 0) {
-      const probedKeys = Object.keys(probeMap).filter(k => valueKeys.includes(k));
+      const probeKeysLower = Object.keys(probeMap).map(k => k.toLowerCase());
+      const probedKeys = valueKeys.filter(k => probeKeysLower.includes(k.toLowerCase()));
       if (probedKeys.length > 0) return { traces: probedKeys, sweepKey: timeKey };
       return { traces: [], sweepKey: timeKey };
     }
