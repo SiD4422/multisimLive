@@ -58,11 +58,14 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
   return (
     <div className="flex items-center gap-3 mr-6 shrink-0">
       {/* Run / Stop button */}
-      <div 
+      <button 
         id="run-simulation-btn"
+        type="button"
+        title={isPlaying ? 'Stop Simulation (Ctrl+Enter)' : 'Run Simulation (Ctrl+Enter)'}
+        aria-label={isPlaying ? 'Stop Simulation' : 'Run Simulation'}
         className={`flex items-center gap-2 cursor-pointer ${
           isPlaying ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'
-        } text-white px-4 py-2 rounded-md shadow-sm transition-colors`}
+        } text-white px-4 py-2 rounded-md shadow-sm transition-colors border-0 outline-none`}
         onClick={() => {
           if (isSimulating) return;
           if (isPlaying) {
@@ -84,40 +87,40 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
           {isSimulating ? 'Simulating...' : isPlaying ? 'Stop' : 'Run'}
         </span>
         {drcIssues.length > 0 && !isPlaying && !isSimulating && (
-          <div 
+          <span 
             style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}
             onMouseEnter={() => setShowDrcTooltip(true)}
             onMouseLeave={() => setShowDrcTooltip(false)}
           >
-            <div style={{
+            <span style={{
               background: '#f59e0b', borderRadius: '50%', width: 20, height: 20,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 12, fontWeight: 700, color: '#fff', border: '1px solid #fbbf24',
               cursor: 'help'
             }}>
               !
-            </div>
+            </span>
             {/* Tooltip / Popover - only visible on hover */}
             {showDrcTooltip && (
-              <div style={{
+              <span style={{
                 position: 'absolute', top: '100%', right: 0, marginTop: 8, width: 270,
                 background: '#1e293b', borderRadius: 8, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.6)',
                 border: '1px solid #334155', padding: 12, zIndex: 1000, textAlign: 'left',
-                color: '#f8fafc', pointerEvents: 'none'
+                color: '#f8fafc', pointerEvents: 'none', display: 'block'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#fbbf24', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#fbbf24', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
                   <AlertTriangle size={15} /> Pre-Flight Warnings
-                </div>
+                </span>
                 <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: '#cbd5e1', lineHeight: 1.5 }}>
                   {drcIssues.map((issue, idx) => (
                     <li key={idx} style={{ marginBottom: 4 }}>{issue}</li>
                   ))}
                 </ul>
-              </div>
+              </span>
             )}
-          </div>
+          </span>
         )}
-      </div>
+      </button>
 
       {/* Time counter - always visible when simulation data exists, but ONLY for transient analysis */}
       {hasData && analysisMode === 'transient' && (

@@ -187,20 +187,16 @@ const MeasurementsPanel = ({ data, traces, plotType, probeMap, isOscilloscope }:
 
   return (
     <div style={{
-      position: 'absolute',
-      bottom: 0,
-      left: 12,
-      right: 12,
+      position: 'relative',
+      width: '100%',
+      flexShrink: 0,
       background: isOscilloscope ? 'rgba(5, 14, 8, 0.95)' : 'rgba(255, 255, 255, 0.96)',
       backdropFilter: 'blur(8px)',
-      border: isOscilloscope ? '1px solid rgba(74, 222, 128, 0.25)' : '1px solid #cbd5e1',
-      borderBottom: 'none',
-      borderRadius: '8px 8px 0 0',
+      borderTop: isOscilloscope ? '1px solid rgba(74, 222, 128, 0.25)' : '1px solid #cbd5e1',
       boxShadow: isOscilloscope ? '0 -4px 15px rgba(0, 0, 0, 0.6)' : '0 -4px 12px rgba(0, 0, 0, 0.08)',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
-      pointerEvents: 'auto',
       zIndex: 10,
       fontSize: 12,
       color: isOscilloscope ? '#f1f5f9' : '#0f172a',
@@ -1365,7 +1361,23 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
             const vmax = Math.max(...vals);
             const vmin = Math.min(...vals);
             const vpp = vmax - vmin;
-            const vrms = Math.sqrt(vals.reduce((s, v) => s + v * v, 0) / vals.length);
+            // Continuous time-weighted RMS using trapezoidal integration
+            let sumSqInt = 0;
+            let totalT = 0;
+            for (let j = 1; j < formattedData.length; j++) {
+              const v1 = formattedData[j - 1][trace] as number;
+              const v2 = formattedData[j][trace] as number;
+              const t1 = formattedData[j - 1].time as number;
+              const t2 = formattedData[j].time as number;
+              if (typeof v1 === 'number' && typeof v2 === 'number' && typeof t1 === 'number' && typeof t2 === 'number') {
+                const dt = t2 - t1;
+                if (dt > 0) {
+                  sumSqInt += 0.5 * (v1 * v1 + v2 * v2) * dt;
+                  totalT += dt;
+                }
+              }
+            }
+            const vrms = totalT > 0 ? Math.sqrt(sumSqInt / totalT) : 0;
             const fmt = (n: number) => Math.abs(n) >= 1 ? n.toFixed(3) : n.toExponential(2);
             const color = COLORS[i % COLORS.length];
             return (
@@ -1420,9 +1432,11 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
         </div>
       )}
 
-      {/* Chart area: positioned exactly below toolbar */}
-      <div ref={chartRef} style={{ position: 'relative', flex: 1, minHeight: 0, width: '100%' }}>
-        {PlotComponent}
+      {/* Chart area: positioned exactly below toolbar with cleanly docked MeasurementsPanel */}
+      <div ref={chartRef} style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+          {PlotComponent}
+        </div>
         <MeasurementsPanel data={formattedData} traces={traces} plotType={plotType} probeMap={probeMap} isOscilloscope={isOscilloscope} />
       </div>
     </div>
