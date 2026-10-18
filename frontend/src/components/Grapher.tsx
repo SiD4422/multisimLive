@@ -188,14 +188,15 @@ const MeasurementsPanel = ({ data, traces, plotType, probeMap, isOscilloscope }:
   return (
     <div style={{
       position: 'absolute',
-      bottom: 16,
-      left: 16,
-      right: 16,
+      bottom: 0,
+      left: 12,
+      right: 12,
       background: isOscilloscope ? 'rgba(5, 14, 8, 0.95)' : 'rgba(255, 255, 255, 0.96)',
       backdropFilter: 'blur(8px)',
       border: isOscilloscope ? '1px solid rgba(74, 222, 128, 0.25)' : '1px solid #cbd5e1',
-      borderRadius: 12,
-      boxShadow: isOscilloscope ? '0 10px 25px -3px rgba(0, 0, 0, 0.6)' : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      borderBottom: 'none',
+      borderRadius: '8px 8px 0 0',
+      boxShadow: isOscilloscope ? '0 -4px 15px rgba(0, 0, 0, 0.6)' : '0 -4px 12px rgba(0, 0, 0, 0.08)',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
@@ -635,7 +636,7 @@ function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCurso
       <h3 style={{ fontSize: 13, fontWeight: 700, color: isOscilloscope ? '#00ff00' : '#374151', margin: '0 0 4px 8px' }}>DC Sweep Analysis</h3>
       <div style={{ position: 'absolute', top: 28, left: 0, right: 0, bottom: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+          <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
             onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r) setCursorA(r); } : undefined}
             onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r) setCursorB(r); } : undefined}
           >
@@ -733,7 +734,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
       {/* Chart area: from below the title to bottom */}
       <div style={{ position: 'absolute', top: 28, left: 0, right: 0, bottom: 0 }} onWheel={handleWheel}>
         <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+            <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
               onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r) setCursorA(r); } : undefined}
               onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r) setCursorB(r); } : undefined}
             >
