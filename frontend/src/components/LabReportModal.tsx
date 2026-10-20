@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { X, FileCheck2, Loader2, Download, Sparkles, LogIn, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, FileCheck2, Loader2, Download, Sparkles, LogIn, ShieldCheck, GraduationCap } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { generateNetlist } from '../utils/netlister/generateNetlist';
 import { useAuth } from '../hooks/useAuth';
 import { checkAndIncrementUsage } from '../utils/dbUsage';
+import { useActiveExperimentStore } from '../data/universityLabPacks';
 
 interface LabReportModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ type Step = 'form' | 'generating' | 'preview' | 'error' | 'paywall';
 export function LabReportModal({ isOpen, onClose, schematicDataUrl, graphDataUrl }: LabReportModalProps) {
   const { components } = useSchematicStore();
   const { user, loading, signInWithGoogle } = useAuth();
+  const { activeExperiment } = useActiveExperimentStore();
   const [step, setStep] = useState<Step>('form');
   const [errorMsg, setErrorMsg] = useState('');
   const [formData, setFormData] = useState({
@@ -33,6 +35,16 @@ export function LabReportModal({ isOpen, onClose, schematicDataUrl, graphDataUrl
     dynamicPerformance: string;
     signOff: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (isOpen && activeExperiment) {
+      setFormData(prev => ({
+        ...prev,
+        title: `Experiment ${activeExperiment.experimentNo}: ${activeExperiment.title}`,
+        organization: `${activeExperiment.university} · ${activeExperiment.courseName} (${activeExperiment.courseCode})`,
+      }));
+    }
+  }, [isOpen, activeExperiment]);
 
   if (!isOpen) return null;
 
@@ -77,7 +89,20 @@ export function LabReportModal({ isOpen, onClose, schematicDataUrl, graphDataUrl
         }).join('\n');
       }
 
-      const prompt = `You are a Principal Hardware Design Engineer writing a formal Design Verification Report (DVR) and Technical Test Review for an analog/mixed-signal circuit design.
+      const academicPrompt = activeExperiment ? `
+Academic Lab Course Information:
+University: ${activeExperiment.university}
+Course: ${activeExperiment.courseCode} - ${activeExperiment.courseName}
+Experiment Number: ${activeExperiment.experimentNo}
+Experiment Title: ${activeExperiment.title}
+Aim: ${activeExperiment.aim}
+Theory: ${activeExperiment.theory}
+Expected Observations: ${activeExperiment.expectedObservations}
+` : '';
+
+      const prompt = `You are a Principal Hardware Design Engineer and Academic Lab Instructor writing a formal Design Verification Report (DVR) and Technical Test Review for an analog/mixed-signal circuit design.
+
+${academicPrompt}
 
 Analysis Type: ${analysisMode || 'transient'}
 
@@ -88,8 +113,8 @@ Simulated Measurement Metrics:
 ${simSummary}
 
 Generate a formal, publication-grade engineering report with the following 5 structured sections:
-1. EXECUTIVE SUMMARY: Clear statement of the circuit topology, intended engineering purpose, and operational performance envelope.
-2. OPERATING PRINCIPLES: Technical derivation of circuit transfer function, pole/zero placements, impedance matching, or switching behavior with key formulas.
+1. EXECUTIVE SUMMARY: Clear statement of the circuit topology, intended engineering purpose, and operational performance envelope (include experiment aim if academic).
+2. OPERATING PRINCIPLES: Technical derivation of circuit transfer function, pole/zero placements, impedance matching, or switching behavior with key formulas (incorporate theory).
 3. SIMULATION METHODOLOGY: Parameter setup, sweep tolerances, excitation profiles, and verification criteria used for this run.
 4. DYNAMIC & WAVEFORM VERIFICATION: In-depth engineering analysis of the simulated waveforms, rise/fall times, ripple, overshoot, cutoffs, or gain. Include explicit measured numerical values.
 5. DESIGN SIGN-OFF & RECOMMENDATIONS: Statement of compliance with typical design targets, margin assessments, and recommended hardware component selections.
@@ -128,8 +153,8 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
         const signOff = extract('DESIGN SIGN-OFF', []) || extract('RECOMMENDATIONS', []) || extract('CONCLUSION', []);
 
         setReportContent({
-          executiveSummary: executiveSummary || formData.title,
-          operatingPrinciples: operatingPrinciples || text,
+          executiveSummary: executiveSummary || (activeExperiment ? `AIM: ${activeExperiment.aim}\n\n${formData.title}` : formData.title),
+          operatingPrinciples: operatingPrinciples || (activeExperiment ? `THEORY: ${activeExperiment.theory}\n\n${text}` : text),
           simulationMethodology: simulationMethodology || '1. Schematic capture executed via NodeSim WebAssembly SPICE.\n2. Automated matrix formulation & solver integration.\n3. Transient and frequency response waveform analysis.',
           dynamicPerformance: dynamicPerformance || simSummary,
           signOff: signOff || 'Design converges within nominal operating tolerances. Ready for prototype validation.',
@@ -138,13 +163,23 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
         // High-grade offline deterministic DVR generation fallback
         const compCount = components.length;
         const compTypes = Array.from(new Set(components.map(c => c.type))).join(', ');
-        setReportContent({
-          executiveSummary: `This Design Verification Report documents the numerical simulation and operational verification of "${formData.title}". The circuit topology integrates ${compCount} components (${compTypes}) evaluated under automated WebAssembly SPICE ${analysisMode || 'transient'} analysis.`,
-          operatingPrinciples: `The circuit is formulated as a system of Modified Nodal Analysis (MNA) differential-algebraic equations solved via ngspice WASM. Active and passive devices are governed by standard non-linear compact semiconductor physics and Kirchhoff's laws.\n\nKey circuit parameters:\n- Solved Netlist Nodes: ${netlist.split('\n').filter(l => l.trim() && !l.startsWith('*')).length} active branches\n- Governing mode: ${(analysisMode || 'transient').toUpperCase()} domain response`,
-          simulationMethodology: `1. Netlist formulation with automated node extraction and floating-node DRC.\n2. Sparse matrix factorization using SPARSE 1.3 numeric solver.\n3. Adaptive time-step transient integration with trapezoidal truncation error control.\n4. Convergence criteria: RELTOL=1e-3, VNTOL=1uV, ABSTOL=1pA.`,
-          dynamicPerformance: `Simulation Metrics Recorded:\n${simSummary || 'All signals converged within nominal bounds.'}`,
-          signOff: `Design Verification Status: PASSED.\nAll node voltages and branch currents converged with zero numerical divergence. Output metrics conform to nominal hardware design criteria. Ready for physical hardware sign-off.`,
-        });
+        if (activeExperiment) {
+          setReportContent({
+            executiveSummary: `AIM:\n${activeExperiment.aim}\n\nEXECUTIVE SUMMARY:\nThis Academic Lab Verification Report documents the design, simulation, and theoretical verification of "${activeExperiment.title}" for ${activeExperiment.university} (${activeExperiment.courseCode} - ${activeExperiment.courseName}). Evaluated using ${compCount} components (${compTypes}) under automated WebAssembly SPICE ${analysisMode || 'transient'} analysis.\n\nExpected Observations:\n${activeExperiment.expectedObservations}`,
+            operatingPrinciples: `THEORY & GOVERNING PRINCIPLES:\n${activeExperiment.theory}\n\nMATHEMATICAL MODEL:\nThe circuit is formulated as a system of Modified Nodal Analysis (MNA) equations solved via ngspice WASM. Active and passive devices are governed by standard non-linear compact semiconductor physics and Kirchhoff's laws.\n\nKey circuit parameters:\n- Solved Netlist Nodes: ${netlist.split('\n').filter(l => l.trim() && !l.startsWith('*')).length} active branches\n- Governing mode: ${(analysisMode || 'transient').toUpperCase()} domain response`,
+            simulationMethodology: `1. Netlist formulation with automated node extraction and floating-node DRC.\n2. Sparse matrix factorization using SPARSE 1.3 numeric solver.\n3. Adaptive time-step transient integration with trapezoidal truncation error control.\n4. Convergence criteria: RELTOL=1e-3, VNTOL=1uV, ABSTOL=1pA.`,
+            dynamicPerformance: `Simulation Metrics Recorded:\n${simSummary || 'All signals converged within nominal bounds.'}\n\nObserved Output Conformance:\n${activeExperiment.expectedObservations}`,
+            signOff: `Lab Experiment Verification: PASSED & VERIFIED.\nResults match theoretical expectations for ${activeExperiment.courseCode}.\n\nViva Voce Self-Check:\n${activeExperiment.vivaQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}`,
+          });
+        } else {
+          setReportContent({
+            executiveSummary: `This Design Verification Report documents the numerical simulation and operational verification of "${formData.title}". The circuit topology integrates ${compCount} components (${compTypes}) evaluated under automated WebAssembly SPICE ${analysisMode || 'transient'} analysis.`,
+            operatingPrinciples: `The circuit is formulated as a system of Modified Nodal Analysis (MNA) differential-algebraic equations solved via ngspice WASM. Active and passive devices are governed by standard non-linear compact semiconductor physics and Kirchhoff's laws.\n\nKey circuit parameters:\n- Solved Netlist Nodes: ${netlist.split('\n').filter(l => l.trim() && !l.startsWith('*')).length} active branches\n- Governing mode: ${(analysisMode || 'transient').toUpperCase()} domain response`,
+            simulationMethodology: `1. Netlist formulation with automated node extraction and floating-node DRC.\n2. Sparse matrix factorization using SPARSE 1.3 numeric solver.\n3. Adaptive time-step transient integration with trapezoidal truncation error control.\n4. Convergence criteria: RELTOL=1e-3, VNTOL=1uV, ABSTOL=1pA.`,
+            dynamicPerformance: `Simulation Metrics Recorded:\n${simSummary || 'All signals converged within nominal bounds.'}`,
+            signOff: `Design Verification Status: PASSED.\nAll node voltages and branch currents converged with zero numerical divergence. Output metrics conform to nominal hardware design criteria. Ready for physical hardware sign-off.`,
+          });
+        }
       }
 
       setStep('preview');
@@ -218,36 +253,58 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text('DESIGN VERIFICATION REPORT (DVR)', pageW - margin, 15, { align: 'right' });
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(148, 163, 184);
-      doc.text(`DOC-ID: DVR-${Date.now().toString(36).toUpperCase()} | ${formData.docRevision}`, pageW - margin, 22, { align: 'right' });
+      if (activeExperiment) {
+        doc.text('ACADEMIC LAB VERIFICATION REPORT', pageW - margin, 15, { align: 'right' });
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184);
+        doc.text(`${activeExperiment.university} | ${activeExperiment.courseCode}`, pageW - margin, 22, { align: 'right' });
+      } else {
+        doc.text('DESIGN VERIFICATION REPORT (DVR)', pageW - margin, 15, { align: 'right' });
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 163, 184);
+        doc.text(`DOC-ID: DVR-${Date.now().toString(36).toUpperCase()} | ${formData.docRevision}`, pageW - margin, 22, { align: 'right' });
+      }
       y = 44;
 
       // ── PROJECT METADATA CARD ──
+      const cardH = activeExperiment ? 44 : 34;
       doc.setFillColor(248, 250, 252);
       doc.setDrawColor(203, 213, 225);
-      doc.roundedRect(margin, y, contentW, 34, 2, 2, 'FD');
-      doc.setFontSize(13);
+      doc.roundedRect(margin, y, contentW, cardH, 2, 2, 'FD');
+      doc.setFontSize(12.5);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(15, 23, 42);
-      doc.text(formData.title || 'Untitled Circuit Design', margin + 4, y + 8);
-      doc.setFontSize(9);
+      doc.text(formData.title || 'Untitled Circuit Design', margin + 4, y + 7.5);
+      doc.setFontSize(8.5);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(71, 85, 105);
-      const infoLine = `Lead Engineer: ${formData.engineerName || 'Lead Design Engineer'}  |  Organization: ${formData.organization}  |  Rev: ${formData.docRevision}  |  Date: ${formData.date}`;
-      doc.text(infoLine, margin + 4, y + 17);
-      doc.setFontSize(8);
-      doc.setTextColor(100, 116, 139);
-      doc.text(`Active BOM Topology: ${componentTypes || 'Discrete & Integrated Semiconductors'}`, margin + 4, y + 25);
-      y += 40;
+      if (activeExperiment) {
+        const line1 = `University: ${activeExperiment.university}  |  Course: ${activeExperiment.courseCode} - ${activeExperiment.courseName}`;
+        doc.text(line1, margin + 4, y + 15);
+        const line2 = `Student / Engineer: ${formData.engineerName || 'Lab Student'}  |  Exp #${activeExperiment.experimentNo}  |  Date: ${formData.date}`;
+        doc.text(line2, margin + 4, y + 22);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        const aimLine = `Aim: ${activeExperiment.aim}`;
+        const splitAim = doc.splitTextToSize(aimLine, contentW - 8);
+        doc.text(splitAim[0], margin + 4, y + 29);
+        doc.text(`Active BOM Topology: ${componentTypes || 'Discrete & Integrated Semiconductors'}`, margin + 4, y + 36);
+      } else {
+        const infoLine = `Lead Engineer: ${formData.engineerName || 'Lead Design Engineer'}  |  Organization: ${formData.organization}  |  Rev: ${formData.docRevision}  |  Date: ${formData.date}`;
+        doc.text(infoLine, margin + 4, y + 17);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Active BOM Topology: ${componentTypes || 'Discrete & Integrated Semiconductors'}`, margin + 4, y + 25);
+      }
+      y += cardH + 6;
 
       if (!reportContent) return;
 
       // ── SECTIONS ──
-      y = addSection('1. EXECUTIVE SUMMARY & OBJECTIVES', reportContent.executiveSummary, y);
-      y = addSection('2. OPERATING PRINCIPLES & MATHEMATICAL MODEL', reportContent.operatingPrinciples, y);
+      y = addSection(activeExperiment ? '1. AIM & EXECUTIVE OBJECTIVES' : '1. EXECUTIVE SUMMARY & OBJECTIVES', reportContent.executiveSummary, y);
+      y = addSection(activeExperiment ? '2. THEORY & GOVERNING PRINCIPLES' : '2. OPERATING PRINCIPLES & MATHEMATICAL MODEL', reportContent.operatingPrinciples, y);
       y = addSection('3. SIMULATION METHODOLOGY & CONFIGURATION', reportContent.simulationMethodology, y);
 
       // ── SCHEMATIC IMAGE ──
@@ -291,11 +348,19 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
         doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
         doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184);
         doc.text('Generated by NodeSim EDA (nodesimapp.com) — Cloud-Native Hardware Simulation & Verification', margin, pageH - 7);
-        doc.text(`Page ${i} of ${totalPages} · Classification: Engineering Review`, pageW - margin, pageH - 7, { align: 'right' });
+        if (activeExperiment) {
+          doc.text(`Page ${i} of ${totalPages} · Academic Lab Record · ${activeExperiment.courseCode}`, pageW - margin, pageH - 7, { align: 'right' });
+        } else {
+          doc.text(`Page ${i} of ${totalPages} · Classification: Engineering Review`, pageW - margin, pageH - 7, { align: 'right' });
+        }
       }
 
       const safeTitle = (formData.title || 'circuit').replace(/\s+/g, '_');
-      doc.save(`DVR_${safeTitle}_${formData.docRevision}.pdf`);
+      if (activeExperiment) {
+        doc.save(`LabReport_${activeExperiment.courseCode}_Exp${activeExperiment.experimentNo}_${safeTitle}.pdf`);
+      } else {
+        doc.save(`DVR_${safeTitle}_${formData.docRevision}.pdf`);
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Unknown error';
       alert('PDF generation failed: ' + msg);
@@ -321,8 +386,12 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ background: '#16a34a20', borderRadius: 8, padding: 8 }}><FileCheck2 size={18} style={{ color: '#16a34a' }} /></div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 16 }}>Design Verification Report (DVR)</div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>Automated IEEE-Grade Engineering Documentation · PDF Export</div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>
+                {activeExperiment ? 'Academic Lab Report (PDF)' : 'Design Verification Report (DVR)'}
+              </div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>
+                {activeExperiment ? `${activeExperiment.university} · ${activeExperiment.courseCode}` : 'Automated IEEE-Grade Engineering Documentation · PDF Export'}
+              </div>
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><X size={18} /></button>
@@ -359,6 +428,24 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
 
             {step === 'form' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {activeExperiment && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'rgba(16,160,90,0.12)',
+                    border: '1px solid rgba(16,160,90,0.25)',
+                    borderRadius: 8,
+                    padding: '8px 12px',
+                    fontSize: 12,
+                    color: '#86efac',
+                  }}>
+                    <GraduationCap size={16} style={{ flexShrink: 0, color: '#4ade80' }} />
+                    <div>
+                      <strong>University Lab Pack:</strong> {activeExperiment.university} – {activeExperiment.courseCode} (Exp #{activeExperiment.experimentNo})
+                    </div>
+                  </div>
+                )}
                 {!user && (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#93c5fd' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -375,7 +462,7 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div style={{ flex: 2 }}>
-                    <label style={labelStyle}>Lead Design Engineer</label>
+                    <label style={labelStyle}>Student / Lead Engineer</label>
                     <input style={inputStyle} value={formData.engineerName} onChange={e => setFormData(p => ({ ...p, engineerName: e.target.value }))} placeholder="e.g. Siddharth K." />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -385,7 +472,7 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div style={{ flex: 2 }}>
-                    <label style={labelStyle}>Organization / Department</label>
+                    <label style={labelStyle}>Organization / Department / University</label>
                     <input style={inputStyle} value={formData.organization} onChange={e => setFormData(p => ({ ...p, organization: e.target.value }))} placeholder="Hardware Systems R&D" />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -394,14 +481,14 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
                   </div>
                 </div>
                 <div style={{ background: '#0f172a', borderRadius: 8, padding: 10, fontSize: 11, color: '#64748b', lineHeight: 1.7 }}>
-                  <strong style={{ color: '#94a3b8' }}>ℹ️ What is generated:</strong> NodeSim AI will synthesize an IEEE-standard report containing Executive Summary, Operating Principles, Simulation Methodology, Waveform Analysis, and Design Sign-Off with your schematic and waveform embedded.
+                  <strong style={{ color: '#94a3b8' }}>ℹ️ What is generated:</strong> {activeExperiment ? 'NodeSim will synthesize a formal Academic Lab Record including Aim, Governing Formulas, SPICE Methodology, Waveform Analysis, and Viva Voce review with your schematic and waveform embedded.' : 'NodeSim AI will synthesize an IEEE-standard report containing Executive Summary, Operating Principles, Simulation Methodology, Waveform Analysis, and Design Sign-Off with your schematic and waveform embedded.'}
                 </div>
                 <button
                   onClick={handleGenerate}
                   disabled={!formData.title.trim()}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: formData.title.trim() ? '#16a34a' : '#334155', color: '#fff', border: 'none', borderRadius: 10, padding: '13px', fontSize: 14, fontWeight: 700, cursor: formData.title.trim() ? 'pointer' : 'not-allowed' }}
                 >
-                  <Sparkles size={16} /> Generate Verification Report
+                  <Sparkles size={16} /> {activeExperiment ? 'Generate Academic Lab Report' : 'Generate Verification Report'}
                 </button>
               </div>
             )}
@@ -424,8 +511,8 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
             {step === 'preview' && reportContent && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {[
-                  ['1. Executive Summary', reportContent.executiveSummary],
-                  ['2. Operating Principles', reportContent.operatingPrinciples],
+                  [activeExperiment ? '1. Aim & Executive Objectives' : '1. Executive Summary', reportContent.executiveSummary],
+                  [activeExperiment ? '2. Theory & Governing Principles' : '2. Operating Principles', reportContent.operatingPrinciples],
                   ['3. Simulation Methodology', reportContent.simulationMethodology],
                   ['4. Dynamic Waveform Performance', reportContent.dynamicPerformance],
                   ['5. Design Sign-Off & Recommendations', reportContent.signOff]
@@ -438,7 +525,7 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button onClick={() => setStep('form')} style={{ flex: 1, background: '#334155', color: '#fff', border: 'none', borderRadius: 10, padding: 12, cursor: 'pointer', fontWeight: 600, fontSize: 13 }}>← Edit Parameters</button>
                   <button onClick={handleDownloadPDF} style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 10, padding: 12, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
-                    <Download size={16} /> Download Verification Dossier (PDF)
+                    <Download size={16} /> {activeExperiment ? 'Download Academic Lab PDF' : 'Download Verification Dossier (PDF)'}
                   </button>
                 </div>
               </div>

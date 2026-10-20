@@ -17,6 +17,25 @@ import { CurrentFlowOverlay } from './CurrentFlowOverlay';
 
 const SNAP_GRID = 10;
 const VISUAL_GRID = 45;
+const PIN_SNAP_RADIUS_DESKTOP = 10;
+const PIN_SNAP_RADIUS_TOUCH = 28;
+const EDGE_ZONE = 40; // px from edge for mobile auto-pan
+const PAN_SPEED = 5; // px per frame
+
+const isTouchDevice = () => {
+  return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+};
+
+const isTouchInteraction = (e?: any): boolean => {
+  if (e?.evt?.pointerType === 'mouse' || e?.pointerType === 'mouse') return false;
+  if (e?.evt?.pointerType === 'touch' || e?.pointerType === 'touch') return true;
+  if (e?.evt?.touches && e.evt.touches.length > 0) return true;
+  return isTouchDevice();
+};
+
+const getSnapRadius = (e?: any): number => {
+  return isTouchInteraction(e) ? PIN_SNAP_RADIUS_TOUCH : PIN_SNAP_RADIUS_DESKTOP;
+};
 
 export default function SchematicEditor() {
   const [isFlowMode, setIsFlowMode] = useState(false);
@@ -26,7 +45,7 @@ export default function SchematicEditor() {
     addWire, scale, setScale, stagePos, setStagePos, setIsConfigOpen,
     selectedWireId, setSelectedWire, clearSelection,
     deleteComponent, updateComponentRotation, copyComponent, flipComponent,
-    isPlaying, simulationBuffer, playbackTime,
+    isPlaying, simulationBuffer, playbackTime, opData,
     selectedComponentIds, setSelectedComponentIds, toggleSelectedComponentId, deleteSelectedComponents
   } = useSchematicStore();
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -51,9 +70,40 @@ export default function SchematicEditor() {
   const [selectionBox, setSelectionBox] = useState<{sx: number, sy: number, ex: number, ey: number} | null>(null);
   // Right-click context menu for wire deletion
   const [wireContextMenu, setWireContextMenu] = useState<{ wireId: string; x: number; y: number } | null>(null);
+  // Hovered wire DC voltage tooltip
+  const [hoveredWireInfo, setHoveredWireInfo] = useState<{
+    wireId: string;
+    voltage: number;
+    x: number;
+    y: number;
+  } | null>(null);
   // Hovered pin for glow effect during wire drawing
   const [hoveredPinPos, setHoveredPinPos] = useState<Point | null>(null);
+  // Mobile Touch Tap-to-Connect state & pulse indicator
+  const [touchWireStart, setTouchWireStart] = useState<Point | null>(null);
+  const [touchPulseScale, setTouchPulseScale] = useState(1.0);
   const shiftHeldRef = useRef(false);
+
+  // Pulse animation for selected first pin in tap-to-connect mode (scale 1.0 -> 1.4 -> 1.0)
+  useEffect(() => {
+    if (!touchWireStart) {
+      setTouchPulseScale(1.0);
+      return;
+    }
+    let animId: number;
+    const startTime = performance.now();
+    const animate = (time: number) => {
+      const elapsed = (time - startTime) / 1000;
+      const cycle = (elapsed % 0.8) / 0.8;
+      const s = 1.0 + 0.4 * (0.5 - 0.5 * Math.cos(cycle * 2 * Math.PI));
+      setTouchPulseScale(s);
+      animId = requestAnimationFrame(animate);
+    };
+    animId = requestAnimationFrame(animate);
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+    };
+  }, [touchWireStart]);
 
   // ── Voltage Heatmap ────────────────────────────────────────────────────────
   // MEMO 1: Expensive schema-level net resolution — only recomputes on topology change
@@ -67,6 +117,38 @@ export default function SchematicEditor() {
     () => buildWireVoltageResult(wireNodeMap, simulationBuffer, playbackTime),
     [wireNodeMap, simulationBuffer, playbackTime]
   );
+
+  // DC operating point node voltages for hover tooltips
+  const dcNodeVoltages = useMemo(() => {
+    const voltages: Record<string, number> = { '0': 0 };
+    if (simulationBuffer && simulationBuffer.length > 0) {
+      const row = simulationBuffer[0];
+      for (const [key, val] of Object.entries(row)) {
+        if (typeof val !== 'number') continue;
+        const match = key.match(/^v\((.+)\)$/i);
+        if (match) {
+          voltages[match[1]] = val;
+          voltages[match[1].toLowerCase()] = val;
+        } else {
+          voltages[key] = val;
+          voltages[key.toLowerCase()] = val;
+        }
+      }
+    } else if (opData && opData.length > 0) {
+      for (const item of opData) {
+        if (typeof item.value !== 'number') continue;
+        const match = item.node.match(/^v\((.+)\)$/i);
+        if (match) {
+          voltages[match[1]] = item.value;
+          voltages[match[1].toLowerCase()] = item.value;
+        } else {
+          voltages[item.node] = item.value;
+          voltages[item.node.toLowerCase()] = item.value;
+        }
+      }
+    }
+    return voltages;
+  }, [simulationBuffer, opData]);
 
   // Dot animation phase (0..1, loops via requestAnimationFrame)
   const [dotPhase, setDotPhase] = useState(0);
@@ -185,6 +267,7 @@ export default function SchematicEditor() {
           addWire({ id: `W${Date.now()}`, points: wirePoints });
         }
         setWirePoints(null);
+        setTouchWireStart(null);
         setPendingComponent(null);
         setMousePos(null);
         setAutoRoutePath(null);
@@ -234,6 +317,27 @@ export default function SchematicEditor() {
     });
   };
 
+  // Dynamic Pin Snap Finder: uses 28px snap on touch devices, 10px on desktop
+  const findNearestPin = useCallback((pos: Point, radius?: number): Point | null => {
+    const snapRadius = radius ?? (isTouchDevice() ? PIN_SNAP_RADIUS_TOUCH : PIN_SNAP_RADIUS_DESKTOP);
+    let nearest: Point | null = null;
+    let nearestDist = snapRadius;
+    for (const comp of components) {
+      const pins = getComponentPins(comp as SchematicComponent);
+      for (const pin of pins) {
+        if (!pin.p) continue;
+        const px = pin.p.x;
+        const py = pin.p.y;
+        const d = Math.hypot(pos.x - px, pos.y - py);
+        if (d <= nearestDist) {
+          nearestDist = d;
+          nearest = { x: px, y: py };
+        }
+      }
+    }
+    return nearest;
+  }, [components]);
+
   const handleMouseMove = (e: any) => {
     if (!wirePoints && !pendingComponent) {
       return; 
@@ -249,37 +353,26 @@ export default function SchematicEditor() {
     
     const x = Math.round(relativeX / SNAP_GRID) * SNAP_GRID;
     const y = Math.round(relativeY / SNAP_GRID) * SNAP_GRID;
+
+    // Dynamic pin snapping: 28px for touch, 10px for desktop
+    const snapRadius = getSnapRadius(e);
+    const snapPin = wirePoints ? findNearestPin({ x: relativeX, y: relativeY }, snapRadius) : null;
+    const targetX = snapPin ? snapPin.x : x;
+    const targetY = snapPin ? snapPin.y : y;
     
-    if (!mousePos || mousePos.x !== x || mousePos.y !== y) {
-      setMousePos({ x, y });
-      
-      // Pin hover glow: find nearest pin within 20px when drawing a wire
-      if (wirePoints) {
-        let nearest: Point | null = null;
-        let nearestDist = 20;
-        for (const comp of components) {
-          const pins = getComponentPins(comp as SchematicComponent);
-          for (const pin of pins) {
-            const px = pin.p?.x ?? 0;
-            const py = pin.p?.y ?? 0;
-            const d = Math.sqrt((x - px) ** 2 + (y - py) ** 2);
-            if (d < nearestDist) { nearestDist = d; nearest = { x: px, y: py }; }
-          }
-        }
-        setHoveredPinPos(nearest);
-      } else {
-        setHoveredPinPos(null);
-      }
+    if (!mousePos || mousePos.x !== targetX || mousePos.y !== targetY) {
+      setMousePos({ x: targetX, y: targetY });
+      setHoveredPinPos(snapPin);
       
       if (wirePoints && wirePoints.length > 0 && wireDirOverride === 'auto') {
         const now = performance.now();
         if (now - lastAStarTime.current > 32) { // roughly 30fps throttle
           const lastWirePoint = wirePoints[wirePoints.length - 1];
-          if (!lastAStarTarget.current || lastAStarTarget.current.x !== x || lastAStarTarget.current.y !== y) {
-            const path = findOrthogonalPath(lastWirePoint, { x, y }, components as SchematicComponent[]);
+          if (!lastAStarTarget.current || lastAStarTarget.current.x !== targetX || lastAStarTarget.current.y !== targetY) {
+            const path = findOrthogonalPath(lastWirePoint, { x: targetX, y: targetY }, components as SchematicComponent[]);
             setAutoRoutePath(path);
             lastAStarTime.current = now;
-            lastAStarTarget.current = { x, y };
+            lastAStarTarget.current = { x: targetX, y: targetY };
           }
         }
       } else {
@@ -323,9 +416,15 @@ export default function SchematicEditor() {
     // Right click cancels everything
     if (e.evt.button === 2) {
       setWirePoints(null);
+      setTouchWireStart(null);
       setPendingComponent(null);
       setMousePos(null);
       setAutoRoutePath(null);
+      return;
+    }
+
+    if (touchWireStart) {
+      setTouchWireStart(null);
       return;
     }
 
@@ -392,6 +491,7 @@ export default function SchematicEditor() {
     if (isBackground && !wirePoints) {
       clearSelection();
       setWireContextMenu(null); // dismiss context menu on background click
+      if (touchWireStart) setTouchWireStart(null);
     }
     
     if (!wirePoints || !mousePos) {
@@ -399,6 +499,28 @@ export default function SchematicEditor() {
       if (!wirePoints && !pendingComponent && mousePos && isBackground) {
         setSelectionBox({ sx: mousePos.x, sy: mousePos.y, ex: mousePos.x, ey: mousePos.y });
       }
+      return;
+    }
+
+    // If clicking on or near a pin while drawing, snap and complete wire
+    const pinTarget = hoveredPinPos ?? findNearestPin(mousePos, getSnapRadius(e));
+    if (pinTarget && (pinTarget.x !== wirePoints[0].x || pinTarget.y !== wirePoints[0].y)) {
+      const preview = getPreviewPoints();
+      preview[preview.length - 1] = pinTarget;
+      const cleaned: Point[] = [];
+      for (const p of preview) {
+        if (cleaned.length > 0) {
+          const last = cleaned[cleaned.length - 1];
+          if (last.x === p.x && last.y === p.y) continue;
+        }
+        cleaned.push(p);
+      }
+      if (cleaned.length >= 2) {
+        addWire({ id: `W${Date.now()}`, points: cleaned });
+      }
+      setWirePoints(null);
+      setMousePos(null);
+      setHoveredPinPos(null);
       return;
     }
     
@@ -441,6 +563,88 @@ export default function SchematicEditor() {
   const lastPinchRef = useRef<PinchState | null>(null);
   const lastTouchRef = useRef<{ x: number; y: number } | null>(null);
 
+  // ── Mobile Edge Auto-Pan ──────────────────────────────────────────────────
+  const applyEdgeAutoPan = useCallback((e: any) => {
+    if (!stageRef.current) return;
+    const isDragging = dragStateRef.current !== null;
+    const isDrawingWire = wirePoints !== null || touchWireStart !== null;
+    if (!isDragging && !isDrawingWire) return;
+
+    if (!isTouchInteraction(e)) return;
+
+    const container = stageRef.current.container();
+    if (!container) return;
+    const canvasRect = container.getBoundingClientRect();
+    const evt = e.evt;
+    if (!evt) return;
+    const touch = evt.touches?.[0] ?? evt;
+    if (touch?.clientX === undefined || touch?.clientY === undefined) return;
+    const { clientX, clientY } = touch;
+
+    let dx = 0, dy = 0;
+    if (clientX - canvasRect.left < EDGE_ZONE) dx = PAN_SPEED;
+    if (canvasRect.right - clientX < EDGE_ZONE) dx = -PAN_SPEED;
+    if (clientY - canvasRect.top < EDGE_ZONE) dy = PAN_SPEED;
+    if (canvasRect.bottom - clientY < EDGE_ZONE) dy = -PAN_SPEED;
+
+    if (dx !== 0 || dy !== 0) {
+      const stage = stageRef.current;
+      const pos = stage.position();
+      const nextPos = { x: pos.x + dx, y: pos.y + dy };
+      stage.position(nextPos);
+      setStagePos(nextPos);
+      stage.batchDraw();
+    }
+  }, [setStagePos, touchWireStart, wirePoints]);
+
+  // ── Mobile Tap-to-Connect Wiring ───────────────────────────────────────────
+  const handleTouchTap = useCallback((pos: Point) => {
+    if (pendingComponent) return;
+
+    if (!touchWireStart) {
+      // Tap 1 on a pin: Enter "wire start" mode
+      setTouchWireStart(pos);
+      clearSelection();
+    } else {
+      // Tap 2: If same pin tapped again, cancel
+      if (touchWireStart.x === pos.x && touchWireStart.y === pos.y) {
+        setTouchWireStart(null);
+        return;
+      }
+
+      // Automatically route an orthogonal wire from start pin to end pin and commit it
+      let route = findOrthogonalPath(touchWireStart, pos, components as SchematicComponent[]);
+      if (!route || route.length < 2) {
+        const dx = Math.abs(pos.x - touchWireStart.x);
+        const dy = Math.abs(pos.y - touchWireStart.y);
+        if (dx >= dy) {
+          route = [touchWireStart, { x: pos.x, y: touchWireStart.y }, pos];
+        } else {
+          route = [touchWireStart, { x: touchWireStart.x, y: pos.y }, pos];
+        }
+      }
+
+      const cleaned: Point[] = [];
+      for (const pt of route) {
+        if (cleaned.length > 0) {
+          const last = cleaned[cleaned.length - 1];
+          if (last.x === pt.x && last.y === pt.y) continue;
+        }
+        cleaned.push(pt);
+      }
+
+      if (cleaned.length >= 2) {
+        addWire({
+          id: `W${Date.now()}`,
+          points: cleaned
+        });
+      }
+
+      setTouchWireStart(null);
+      setHoveredPinPos(null);
+    }
+  }, [pendingComponent, touchWireStart, components, addWire, clearSelection]);
+
   const handleTouchStart = useCallback((e: any) => {
     const nativeEvt: TouchEvent = e.evt;
     nativeEvt.preventDefault();
@@ -451,9 +655,30 @@ export default function SchematicEditor() {
     const pointer = getTouchPointer(nativeEvt);
     if (!pointer) return;
     lastTouchRef.current = { x: pointer.clientX, y: pointer.clientY };
+
+    const stage = stageRef.current;
+    if (stage) {
+      const stagePointer = stage.getPointerPosition();
+      if (stagePointer) {
+        const relX = (stagePointer.x - stage.x()) / scale;
+        const relY = (stagePointer.y - stage.y()) / scale;
+        const nearestPin = findNearestPin({ x: relX, y: relY }, PIN_SNAP_RADIUS_TOUCH);
+
+        if (nearestPin) {
+          // Tapped on or near a pin
+          handleTouchTap(nearestPin);
+          return;
+        } else if (touchWireStart) {
+          // Tap anywhere else cancels wire drawing
+          setTouchWireStart(null);
+          return;
+        }
+      }
+    }
+
     // Simulate mousedown on the stage
     handleStageMouseDown(e);
-  }, [handleStageMouseDown]);
+  }, [handleStageMouseDown, scale, touchWireStart, findNearestPin, handleTouchTap]);
 
   const handleTouchMove = useCallback((e: any) => {
     const nativeEvt: TouchEvent = e.evt;
@@ -483,18 +708,42 @@ export default function SchematicEditor() {
       return;
     }
 
+    // Auto-pan when dragging near canvas edge
+    applyEdgeAutoPan(e);
+
     // Single-finger pan / wire drawing
     handleMouseMove(e);
-  }, [scale, setScale, setStagePos, handleMouseMove]);
+  }, [scale, setScale, setStagePos, handleMouseMove, applyEdgeAutoPan]);
 
   const handleTouchEnd = useCallback((e: any) => {
     lastPinchRef.current = null;
     lastTouchRef.current = null;
     handleStageMouseUp();
-  }, [handleStageMouseUp]);
+
+    // If user touched Pin 1 and dragged to Pin 2 on touch screen
+    if (touchWireStart && stageRef.current) {
+      const stage = stageRef.current;
+      const stagePointer = stage.getPointerPosition();
+      if (stagePointer) {
+        const relX = (stagePointer.x - stage.x()) / scale;
+        const relY = (stagePointer.y - stage.y()) / scale;
+        const nearestPin = findNearestPin({ x: relX, y: relY }, PIN_SNAP_RADIUS_TOUCH);
+        if (nearestPin && (nearestPin.x !== touchWireStart.x || nearestPin.y !== touchWireStart.y)) {
+          handleTouchTap(nearestPin);
+        }
+      }
+    }
+  }, [handleStageMouseUp, touchWireStart, scale, findNearestPin, handleTouchTap]);
 
   const handleNodeClick = (e: any, pos: Point) => {
     if (pendingComponent) return; // don't start wiring if placing
+
+    // Touch tap-to-connect mode
+    if (isTouchInteraction(e)) {
+      handleTouchTap(pos);
+      return;
+    }
+
     if (!wirePoints) {
       // Start drawing
       setWirePoints([pos]);
@@ -647,6 +896,7 @@ export default function SchematicEditor() {
       },
       onDragMove: (e: any) => {
         if (isPreview) return;
+        applyEdgeAutoPan(e);
         const x = Math.round(e.target.x() / SNAP_GRID) * SNAP_GRID;
         const y = Math.round(e.target.y() / SNAP_GRID) * SNAP_GRID;
         e.target.position({ x, y });
@@ -723,7 +973,7 @@ export default function SchematicEditor() {
   // ── Floating 3-button action ring ─────────────────────────────────────────
   // Buttons orbit the component center: Delete (top-left), Rotate (top-right), Copy (bottom-right)
   const renderActionMenu = () => {
-    if (!selectedComponentId || pendingComponent || wirePoints) return null;
+    if (!selectedComponentId || pendingComponent || wirePoints || touchWireStart) return null;
     const comp = components.find(c => c.id === selectedComponentId);
     if (!comp) return null;
 
@@ -785,7 +1035,7 @@ export default function SchematicEditor() {
     return (
       <div style={{
         width: '100%', height: '100%', backgroundColor: '#a3a3a3', position: 'absolute',
-        cursor: wirePoints ? 'none' : pendingComponent ? 'crosshair' : 'grab',
+        cursor: wirePoints || touchWireStart ? 'none' : pendingComponent ? 'crosshair' : 'grab',
         touchAction: 'none'
       }}>
         {dimensions.width > 0 && (
@@ -797,13 +1047,14 @@ export default function SchematicEditor() {
           x={stagePos.x}
           y={stagePos.y}
           style={{ touchAction: 'none' }}
-          draggable={!wirePoints && !pendingComponent}
+          draggable={!wirePoints && !pendingComponent && !touchWireStart}
+          onDragStart={() => setHoveredWireInfo(null)}
           onDragEnd={(e) => {
             if (e.target === stageRef.current) {
               setStagePos({ x: e.target.x(), y: e.target.y() });
             }
           }}
-          onWheel={handleWheel}
+          onWheel={(e) => { setHoveredWireInfo(null); handleWheel(e); }}
           onMouseMove={handleMouseMove}
           onMouseDown={handleStageMouseDown}
           onMouseUp={handleStageMouseUp}
@@ -812,6 +1063,9 @@ export default function SchematicEditor() {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onPointerMove={(e) => {
+            if (isTouchInteraction(e)) applyEdgeAutoPan(e);
+          }}
           ref={stageRef}
           >
           <Layer>
@@ -854,6 +1108,37 @@ export default function SchematicEditor() {
                   lineCap="round"
                   lineJoin="round"
                   hitStrokeWidth={20}
+                  onMouseEnter={(e) => {
+                    const hasSimRan = (simulationBuffer && simulationBuffer.length > 0) || (opData && opData.length > 0);
+                    if (!hasSimRan) return;
+                    const stage = e.target.getStage();
+                    const pos = stage?.getPointerPosition();
+                    if (!pos) return;
+                    const nodeName = wireNodeMap.get(wire.id);
+                    let voltage = nodeName !== undefined
+                      ? (dcNodeVoltages[nodeName] ?? dcNodeVoltages[nodeName.toLowerCase()])
+                      : undefined;
+                    if (voltage === undefined && nodeName === '0') voltage = 0;
+                    if (voltage === undefined) voltage = wireVoltageMap.get(wire.id);
+                    if (voltage !== undefined) {
+                      setHoveredWireInfo({
+                        wireId: wire.id,
+                        voltage,
+                        x: pos.x,
+                        y: pos.y,
+                      });
+                    }
+                  }}
+                  onMouseMove={(e) => {
+                    const hasSimRan = (simulationBuffer && simulationBuffer.length > 0) || (opData && opData.length > 0);
+                    if (!hasSimRan) return;
+                    const stage = e.target.getStage();
+                    const pos = stage?.getPointerPosition();
+                    if (pos) {
+                      setHoveredWireInfo(prev => prev && prev.wireId === wire.id ? { ...prev, x: pos.x, y: pos.y } : prev);
+                    }
+                  }}
+                  onMouseLeave={() => setHoveredWireInfo(null)}
                   onClick={(e) => { e.cancelBubble = true; setSelectedWire(wire.id); }}
                   onContextMenu={(e) => {
                     e.evt.preventDefault();
@@ -1045,6 +1330,27 @@ export default function SchematicEditor() {
               </>
             )}
 
+            {/* Mobile Touch Tap-to-Connect: Visual Indicator on Start Pin */}
+            {touchWireStart && (
+              <Group x={touchWireStart.x} y={touchWireStart.y} listening={false}>
+                <Circle
+                  radius={15}
+                  fill="#84cc16"
+                  opacity={0.4}
+                  stroke="#65a30d"
+                  strokeWidth={2}
+                  scaleX={touchPulseScale}
+                  scaleY={touchPulseScale}
+                  listening={false}
+                />
+                <Circle
+                  radius={4}
+                  fill="#65a30d"
+                  listening={false}
+                />
+              </Group>
+            )}
+
             {/* Components */}
             {components.map(comp => renderComponent(comp, false))}
 
@@ -1125,7 +1431,7 @@ export default function SchematicEditor() {
             compId = selectedComponentId;
           }
           
-          if (!compId || pendingComponent || wirePoints) return null;
+          if (!compId || pendingComponent || wirePoints || touchWireStart) return null;
           
           const comp = components.find(c => c.id === compId);
           if (!comp) return null;
@@ -1250,6 +1556,28 @@ export default function SchematicEditor() {
                 Select Wire
               </button>
             </div>
+          </div>
+        )}
+
+        {/* DC Operating Point Hover Tooltip */}
+        {hoveredWireInfo && ((simulationBuffer && simulationBuffer.length > 0) || (opData && opData.length > 0)) && (
+          <div style={{
+            position: 'absolute',
+            left: hoveredWireInfo.x + 12,
+            top: hoveredWireInfo.y - 20,
+            background: '#1e293b',
+            color: '#38bdf8',
+            border: '1px solid #38bdf8',
+            borderRadius: 6,
+            padding: '4px 10px',
+            fontSize: 12,
+            fontFamily: 'monospace',
+            pointerEvents: 'none',
+            zIndex: 1000,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.5)'
+          }}>
+            {hoveredWireInfo.voltage >= 0 ? '+' : ''}{hoveredWireInfo.voltage.toFixed(3)} V
           </div>
         )}
       </div>

@@ -9,7 +9,7 @@ import {
   Legend, ResponsiveContainer, Brush, ReferenceLine
 } from 'recharts';
 import type { MouseHandlerDataParam } from 'recharts';
-import { Activity, Download, Crosshair, Table2, BarChart2, Sparkles, ChevronDown, X } from 'lucide-react';
+import { Activity, Download, Crosshair, Table2, BarChart2, Sparkles, ChevronDown, X, Plus } from 'lucide-react';
 import { AiWaveformPanel } from './AiWaveformPanel';
 import { toPng } from 'html-to-image';
 import { generateCSV } from '../utils/csvExport';
@@ -21,6 +21,79 @@ const COLORS = [
 const OSC_COLORS = [
   '#39ff14', '#00ffff', '#ff00ff', '#ffff00', '#ff4500', '#00bfff'
 ];
+
+const EXPR_COLORS = [
+  '#ec4899', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981', '#f43f5e', '#a855f7'
+];
+
+export function evaluateMathExpression(
+  expr: string,
+  row: Record<string, number>,
+  probeMap: Record<string, string>
+): number | null {
+  try {
+    let resolved = expr;
+
+    // Replace V(probeName) with actual node voltage values
+    resolved = resolved.replace(/V\((\w+)\)/gi, (_match, probeName) => {
+      if (probeName === '0') return '0';
+      const pnLower = probeName.toLowerCase();
+      let mapped = probeMap[probeName];
+      if (!mapped) {
+        for (const [k, v] of Object.entries(probeMap)) {
+          if (k.toLowerCase() === pnLower) {
+            mapped = v;
+            break;
+          }
+        }
+      }
+      if (!mapped) mapped = probeName;
+      if (mapped === '0') return '0';
+
+      const candidates = [
+        mapped,
+        mapped.toLowerCase(),
+        `v(${mapped})`,
+        `v(${mapped.toLowerCase()})`,
+        `V(${mapped})`,
+        probeName,
+        probeName.toLowerCase(),
+        `v(${probeName})`,
+        `v(${probeName.toLowerCase()})`,
+        `V(${probeName})`,
+      ];
+
+      for (const k of candidates) {
+        const val = row[k];
+        if (typeof val === 'number' && !isNaN(val)) {
+          return String(val);
+        }
+      }
+
+      // Case-insensitive fallback search in row keys
+      const mappedLower = mapped.toLowerCase();
+      const vMappedLower = `v(${mappedLower})`;
+      for (const key of Object.keys(row)) {
+        const kl = key.toLowerCase();
+        if (kl === mappedLower || kl === vMappedLower || kl === probeName.toLowerCase() || kl === `v(${probeName.toLowerCase()})`) {
+          const val = row[key];
+          if (typeof val === 'number' && !isNaN(val)) return String(val);
+        }
+      }
+
+      return 'NaN';
+    });
+
+    // Safe evaluate: only allow numbers, whitespace, and basic math operators
+    if (!/^[\d\s\.\+\-\*\/\(\)eE]+$/.test(resolved)) return null;
+
+    // eslint-disable-next-line no-new-func
+    const val = Function(`"use strict"; return (${resolved})`)() as number;
+    return typeof val === 'number' && Number.isFinite(val) ? val : null;
+  } catch {
+    return null;
+  }
+}
 
 // Ã°Å¸â€Â§ Helpers Ã°Å¸â€Â§
 
@@ -635,13 +708,17 @@ function DcSweepPlot({
   data, traces, sweepKey, probeMap, isOscilloscope,
   isCursorMode, cursorA, cursorB, hoverRow,
   onChartClick, onChartMouseMove, onChartMouseLeave,
-  isDigitalMode
+  isDigitalMode,
+  mathExpressions,
+  onRemoveExpression
 }: { 
   data: SimulationData; traces: string[]; sweepKey: string; probeMap: Record<string, string>; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
   setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
   onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
   isDigitalMode?: boolean;
+  mathExpressions?: { id: string; expr: string; color: string }[];
+  onRemoveExpression?: (id: string) => void;
 }) {
   const [brushRange, setBrushRange] = useState<{ start?: number; end?: number } | null>(null);
 
@@ -675,7 +752,40 @@ function DcSweepPlot({
               labelFormatter={(v: any) => `${sweepKey}: ${Number(v).toFixed(3)}V`}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
-            <Legend verticalAlign="top" height={36} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
+            <Legend
+              verticalAlign="top"
+              height={36}
+              wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined}
+              formatter={(value: any, entry: any) => {
+                const expr = mathExpressions?.find(e => e.id === entry?.dataKey || e.expr === value);
+                if (!expr) return <span>{value}</span>;
+                return (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span>{value}</span>
+                    {onRemoveExpression && (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveExpression(expr.id);
+                        }}
+                        title="Remove trace"
+                        style={{
+                          cursor: 'pointer',
+                          color: '#ef4444',
+                          fontWeight: 700,
+                          fontSize: 13,
+                          marginLeft: 2,
+                          lineHeight: 1,
+                          userSelect: 'none'
+                        }}
+                      >
+                        ×
+                      </span>
+                    )}
+                  </span>
+                );
+              }}
+            />
             {isCursorMode && cursorA && Number.isFinite(cursorA[sweepKey] as number) && <ReferenceLine x={cursorA[sweepKey]} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && Number.isFinite(cursorB[sweepKey] as number) && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow[sweepKey] as number) && <ReferenceLine x={hoverRow[sweepKey]} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
@@ -686,6 +796,19 @@ function DcSweepPlot({
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
               );
             })}
+            {mathExpressions?.map((expr) => (
+              <Line
+                key={expr.id}
+                name={expr.expr}
+                type={isDigitalMode ? 'stepAfter' : 'monotone'}
+                dataKey={expr.id}
+                stroke={expr.color}
+                dot={false}
+                strokeWidth={isOscilloscope ? 3 : 2}
+                strokeDasharray="4 2"
+                isAnimationActive={false}
+              />
+            ))}
             {data && data.length >= 2 && (
               <Brush
                 dataKey={sweepKey}
@@ -711,13 +834,17 @@ function TransientPlot({
   data, traces, probeMap, playbackTime, isOscilloscope,
   isCursorMode, cursorA, cursorB, hoverRow,
   onChartClick, onChartMouseMove, onChartMouseLeave,
-  isDigitalMode
+  isDigitalMode,
+  mathExpressions,
+  onRemoveExpression
 }: {
   data: SimulationData; traces: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
   setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
   onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
   isDigitalMode?: boolean;
+  mathExpressions?: { id: string; expr: string; color: string }[];
+  onRemoveExpression?: (id: string) => void;
 }) {
   const [zoomDomain, setZoomDomain] = useState<[number | 'dataMin', number | 'dataMax']>(['dataMin', 'dataMax']);
   const [brushRange, setBrushRange] = useState<{ start?: number; end?: number } | null>(null);
@@ -799,7 +926,40 @@ function TransientPlot({
                 labelFormatter={(label: any) => `Time: ${(parseFloat(label) * 1000).toFixed(4)}ms`}
                 contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
               />
-              <Legend verticalAlign="top" height={36} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
+              <Legend
+                verticalAlign="top"
+                height={36}
+                wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined}
+                formatter={(value: any, entry: any) => {
+                  const expr = mathExpressions?.find(e => e.id === entry?.dataKey || e.expr === value);
+                  if (!expr) return <span>{value}</span>;
+                  return (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <span>{value}</span>
+                      {onRemoveExpression && (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRemoveExpression(expr.id);
+                          }}
+                          title="Remove trace"
+                          style={{
+                            cursor: 'pointer',
+                            color: '#ef4444',
+                            fontWeight: 700,
+                            fontSize: 13,
+                            marginLeft: 2,
+                            lineHeight: 1,
+                            userSelect: 'none'
+                          }}
+                        >
+                          ×
+                        </span>
+                      )}
+                    </span>
+                  );
+                }}
+              />
               {isCursorMode && cursorA && Number.isFinite(cursorA.time as number) && <ReferenceLine x={cursorA.time} stroke="#ff0000" strokeWidth={2} />}
               {isCursorMode && cursorB && Number.isFinite(cursorB.time as number) && <ReferenceLine x={cursorB.time} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
               {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow.time as number) && <ReferenceLine x={hoverRow.time} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
@@ -810,6 +970,19 @@ function TransientPlot({
                     stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} filter={isOscilloscope ? 'url(#glow)' : undefined} />
                 );
               })}
+              {mathExpressions?.map((expr) => (
+                <Line
+                  key={expr.id}
+                  name={expr.expr}
+                  type={isDigitalMode ? 'stepAfter' : 'monotone'}
+                  dataKey={expr.id}
+                  stroke={expr.color}
+                  dot={false}
+                  strokeWidth={isOscilloscope ? 3 : 2}
+                  strokeDasharray="4 2"
+                  isAnimationActive={false}
+                />
+              ))}
               {data && data.length >= 2 && (
                 <Brush
                   dataKey="time"
@@ -890,6 +1063,12 @@ export default function Grapher() {
   const [hoverRow, setHoverRow] = useState<SimulationRow | null>(null);
   const [showDcBias, setShowDcBias] = useState(true);
 
+  // Math expression traces state
+  const [mathExpressions, setMathExpressions] = useState<{ id: string; expr: string; color: string }[]>([]);
+  const [showExprInput, setShowExprInput] = useState(false);
+  const [exprInput, setExprInput] = useState('');
+  const [exprError, setExprError] = useState<string | null>(null);
+
   const handleChartClick = useCallback((r: SimulationRow | null) => {
     if (!r) return;
     if (!cursorA) {
@@ -909,36 +1088,6 @@ export default function Grapher() {
   const handleChartMouseLeave = useCallback(() => {
     setHoverRow(null);
   }, []);
-  
-  const [showAiPanel, setShowAiPanel] = useState(false);
-  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-  
-  const chartRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setAiAnalysis(null);
-    setAiLoading(false);
-    setAiError(null);
-    setShowAiPanel(false);
-  }, [simulationBuffer]);
-
-  // Measure the container so charts always get real pixel dimensions
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  const TOOLBAR_H = 44; // toolbar row height in px
-
-  useEffect(() => {
-    const el = chartRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        setContainerSize({ width: entry.contentRect.width, height: entry.contentRect.height });
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []); // [] â€” only mount/unmount; chartRef.current is stable after first render
 
   // Build a map: raw data key → probe display name
   // If multiple probes share the same node, append a disambiguating suffix (_2, _3, etc.)
@@ -974,6 +1123,77 @@ export default function Grapher() {
 
     return { probeMap: map, probeAliases: aliases };
   }, [probes, components, wires]);
+
+  const handleAddExpression = useCallback(() => {
+    const trimmed = exprInput.trim();
+    if (!trimmed) return;
+
+    if (trimmed.length > 100) {
+      setExprError('Expression must be 100 characters or less.');
+      return;
+    }
+
+    if (!simulationBuffer || simulationBuffer.length === 0) {
+      setExprError('Run a simulation first to evaluate expressions.');
+      return;
+    }
+
+    let hasValid = false;
+    const testLimit = Math.min(simulationBuffer.length, 10);
+    for (let i = 0; i < testLimit; i++) {
+      const val = evaluateMathExpression(trimmed, simulationBuffer[i] as Record<string, number>, probeMap);
+      if (val !== null && Number.isFinite(val)) {
+        hasValid = true;
+        break;
+      }
+    }
+
+    if (!hasValid) {
+      setExprError('Expression returned NaN — check probe names.');
+      return;
+    }
+
+    const newId = `expr_${Date.now()}`;
+    const color = EXPR_COLORS[mathExpressions.length % EXPR_COLORS.length];
+    setMathExpressions(prev => [...prev, { id: newId, expr: trimmed, color }]);
+    setExprInput('');
+    setExprError(null);
+    setShowExprInput(false);
+  }, [exprInput, simulationBuffer, probeMap, mathExpressions.length]);
+
+  const handleRemoveExpression = useCallback((id: string) => {
+    setMathExpressions(prev => prev.filter(e => e.id !== id));
+  }, []);
+  
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setAiAnalysis(null);
+    setAiLoading(false);
+    setAiError(null);
+    setShowAiPanel(false);
+  }, [simulationBuffer]);
+
+  // Measure the container so charts always get real pixel dimensions
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const TOOLBAR_H = 44; // toolbar row height in px
+
+  useEffect(() => {
+    const el = chartRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setContainerSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []); // [] — only mount/unmount; chartRef.current is stable after first render
 
   // Format data for Recharts (safe key names)
   const formattedData = useMemo(() => {
@@ -1056,6 +1276,23 @@ export default function Grapher() {
       return snapped;
     });
   }, [formattedData, isDigitalMode]);
+
+  // Augment dataset with evaluated math expressions
+  const displayDataWithExpr = useMemo(() => {
+    if (!displayData || displayData.length === 0 || mathExpressions.length === 0) {
+      return displayData;
+    }
+    return displayData.map(row => {
+      const augmented: SimulationRow = { ...row };
+      for (const expr of mathExpressions) {
+        const val = evaluateMathExpression(expr.expr, row as Record<string, number>, probeMap);
+        if (val !== null) {
+          augmented[expr.id] = val;
+        }
+      }
+      return augmented;
+    });
+  }, [displayData, mathExpressions, probeMap]);
 
   // Decide which traces to show
   const { traces, sweepKey } = useMemo(() => {
@@ -1169,18 +1406,20 @@ export default function Grapher() {
       <FftPlot simulationBuffer={simulationBuffer!} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} />
     );
   } else if (plotType === 'ac') {
-    PlotComponent = <BodePlot data={displayData} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
+    PlotComponent = <BodePlot data={displayDataWithExpr} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
   } else if (plotType === 'dc') {
-    PlotComponent = <DcSweepPlot data={displayData} traces={traces} sweepKey={sweepKey} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
+    PlotComponent = <DcSweepPlot data={displayDataWithExpr} traces={traces} sweepKey={sweepKey} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} mathExpressions={mathExpressions} onRemoveExpression={handleRemoveExpression} {...cursorProps} />;
   } else {
     PlotComponent = (
       <TransientPlot
-        data={displayData}
+        data={displayDataWithExpr}
         traces={traces}
         probeMap={probeMap}
         playbackTime={playbackTime}
         isOscilloscope={isOscilloscope}
         isDigitalMode={isDigitalMode}
+        mathExpressions={mathExpressions}
+        onRemoveExpression={handleRemoveExpression}
         {...cursorProps}
       />
     );
@@ -1311,6 +1550,19 @@ export default function Grapher() {
               return (
                 <tr key={t}>
                   <td style={{ paddingRight: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 80 }} title={displayName}>{displayName}</td>
+                  <td style={{ paddingRight: 8 }}>{ay !== null ? fmtNum(ay) : '-'}</td>
+                  <td style={{ paddingRight: 8 }}>{by !== null ? fmtNum(by) : '-'}</td>
+                  <td style={{ fontWeight: 700 }}>{dy !== null ? fmtNum(dy) : '-'}</td>
+                </tr>
+              );
+            })}
+            {mathExpressions.map((expr) => {
+              const ay = cursorA ? (cursorA[expr.id] as number ?? null) : null;
+              const by = effectiveB ? (effectiveB[expr.id] as number ?? null) : null;
+              const dy = (ay !== null && by !== null) ? Math.abs(by - ay) : null;
+              return (
+                <tr key={expr.id}>
+                  <td style={{ paddingRight: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 80, color: expr.color }} title={expr.expr}>{expr.expr}</td>
                   <td style={{ paddingRight: 8 }}>{ay !== null ? fmtNum(ay) : '-'}</td>
                   <td style={{ paddingRight: 8 }}>{by !== null ? fmtNum(by) : '-'}</td>
                   <td style={{ fontWeight: 700 }}>{dy !== null ? fmtNum(dy) : '-'}</td>
@@ -1467,6 +1719,25 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
           Digital
         </button>
 
+        <button
+          onClick={() => {
+            setShowExprInput(s => !s);
+            setExprError(null);
+          }}
+          title="Add a computed math expression trace (e.g. V(PRB1) - V(PRB2))"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+            border: `1.5px solid ${showExprInput ? '#ec4899' : '#e5e7eb'}`,
+            background: showExprInput ? '#fdf2f8' : 'transparent',
+            color: showExprInput ? '#db2777' : '#6b7280',
+            cursor: 'pointer',
+          }}
+        >
+          <Plus size={14} />
+          Add Expression
+        </button>
+
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <button
             onClick={handleAiAnalyze}
@@ -1493,7 +1764,89 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
         </div>
       </div>
 
-      {formattedData.length > 0 && traces.length > 0 && (
+      {showExprInput && (
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: 8,
+          padding: '8px 16px',
+          background: '#1e293b',
+          borderBottom: '1px solid #334155',
+          color: '#f8fafc',
+          fontSize: 12,
+        }}>
+          <span style={{ fontWeight: 600, color: '#f472b6' }}>Expr:</span>
+          <input
+            type="text"
+            value={exprInput}
+            maxLength={100}
+            onChange={(e) => {
+              setExprInput(e.target.value);
+              setExprError(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleAddExpression();
+              if (e.key === 'Escape') setShowExprInput(false);
+            }}
+            placeholder="e.g. V(PRB1) - V(PRB2) or V(PRB1) * 2"
+            style={{
+              flex: '1 1 240px',
+              maxWidth: 360,
+              padding: '4px 8px',
+              borderRadius: 4,
+              border: `1px solid ${exprError ? '#ef4444' : '#475569'}`,
+              background: '#0f172a',
+              color: '#f8fafc',
+              fontSize: 12,
+              fontFamily: 'monospace',
+              outline: 'none',
+            }}
+          />
+          <button
+            onClick={handleAddExpression}
+            style={{
+              padding: '4px 12px',
+              borderRadius: 4,
+              border: 'none',
+              background: '#ec4899',
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Add Trace
+          </button>
+          <button
+            onClick={() => {
+              setShowExprInput(false);
+              setExprError(null);
+            }}
+            style={{
+              padding: '4px 10px',
+              borderRadius: 4,
+              border: '1px solid #475569',
+              background: 'transparent',
+              color: '#94a3b8',
+              fontSize: 12,
+              cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+          <span style={{ fontSize: 11, color: '#94a3b8' }}>
+            Supported: V(node), +, -, *, /, (, ). Max 100 chars.
+          </span>
+          {exprError && (
+            <div style={{ width: '100%', color: '#f87171', fontSize: 11, marginTop: 2 }}>
+              {exprError}
+            </div>
+          )}
+        </div>
+      )}
+
+      {formattedData.length > 0 && (traces.length > 0 || mathExpressions.length > 0) && (
         <div style={{
           display: 'flex', gap: 16, padding: '6px 16px',
           background: '#0f172a', borderBottom: '1px solid #1e293b',
@@ -1533,6 +1886,39 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
                 <span style={{ color: '#94a3b8' }}>max={fmt(vmax)}</span>
                 <span style={{ color: '#94a3b8' }}>min={fmt(vmin)}</span>
                 {plotType === 'transient' && <span style={{ color: '#f59e0b' }}>rms={fmt(vrms)}</span>}
+              </div>
+            );
+          })}
+          {mathExpressions.map((expr) => {
+            const vals = displayDataWithExpr.map(r => r[expr.id] as number).filter(v => typeof v === 'number' && Number.isFinite(v));
+            if (!vals.length) return null;
+            const vmax = Math.max(...vals);
+            const vmin = Math.min(...vals);
+            const vpp = vmax - vmin;
+            const fmt = (n: number) => Math.abs(n) >= 1 ? n.toFixed(3) : n.toExponential(2);
+            return (
+              <div key={expr.id} style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: expr.color, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ color: expr.color, fontWeight: 600 }}>{expr.expr}:</span>
+                <span style={{ color: '#10b981' }}>Vpp={fmt(vpp)}</span>
+                <span style={{ color: '#94a3b8' }}>max={fmt(vmax)}</span>
+                <span style={{ color: '#94a3b8' }}>min={fmt(vmin)}</span>
+                <button
+                  onClick={() => handleRemoveExpression(expr.id)}
+                  title="Remove expression"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: 0,
+                    marginLeft: 2
+                  }}
+                >
+                  <X size={12} />
+                </button>
               </div>
             );
           })}

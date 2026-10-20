@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import SEO from '../components/SEO';
 import { useTheme } from '../contexts/ThemeContext';
+import { universityLabPacks } from '../data/universityLabPacks';
 
 interface ExperimentItem {
   name: string;
@@ -816,6 +817,236 @@ export function EducatorsPage() {
                       }}
                     >
                       Simulate *
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* *** 3.5. UNIVERSITY SYLLABUS LAB PACKS SECTION (id="lab-packs") *** */}
+          <section id="lab-packs" style={{ marginBottom: 96 }}>
+            <div style={{ textAlign: 'center', marginBottom: 44 }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 12px',
+                  borderRadius: 999,
+                  backgroundColor: C.primaryLight,
+                  color: C.primary,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  marginBottom: 12,
+                }}
+              >
+                <GraduationCap size={16} /> University Syllabus Aligned
+              </div>
+              <h2
+                style={{
+                  fontSize: 'clamp(2rem, 3.5vw, 2.5rem)',
+                  fontWeight: 800,
+                  letterSpacing: '-0.8px',
+                  margin: '0 0 12px',
+                  color: C.textPrimary,
+                }}
+              >
+                University Syllabus Lab Packs 🎓
+              </h2>
+              <p
+                style={{
+                  color: C.textSecondary,
+                  maxWidth: 680,
+                  margin: '0 auto',
+                  fontSize: '1.05rem',
+                  lineHeight: 1.6,
+                }}
+              >
+                Complete semester curriculum lab suites calibrated to official university syllabi: <strong>Anna University (EC3201)</strong>, <strong>VTU (22ECL35)</strong>, and <strong>JNTU (EEL)</strong>. Includes instant SPICE circuit loading, theory, expected observations, and viva questions.
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+                gap: 24,
+              }}
+            >
+              {universityLabPacks.map((pack) => (
+                <div
+                  key={pack.id}
+                  style={{
+                    backgroundColor: C.bgCard,
+                    border: `1px solid ${C.border}`,
+                    borderRadius: 20,
+                    padding: 28,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = C.borderHover;
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 20px -5px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = C.border;
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
+                  }}
+                >
+                  <div>
+                    {/* Header: Course Code Badge & Semester */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 14,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 800,
+                          padding: '4px 10px',
+                          borderRadius: 8,
+                          backgroundColor: C.primaryLight,
+                          color: C.primary,
+                          border: `1px solid ${isDark ? 'rgba(74,222,128,0.25)' : 'rgba(22,163,74,0.25)'}`,
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        {pack.courseCode}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: C.textSecondary,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {pack.semester}
+                      </span>
+                    </div>
+
+                    {/* University Name & Course Title */}
+                    <h3
+                      style={{
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        margin: '0 0 6px',
+                        color: C.textPrimary,
+                      }}
+                    >
+                      {pack.universityName}
+                    </h3>
+                    <div
+                      style={{
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        color: C.textSecondary,
+                        marginBottom: 16,
+                      }}
+                    >
+                      {pack.courseName}
+                    </div>
+
+                    {/* Experiments count & preview list */}
+                    <div
+                      style={{
+                        borderTop: `1px solid ${C.border}`,
+                        paddingTop: 14,
+                        marginBottom: 20,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.06em',
+                          color: C.primary,
+                          marginBottom: 10,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <CheckCircle2 size={14} />
+                        {pack.experiments.length} Syllabus Experiments
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                        {pack.experiments.map((exp) => (
+                          <div
+                            key={exp.id}
+                            style={{
+                              fontSize: '0.85rem',
+                              color: C.textSecondary,
+                              display: 'flex',
+                              alignItems: 'baseline',
+                              gap: 8,
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: C.textPrimary,
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                                padding: '1px 6px',
+                                borderRadius: 4,
+                                flexShrink: 0,
+                              }}
+                            >
+                              Exp {exp.experimentNo}
+                            </span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {exp.title}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer Action */}
+                  <div style={{ paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
+                    <Link
+                      to="/simulator"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        width: '100%',
+                        backgroundColor: isDark ? 'rgba(74,222,128,0.12)' : 'rgba(22,163,74,0.08)',
+                        color: C.primary,
+                        padding: '10px 18px',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 700,
+                        textDecoration: 'none',
+                        border: `1px solid ${isDark ? 'rgba(74,222,128,0.25)' : 'rgba(22,163,74,0.25)'}`,
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = C.primary;
+                        e.currentTarget.style.color = '#ffffff';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = isDark ? 'rgba(74,222,128,0.12)' : 'rgba(22,163,74,0.08)';
+                        e.currentTarget.style.color = C.primary;
+                      }}
+                    >
+                      Open in Simulator <ArrowRight size={16} />
                     </Link>
                   </div>
                 </div>
