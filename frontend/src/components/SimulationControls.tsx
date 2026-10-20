@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Play, Square, AlertTriangle } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
 
-export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] }) {
+export function SimulationControls({ drcIssues = [], onRun }: { drcIssues?: string[]; onRun?: () => void }) {
   const isSimulating = useSchematicStore(state => state.isSimulating);
   const isPlaying = useSchematicStore(state => state.isPlaying);
   const playbackTime = useSchematicStore(state => state.playbackTime);
@@ -71,6 +71,17 @@ export function SimulationControls({ drcIssues = [] }: { drcIssues?: string[] })
           if (isPlaying) {
             stopSimulation();
           } else {
+            if (onRun) {
+              onRun();
+              return;
+            }
+            const { components } = useSchematicStore.getState();
+            if (components.length === 0) {
+              window.dispatchEvent(new CustomEvent('nodesim-toast', {
+                detail: { message: 'Add components to the canvas before running simulation.', type: 'warning' }
+              }));
+              return;
+            }
             runSimulation();
           }
         }}

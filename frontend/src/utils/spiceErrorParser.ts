@@ -114,11 +114,11 @@ const ERROR_PATTERNS: ErrorPattern[] = [
     title: '➗ Division by Zero',
     message: 'The circuit has a mathematical singularity — likely a zero-value component or open circuit where SPICE expected a value.',
     hints: [
-      'A resistor with value 0Ω creates a short circuit loop that SPICE cannot solve',
+      'A resistor with value 0-ohm creates a short circuit loop that SPICE cannot solve',
       'An inductor in series with a current source at DC can cause this',
     ],
     fixSteps: [
-      'Check component values — resistors should never be exactly 0Ω (use 1mΩ minimum)',
+      'Check component values - resistors should never be exactly 0 ohm (use 1m minimum)',
       'Replace ideal short circuits with a very small resistance',
     ],
   },

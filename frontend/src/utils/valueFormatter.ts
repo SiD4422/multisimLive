@@ -162,7 +162,7 @@ export function validateValue(rawVal: string, type: string): { valid: boolean; e
 
   if (type === 'Resistor' || type === 'Load' || type === 'Potentiometer') {
     if (num < 0) return { valid: false, error: 'Resistance must be positive' };
-    if (num === 0) return { valid: false, error: 'Resistance cannot be 0 Ω (causes short circuit)' };
+    if (num === 0) return { valid: false, error: 'Resistance cannot be 0 ohm (causes short circuit)' };
   }
   if (type === 'Capacitor') {
     if (num <= 0) return { valid: false, error: 'Capacitance must be positive' };

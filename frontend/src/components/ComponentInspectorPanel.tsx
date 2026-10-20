@@ -43,7 +43,7 @@ import { AnalysisSettings } from './AnalysisSettings';
 import { componentDisplayValue, normalizeValue, validateValue, COMPONENT_UNITS } from '../utils/valueFormatter';
 
 function parseValueWithUnit(raw: string): { num: string; unit: string } {
-  const m = raw.trim().match(/^([\d.]+)\s*([kKmMuU\u00b5nNpP]?)(\u03a9|F|H|ohm|ohms?)?$/i);
+  const m = raw.trim().match(/^([+\-]?[\d.]+)\s*([kKmMuU\u00b5nNpP]?)(\u03a9|F|H|ohm|ohms?)?$/i);
   if (!m) return { num: raw, unit: '' };
   const prefix = m[2] || '';
   if (prefix === 'M') return { num: m[1], unit: 'M' };
@@ -172,6 +172,7 @@ export const ComponentInspectorPanel: React.FC = () => {
 
 const [designator, setDesignator] = useState('');
   const [fields, setFields] = useState<any>({});
+  const [rclInput, setRclInput] = useState<string>('');
   const [valueError, setValueError] = useState<string | null>(null);
 
   const [showVisual, setShowVisual] = useState(false);
@@ -186,12 +187,43 @@ const [designator, setDesignator] = useState('');
       setActiveTab('properties');
       setDesignator(activeComponent.id || '');
       setFields(parseValue(activeComponent.type, activeComponent.value || ''));
+      const parsedNum = parseValueWithUnit(activeComponent.value || '').num;
+      const parsedFloat = parseFloat(parsedNum);
+      const isRCLComp = activeComponent.type === 'Resistor' || activeComponent.type === 'Capacitor' || activeComponent.type === 'Inductor';
+      if (isRCLComp && (!parsedNum || isNaN(parsedFloat) || parsedFloat <= 0)) {
+        const def = DEFAULT_VALUES[activeComponent.type] || '1k';
+        const safeParsed = parseValue(activeComponent.type, def);
+        setFields(safeParsed);
+        setRclInput(parseValueWithUnit(def).num);
+        updateComponentProperties(activeComponent.id, { value: def });
+      } else {
+        setRclInput(parsedNum);
+      }
       setValueError(null);
     }
   }, [activeComponent?.id]);
 
   const handleSave = () => {
     if (!activeComponent || !designator.trim()) return;
+    const isRCLComp = activeComponent.type === 'Resistor' || activeComponent.type === 'Capacitor' || activeComponent.type === 'Inductor';
+    if (isRCLComp) {
+      const numVal = parseFloat(rclInput);
+      if (isNaN(numVal) || numVal <= 0) {
+        const prevNum = parseValueWithUnit(activeComponent.value || '').num;
+        const prevVal = parseFloat(prevNum);
+        const safeNum = (!isNaN(prevVal) && prevVal > 0) ? prevNum : '1';
+        setRclInput(safeNum);
+        setValueError(null);
+        const { unit } = parseValueWithUnit(activeComponent.value || '');
+        const valStr = buildValueString(safeNum, unit, activeComponent.type);
+        updateComponentProperties(activeComponent.id, { id: designator.trim(), value: valStr });
+        updateField('main', valStr);
+        return;
+      }
+    } else if (COMPONENT_UNITS[activeComponent.type]) {
+      const res = validateValue(fields.main || '', activeComponent.type);
+      if (!res.valid) return;
+    }
     const newValue = stringifyValue(activeComponent.type, fields);
     updateComponentProperties(activeComponent.id, {
       id: designator.trim(),
@@ -205,6 +237,8 @@ const [designator, setDesignator] = useState('');
     if (def) {
       const parsed = parseValue(activeComponent.type, def);
       setFields(parsed);
+      setRclInput(parseValueWithUnit(def).num);
+      setValueError(null);
       const newValue = stringifyValue(activeComponent.type, parsed);
       updateComponentProperties(activeComponent.id, { id: designator.trim(), value: newValue.trim() });
     }
@@ -269,26 +303,62 @@ const [designator, setDesignator] = useState('');
               type="number"
               min="0"
               step="any"
-              value={parseValueWithUnit(comp.value || '').num}
+              value={rclInput}
               onChange={e => {
+                const rawVal = e.target.value;
+                setRclInput(rawVal);
+                const numericVal = parseFloat(rawVal);
                 const { unit } = parseValueWithUnit(comp.value || '');
-                const valStr = buildValueString(e.target.value, unit, comp.type);
+                const valStr = buildValueString(rawVal, unit, comp.type);
+
+                if (isNaN(numericVal) || numericVal <= 0) {
+                  setValueError(`${comp.type} value must be positive and non-zero (> 0)`);
+                  return;
+                }
+
+                const result = validateValue(valStr, comp.type);
+                if (!result.valid) {
+                  setValueError(result.error ?? 'Invalid value');
+                  return;
+                }
+
+                setValueError(null);
                 updateComponent(comp.id, { value: valStr });
                 updateField('main', valStr);
-                const result = validateValue(valStr, comp.type);
-                setValueError(result.valid ? null : (result.error ?? null));
+              }}
+              onBlur={() => {
+                const numericVal = parseFloat(rclInput);
+                if (isNaN(numericVal) || numericVal <= 0) {
+                  const prevNum = parseValueWithUnit(comp.value || '').num;
+                  const prevVal = parseFloat(prevNum);
+                  const safeNum = (!isNaN(prevVal) && prevVal > 0) ? prevNum : '1';
+                  setRclInput(safeNum);
+                  setValueError(null);
+                  const { unit } = parseValueWithUnit(comp.value || '');
+                  const valStr = buildValueString(safeNum, unit, comp.type);
+                  updateComponent(comp.id, { value: valStr });
+                  updateField('main', valStr);
+                }
               }}
               style={{ flex: 1, padding: '6px 8px', background: '#1e293b', border: `1px solid ${valueError ? '#ef4444' : '#334155'}`, borderRadius: 6, color: '#e2e8f0', fontSize: 13 }}
             />
             <select
               value={parseValueWithUnit(comp.value || '').unit}
               onChange={e => {
-                const { num } = parseValueWithUnit(comp.value || '');
-                const valStr = buildValueString(num, e.target.value, comp.type);
+                const numericVal = parseFloat(rclInput);
+                if (isNaN(numericVal) || numericVal <= 0) {
+                  setValueError(`${comp.type} value must be positive and non-zero (> 0)`);
+                  return;
+                }
+                const valStr = buildValueString(rclInput, e.target.value, comp.type);
+                const result = validateValue(valStr, comp.type);
+                if (!result.valid) {
+                  setValueError(result.error ?? 'Invalid value');
+                  return;
+                }
+                setValueError(null);
                 updateComponent(comp.id, { value: valStr });
                 updateField('main', valStr);
-                const result = validateValue(valStr, comp.type);
-                setValueError(result.valid ? null : (result.error ?? null));
               }}
               style={{ padding: '6px 4px', background: '#1e293b', border: '1px solid #334155', borderRadius: 6, color: '#e2e8f0', fontSize: 13, cursor: 'pointer' }}
             >

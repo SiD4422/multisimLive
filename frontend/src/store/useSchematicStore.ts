@@ -202,7 +202,7 @@ export const useSchematicStore = create<SchematicState>()(
       clearCustomModels: () => set({ customModels: {}, customModelPorts: {} }),
 
   saveHistory: () => set((state) => ({
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
@@ -224,7 +224,7 @@ export const useSchematicStore = create<SchematicState>()(
     const next = state.future[0];
     const newFuture = state.future.slice(1);
     return {
-      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
       future: newFuture,
       components: next.components,
       wires: next.wires,
@@ -235,7 +235,7 @@ export const useSchematicStore = create<SchematicState>()(
   addComponent: (comp) => set((state) => {
     return { 
       components: [...state.components, comp],
-      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
       future: []
     };
   }),
@@ -246,7 +246,7 @@ export const useSchematicStore = create<SchematicState>()(
     
     return {
       components: state.components.map(c => c.id === id ? { ...c, position: pos } : c),
-      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
       future: []
     };
   }),
@@ -263,25 +263,25 @@ export const useSchematicStore = create<SchematicState>()(
   }),
 
   commitDrag: () => set((state) => ({
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
   addWire: (wire) => set((state) => ({ 
     wires: [...state.wires, wire],
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
   addProbe: (probe) => set((state) => ({
     probes: [...state.probes, probe],
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
   updateProbePosition: (id, pos) => set((state) => ({
     probes: state.probes.map(p => p.id === id ? { ...p, position: pos } : p),
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
@@ -344,7 +344,7 @@ export const useSchematicStore = create<SchematicState>()(
 
   updateComponentProperties: (id, newProps) => set((state) => ({
     components: state.components.map(c => c.id === id ? { ...c, ...newProps } : c),
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
@@ -359,7 +359,7 @@ export const useSchematicStore = create<SchematicState>()(
     const { components, wires, probes, selectedComponentIds } = get();
     const hist = { components, wires, probes };
     set(state => ({
-      past: [...state.past.slice(-49), hist],
+      past: [...state.past, hist].slice(-50),
       future: [],
       components: state.components.filter(c => !state.selectedComponentIds.includes(c.id)),
       selectedComponentIds: [],
@@ -377,21 +377,21 @@ export const useSchematicStore = create<SchematicState>()(
   deleteComponent: (id) => set((state) => ({
     components: state.components.filter(c => c.id !== id),
     selectedComponentId: state.selectedComponentId === id ? null : state.selectedComponentId,
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
   deleteWire: (id) => set((state) => ({
     wires: state.wires.filter(w => w.id !== id),
     selectedWireId: state.selectedWireId === id ? null : state.selectedWireId,
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
   deleteProbe: (id) => set((state) => ({
     probes: state.probes.filter(p => p.id !== id),
     selectedProbeId: state.selectedProbeId === id ? null : state.selectedProbeId,
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
@@ -404,14 +404,14 @@ export const useSchematicStore = create<SchematicState>()(
     
     set((state) => ({
       components: state.components.map(c => c.id === id ? { ...c, value } : c),
-      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
       future: []
     }));
   },
 
   updateComponentRotation: (id, rotation) => set((state) => ({
     components: state.components.map(c => c.id === id ? { ...c, rotation } : c),
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
@@ -426,14 +426,14 @@ export const useSchematicStore = create<SchematicState>()(
     return {
       components: [...state.components, copy],
       selectedComponentId: copy.id,
-      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
       future: []
     };
   }),
 
   flipComponent: (id) => set((state) => ({
     components: state.components.map(c => c.id === id ? { ...c, flipped: !(c as any).flipped } : c),
-    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }],
+    past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
 
@@ -450,6 +450,11 @@ export const useSchematicStore = create<SchematicState>()(
     // Empty canvas preflight check
     if (components.length === 0) {
       if (!isSilent) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('nodesim-toast', {
+            detail: { message: 'Add components to the canvas before running simulation.', type: 'warning' }
+          }));
+        }
         set({
           simulationError: 'Canvas is empty. Place components and connect them with wires to run simulation.',
           isSimulating: false,
@@ -482,7 +487,7 @@ export const useSchematicStore = create<SchematicState>()(
       if (comp.type === 'Resistor' || comp.type === 'Load') {
         const ohms = parseSpiceToFloat(comp.value || '1k');
         if (Math.abs(ohms) < ZERO_THRESHOLD) {
-          const errorMsg = `Resistor is 0Ω — this can cause infinite current. Use a small nonzero value (e.g. 1m) or remove it.`;
+          const errorMsg = 'A 0-ohm resistor creates a short circuit. Use a small nonzero value (e.g. 1m) or remove it.';
           if (!isSilent) track('Simulation_Error', { type: 'DRC', details: 'Zero Ohm Resistor' });
           set({ 
             simulationError: errorMsg, 

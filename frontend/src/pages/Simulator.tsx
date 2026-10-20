@@ -165,6 +165,26 @@ function Simulator() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const handleRunSimulation = () => {
+    const { components } = useSchematicStore.getState();
+    if (components.length === 0) {
+      showToast('Add components to the canvas before running simulation.', 'warning');
+      return;
+    }
+    runSimulation();
+  };
+
+  // Listen for toast notifications dispatched from anywhere
+  useEffect(() => {
+    const handleToastEvent = (e: any) => {
+      if (e?.detail?.message) {
+        showToast(e.detail.message, e.detail.type || 'warning');
+      }
+    };
+    window.addEventListener('nodesim-toast', handleToastEvent);
+    return () => window.removeEventListener('nodesim-toast', handleToastEvent);
+  }, []);
+
   const bootSource = useCircuitBoot();
   // Load circuit from share URL hash: /simulator#circuit=<lz-encoded>
   useEffect(() => {
@@ -243,12 +263,7 @@ function Simulator() {
       // Run simulation (Ctrl+Enter / Cmd+Enter)
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
-        const runBtn = document.getElementById('run-simulation-btn');
-        if (runBtn) {
-          runBtn.click();
-        } else {
-          useSchematicStore.getState().runSimulation();
-        }
+        handleRunSimulation();
       }
     };
 
@@ -550,7 +565,7 @@ function Simulator() {
           Interactive
         </div>
 
-        <SimulationControls drcIssues={drcIssues} />
+        <SimulationControls drcIssues={drcIssues} onRun={handleRunSimulation} />
 
         {/* View tabs */}
         <div style={{ display: 'flex', marginLeft: '8px', gap: '2px' }}>

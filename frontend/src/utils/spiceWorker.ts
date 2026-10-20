@@ -325,7 +325,7 @@ self.addEventListener('message', async (e: MessageEvent) => {
       });
     } catch (err2: any) {
       // Both attempts failed — report original error with hint
-      const hint = '\n\nTip: Try adding a small resistor (1Ω–10Ω) in series with voltage sources, or check for floating nodes.';
+      const hint = '\n\nTip: Try adding a small resistor (1 ohm-10 ohm) in series with voltage sources, or check for floating nodes.';
       self.postMessage({ id, type: 'ERROR', error: translateSpiceError(originalError!) + hint });
     }
   } catch (error: any) {
