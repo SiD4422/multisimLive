@@ -34,6 +34,13 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
   const particlesRef = useRef<Particle[]>([]);
   const [, forceRender] = useState(0);
 
+  // O(1) wire lookup map — rebuilt only when wires array changes
+  const wireMap = useMemo(() => {
+    const m = new Map<string, typeof wires[0]>();
+    wires.forEach(w => m.set(w.id, w));
+    return m;
+  }, [wires]);
+
   const nodeVoltages = useMemo(() => {
     const map = new Map<string, number>();
     if (!simulationBuffer || simulationBuffer.length === 0) return map;
@@ -56,7 +63,7 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
       let startPinPt = wire.points[0];
       let endPinPt = wire.points[wire.points.length - 1];
 
-      // Find closest component pins
+      // Find closest component pins to wire endpoints
       components.forEach(comp => {
         const pins = getComponentPins(comp);
         pins.forEach(pin => {
@@ -74,7 +81,6 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
         });
       });
 
-      // Get SPICE nodes
       const startNode = getSpiceNodeForPoint(startPinPt, components, wires);
       const endNode = getSpiceNodeForPoint(endPinPt, components, wires);
       
@@ -99,15 +105,19 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
     }
     const newParticles: Particle[] = [];
     wireFlows.forEach(wf => {
-      const wire = wires.find(w => w.id === wf.wireId);
+      const wire = wireMap.get(wf.wireId);
       if (!wire) return;
       
       const isEquipotential = wf.deltav < 0.01;
       const effectiveDelta = isEquipotential ? Math.max(0.1, Math.abs(wf.voltage1)) : wf.deltav;
-      const speed = Math.min(0.008, Math.max(0.001, effectiveDelta / 1000));
+      const speed = Math.min(0.006, Math.max(0.001, effectiveDelta / 1200));
       
-      const color = wf.voltage1 > wf.voltage2 ? '#22c55e' : (wf.voltage1 < wf.voltage2 ? '#3b82f6' : '#a855f7'); 
-      const count = Math.max(1, Math.min(3, Math.floor(effectiveDelta / 5)));
+      // High-voltage: yellow/orange; mid: green; low/reverse: cyan/blue
+      const color = wf.voltage1 > wf.voltage2
+        ? (effectiveDelta > 5 ? '#f59e0b' : '#22c55e')
+        : (wf.voltage1 < wf.voltage2 ? '#38bdf8' : '#a855f7');
+      
+      const count = Math.max(2, Math.min(5, Math.floor(effectiveDelta / 3)));
       
       for (let i = 0; i < count; i++) {
         newParticles.push({
@@ -120,7 +130,7 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
       }
     });
     particlesRef.current = newParticles;
-  }, [wireFlows, isActive, wires]);
+  }, [wireFlows, isActive, wireMap]);
 
   useEffect(() => {
     if (!isActive) return;
@@ -142,8 +152,10 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
 
   if (!isActive || wires.length === 0) return null;
 
+  const dotRadius = Math.max(4, 4 * canvasScale);
+
   const dots = particlesRef.current.map((particle, idx) => {
-    const wire = wires.find(w => w.id === particle.wireId);
+    const wire = wireMap.get(particle.wireId);
     if (!wire) return null;
     const points = wire.points && wire.points.length >= 2 ? wire.points : [wire.points[0], wire.points[wire.points.length - 1]];
     if (points.length < 2) return null;
@@ -178,10 +190,12 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
         key={`${particle.wireId}-${idx}`}
         cx={screenX}
         cy={screenY}
-        r={3 * canvasScale}
-        fill={particle.color}
-        opacity={0.85}
-        style={{ filter: 'blur(0.5px)' }}
+        r={dotRadius}
+        fill="#ffffff"
+        stroke={particle.color}
+        strokeWidth={Math.max(1.5, 1.5 * canvasScale)}
+        opacity={0.95}
+        filter="url(#flow-glow)"
       />
     );
   });
@@ -197,8 +211,16 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
         zIndex: 10,
       }}
     >
+      <defs>
+        <filter id="flow-glow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
       {dots}
     </svg>
   );
 }
-

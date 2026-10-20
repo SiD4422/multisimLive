@@ -91,6 +91,17 @@ export default function SchematicEditor() {
     return () => { if (dotAnimRef.current) cancelAnimationFrame(dotAnimRef.current); };
   }, [isPlaying, simulationBuffer]);
 
+  // Auto-enable flow mode when simulation data first arrives
+  const prevSimBufferRef = useRef<typeof simulationBuffer>(null);
+  useEffect(() => {
+    const hadData = prevSimBufferRef.current && prevSimBufferRef.current.length > 0;
+    const hasData = simulationBuffer && simulationBuffer.length > 0;
+    if (!hadData && hasData) {
+      setIsFlowMode(true);
+    }
+    prevSimBufferRef.current = simulationBuffer;
+  }, [simulationBuffer]);
+
   useEffect(() => {
     const wrapper = document.getElementById('canvas-wrapper');
     if (!wrapper) return;
@@ -875,8 +886,8 @@ export default function SchematicEditor() {
                     }
                   }}
                 />
-                {/* Current-flow dot — travels parametrically along the polyline */}
-                {hasSimData && wire.points.length >= 2 && (() => {
+                {/* Current-flow dot — travels parametrically along the polyline (hidden when SVG overlay is active) */}
+                {hasSimData && !isFlowMode && wire.points.length >= 2 && (() => {
                   const voltage = wireVoltageMap.get(wire.id) ?? 0;
                   if (Math.abs(voltage) < 0.01) return null; // no dot on GND/dead nets
                   // Direction: positive voltage → forward, negative → reverse
@@ -1075,8 +1086,8 @@ export default function SchematicEditor() {
               color: isFlowMode ? '#16a34a' : '#6b7280',
               border: `1px solid ${isFlowMode ? '#16a34a' : '#d1d5db'}`,
               borderRadius: 6,
-              padding: '4px 8px',
-              fontSize: 11,
+              padding: '6px 10px',
+              fontSize: 12,
               fontWeight: 600,
               cursor: simulationBuffer && simulationBuffer.length > 0 ? 'pointer' : 'not-allowed',
               display: 'flex',
@@ -1091,7 +1102,7 @@ export default function SchematicEditor() {
               <circle cx="19" cy="12" r="2.5" opacity="0.3"/>
               <path d="M7.5 12 H9.5 M14.5 12 H16.5" stroke="currentColor" strokeWidth="1.5"/>
             </svg>
-            Flow
+            ⚡ Flow
           </button>
         </div>
 
