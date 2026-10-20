@@ -21,6 +21,7 @@ export interface SchematicComponent {
   rotation?: number;
   symbolName?: string;
   metadata?: Record<string, string>;
+  props?: Record<string, any>;
 }
 
 export interface Wire {
@@ -114,6 +115,7 @@ interface SchematicState {
   editingComponentId: string | null;
   setEditingComponentId: (id: string | null) => void;
   updateComponentProperties: (id: string, newProps: Partial<SchematicComponent>) => void;
+  updateComponentProp: (id: string, key: string, value: any) => void;
   
   exportState: () => string;
   importState: (jsonStr: string) => void;
@@ -347,6 +349,20 @@ export const useSchematicStore = create<SchematicState>()(
     past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
+
+  updateComponentProp: (id, key, val) => {
+    if (key === 'closed') {
+      shouldClearRef.current = true;
+    }
+    set((state) => ({
+      components: state.components.map(c => c.id === id ? {
+        ...c,
+        props: { ...(c.props || {}), [key]: val }
+      } : c),
+      past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
+      future: []
+    }));
+  },
 
   clearSelection: () => set({ selectedComponentId: null, selectedWireId: null, selectedProbeId: null, selectedComponentIds: [] }),
   setSelectedComponentIds: (ids) => set({ selectedComponentIds: ids }),

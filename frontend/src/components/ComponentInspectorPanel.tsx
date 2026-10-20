@@ -280,6 +280,98 @@ const [designator, setDesignator] = useState('');
       );
     }
 
+    if (activeComponent.type === 'potentiometer') {
+      const wiper = activeComponent.props?.wiper_position ?? 50;
+      const totalR = activeComponent.props?.total_resistance ?? 10000;
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }}>
+          <div style={{ padding: '8px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>
+                Wiper Position: {wiper}%
+              </label>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={wiper}
+              onChange={(e) => {
+                const newWiper = Number(e.target.value);
+                useSchematicStore.getState().updateComponentProp(activeComponent.id, 'wiper_position', newWiper);
+                const state = useSchematicStore.getState();
+                if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
+                  state.runSimulation(true);
+                }
+              }}
+              style={{ width: '100%', marginTop: 4, cursor: 'pointer' }}
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>
+              Total Resistance
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <input
+                type="number"
+                min={0.001}
+                step="any"
+                value={totalR}
+                onChange={(e) => {
+                  const newTotal = parseFloat(e.target.value) || 0;
+                  useSchematicStore.getState().updateComponentProp(activeComponent.id, 'total_resistance', newTotal);
+                  const state = useSchematicStore.getState();
+                  if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
+                    state.runSimulation(true);
+                  }
+                }}
+                style={{
+                  flex: 1, padding: '6px 8px', background: '#1e293b', border: '1px solid #334155',
+                  borderRadius: 6, color: '#e2e8f0', fontSize: 13
+                }}
+              />
+              <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>Ω</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeComponent.type === 'switch_spst') {
+      const isClosed = activeComponent.props?.closed === true;
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>
+            Switch State
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              const newClosed = !isClosed;
+              useSchematicStore.getState().updateComponentProp(activeComponent.id, 'closed', newClosed);
+              const state = useSchematicStore.getState();
+              if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
+                state.runSimulation(true);
+              }
+            }}
+            style={{
+              padding: '8px 12px',
+              borderRadius: 6,
+              border: 'none',
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: 'pointer',
+              background: isClosed ? '#22c55e' : '#ef4444',
+              color: '#fff'
+            }}
+          >
+            {isClosed ? 'CLOSED (ON)' : 'OPEN (OFF)'}
+          </button>
+        </div>
+      );
+    }
+
     // Simple single-value component — add normalize-on-blur, validation, and display hint
     const comp = activeComponent;
     const isRCL = comp.type === 'Resistor' || comp.type === 'Capacitor' || comp.type === 'Inductor';

@@ -4,7 +4,7 @@
  */
 
 export interface ComponentPinDef {
-  id: string;
+  id?: string;
   name: string;
   x: number;
   y: number;
@@ -13,7 +13,7 @@ export interface ComponentPinDef {
 export interface ComponentDefinition {
   id: string;
   name: string;
-  category: 'Logic Gates' | 'Integrated Circuits';
+  category: 'Logic Gates' | 'Integrated Circuits' | 'Sources & Switches' | 'Passive Components' | string;
   description: string;
   defaultProps: Record<string, any>;
   symbol: string;
@@ -168,5 +168,41 @@ export const standardICLibrary: ComponentDefinition[] = [
       { id: 'CATHODE', name: 'CATHODE', x: 30, y: -25 },
       { id: 'ANODE', name: 'ANODE', x: 30, y: 25 }
     ]
+  },
+
+  // Group C: Switches & Electromechanical
+  {
+    id: 'switch_spst',
+    name: 'SPST Switch',
+    category: 'Sources & Switches',
+    description: 'Single-pole single-throw switch. Click on canvas to toggle open/closed.',
+    defaultProps: {
+      closed: false,   // boolean: false = open (OFF), true = closed (ON)
+      r_on: 0.001,     // on-state resistance in ohms
+      r_off: 1e8,      // off-state resistance in ohms
+    },
+    pins: [
+      { id: 'A', name: 'A', x: -20, y: 0 },
+      { id: 'B', name: 'B', x: 20, y: 0 },
+    ],
+    symbol: 'switch_spst',
+  },
+
+  // Group D: Variable Passives
+  {
+    id: 'potentiometer',
+    name: 'Potentiometer',
+    category: 'Passive Components',
+    description: 'Variable resistor (pot). Adjust wiper position (0-100%) in Component Inspector.',
+    defaultProps: {
+      total_resistance: 10000,  // total resistance in ohms (10kΩ default)
+      wiper_position: 50,       // percentage 0-100
+    },
+    pins: [
+      { id: 'A', name: 'A', x: -20, y: 0 },    // top terminal
+      { id: 'W', name: 'W', x: 0, y: 20 },     // wiper
+      { id: 'B', name: 'B', x: 20, y: 0 },     // bottom terminal
+    ],
+    symbol: 'potentiometer',
   }
 ];

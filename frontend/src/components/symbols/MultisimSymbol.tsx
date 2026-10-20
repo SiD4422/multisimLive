@@ -24,6 +24,7 @@ function formatRefDes(id: string, type: string): string {
     GateAND: 'U', GateOR: 'U', GateNOT: 'U', GateNAND: 'U', GateNOR: 'U', GateXOR: 'U',
     DFlipFlop: 'U', JKFlipFlop: 'U',
     SevenSegment: 'DS', Lamp: 'DS',
+    switch_spst: 'S', potentiometer: 'R',
     logic_nand2: 'U', logic_nor2: 'U', logic_not: 'U', logic_and2: 'U', logic_or2: 'U', logic_xor2: 'U',
     ic_lm358: 'U', ic_lm555: 'U', ic_lm317: 'U', ic_zener_ref: 'U',
   };
@@ -52,6 +53,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
   
   let paths: { data: string, fill?: string, stroke?: string }[] = [];
   let circles: { x: number, y: number, r: number, fill?: string, stroke?: string }[] = [];
+  let rects: { x: number, y: number, width: number, height: number, stroke?: string, strokeWidth?: number, fill?: string, cornerRadius?: number }[] = [];
   let lines: { points: number[] }[] = [];
   let pins: { x: number, y: number }[] = [];
   let texts: { text: string, x: number, y: number, size?: number, fill?: string }[] = [];
@@ -864,6 +866,38 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     labelOffset = { x: 15, y: -35 };
     valueOffset = { x: 15, y: 35 };
   }
+  // --- INTERACTIVE SPST SWITCH ---
+  else if (type === 'switch_spst') {
+    const isClosed = component.props?.closed === true;
+    circles.push({ x: -20, y: 0, r: 3, fill: "#64748b" });
+    circles.push({ x: 20, y: 0, r: 3, fill: "#64748b" });
+    if (isClosed) {
+      lines.push({ points: [-20, 0, 20, 0] });
+    } else {
+      lines.push({ points: [-20, 0, 15, -12] });
+    }
+    texts.push({
+      text: isClosed ? 'CLOSED' : 'OPEN',
+      x: -15,
+      y: 10,
+      size: 8,
+      fill: isClosed ? '#22c55e' : '#ef4444'
+    });
+    pins = [{ x: -20, y: 0 }, { x: 20, y: 0 }];
+    labelOffset = { x: 0, y: -22 };
+    valueOffset = { x: 0, y: 22 };
+  }
+  // --- POTENTIOMETER (3-TERMINAL WITH WIPER) ---
+  else if (type === 'potentiometer') {
+    const pct = component.props?.wiper_position ?? 50;
+    rects.push({ x: -20, y: -8, width: 40, height: 16, stroke: "#64748b", strokeWidth: 2, cornerRadius: 2 });
+    lines.push({ points: [0, 8, 0, 20] });
+    lines.push({ points: [-5, 13, 0, 8, 5, 13] });
+    texts.push({ text: `${pct}%`, x: -12, y: 22, size: 8, fill: "#94a3b8" });
+    pins = [{ x: -20, y: 0 }, { x: 20, y: 0 }, { x: 0, y: 20 }];
+    labelOffset = { x: 0, y: -22 };
+    valueOffset = { x: 0, y: 35 };
+  }
   // --- FLIP FLOPS ---
   else if (type === 'DFlipFlop') {
     paths.push({ data: "M 10 -25 L 50 -25 L 50 25 L 10 25 Z", fill: "#fff" });
@@ -1080,6 +1114,19 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       onDragMove={onDragMove}
       onDragEnd={onDragEnd}
       onPointerDown={(e) => {
+        if (type === 'switch_spst') {
+          e.cancelBubble = true;
+          const isClosed = component.props?.closed === true;
+          const newClosed = !isClosed;
+          useSchematicStore.getState().updateComponentProp(component.id, 'closed', newClosed);
+          setTimeout(() => {
+            const state = useSchematicStore.getState();
+            if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
+              state.runSimulation(true);
+            }
+          }, 50);
+          return;
+        }
         if (type === 'SwitchSPST' || type === 'PushButton' || type === 'DigitalSwitch') {
           e.cancelBubble = true;
           let newVal = 'Closed';
@@ -1100,7 +1147,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       <Group rotation={component.rotation || 0}>
         <Group scaleX={1.5} scaleY={1.5}>
           {/* Invisible expanded hit area for easy selection */}
-          <Path data={`M -10 -20 L 70 -20 L 70 20 L -10 20 Z`} fill="transparent" />
+          <Path data={`M -30 -25 L 70 -25 L 70 25 L -30 25 Z`} fill="transparent" />
           {/* AI Debugger: amber highlight ring — pulses when component is flagged */}
           {isHighlighted && (
             <Rect
@@ -1110,6 +1157,21 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               opacity={0.9}
             />
           )}
+
+          {/* Render Rectangles */}
+          {rects.map((r, i) => (
+            <Rect
+              key={`r${i}`}
+              x={r.x}
+              y={r.y}
+              width={r.width}
+              height={r.height}
+              stroke={r.stroke || strokeColor}
+              strokeWidth={r.strokeWidth || 2}
+              fill={r.fill || 'transparent'}
+              cornerRadius={r.cornerRadius || 0}
+            />
+          ))}
 
           {/* Render Circles */}
           {circles.map((c, i) => (

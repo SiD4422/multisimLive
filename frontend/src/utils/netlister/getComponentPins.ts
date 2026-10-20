@@ -194,7 +194,50 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     });
   }
 
-  // â”€â”€ Digital Logic Gates (2-input: A, B, Y; NOT gate: A, Y)
+  // ─── Interactive SPST Switch & Potentiometer ───
+  if (comp.type === 'switch_spst') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x: -20, y: 0, id: 'A' },
+      { x: 20, y: 0, id: 'B' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+
+  if (comp.type === 'potentiometer') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x: -20, y: 0, id: 'A' },
+      { x: 20, y: 0, id: 'B' },
+      { x: 0, y: 20, id: 'W' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+
   // ─── Standard 74xx IC Logic Gates (4-pin: A, B, Y, GND; 3-pin: A, Y, GND) ───
   const logicGates4Pin = ['logic_nand2', 'logic_nor2', 'logic_and2', 'logic_or2', 'logic_xor2'];
   if (logicGates4Pin.includes(comp.type)) {

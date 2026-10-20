@@ -85,6 +85,33 @@ export function getSubcktDefinitions(): Record<string, string> {
 
 export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): ComponentNetlistResult | null {
   switch (comp.type) {
+    case 'switch_spst': {
+      const isClosed = comp.props?.closed === true;
+      const resistance = isClosed ? (comp.props?.r_on ?? 0.001) : (comp.props?.r_off ?? 1e8);
+      const safeId = comp.id.replace(/[^a-zA-Z0-9]/g, '');
+      const [nA = '0', nB = '0'] = nodes;
+      return {
+        line: `R${safeId} ${nA} ${nB} ${resistance}`,
+        subckts: []
+      };
+    }
+    case 'potentiometer': {
+      const total = comp.props?.total_resistance ?? 10000;
+      const pct = Math.max(0.1, Math.min(99.9, comp.props?.wiper_position ?? 50));
+      const rTop = Math.max(0.001, total * pct / 100);
+      const rBot = Math.max(0.001, total * (100 - pct) / 100);
+      const safeId = comp.id.replace(/[^a-zA-Z0-9]/g, '');
+      const n0 = nodes[0] || '0';
+      const n1 = nodes[1] || '0';
+      const n2 = nodes[2] || '0';
+      return {
+        line: [
+          `RA${safeId} ${n0} ${n2} ${rTop}`,
+          `RB${safeId} ${n2} ${n1} ${rBot}`,
+        ].join('\n'),
+        subckts: []
+      };
+    }
     case 'logic_nand2': {
       const [a = '0', b = '0', y = '0', gnd = '0'] = nodes;
       return {

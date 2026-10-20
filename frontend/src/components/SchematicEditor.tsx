@@ -14,6 +14,7 @@ import { findOrthogonalPath } from '../utils/autoRouter';
 import { buildWireNodeMap, buildWireVoltageResult, voltageToStrokeWidth, getPointAlongPolyline } from '../utils/wireVoltageMap';
 import { computeWireCrossings } from '../utils/wireCrossings';
 import { CurrentFlowOverlay } from './CurrentFlowOverlay';
+import { standardICLibrary } from '../data/components';
 
 const SNAP_GRID = 10;
 const VISUAL_GRID = 45;
@@ -447,7 +448,7 @@ export default function SchematicEditor() {
       }
 
       let prefix = 'U'; // Fallback IC
-      if (typeStr === 'Resistor' || typeStr === 'Potentiometer' || typeStr === 'Load') prefix = 'R';
+      if (typeStr === 'Resistor' || typeStr === 'Potentiometer' || typeStr === 'potentiometer' || typeStr === 'Load') prefix = 'R';
       else if (typeStr === 'Capacitor') prefix = 'C';
       else if (typeStr === 'Fuse') prefix = 'F';
       else if (typeStr === 'Inductor') prefix = 'L';
@@ -455,7 +456,7 @@ export default function SchematicEditor() {
       else if (typeStr === 'TransistorNPN' || typeStr === 'TransistorPNP' || typeStr === 'IGBT') prefix = 'Q';
       else if (typeStr === 'MosfetN' || typeStr === 'MosfetP') prefix = 'M';
       else if (typeStr === 'JFET') prefix = 'J';
-      else if (typeStr === 'SwitchSPST' || typeStr === 'SPDTSwitch' || typeStr === 'PushButton' || typeStr === 'Relay') prefix = 'S';
+      else if (typeStr === 'SwitchSPST' || typeStr === 'switch_spst' || typeStr === 'SPDTSwitch' || typeStr === 'PushButton' || typeStr === 'Relay') prefix = 'S';
       else if (typeStr.includes('Opamp') || typeStr.includes('Comparator')) prefix = 'U';
       else if (typeStr === 'Timer555') prefix = 'A';
       else if (typeStr.includes('Voltage') || (typeStr.includes('Source') && !typeStr.includes('Current')) || typeStr.includes('Phase') || typeStr.includes('Noise')) prefix = 'V';
@@ -473,13 +474,15 @@ export default function SchematicEditor() {
       }
 
       const defaultRotation = 0;
+      const libComp = standardICLibrary.find(c => c.id === typeStr);
 
       addComponent({
         id: `${prefix}${nextNum}`,
         type: typeStr,
         position: mousePos,
         value: currentPending.value,
-        rotation: defaultRotation
+        rotation: defaultRotation,
+        props: libComp ? { ...libComp.defaultProps } : undefined
       });
       setPendingComponent(null);
       return;
@@ -964,7 +967,32 @@ export default function SchematicEditor() {
       );
     }
     return (
-      <Group key={comp.id} onDblClick={() => { setSelectedComponent(comp.id); setIsConfigOpen(true); }}>
+      <Group
+        key={comp.id}
+        onClick={(e) => {
+          if (comp.type === 'switch_spst') {
+            e.cancelBubble = true;
+            const newClosed = !comp.props?.closed;
+            useSchematicStore.getState().updateComponentProp(comp.id, 'closed', newClosed);
+            const state = useSchematicStore.getState();
+            if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
+              state.runSimulation(true);
+            }
+          }
+        }}
+        onTap={(e) => {
+          if (comp.type === 'switch_spst') {
+            e.cancelBubble = true;
+            const newClosed = !comp.props?.closed;
+            useSchematicStore.getState().updateComponentProp(comp.id, 'closed', newClosed);
+            const state = useSchematicStore.getState();
+            if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
+              state.runSimulation(true);
+            }
+          }
+        }}
+        onDblClick={() => { setSelectedComponent(comp.id); setIsConfigOpen(true); }}
+      >
         {el}
       </Group>
     );

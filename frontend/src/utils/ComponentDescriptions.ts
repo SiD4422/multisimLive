@@ -77,6 +77,13 @@ export const componentDescriptions: Record<string, ComponentMetadata> = {
     parameters: "Format: '[Resistance]'\nExample: '1k', '4.7Meg', '100'\nNote: Use standard SPICE suffixes (m=milli, k=kilo, Meg=mega, u=micro).",
     default: "1k"
   },
+  potentiometer: {
+    title: "Potentiometer",
+    category: "Passives",
+    description: "A three-terminal variable resistor with an adjustable wiper contact (0-100%). Modeled as two series resistors in SPICE.",
+    parameters: "Adjust wiper position and total resistance in the Inspector.",
+    default: "10k"
+  },
   Load: {
     title: "Generic Load",
     category: "Passives",
@@ -203,6 +210,12 @@ export const componentDescriptions: Record<string, ComponentMetadata> = {
     category: "Switches",
     description: "Single-Pole Single-Throw switch. A simple on/off mechanical switch. In simulation, it is modeled as a voltage-controlled switch or dynamic resistor.",
     parameters: "No value needed."
+  },
+  switch_spst: {
+    title: "SPST Switch",
+    category: "Switches",
+    description: "Single-Pole Single-Throw interactive switch. Click directly on the canvas to toggle open and closed states live.",
+    parameters: "Click on canvas to toggle state. Props: closed (boolean), r_on (ohms), r_off (ohms)."
   },
   PushButton: {
     title: "Push Button",

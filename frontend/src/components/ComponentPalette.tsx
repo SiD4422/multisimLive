@@ -40,6 +40,7 @@ const ALL_COMPONENTS = [
   { tab: 'Basic', category: 'Passive', type: 'Capacitor', value: '1µF', label: 'Capacitor' },
   { tab: 'Basic', category: 'Passive', type: 'Inductor', value: '1mH', label: 'Inductor' },
   { tab: 'Basic', category: 'Passive', type: 'Potentiometer', value: '10k', label: 'Potentiometer' },
+  { tab: 'Basic', category: 'Passive', type: 'potentiometer', value: '10k', label: 'Potentiometer (3-Pin)' },
   { tab: 'Basic', category: 'Passive', type: 'Fuse', value: '', label: 'Fuse' },
   { tab: 'Basic', category: 'Passive', type: 'CoupledInductors', value: '', label: 'Coupled Inductors' },
   { tab: 'Basic', category: 'Passive', type: 'LossyTransmissionLine', value: '', label: 'Lossy Trans. Line' },
@@ -63,6 +64,7 @@ const ALL_COMPONENTS = [
   { tab: 'Basic', category: 'Diodes', type: 'TVSDiode', value: 'P6KE33A', label: 'TVS Diode' },
 
   { tab: 'Basic', category: 'Switches', type: 'SwitchSPST', value: 'SW1', label: 'SPST Switch' },
+  { tab: 'Basic', category: 'Switches', type: 'switch_spst', value: 'SW1', label: 'Interactive Switch' },
   { tab: 'Basic', category: 'Switches', type: 'SPDTSwitch', value: '', label: 'SPDT Switch' },
   { tab: 'Basic', category: 'Switches', type: 'DigitalSwitch', value: '0', label: 'Digital Switch' },
   { tab: 'Basic', category: 'Switches', type: 'PushButton', value: '', label: 'Push Button' },
@@ -211,7 +213,8 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'DFlipFlop': return <IconDFlipFlop {...props} />;
     case 'JKFlipFlop': return <IconJKFlipFlop {...props} />;
     case 'Lamp': return <IconLamp {...props} />;
-    case 'Potentiometer': return <IconPotentiometer {...props} />;
+    case 'Potentiometer':
+    case 'potentiometer': return <IconPotentiometer {...props} />;
     case 'BridgeRectifier': return <IconBridgeRectifier {...props} />;
     case 'ProbeVoltage': return <IconProbeVoltage {...props} />;
     case 'ProbeCurrent': return <IconProbeCurrent {...props} />;
@@ -231,6 +234,7 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'JFET': return <IconJFET {...props} />;
     case 'IGBT': return <IconIGBT {...props} />;
     case 'SwitchSPST': 
+    case 'switch_spst':
     case 'SPDTSwitch': 
     case 'DigitalSwitch':
     case 'PushButton':

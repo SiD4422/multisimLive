@@ -219,5 +219,42 @@ describe('Standard ICs Library netlisting', () => {
     expect(netlist).toContain('TL431_REF');
     expect(netlist).toContain('.subckt TL431_REF');
   });
+
+  it('generates correct SPICE resistor line for switch_spst in OPEN and CLOSED states', () => {
+    const openSwitch: SchematicComponent = {
+      id: 'SW_TEST',
+      type: 'switch_spst',
+      position: { x: 0, y: 0 },
+      props: { closed: false, r_on: 0.001, r_off: 1e8 }
+    };
+    const openNetlist = generateNetlist([openSwitch], [], []);
+    expect(openNetlist).toContain('RSWTEST');
+    expect(openNetlist).toContain('100000000');
+
+    const closedSwitch: SchematicComponent = {
+      id: 'SW_TEST',
+      type: 'switch_spst',
+      position: { x: 0, y: 0 },
+      props: { closed: true, r_on: 0.001, r_off: 1e8 }
+    };
+    const closedNetlist = generateNetlist([closedSwitch], [], []);
+    expect(closedNetlist).toContain('RSWTEST');
+    expect(closedNetlist).toContain('0.001');
+  });
+
+  it('generates dual-resistor SPICE model for potentiometer with correct wiper split', () => {
+    const pot: SchematicComponent = {
+      id: 'POT1',
+      type: 'potentiometer',
+      position: { x: 0, y: 0 },
+      props: { total_resistance: 10000, wiper_position: 25 }
+    };
+    const netlist = generateNetlist([pot], [], []);
+    expect(netlist).toContain('RAPOT1');
+    expect(netlist).toContain('RBPOT1');
+    // 25% of 10000 = 2500, 75% = 7500
+    expect(netlist).toContain('2500');
+    expect(netlist).toContain('7500');
+  });
 });
 
