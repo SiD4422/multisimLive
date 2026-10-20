@@ -4,7 +4,6 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './pages/Layout';
 import LandingPage from './pages/LandingPage';
 import FeaturesPage from './pages/FeaturesPage';
-import CircuitsPage from './pages/CircuitsPage';
 import { AboutPage } from './pages/AboutPage';
 import { EducatorsPage, WorksheetPage } from './pages/EducatorsPage';
 import { ShowcasePage } from './pages/ShowcasePage';
@@ -17,8 +16,9 @@ import { Analytics } from '@vercel/analytics/react';
 
 import CircuitTemplatePage from './pages/CircuitTemplatePage';
 
-// Lazy load the Simulator to prevent bundling 7MB WASM & Canvas on marketing pages
+// Lazy load heavy components to optimize initial marketing landing page load
 const Simulator = lazy(() => import('./pages/Simulator'));
+const CircuitsPage = lazy(() => import('./pages/CircuitsPage'));
 
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const TermsPage = lazy(() => import('./pages/TermsPage'));
@@ -88,7 +88,7 @@ function App() {
               <Route path="/educators/worksheets/:slug" element={<WorksheetPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/showcase" element={<ShowcasePage />} />
-              <Route path="/circuits" element={<CircuitsPage />} />
+              <Route path="/circuits" element={<Suspense fallback={LOADING}><CircuitsPage /></Suspense>} />
               <Route path="/circuits/:id" element={<CircuitTemplatePage />} />
               <Route path="/procedure" element={<ProcedurePage />} />
               <Route path="/resources" element={<ResourcesPage />} />

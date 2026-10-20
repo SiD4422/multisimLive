@@ -34,6 +34,18 @@ function formatRefDes(id: string, type: string): string {
   return `${prefix}${digits}`;
 }
 
+// Module-level timer map for debounced potentiometer simulation runs
+const sliderDebounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+function triggerDebouncedSliderSim(componentId: string) {
+  const existing = sliderDebounceTimers.get(componentId);
+  if (existing) clearTimeout(existing);
+  const timer = setTimeout(() => {
+    useSchematicStore.getState().runSimulation(true);
+    sliderDebounceTimers.delete(componentId);
+  }, 150);
+  sliderDebounceTimers.set(componentId, timer);
+}
+
 interface MultisimSymbolProps {
   component: SchematicComponent;
   selected?: boolean;
@@ -1441,49 +1453,42 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
         })()}
 
         {/* Interactive Slider for Potentiometer — live simulation on drag */}
-        {type === 'Potentiometer' && (() => {
-          // Build a stable debounced runner for live drag
-          const debouncedRun = (() => {
-            let timer: ReturnType<typeof setTimeout>;
-            return () => {
-              clearTimeout(timer);
-              timer = setTimeout(() => useSchematicStore.getState().runSimulation(true), 200);
-            };
-          })();
-          return (
-            <Group rotation={-(component.rotation || 0)} x={-45} y={-65}>
-              <InteractiveSlider
-                min={100}
-                max={parseFloat((component.value || '10k').replace('k','000').replace('M','000000').replace('m','0.001')) || 10000}
-                value={(() => {
-                  const v = component.value || '10k';
-                  if (v.endsWith('M')) return parseFloat(v) * 1e6;
-                  if (v.endsWith('k')) return parseFloat(v) * 1e3;
-                  if (v.endsWith('m')) return parseFloat(v) * 1e-3;
-                  return parseFloat(v) || 10000;
-                })()}
-                width={100}
-                onChange={(newVal) => {
-                  let display = '';
-                  if (newVal >= 1e6) display = `${(newVal / 1e6).toPrecision(3)}Meg`;
-                  else if (newVal >= 1e3) display = `${(newVal / 1e3).toPrecision(3)}k`;
-                  else display = `${newVal.toPrecision(3)}`;
-                  useSchematicStore.getState().updateComponentValue(component.id, display);
-                  debouncedRun(); // live graph update while dragging
-                }}
-                onChangeEnd={(newVal) => {
-                  let display = '';
-                  if (newVal >= 1e6) display = `${(newVal / 1e6).toPrecision(3)}Meg`;
-                  else if (newVal >= 1e3) display = `${(newVal / 1e3).toPrecision(3)}k`;
-                  else display = `${newVal.toPrecision(3)}`;
-                  useSchematicStore.getState().updateComponentValue(component.id, display);
-                  // Immediate final re-run on release
-                  setTimeout(() => useSchematicStore.getState().runSimulation(true), 20);
-                }}
-              />
-            </Group>
-          );
-        })()}
+        {type === 'Potentiometer' && (
+          <Group rotation={-(component.rotation || 0)} x={-45} y={-65}>
+            <InteractiveSlider
+              min={100}
+              max={parseFloat((component.value || '10k').replace('k','000').replace('M','000000').replace('m','0.001')) || 10000}
+              value={(() => {
+                const v = component.value || '10k';
+                if (v.endsWith('M')) return parseFloat(v) * 1e6;
+                if (v.endsWith('k')) return parseFloat(v) * 1e3;
+                if (v.endsWith('m')) return parseFloat(v) * 1e-3;
+                return parseFloat(v) || 10000;
+              })()}
+              width={100}
+              onChange={(newVal) => {
+                let display = '';
+                if (newVal >= 1e6) display = `${(newVal / 1e6).toPrecision(3)}Meg`;
+                else if (newVal >= 1e3) display = `${(newVal / 1e3).toPrecision(3)}k`;
+                else display = `${newVal.toPrecision(3)}`;
+                useSchematicStore.getState().updateComponentValue(component.id, display);
+                triggerDebouncedSliderSim(component.id); // debounced live simulation while dragging
+              }}
+              onChangeEnd={(newVal) => {
+                let display = '';
+                if (newVal >= 1e6) display = `${(newVal / 1e6).toPrecision(3)}Meg`;
+                else if (newVal >= 1e3) display = `${(newVal / 1e3).toPrecision(3)}k`;
+                else display = `${newVal.toPrecision(3)}`;
+                useSchematicStore.getState().updateComponentValue(component.id, display);
+                // Immediate final re-run on release
+                const existing = sliderDebounceTimers.get(component.id);
+                if (existing) clearTimeout(existing);
+                sliderDebounceTimers.delete(component.id);
+                setTimeout(() => useSchematicStore.getState().runSimulation(true), 20);
+              }}
+            />
+          </Group>
+        )}
       </Group>
     </Group>
   );
