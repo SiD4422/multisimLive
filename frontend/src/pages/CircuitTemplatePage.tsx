@@ -2,7 +2,6 @@ import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Play, LayoutGrid, CheckCircle2, Activity } from 'lucide-react';
 import { EXAMPLES } from './CircuitsPage';
-import { useSchematicStore } from '../store/useSchematicStore';
 import SEO from '../components/SEO';
 
 const C = {
@@ -30,7 +29,6 @@ const CANONICAL_MAPPINGS: Record<string, string> = {
 export default function CircuitTemplatePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const importState = useSchematicStore(s => s.importState);
 
   const circuit = EXAMPLES.find(ex => ex.id === id);
 
@@ -45,7 +43,7 @@ export default function CircuitTemplatePage() {
   }
 
   const handleLaunch = () => {
-    importState(JSON.stringify(circuit.data));
+    try { sessionStorage.setItem('nodesim-pending-circuit', JSON.stringify(circuit.data)); } catch {}
     navigate('/simulator');
   };
 

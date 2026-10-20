@@ -5,7 +5,6 @@ import {
   Filter, TrendingUp, GitMerge, Radio, Sliders, ArrowUpDown,
   ToggleRight, Layers, GitBranch, Triangle
 } from 'lucide-react';
-import { useSchematicStore } from '../store/useSchematicStore';
 import { getCommunityCircuits, incrementViews, type CommunityCircuit } from '../lib/firebase';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -76,7 +75,6 @@ import SEO from '../components/SEO';
 
 export default function CircuitsPage() {
   const navigate = useNavigate();
-  const importState = useSchematicStore(s => s.importState);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -102,6 +100,11 @@ export default function CircuitsPage() {
   const [communityCircuits, setCommunityCircuits] = useState<CommunityCircuit[]>([]);
   const [communityLoading, setCommunityLoading] = useState(false);
   const [communityError, setCommunityError] = useState('');
+
+  const handleSimulate = (circuitData: object) => {
+    try { sessionStorage.setItem('nodesim-pending-circuit', JSON.stringify(circuitData)); } catch {}
+    navigate('/simulator');
+  };
 
   useEffect(() => {
     if (activeTab !== 'community') return;

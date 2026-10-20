@@ -198,6 +198,18 @@ function Simulator() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Load pending circuit from sessionStorage (bridged from marketing routes)
+  useEffect(() => {
+    try {
+      const pending = sessionStorage.getItem('nodesim-pending-circuit');
+      if (pending) {
+        sessionStorage.removeItem('nodesim-pending-circuit');
+        const state = JSON.parse(pending);
+        useSchematicStore.getState().importState(JSON.stringify(state));
+      }
+    } catch {}
+  }, []);
+
 
   // Global Keyboard Shortcuts
   useEffect(() => {
