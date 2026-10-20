@@ -32,6 +32,7 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
   const { wires, components, simulationBuffer } = useSchematicStore();
   const animFrameRef = useRef<number>(0);
   const particlesRef = useRef<Particle[]>([]);
+  const filterId = useRef(`flow-glow-${Math.random().toString(36).slice(2)}`).current;
   const [, forceRender] = useState(0);
 
   // O(1) wire lookup map — rebuilt only when wires array changes
@@ -195,7 +196,7 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
         stroke={particle.color}
         strokeWidth={Math.max(1.5, 1.5 * canvasScale)}
         opacity={0.95}
-        filter="url(#flow-glow)"
+        filter={`url(#${filterId})`}
       />
     );
   });
@@ -212,7 +213,7 @@ export function CurrentFlowOverlay({ isActive, canvasOffset, canvasScale, svgWid
       }}
     >
       <defs>
-        <filter id="flow-glow" x="-100%" y="-100%" width="300%" height="300%">
+        <filter id={filterId} x="-100%" y="-100%" width="300%" height="300%">
           <feGaussianBlur stdDeviation="2.5" result="blur"/>
           <feMerge>
             <feMergeNode in="blur"/>
