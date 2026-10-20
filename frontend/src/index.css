@@ -969,14 +969,22 @@ body {
 
 /* ── Mobile Responsive Overrides (≤ 640px) ────────────────────── */
 @media (max-width: 640px) {
-  /* Header: allow wrapping, auto height */
+  /* Header: clean single-row horizontal scrolling on mobile (no vertical viewport crush) */
   .header-top {
-    height: auto;
-    min-height: 48px;
-    flex-wrap: wrap;
-    padding: 6px 10px;
-    gap: 6px;
-    overflow: visible;
+    height: 44px;
+    min-height: 44px;
+    max-height: 44px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 8px;
+    gap: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .header-top::-webkit-scrollbar {
+    display: none;
   }
 
   /* Clamp the negative logo margin that bleeds AI Tutor behind the logo */
@@ -984,14 +992,22 @@ body {
     margin-left: 0 !important;
   }
 
-  /* Toolbar: allow wrapping */
+  /* Toolbar: clean single-row horizontal scrolling on mobile */
   .header-bottom {
-    height: auto;
-    min-height: 36px;
-    flex-wrap: wrap;
-    padding: 4px 8px;
+    height: 38px;
+    min-height: 38px;
+    max-height: 38px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 3px 6px;
     gap: 4px;
-    row-gap: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .header-bottom::-webkit-scrollbar {
+    display: none;
   }
 
   /* Grapher padding fix for mobile (sidebar is gone) */
