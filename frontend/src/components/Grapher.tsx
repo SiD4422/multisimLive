@@ -9,7 +9,7 @@ import {
   Legend, ResponsiveContainer, Brush, ReferenceLine
 } from 'recharts';
 import type { MouseHandlerDataParam } from 'recharts';
-import { Activity, Download, Crosshair, Table2, BarChart2, Sparkles, ChevronDown } from 'lucide-react';
+import { Activity, Download, Crosshair, Table2, BarChart2, Sparkles, ChevronDown, X } from 'lucide-react';
 import { AiWaveformPanel } from './AiWaveformPanel';
 import { toPng } from 'html-to-image';
 import { generateCSV } from '../utils/csvExport';
@@ -27,6 +27,12 @@ const OSC_COLORS = [
 function formatTraceName(t: string): string {
   const s = t.trim();
   const sl = s.toLowerCase();
+
+  // Disambiguated duplicate probe suffixes: e.g. v(n001)_2, v(1)_2, i(v_probe_pr1)_2
+  const dupMatch = s.match(/^(v\(.+\)|i\(.+\))_(\d+)$/i);
+  if (dupMatch) {
+    return `${formatTraceName(dupMatch[1])} #${dupMatch[2]}`;
+  }
 
   // v(n001), v(n002) â€” auto-numbered nodes
   const autoNode = sl.match(/^v\(n(\d+)\)$/);
@@ -502,9 +508,16 @@ function rowFromChartEvent(
   return Number.isFinite(idx) ? rows[idx] ?? null : null;
 }
 
-function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
+function BodePlot({
+  data, traces, probeMap, isOscilloscope,
+  isCursorMode, cursorA, cursorB, hoverRow,
+  onChartClick, onChartMouseMove, onChartMouseLeave,
+  isDigitalMode
+}: { 
   data: SimulationData; traces: string[]; probeMap: Record<string, string>; isOscilloscope: boolean;
-  isCursorMode: boolean; cursorA: SimulationRow | null; setCursorA: (v: SimulationRow | null) => void; cursorB: SimulationRow | null; setCursorB: (v: SimulationRow | null) => void;
+  isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
+  setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
+  onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
   isDigitalMode?: boolean;
 }) {
   const dbTraces = traces.filter(t => t.endsWith('_db'));
@@ -512,16 +525,18 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
 
   const getDisplayName = (name: string) => {
     const baseName = name.replace(/_db$|_phase$/, '');
-    // Try to find the original mapped probe name
-    const pk = Object.keys(probeMap).find(k => k.toLowerCase().includes(baseName.toLowerCase()) || baseName.toLowerCase().includes(k.toLowerCase()));
+    // Try to find the exact or original mapped probe name
+    const pk = Object.keys(probeMap).find(k => k.toLowerCase() === baseName.toLowerCase()) ||
+               Object.keys(probeMap).find(k => k.toLowerCase().includes(baseName.toLowerCase()) || baseName.toLowerCase().includes(k.toLowerCase()));
     return pk ? probeMap[pk] : formatTraceName(baseName);
   };
 
   const commonChartProps = {
     data,
     margin: { top: 5, right: 30, left: 20, bottom: 5 },
-    onClick: isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'frequency'); if (r) setCursorA(r); } : undefined,
-    onMouseMove: isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'frequency'); if (r) setCursorB(r); } : undefined,
+    onClick: isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'frequency'); if (r && onChartClick) onChartClick(r); } : undefined,
+    onMouseMove: isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'frequency'); if (r && onChartMouseMove) onChartMouseMove(r); } : undefined,
+    onMouseLeave: isCursorMode ? onChartMouseLeave : undefined,
   };
 
   const colors = isOscilloscope ? OSC_COLORS : COLORS;
@@ -559,6 +574,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
             {isCursorMode && cursorA && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+            {isCursorMode && cursorA && !cursorB && hoverRow && <ReferenceLine x={hoverRow.frequency} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
             {/* -3dB reference line: at maxDb - 3 */}
             {dbTraces.length > 0 && (() => {
               const allDbVals = data.flatMap(row => dbTraces.map(t => row[t] ?? -Infinity));
@@ -600,6 +616,7 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
             {isCursorMode && cursorA && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+            {isCursorMode && cursorA && !cursorB && hoverRow && <ReferenceLine x={hoverRow.frequency} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
             {phaseTraces.map((t, i) => (
               <Line key={t} name={getDisplayName(t) + ' phase'} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} strokeDasharray="5 3" isAnimationActive={false}  />
@@ -614,9 +631,16 @@ function BodePlot({ data, traces, probeMap, isOscilloscope, isCursorMode, cursor
 
 // âš¡âš¡ DC Sweep Plot âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡Ã¢â€â‚¬
 
-function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: { 
+function DcSweepPlot({
+  data, traces, sweepKey, probeMap, isOscilloscope,
+  isCursorMode, cursorA, cursorB, hoverRow,
+  onChartClick, onChartMouseMove, onChartMouseLeave,
+  isDigitalMode
+}: { 
   data: SimulationData; traces: string[]; sweepKey: string; probeMap: Record<string, string>; isOscilloscope: boolean;
-  isCursorMode: boolean; cursorA: SimulationRow | null; setCursorA: (v: SimulationRow | null) => void; cursorB: SimulationRow | null; setCursorB: (v: SimulationRow | null) => void;
+  isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
+  setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
+  onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
   isDigitalMode?: boolean;
 }) {
   const [brushRange, setBrushRange] = useState<{ start?: number; end?: number } | null>(null);
@@ -633,8 +657,9 @@ function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCurso
       <div style={{ position: 'absolute', top: 28, left: 0, right: 0, bottom: 0 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
-            onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r) setCursorA(r); } : undefined}
-            onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r) setCursorB(r); } : undefined}
+            onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r && onChartClick) onChartClick(r); } : undefined}
+            onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, sweepKey); if (r && onChartMouseMove) onChartMouseMove(r); } : undefined}
+            onMouseLeave={isCursorMode ? onChartMouseLeave : undefined}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis
@@ -653,6 +678,7 @@ function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCurso
             <Legend verticalAlign="top" height={36} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
             {isCursorMode && cursorA && <ReferenceLine x={cursorA[sweepKey]} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+            {isCursorMode && cursorA && !cursorB && hoverRow && <ReferenceLine x={hoverRow[sweepKey]} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
             {traces.map((t, i) => {
               const displayName = probeMap[t] || probeMap[t.toLowerCase()] || formatTraceName(t);
               return (
@@ -679,9 +705,16 @@ function DcSweepPlot({ data, traces, sweepKey, probeMap, isOscilloscope, isCurso
 
 // âš¡âš¡ Transient Plot âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡
 
-function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, isCursorMode, cursorA, setCursorA, cursorB, setCursorB, isDigitalMode }: {
+function TransientPlot({
+  data, traces, probeMap, playbackTime, isOscilloscope,
+  isCursorMode, cursorA, cursorB, hoverRow,
+  onChartClick, onChartMouseMove, onChartMouseLeave,
+  isDigitalMode
+}: {
   data: SimulationData; traces: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
-  isCursorMode: boolean; cursorA: SimulationRow | null; setCursorA: (v: SimulationRow | null) => void; cursorB: SimulationRow | null; setCursorB: (v: SimulationRow | null) => void;
+  isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
+  setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
+  onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
   isDigitalMode?: boolean;
 }) {
   const [zoomDomain, setZoomDomain] = useState<[number | 'dataMin', number | 'dataMax']>(['dataMin', 'dataMax']);
@@ -731,8 +764,9 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
       <div style={{ position: 'absolute', top: 28, left: 0, right: 0, bottom: 0 }} onWheel={handleWheel}>
         <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
-              onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r) setCursorA(r); } : undefined}
-              onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r) setCursorB(r); } : undefined}
+              onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r && onChartClick) onChartClick(r); } : undefined}
+              onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(data, e, 'time'); if (r && onChartMouseMove) onChartMouseMove(r); } : undefined}
+              onMouseLeave={isCursorMode ? onChartMouseLeave : undefined}
             >
               {isOscilloscope && (
                 <defs>
@@ -764,6 +798,7 @@ function TransientPlot({ data, traces, probeMap, playbackTime, isOscilloscope, i
               <Legend verticalAlign="top" height={36} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
               {isCursorMode && cursorA && <ReferenceLine x={cursorA.time} stroke="#ff0000" strokeWidth={2} />}
               {isCursorMode && cursorB && <ReferenceLine x={cursorB.time} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+              {isCursorMode && cursorA && !cursorB && hoverRow && <ReferenceLine x={hoverRow.time} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
               {traces.map((traceName, idx) => {
                 const displayName = probeMap[traceName] || probeMap[traceName.toLowerCase()] || formatTraceName(traceName);
                 return (
@@ -846,7 +881,28 @@ export default function Grapher() {
   const [showFft, setShowFft] = useState(false);
   const [cursorA, setCursorA] = useState<SimulationRow | null>(null);
   const [cursorB, setCursorB] = useState<SimulationRow | null>(null);
+  const [hoverRow, setHoverRow] = useState<SimulationRow | null>(null);
   const [showDcBias, setShowDcBias] = useState(true);
+
+  const handleChartClick = useCallback((r: SimulationRow | null) => {
+    if (!r) return;
+    if (!cursorA) {
+      setCursorA(r);
+    } else if (!cursorB) {
+      setCursorB(r);
+    } else {
+      setCursorA(r);
+      setCursorB(null);
+    }
+  }, [cursorA, cursorB]);
+
+  const handleChartMouseMove = useCallback((r: SimulationRow | null) => {
+    setHoverRow(r);
+  }, []);
+
+  const handleChartMouseLeave = useCallback(() => {
+    setHoverRow(null);
+  }, []);
   
   const [showAiPanel, setShowAiPanel] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
@@ -879,24 +935,38 @@ export default function Grapher() {
   }, []); // [] â€” only mount/unmount; chartRef.current is stable after first render
 
   // Build a map: raw data key → probe display name
-  const probeMap = useMemo(() => {
+  // If multiple probes share the same node, append a disambiguating suffix (_2, _3, etc.)
+  const { probeMap, probeAliases } = useMemo(() => {
     const map: Record<string, string> = {};
+    const aliases: { key: string; base: string }[] = [];
+    const nodeCount: Record<string, number> = {};
+
     probes.forEach((probe, idx) => {
       const name = probe.id || `${probe.type} Probe ${idx + 1}`;
+      let base = '';
       if (probe.type === 'Voltage') {
         const nodeId = getSpiceNodeForPoint(probe.position, components, wires);
-        const key = `v(${nodeId})`;
-        const combined = map[key] ? `${map[key]}, ${name}` : name;
-        map[key] = combined;
-        map[key.toLowerCase()] = combined;
+        base = `v(${nodeId})`;
       } else if (probe.type === 'Current') {
-        const key = `i(v_probe_${probe.id.toLowerCase()})`;
-        const combined = map[key] ? `${map[key]}, ${name}` : name;
-        map[key] = combined;
-        map[key.toLowerCase()] = combined;
+        base = `i(v_probe_${probe.id.toLowerCase()})`;
       }
+      if (!base) return;
+
+      const baseLower = base.toLowerCase();
+      nodeCount[baseLower] = (nodeCount[baseLower] || 0) + 1;
+      const count = nodeCount[baseLower];
+      const key = count > 1 ? `${base}_${count}` : base;
+
+      if (count > 1) {
+        aliases.push({ key, base });
+      }
+
+      map[key] = name;
+      map[key.toLowerCase()] = name;
+      map[probe.id] = key;
     });
-    return map;
+
+    return { probeMap: map, probeAliases: aliases };
   }, [probes, components, wires]);
 
   // Format data for Recharts (safe key names)
@@ -913,34 +983,54 @@ export default function Grapher() {
       ? simulationBuffer
       : simulationBuffer.filter(row => row.time <= playbackTime);
 
-      const visible = activeData.length === 0 && simulationBuffer.length > 0
-        ? [simulationBuffer[0]]
-        : activeData;
+    const visible = activeData.length === 0 && simulationBuffer.length > 0
+      ? [simulationBuffer[0]]
+      : activeData;
 
-      let processed = visible.filter(row => {
-        // Guard: log(0) = -Infinity -> crashes Recharts log scale on XAxis
-        if (plotType === 'ac') return row.frequency > 0;
-        return true;
+    let processed = visible.filter(row => {
+      // Guard: log(0) = -Infinity -> crashes Recharts log scale on XAxis
+      if (plotType === 'ac') return row.frequency > 0;
+      return true;
+    });
+
+    // Populate duplicated probe keys if multiple probes share the same node
+    if (probeAliases.length > 0 && processed.length > 0) {
+      processed = processed.map(row => {
+        const next: SimulationRow = { ...row };
+        for (const { key, base } of probeAliases) {
+          const val = row[base] ?? row[base.toLowerCase()];
+          if (val !== undefined) {
+            next[key] = val;
+          }
+          if (plotType === 'ac') {
+            const dbVal = row[`${base}_db`] ?? row[`${base.toLowerCase()}_db`];
+            if (dbVal !== undefined) next[`${key}_db`] = dbVal;
+            const phaseVal = row[`${base}_phase`] ?? row[`${base.toLowerCase()}_phase`];
+            if (phaseVal !== undefined) next[`${key}_phase`] = phaseVal;
+          }
+        }
+        return next;
       });
+    }
 
-      // Ã°Å¸Å¡â‚¬ PERFORMANCE FIX: Recharts lags heavily with thousands of SVG nodes.
-      // We decimate the dataset to a maximum of ~800 points to keep 60FPS rendering.
-      const MAX_POINTS = 800;
-      if (processed.length > MAX_POINTS) {
-        const step = Math.ceil(processed.length / MAX_POINTS);
-        const decimated = [];
-        for (let i = 0; i < processed.length; i += step) {
-          decimated.push(processed[i]);
-        }
-        // Ensure the last data point is always drawn
-        if (decimated[decimated.length - 1] !== processed[processed.length - 1]) {
-          decimated.push(processed[processed.length - 1]);
-        }
-        processed = decimated;
+    // 🚀 PERFORMANCE FIX: Recharts lags heavily with thousands of SVG nodes.
+    // We decimate the dataset to a maximum of ~800 points to keep 60FPS rendering.
+    const MAX_POINTS = 800;
+    if (processed.length > MAX_POINTS) {
+      const step = Math.ceil(processed.length / MAX_POINTS);
+      const decimated = [];
+      for (let i = 0; i < processed.length; i += step) {
+        decimated.push(processed[i]);
       }
+      // Ensure the last data point is always drawn
+      if (decimated[decimated.length - 1] !== processed[processed.length - 1]) {
+        decimated.push(processed[processed.length - 1]);
+      }
+      processed = decimated;
+    }
 
-      return processed;
-    }, [simulationBuffer, playbackTime, isPlaying]);
+    return processed;
+  }, [simulationBuffer, playbackTime, isPlaying, probeAliases]);
 
 
   // When digital mode is active, snap all voltage values to 0 or 5
@@ -976,7 +1066,7 @@ export default function Grapher() {
           const baseName = k.replace('_db', '').toLowerCase();
           return Object.keys(probeMap).some(pk => {
             const pkl = pk.toLowerCase();
-            return pkl.includes(baseName) || baseName.includes(pkl);
+            return pkl === baseName || pkl.includes(baseName) || baseName.includes(pkl);
           });
         });
         if (probedDbKeys.length > 0) {
@@ -985,7 +1075,7 @@ export default function Grapher() {
         }
         return { traces: [], sweepKey: 'frequency' };
       }
-      return { traces: [...dbKeys, ...phaseKeys], sweepKey: 'frequency' };
+      return { traces: [], sweepKey: 'frequency' };
     }
 
     if (plotType === 'dc') {
@@ -997,7 +1087,7 @@ export default function Grapher() {
         if (probedKeys.length > 0) return { traces: probedKeys, sweepKey: xKey };
         return { traces: [], sweepKey: xKey };
       }
-      return { traces: valueKeys, sweepKey: xKey };
+      return { traces: [], sweepKey: xKey };
     }
 
     // Transient
@@ -1018,8 +1108,8 @@ export default function Grapher() {
       if (probedKeys.length > 0) return { traces: probedKeys, sweepKey: timeKey };
       return { traces: [], sweepKey: timeKey };
     }
-    return { traces: valueKeys, sweepKey: timeKey };
-  }, [formattedData, probes, probeMap, simulationBuffer]);
+    return { traces: [], sweepKey: timeKey };
+  }, [displayData, probes, probeMap, simulationBuffer]);
 
   // ⚡⚡ Render ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
 
@@ -1037,11 +1127,32 @@ export default function Grapher() {
       </div>
     );
   }
+  if (traces.length === 0) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 12, color: '#64748b' }}>
+        <span style={{ fontSize: 32 }}>📡</span>
+        <p style={{ fontSize: 13, textAlign: 'center', maxWidth: 280 }}>
+          No voltage probes connected.<br/>
+          Place a <strong>Probe</strong> on a wire to measure voltage.
+        </p>
+      </div>
+    );
+  }
 
   const plotType = (simulationBuffer as SimulationData)?.__plotType || analysisMode || 'transient';
   let PlotComponent = null;
 
-  const cursorProps = { isCursorMode, cursorA, setCursorA, cursorB, setCursorB };
+  const cursorProps = {
+    isCursorMode,
+    cursorA,
+    setCursorA,
+    cursorB,
+    setCursorB,
+    hoverRow,
+    onChartClick: handleChartClick,
+    onChartMouseMove: handleChartMouseMove,
+    onChartMouseLeave: handleChartMouseLeave,
+  };
 
   // FFT view overrides the normal plot for transient mode
   if (showFft && plotType === 'transient') {
@@ -1097,15 +1208,16 @@ export default function Grapher() {
 
   // Cursor Panel logic
   const renderCursorPanel = () => {
-    if (!isCursorMode || (!cursorA && !cursorB)) return null;
+    if (!isCursorMode || (!cursorA && !cursorB && !hoverRow)) return null;
     
     // Determine the key we are sweeping
     let xKey = 'time';
     if (plotType === 'ac') xKey = 'frequency';
     else if (plotType === 'dc') xKey = sweepKey;
 
+    const effectiveB = cursorB ?? (cursorA ? hoverRow : null);
     const ax = cursorA ? cursorA[xKey] : null;
-    const bx = cursorB ? cursorB[xKey] : null;
+    const bx = effectiveB ? effectiveB[xKey] : null;
     const dx = (ax !== null && bx !== null) ? Math.abs(bx - ax) : null;
     const freq = (xKey === 'time' && dx !== null && dx > 0) ? 1 / dx : null;
 
@@ -1133,13 +1245,37 @@ export default function Grapher() {
           marginBottom: 8,
           borderBottom: isOscilloscope ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(0, 0, 0, 0.1)',
           paddingBottom: 4,
-        }}>Measurement Cursors</div>
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 8,
+        }}>
+          <span>Measurement Cursors</span>
+          <button
+            onClick={() => { setCursorA(null); setCursorB(null); setHoverRow(null); }}
+            title="Clear Cursors"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: isOscilloscope ? '#4ade80' : '#64748b',
+              padding: '2px 4px',
+              borderRadius: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1,
+            }}
+          >
+            <X size={14} />
+          </button>
+        </div>
         <table style={{ width: '100%', textAlign: 'left' }}>
           <thead>
             <tr>
               <th style={{ paddingRight: 8, fontWeight: 400, fontStyle: 'italic' }}>Signal</th>
               <th style={{ paddingRight: 8, color: '#ef4444' }}>A</th>
-              <th style={{ paddingRight: 8, color: '#d946ef' }}>B</th>
+              <th style={{ paddingRight: 8, color: '#d946ef' }}>B{cursorB ? '' : hoverRow ? ' (hover)' : ''}</th>
               <th style={{ fontWeight: 700 }}>Δ</th>
             </tr>
           </thead>
@@ -1160,7 +1296,7 @@ export default function Grapher() {
             )}
             {traces.map((t: string) => {
               const ay = cursorA ? cursorA[t] : null;
-              const by = cursorB ? cursorB[t] : null;
+              const by = effectiveB ? effectiveB[t] : null;
               const dy = (ay !== null && by !== null) ? Math.abs(by - ay) : null;
               const displayName = probeMap[t] || formatTraceName(t);
               return (
@@ -1284,7 +1420,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
 
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none' }} title="Measurement Cursors">
           <div style={{ position: 'relative', width: 36, height: 20, flexShrink: 0 }}>
-            <input type="checkbox" style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} checked={isCursorMode} onChange={() => { setIsCursorMode(!isCursorMode); setCursorA(null); setCursorB(null); }} />
+            <input type="checkbox" style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} checked={isCursorMode} onChange={() => { setIsCursorMode(!isCursorMode); setCursorA(null); setCursorB(null); setHoverRow(null); }} />
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 10, background: isCursorMode ? '#2563eb' : '#d1d5db', transition: 'background 0.2s' }} />
             <div style={{ position: 'absolute', top: 2, left: isCursorMode ? 18 : 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
           </div>
@@ -1383,7 +1519,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
             return (
               <div key={trace} style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
-                <span style={{ color: '#64748b' }}>{formatTraceName(trace)}:</span>
+                <span style={{ color: '#64748b' }}>{probeMap[trace] || formatTraceName(trace)}:</span>
                 <span style={{ color: '#10b981' }}>Vpp={fmt(vpp)}</span>
                 <span style={{ color: '#94a3b8' }}>max={fmt(vmax)}</span>
                 <span style={{ color: '#94a3b8' }}>min={fmt(vmin)}</span>
@@ -1422,7 +1558,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
                 return (
                   <div key={trace} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, padding: '3px 10px', fontSize: 11, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
                     <span style={{ width: 7, height: 7, borderRadius: '50%', background: COLORS[i % COLORS.length], flexShrink: 0, display: 'inline-block' }} />
-                    <span style={{ color: '#94a3b8' }}>{formatTraceName(trace)}</span>
+                    <span style={{ color: '#94a3b8' }}>{probeMap[trace] || formatTraceName(trace)}</span>
                     <span style={{ color: '#4ade80', fontWeight: 700 }}>{fmtMean} V</span>
                   </div>
                 );
@@ -1433,7 +1569,7 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
       )}
 
       {/* Chart area: positioned exactly below toolbar with cleanly docked MeasurementsPanel */}
-      <div ref={chartRef} style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <div ref={chartRef} onContextMenu={isCursorMode ? (e) => { e.preventDefault(); setCursorA(null); setCursorB(null); setHoverRow(null); } : undefined} style={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
           {PlotComponent}
         </div>
