@@ -195,6 +195,152 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
   }
 
   // â”€â”€ Digital Logic Gates (2-input: A, B, Y; NOT gate: A, Y)
+  // ─── Standard 74xx IC Logic Gates (4-pin: A, B, Y, GND; 3-pin: A, Y, GND) ───
+  const logicGates4Pin = ['logic_nand2', 'logic_nor2', 'logic_and2', 'logic_or2', 'logic_xor2'];
+  if (logicGates4Pin.includes(comp.type)) {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x:  0, y: -10, id: 'A' },
+      { x:  0, y:  10, id: 'B' },
+      { x: 55, y:   0, id: 'Y' },
+      { x: 25, y:  25, id: 'GND' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+
+  if (comp.type === 'logic_not') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x:  0, y:  0, id: 'A' },
+      { x: 55, y:  0, id: 'Y' },
+      { x: 25, y: 25, id: 'GND' },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+
+  // ─── Standard Core Linear ICs ───
+  if (comp.type === 'ic_lm358') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x: -15, y: -25, id: 'IN1+' },
+      { x: -15, y: -10, id: 'IN1-' },
+      { x:  75, y: -18, id: 'OUT1' },
+      { x: -15, y:  10, id: 'IN2+' },
+      { x: -15, y:  25, id: 'IN2-' },
+      { x:  75, y:  18, id: 'OUT2' },
+      { x:  30, y: -45, id: 'VCC'  },
+      { x:  30, y:  45, id: 'GND'  },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+
+  if (comp.type === 'ic_lm555') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x:  30, y:  50, id: 'GND'   },
+      { x: -15, y: -15, id: 'TRIG'  },
+      { x:  75, y: -10, id: 'OUT'   },
+      { x: -15, y: -30, id: 'RESET' },
+      { x:  30, y: -50, id: 'VCC'   },
+      { x:  75, y:  15, id: 'DIS'   },
+      { x: -15, y:  15, id: 'THR'   },
+      { x: -15, y:   0, id: 'CTRL'  },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+
+  if (comp.type === 'ic_lm317') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x: 30, y: 25, id: 'ADJ' },
+      { x: 60, y:  0, id: 'OUT' },
+      { x:  0, y:  0, id: 'IN'  },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+
+  if (comp.type === 'ic_zener_ref') {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rawPins = [
+      { x:  0, y:   0, id: 'REF'     },
+      { x: 30, y: -25, id: 'CATHODE' },
+      { x: 30, y:  25, id: 'ANODE'   },
+    ];
+    return rawPins.map(pin => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      return {
+        id: pin.id,
+        gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }),
+        p: { x: comp.position.x + rx, y: comp.position.y + ry }
+      };
+    });
+  }
+
   const twoInputGates = ['GateAND', 'GateOR', 'GateNAND', 'GateNOR', 'GateXOR', 'GateXNOR'];
   if (twoInputGates.includes(comp.type)) {
     const rad = (comp.rotation || 0) * Math.PI / 180;

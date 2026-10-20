@@ -230,6 +230,70 @@ export const componentDescriptions: Record<string, ComponentMetadata> = {
   Lamp: { title: "Indicator Lamp", category: "Digital", description: "A visual light bulb that glows when voltage exceeds 2.5V.", parameters: "No value needed." },
   SevenSegment: { title: "7-Segment Display", category: "Digital", description: "A standard common-cathode 7-segment LED display. Inputs A-G light up corresponding segments when HIGH (>2.5V).", parameters: "No value needed." },
 
+  // Standard 74xx Logic Gates (with GND pin)
+  logic_nand2: {
+    title: "74xx 2-Input NAND Gate",
+    category: "Digital",
+    description: "Standard 74xx quad 2-input NAND gate. Outputs LOW only when both inputs are HIGH; includes explicit GND reference pin.",
+    parameters: "No value needed (TTL 0V/5V thresholds)."
+  },
+  logic_nor2: {
+    title: "74xx 2-Input NOR Gate",
+    category: "Digital",
+    description: "Standard 74xx quad 2-input NOR gate. Outputs HIGH only when both inputs are LOW; includes explicit GND reference pin.",
+    parameters: "No value needed (TTL 0V/5V thresholds)."
+  },
+  logic_not: {
+    title: "74xx NOT Gate (Hex Inverter)",
+    category: "Digital",
+    description: "Standard 74xx hex inverter gate. Inverts digital logic signal; includes explicit GND reference pin.",
+    parameters: "No value needed (TTL 0V/5V thresholds)."
+  },
+  logic_and2: {
+    title: "74xx 2-Input AND Gate",
+    category: "Digital",
+    description: "Standard 74xx quad 2-input AND gate. Outputs HIGH only when both inputs are HIGH; includes explicit GND reference pin.",
+    parameters: "No value needed (TTL 0V/5V thresholds)."
+  },
+  logic_or2: {
+    title: "74xx 2-Input OR Gate",
+    category: "Digital",
+    description: "Standard 74xx quad 2-input OR gate. Outputs HIGH when either input is HIGH; includes explicit GND reference pin.",
+    parameters: "No value needed (TTL 0V/5V thresholds)."
+  },
+  logic_xor2: {
+    title: "74xx 2-Input XOR Gate",
+    category: "Digital",
+    description: "Standard 74xx quad 2-input XOR gate. Outputs HIGH when inputs differ; includes explicit GND reference pin.",
+    parameters: "No value needed (TTL 0V/5V thresholds)."
+  },
+
+  // Standard Linear ICs
+  ic_lm358: {
+    title: "LM358 Dual Operational Amplifier",
+    category: "Integrated Circuits",
+    description: "Standard 8-pin dual general-purpose operational amplifier IC. Full dual op-amp with separate differential inputs and outputs for both channels, plus VCC and GND supply rails.",
+    parameters: "Format: 'LM358'."
+  },
+  ic_lm555: {
+    title: "LM555 Precision Timer IC",
+    category: "Integrated Circuits",
+    description: "Standard 8-pin precision timer IC for monostable, astable, and PWM pulse generation with complete SPICE behavioral subcircuit (comparators, flip-flop, discharge transistor).",
+    parameters: "Format: 'NE555' or 'LM555'."
+  },
+  ic_lm317: {
+    title: "LM317 Adjustable Positive Regulator",
+    category: "Integrated Circuits",
+    description: "Standard 3-terminal adjustable linear voltage regulator IC. Regulates output to 1.25V above the ADJ pin voltage.",
+    parameters: "Format: 'LM317'."
+  },
+  ic_zener_ref: {
+    title: "TL431 Programmable Shunt Reference",
+    category: "Integrated Circuits",
+    description: "Standard 3-terminal programmable precision shunt voltage reference IC (TL431). Features 2.495V internal reference between REF and ANODE, regulating cathode shunt current.",
+    parameters: "Format: 'TL431'."
+  },
+
   // Default fallback
   Default: {
     title: "Component",

@@ -25,7 +25,7 @@ export interface ComponentPaletteProps {
 
 const TAB_CATEGORIES: Record<string, string[]> = {
   Basic: ['Passive', 'Diodes', 'Switches', 'Misc'],
-  Analog: ['Transistors', 'Op-Amps', 'Power'],
+  Analog: ['Transistors', 'Op-Amps', 'Power', 'Integrated Circuits'],
   Digital: ['Logic Gates', 'Timers & Counters', 'Flip-Flops', 'Memory'],
   Sources: ['Voltage Sources', 'Current Sources', 'Signal Generators'],
   Instruments: ['Probes & Meters'],
@@ -109,6 +109,17 @@ const ALL_COMPONENTS = [
   { tab: 'Analog', category: 'Power', type: 'BuckConverter', value: '0.5', label: 'Buck Converter' },
   { tab: 'Analog', category: 'Power', type: 'CurrentMirror', value: '', label: 'Current Mirror' },
 
+  { tab: 'Analog', category: 'Integrated Circuits', type: 'ic_lm358', value: 'LM358', label: 'LM358 Dual Op-Amp' },
+  { tab: 'Analog', category: 'Integrated Circuits', type: 'ic_lm555', value: 'NE555', label: 'LM555 Timer IC' },
+  { tab: 'Analog', category: 'Integrated Circuits', type: 'ic_lm317', value: 'LM317', label: 'LM317 Adj. Regulator' },
+  { tab: 'Analog', category: 'Integrated Circuits', type: 'ic_zener_ref', value: 'TL431', label: 'TL431 Shunt Ref' },
+
+  { tab: 'Digital', category: 'Logic Gates', type: 'logic_nand2', value: '', label: '74xx NAND (4-pin)' },
+  { tab: 'Digital', category: 'Logic Gates', type: 'logic_nor2', value: '', label: '74xx NOR (4-pin)' },
+  { tab: 'Digital', category: 'Logic Gates', type: 'logic_not', value: '', label: '74xx NOT (3-pin)' },
+  { tab: 'Digital', category: 'Logic Gates', type: 'logic_and2', value: '', label: '74xx AND (4-pin)' },
+  { tab: 'Digital', category: 'Logic Gates', type: 'logic_or2', value: '', label: '74xx OR (4-pin)' },
+  { tab: 'Digital', category: 'Logic Gates', type: 'logic_xor2', value: '', label: '74xx XOR (4-pin)' },
   { tab: 'Digital', category: 'Logic Gates', type: 'GateAND', value: '', label: 'AND Gate' },
   { tab: 'Digital', category: 'Logic Gates', type: 'GateOR', value: '', label: 'OR Gate' },
   { tab: 'Digital', category: 'Logic Gates', type: 'GateNOT', value: '', label: 'NOT Gate' },
@@ -182,16 +193,21 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'Capacitor': return <IconCapacitor {...props} />;
     case 'Inductor': return <IconInductor {...props} />;
     case 'Diode': return <IconDiode {...props} />;
-    case 'DiodeZener': return <IconDiodeZener {...props} />;
+    case 'DiodeZener':
+    case 'ic_zener_ref': return <IconDiodeZener {...props} />;
     case 'TransistorNPN': return <IconTransistorNPN {...props} />;
     case 'TransistorPNP': return <IconTransistorPNP {...props} />;
     case 'MosfetN': return <IconMosfetN {...props} />;
     case 'MosfetP': return <IconMosfetP {...props} />;
     case 'Opamp': return <IconOpamp {...props} />;
-    case 'Timer555': return <IconTimer555 {...props} />;
-    case 'GateAND': return <IconGateAND {...props} />;
-    case 'GateOR': return <IconGateOR {...props} />;
-    case 'GateNOT': return <IconGateNOT {...props} />;
+    case 'Timer555':
+    case 'ic_lm555': return <IconTimer555 {...props} />;
+    case 'GateAND':
+    case 'logic_and2': return <IconGateAND {...props} />;
+    case 'GateOR':
+    case 'logic_or2': return <IconGateOR {...props} />;
+    case 'GateNOT':
+    case 'logic_not': return <IconGateNOT {...props} />;
     case 'DFlipFlop': return <IconDFlipFlop {...props} />;
     case 'JKFlipFlop': return <IconJKFlipFlop {...props} />;
     case 'Lamp': return <IconLamp {...props} />;
@@ -229,9 +245,12 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'LossyTransmissionLine': return <IconLossyTransmissionLine {...props} />;
     case 'LosslessTransmissionLine': return <IconLosslessTransmissionLine {...props} />;
     case 'Resistors': return <IconResistorsPack {...props} />;
-    case 'GateNAND': return <IconGateNAND {...props} />;
-    case 'GateNOR': return <IconGateNOR {...props} />;
-    case 'GateXOR': return <IconGateXOR {...props} />;
+    case 'GateNAND':
+    case 'logic_nand2': return <IconGateNAND {...props} />;
+    case 'GateNOR':
+    case 'logic_nor2': return <IconGateNOR {...props} />;
+    case 'GateXOR':
+    case 'logic_xor2': return <IconGateXOR {...props} />;
     case 'GateXNOR': return <IconGateXNOR {...props} />;
     case 'GateBuffer': return <IconGateBuffer {...props} />;
     case 'SRFlipFlop': return <IconSRFlipFlop {...props} />;
@@ -241,7 +260,8 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'VoltageRegulator7809':
     case 'VoltageRegulator7812': 
     case 'VoltageRegulatorLM317': 
-    case 'VoltageRegulatorAMS1117': return <IconVoltageRegulator {...props} />;
+    case 'VoltageRegulatorAMS1117':
+    case 'ic_lm317': return <IconVoltageRegulator {...props} />;
     case 'BuckConverter': return <IconBuckConverter {...props} />;
     case 'SevenSegment': return <Icon7Segment {...props} />;
     case 'CrystalOscillator': return <IconCrystal {...props} />;
@@ -252,7 +272,8 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
     case 'DIAC': return <IconDiac {...props} />;
     case 'Darlington': return <IconDarlington {...props} />;
     case 'CurrentMirror': return <IconCurrentMirror {...props} />;
-    case 'OpampLM358': return <IconOpampLM358 {...props} />;
+    case 'OpampLM358':
+    case 'ic_lm358': return <IconOpampLM358 {...props} />;
     case 'OpampTL071': return <IconOpampTL071 {...props} />;
     case 'SchmittTrigger': return <IconSchmittTrigger {...props} />;
     case 'VCSwitch': return <IconVCSwitch {...props} />;

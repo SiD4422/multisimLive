@@ -2,6 +2,7 @@ import type { SchematicComponent, Wire, Probe, Point } from '../../store/useSche
 import { parseSpiceToFloat } from './parseSpiceToFloat';
 import { getComponentPins } from './getComponentPins';
 import { toGridNode, isSameGridNode, isPointOnSegment, PIN_TOLERANCE } from './utils';
+import { getComponentNetlist } from './getComponentNetlist';
 export function generateNetlist(
   components: SchematicComponent[], 
   wires: Wire[], 
@@ -1133,6 +1134,13 @@ S_dis DIS GND dis_gate GND SMOD555
       models.add(`.subckt DFF D CLK Q QBAR\nRin D qint 1k\nCdel qint 0 1n\nBQ Q 0 V=limit(V(qint)*10,0,5)\nBQB QBAR 0 V=5-limit(V(qint)*10,0,5)\n.ends`);
       models.add(`.subckt IC74HC595_SIM SER SRCLK RCLK QA\nXdff SER SRCLK Q_sr Qbar_sr DFF\nXdff_out Q_sr RCLK QA Qbar_out DFF\n.ends`);
       netlist += `X_${comp.id} ${ser} ${srclk} ${rclk} ${qa} IC74HC595_SIM\n`;
+    }
+    else {
+      const icRes = getComponentNetlist(comp, nodes);
+      if (icRes) {
+        netlist += `${icRes.line}\n`;
+        icRes.subckts.forEach(s => models.add(s));
+      }
     }
   });
 

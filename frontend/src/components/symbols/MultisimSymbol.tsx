@@ -24,6 +24,8 @@ function formatRefDes(id: string, type: string): string {
     GateAND: 'U', GateOR: 'U', GateNOT: 'U', GateNAND: 'U', GateNOR: 'U', GateXOR: 'U',
     DFlipFlop: 'U', JKFlipFlop: 'U',
     SevenSegment: 'DS', Lamp: 'DS',
+    logic_nand2: 'U', logic_nor2: 'U', logic_not: 'U', logic_and2: 'U', logic_or2: 'U', logic_xor2: 'U',
+    ic_lm358: 'U', ic_lm555: 'U', ic_lm317: 'U', ic_zener_ref: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -700,6 +702,168 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     labelOffset = { x: 30, y: -50 };
     valueOffset = { x: 30, y: 50 };
   }
+  // --- 74XX STANDARD LOGIC GATES (4-pin: A, B, Y, GND; 3-pin: A, Y, GND) ---
+  else if (type === 'logic_nand2') {
+    paths.push({ data: "M 5 -15 L 22 -15 Q 40 -15 40 0 Q 40 15 22 15 L 5 15 Z", fill: "#fff" });
+    circles.push({ x: 43, y: 0, r: 3, fill: "#fff" });
+    lines.push({ points: [0, -10, 5, -10] }); // Input A
+    lines.push({ points: [0, 10, 5, 10] });   // Input B
+    lines.push({ points: [46, 0, 55, 0] });   // Output Y
+    lines.push({ points: [25, 15, 25, 25] }); // GND stub
+    texts.push({ text: '&', x: 12, y: -6, size: 12, fill: '#333' });
+    texts.push({ text: 'GND', x: 28, y: 22, size: 7, fill: '#666' });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }, { x: 25, y: 25 }];
+    labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 35 };
+  }
+  else if (type === 'logic_nor2') {
+    paths.push({ data: "M 5 -15 Q 14 -15 18 -15 Q 36 -15 40 0 Q 36 15 18 15 Q 14 15 5 15 Q 11 8 11 0 Q 11 -8 5 -15 Z", fill: "#fff" });
+    circles.push({ x: 43, y: 0, r: 3, fill: "#fff" });
+    lines.push({ points: [0, -10, 8, -10] }); // Input A
+    lines.push({ points: [0, 10, 8, 10] });   // Input B
+    lines.push({ points: [46, 0, 55, 0] });   // Output Y
+    lines.push({ points: [25, 15, 25, 25] }); // GND stub
+    texts.push({ text: '≥1', x: 12, y: -6, size: 10, fill: '#333' });
+    texts.push({ text: 'GND', x: 28, y: 22, size: 7, fill: '#666' });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }, { x: 25, y: 25 }];
+    labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 35 };
+  }
+  else if (type === 'logic_not') {
+    paths.push({ data: "M 5 -15 L 5 15 L 38 0 Z", fill: "#fff" });
+    circles.push({ x: 41, y: 0, r: 3, fill: "#fff" });
+    lines.push({ points: [0, 0, 5, 0] });     // Input A
+    lines.push({ points: [44, 0, 55, 0] });   // Output Y
+    lines.push({ points: [25, 9, 25, 25] });  // GND stub
+    texts.push({ text: '1', x: 12, y: -5, size: 11, fill: '#333' });
+    texts.push({ text: 'GND', x: 28, y: 22, size: 7, fill: '#666' });
+    pins = [{ x: 0, y: 0 }, { x: 55, y: 0 }, { x: 25, y: 25 }];
+    labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 35 };
+  }
+  else if (type === 'logic_and2') {
+    paths.push({ data: "M 5 -15 L 25 -15 Q 45 -15 45 0 Q 45 15 25 15 L 5 15 Z", fill: "#fff" });
+    lines.push({ points: [0, -10, 5, -10] }); // Input A
+    lines.push({ points: [0, 10, 5, 10] });   // Input B
+    lines.push({ points: [45, 0, 55, 0] });   // Output Y
+    lines.push({ points: [25, 15, 25, 25] }); // GND stub
+    texts.push({ text: '&', x: 14, y: -6, size: 12, fill: '#333' });
+    texts.push({ text: 'GND', x: 28, y: 22, size: 7, fill: '#666' });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }, { x: 25, y: 25 }];
+    labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 35 };
+  }
+  else if (type === 'logic_or2') {
+    paths.push({ data: "M 5 -15 Q 15 -15 20 -15 Q 40 -15 45 0 Q 40 15 20 15 Q 15 15 5 15 Q 12 8 12 0 Q 12 -8 5 -15 Z", fill: "#fff" });
+    lines.push({ points: [0, -10, 9, -10] }); // Input A
+    lines.push({ points: [0, 10, 9, 10] });   // Input B
+    lines.push({ points: [45, 0, 55, 0] });   // Output Y
+    lines.push({ points: [25, 15, 25, 25] }); // GND stub
+    texts.push({ text: '≥1', x: 14, y: -6, size: 10, fill: '#333' });
+    texts.push({ text: 'GND', x: 28, y: 22, size: 7, fill: '#666' });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }, { x: 25, y: 25 }];
+    labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 35 };
+  }
+  else if (type === 'logic_xor2') {
+    paths.push({ data: "M 10 -15 Q 19 -15 23 -15 Q 43 -15 48 0 Q 43 15 23 15 Q 19 15 10 15 Q 16 8 16 0 Q 16 -8 10 -15 Z", fill: "#fff" });
+    paths.push({ data: "M 5 -15 Q 11 -8 11 0 Q 11 8 5 15", fill: "transparent" });
+    lines.push({ points: [0, -10, 12, -10] }); // Input A
+    lines.push({ points: [0, 10, 12, 10] });  // Input B
+    lines.push({ points: [48, 0, 55, 0] });   // Output Y
+    lines.push({ points: [25, 15, 25, 25] }); // GND stub
+    texts.push({ text: '=1', x: 17, y: -6, size: 10, fill: '#333' });
+    texts.push({ text: 'GND', x: 28, y: 22, size: 7, fill: '#666' });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }, { x: 25, y: 25 }];
+    labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 35 };
+  }
+  // --- CORE LINEAR ICS ---
+  else if (type === 'ic_lm358') {
+    // 8-pin Dual Op-Amp IC body
+    paths.push({ data: "M 0 -38 L 60 -38 L 60 38 L 0 38 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -38 A 5 5 0 0 0 35 -38", fill: "transparent" }); // Notch
+    // Left pins: IN1+ (-25), IN1- (-10), IN2+ (+10), IN2- (+25)
+    lines.push({ points: [-15, -25, 0, -25] });
+    lines.push({ points: [-15, -10, 0, -10] });
+    lines.push({ points: [-15, 10, 0, 10] });
+    lines.push({ points: [-15, 25, 0, 25] });
+    texts.push({ text: '1+', x: 3, y: -29, size: 7 });
+    texts.push({ text: '1-', x: 3, y: -14, size: 7 });
+    texts.push({ text: '2+', x: 3, y: 6, size: 7 });
+    texts.push({ text: '2-', x: 3, y: 21, size: 7 });
+    // Right pins: OUT1 (-18), OUT2 (+18)
+    lines.push({ points: [60, -18, 75, -18] });
+    lines.push({ points: [60, 18, 75, 18] });
+    texts.push({ text: 'OUT1', x: 35, y: -22, size: 7 });
+    texts.push({ text: 'OUT2', x: 35, y: 14, size: 7 });
+    // Supply pins: VCC (top 30, -45), GND (bottom 30, 45)
+    lines.push({ points: [30, -38, 30, -45] });
+    lines.push({ points: [30, 38, 30, 45] });
+    texts.push({ text: 'VCC', x: 21, y: -34, size: 7 });
+    texts.push({ text: 'GND', x: 21, y: 28, size: 7 });
+    texts.push({ text: 'LM358', x: 18, y: -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y: -25 }, { x: -15, y: -10 }, { x: 75, y: -18 },
+      { x: -15, y: 10 }, { x: -15, y: 25 }, { x: 75, y: 18 },
+      { x: 30, y: -45 }, { x: 30, y: 45 }
+    ];
+    labelOffset = { x: 30, y: -58 };
+    valueOffset = { x: 30, y: 58 };
+  }
+  else if (type === 'ic_lm555') {
+    // 8-pin Timer IC
+    paths.push({ data: "M 0 -40 L 60 -40 L 60 40 L 0 40 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -40 A 5 5 0 0 0 35 -40", fill: "transparent" }); // Notch
+    // Left pins: RESET (-30), TRIG (-15), CTRL (0), THR (15)
+    lines.push({ points: [-15, -30, 0, -30] });
+    lines.push({ points: [-15, -15, 0, -15] });
+    lines.push({ points: [-15, 0, 0, 0] });
+    lines.push({ points: [-15, 15, 0, 15] });
+    texts.push({ text: 'RST', x: 3, y: -34, size: 7 });
+    texts.push({ text: 'TRG', x: 3, y: -19, size: 7 });
+    texts.push({ text: 'CV',  x: 3, y: -4, size: 7 });
+    texts.push({ text: 'THR', x: 3, y: 11, size: 7 });
+    // Right pins: OUT (-10), DIS (15)
+    lines.push({ points: [60, -10, 75, -10] });
+    lines.push({ points: [60, 15, 75, 15] });
+    texts.push({ text: 'OUT', x: 38, y: -14, size: 7 });
+    texts.push({ text: 'DIS', x: 38, y: 11, size: 7 });
+    // Supply pins: VCC (top 30, -50), GND (bottom 30, 50)
+    lines.push({ points: [30, -40, 30, -50] });
+    lines.push({ points: [30, 40, 30, 50] });
+    texts.push({ text: 'VCC', x: 21, y: -36, size: 7 });
+    texts.push({ text: 'GND', x: 21, y: 30, size: 7 });
+    texts.push({ text: 'LM555', x: 18, y: -4, size: 9, fill: '#333' });
+    pins = [
+      { x: 30, y: 50 }, { x: -15, y: -15 }, { x: 75, y: -10 },
+      { x: -15, y: -30 }, { x: 30, y: -50 }, { x: 75, y: 15 },
+      { x: -15, y: 15 }, { x: -15, y: 0 }
+    ];
+    labelOffset = { x: 30, y: -62 };
+    valueOffset = { x: 30, y: 62 };
+  }
+  else if (type === 'ic_lm317') {
+    paths.push({ data: "M 10 -15 L 50 -15 L 50 15 L 10 15 Z", fill: "#fff" });
+    lines.push({ points: [0, 0, 10, 0] });     // IN
+    lines.push({ points: [50, 0, 60, 0] });    // OUT
+    lines.push({ points: [30, 15, 30, 25] });  // ADJ
+    texts.push({ text: 'IN', x: 12, y: -5, size: 8, fill: '#333' });
+    texts.push({ text: 'OUT', x: 32, y: -5, size: 8, fill: '#333' });
+    texts.push({ text: 'ADJ', x: 21, y: 6, size: 8, fill: '#333' });
+    texts.push({ text: 'LM317', x: 18, y: -13, size: 7, fill: '#666' });
+    pins = [{ x: 30, y: 25 }, { x: 60, y: 0 }, { x: 0, y: 0 }];
+    labelOffset = { x: 15, y: -30 };
+    valueOffset = { x: 15, y: 35 };
+  }
+  else if (type === 'ic_zener_ref') {
+    lines.push({ points: [30, -25, 30, -10] }); // Cathode lead
+    lines.push({ points: [30, 10, 30, 25] });   // Anode lead
+    lines.push({ points: [0, 0, 24, 0] });      // REF lead
+    paths.push({ data: "M 22 10 L 38 10 L 30 -10 Z", fill: strokeColor });
+    lines.push({ points: [22, -10, 38, -10] });
+    lines.push({ points: [22, -10, 22, -6] });
+    lines.push({ points: [38, -10, 38, -14] });
+    texts.push({ text: 'REF', x: 4, y: -8, size: 7, fill: '#333' });
+    texts.push({ text: 'TL431', x: 38, y: -2, size: 7, fill: '#666' });
+    pins = [{ x: 0, y: 0 }, { x: 30, y: -25 }, { x: 30, y: 25 }];
+    labelOffset = { x: 15, y: -35 };
+    valueOffset = { x: 15, y: 35 };
+  }
   // --- FLIP FLOPS ---
   else if (type === 'DFlipFlop') {
     paths.push({ data: "M 10 -25 L 50 -25 L 50 25 L 10 25 Z", fill: "#fff" });
@@ -984,7 +1148,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
           return (
             <Circle 
               key={`pin${i}`}
-              x={scaledX} y={scaledY} radius={5} fill="#fff" stroke={strokeColor} strokeWidth={2} hitStrokeWidth={isTouch ? 34 : 15}
+              x={scaledX} y={scaledY} radius={5} fill="#fff" stroke={strokeColor} strokeWidth={2} hitStrokeWidth={isTouch ? 56 : 15}
               onPointerDown={handlePinHit}
               onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as any).fill('#e5e7eb'); }}
               onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}

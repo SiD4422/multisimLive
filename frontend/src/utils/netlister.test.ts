@@ -166,3 +166,58 @@ describe('Netlister semantic correctness', () => {
   });
 });
 
+describe('Standard ICs Library netlisting', () => {
+  const gates = [
+    { type: 'logic_nand2', subckt: 'NAND2' },
+    { type: 'logic_nor2', subckt: 'NOR2' },
+    { type: 'logic_not', subckt: 'NOT1' },
+    { type: 'logic_and2', subckt: 'AND2' },
+    { type: 'logic_or2', subckt: 'OR2' },
+    { type: 'logic_xor2', subckt: 'XOR2' },
+  ];
+
+  gates.forEach(({ type, subckt }) => {
+    it(`generates valid subcircuit and instance for ${type}`, () => {
+      const comp: SchematicComponent = { id: 'U1', type, position: { x: 0, y: 0 } };
+      const netlist = generateNetlist([comp], [], []);
+      expect(netlist).toContain(`X_U1`);
+      expect(netlist).toContain(subckt);
+      expect(netlist).toContain(`.subckt ${subckt}`);
+      expect(netlist).toContain(`.ends`);
+    });
+  });
+
+  it('generates valid subcircuit and instance for ic_lm358 (dual op-amp)', () => {
+    const comp: SchematicComponent = { id: 'U_OP', type: 'ic_lm358', position: { x: 0, y: 0 } };
+    const netlist = generateNetlist([comp], [], []);
+    expect(netlist).toContain('X_U_OP');
+    expect(netlist).toContain('LM358');
+    expect(netlist).toContain('.subckt LM358');
+    expect(netlist).toContain('.subckt UA741_SUB');
+  });
+
+  it('generates valid subcircuit and instance for ic_lm555 (timer)', () => {
+    const comp: SchematicComponent = { id: 'U_TMR', type: 'ic_lm555', position: { x: 0, y: 0 } };
+    const netlist = generateNetlist([comp], [], []);
+    expect(netlist).toContain('X_U_TMR');
+    expect(netlist).toContain('LM555_BEHAVIORAL');
+    expect(netlist).toContain('.subckt LM555_BEHAVIORAL');
+  });
+
+  it('generates valid subcircuit and instance for ic_lm317 (regulator)', () => {
+    const comp: SchematicComponent = { id: 'U_REG', type: 'ic_lm317', position: { x: 0, y: 0 } };
+    const netlist = generateNetlist([comp], [], []);
+    expect(netlist).toContain('X_U_REG');
+    expect(netlist).toContain('LM317_REG');
+    expect(netlist).toContain('.subckt LM317_REG');
+  });
+
+  it('generates valid subcircuit and instance for ic_zener_ref (TL431)', () => {
+    const comp: SchematicComponent = { id: 'U_REF', type: 'ic_zener_ref', position: { x: 0, y: 0 } };
+    const netlist = generateNetlist([comp], [], []);
+    expect(netlist).toContain('X_U_REF');
+    expect(netlist).toContain('TL431_REF');
+    expect(netlist).toContain('.subckt TL431_REF');
+  });
+});
+
