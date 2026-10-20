@@ -36,6 +36,7 @@ export default function LandingPage() {
           <nav className="msl-nav-links" aria-label="Primary" style={{ justifyContent: 'center' }}>
             <Link to="/" className="active">Home</Link>
             <Link to="/features">Features</Link>
+            <Link to="/educators">Educators</Link>
             <Link to="/about">About</Link>
             <Link to="/circuits">Circuits</Link>
             <Link to="/resources">Resources</Link>
@@ -108,6 +109,7 @@ export default function LandingPage() {
           <div className="mp-links">
             <Link to="/" className="active">Home</Link>
             <Link to="/features">Features</Link>
+            <Link to="/educators">Educators</Link>
             <Link to="/about">About</Link>
             <Link to="/circuits">Circuits</Link>
             <Link to="/showcase">Video Showcase</Link>
@@ -159,7 +161,7 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-      </main>        <footer className="msl-site-footer">         <div className="msl-container msl-footer-row">           <div className="msl-footer-brand">             <svg viewBox="0 0 34 34" aria-hidden="true"><path d="M8 27 L8 7 L26 27 L26 7" fill="none" stroke="url(#nGrad)" strokeWidth="4.4" strokeLinecap="round" strokeLinejoin="round"/><circle cx="8" cy="7" r="2.5" fill="url(#nGrad)"/><circle cx="8" cy="27" r="2.5" fill="url(#nGrad)"/><circle cx="26" cy="7" r="2.5" fill="url(#nGrad)"/><circle cx="26" cy="27" r="2.5" fill="url(#nGrad)"/></svg>             NodeSim           </div>           <ul className="msl-footer-links">             <li><Link to="/features">Features</Link>
+      </main>        <footer className="msl-site-footer">         <div className="msl-container msl-footer-row">           <div className="msl-footer-brand">             <svg viewBox="0 0 34 34" aria-hidden="true"><path d="M8 27 L8 7 L26 27 L26 7" fill="none" stroke="url(#nGrad)" strokeWidth="4.4" strokeLinecap="round" strokeLinejoin="round"/><circle cx="8" cy="7" r="2.5" fill="url(#nGrad)"/><circle cx="8" cy="27" r="2.5" fill="url(#nGrad)"/><circle cx="26" cy="7" r="2.5" fill="url(#nGrad)"/><circle cx="26" cy="27" r="2.5" fill="url(#nGrad)"/></svg>             NodeSim           </div>           <ul className="msl-footer-links">             <li><Link to="/features">Features</Link></li><li><Link to="/educators">Educators</Link></li><li>
               <Link to="/about">About</Link></li>             <li><Link to="/circuits">Circuits</Link>
               <Link to="/showcase">Video Showcase</Link></li>             <li><Link to="/tutorials">Tutorials</Link></li><li><Link to="/compare">Comparisons</Link></li>             <li><Link to="/resources">Resources</Link></li>             <li><a href="https://github.com/SiD4422/multisimLive" target="_blank" rel="noopener noreferrer">GitHub</a></li>
              <li><a href="https://www.youtube.com/@NODESIM-simulation" target="_blank" rel="noopener noreferrer">YouTube</a></li>           </ul>           <p>© {new Date().getFullYear()} NodeSim. Open source under the MIT License.</p>         </div>       </footer>     </>   ); }

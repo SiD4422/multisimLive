@@ -3,10 +3,17 @@
 
   <!-- Core pages — highest priority -->
   <url><loc>https://www.nodesimapp.com/</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://www.nodesimapp.com/educators</loc><lastmod>2026-10-20</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.nodesimapp.com/circuits</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.nodesimapp.com/features</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.nodesimapp.com/procedure</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.nodesimapp.com/resources</loc><lastmod>2026-09-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
+  <!-- Educator worksheets — high .edu backlink and academic value -->
+  <url><loc>https://www.nodesimapp.com/educators/worksheets/rc-circuit-analysis</loc><lastmod>2026-10-20</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/educators/worksheets/op-amp-configurations</loc><lastmod>2026-10-20</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/educators/worksheets/bjt-amplifier</loc><lastmod>2026-10-20</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.nodesimapp.com/educators/worksheets/rectifier-and-filter</loc><lastmod>2026-10-20</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 
   <!-- Tutorial pages — high SEO value (keyword-rich long-form content) -->
   <url><loc>https://www.nodesimapp.com/tutorials</loc><lastmod>2026-10-13</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
