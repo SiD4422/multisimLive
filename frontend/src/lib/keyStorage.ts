@@ -14,6 +14,8 @@
 // If you are on a shared computer, clear your key after use via Settings.
 
 const KEY_STORAGE_KEY = 'nodesim-byok-gemini';
+const KEY_EXPIRY_KEY = 'nodesim-byok-gemini-expires';
+const KEY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 function encode(raw: string): string {
   // Simple base64 — not encryption, just prevents casual shoulder-surfing of localStorage
@@ -24,18 +26,30 @@ function decode(stored: string): string | null {
   try {
     return decodeURIComponent(atob(stored));
   } catch {
-    return null;
+    try {
+      return atob(stored);
+    } catch {
+      return null;
+    }
   }
 }
 
 export function saveApiKey(rawKey: string): void {
   try {
     localStorage.setItem(KEY_STORAGE_KEY, encode(rawKey.trim()));
+    localStorage.setItem(KEY_EXPIRY_KEY, String(Date.now() + KEY_TTL_MS));
   } catch { /* private mode / quota */ }
 }
 
 export function loadApiKey(): string | null {
   try {
+    const expiry = localStorage.getItem(KEY_EXPIRY_KEY);
+    if (expiry && Date.now() > Number(expiry)) {
+      // Key has expired — clear it
+      localStorage.removeItem(KEY_STORAGE_KEY);
+      localStorage.removeItem(KEY_EXPIRY_KEY);
+      return null;
+    }
     const stored = localStorage.getItem(KEY_STORAGE_KEY);
     if (!stored) return null;
     // Support legacy obfuscated format (reversed base64) for backwards compat
@@ -52,9 +66,20 @@ export function loadApiKey(): string | null {
 }
 
 export function clearApiKey(): void {
-  try { localStorage.removeItem(KEY_STORAGE_KEY); } catch { /* ignore */ }
+  try {
+    localStorage.removeItem(KEY_STORAGE_KEY);
+    localStorage.removeItem(KEY_EXPIRY_KEY);
+  } catch { /* ignore */ }
 }
 
 export function hasStoredApiKey(): boolean {
-  try { return localStorage.getItem(KEY_STORAGE_KEY) !== null; } catch { return false; }
+  try {
+    const expiry = localStorage.getItem(KEY_EXPIRY_KEY);
+    if (expiry && Date.now() > Number(expiry)) {
+      localStorage.removeItem(KEY_STORAGE_KEY);
+      localStorage.removeItem(KEY_EXPIRY_KEY);
+      return false;
+    }
+    return localStorage.getItem(KEY_STORAGE_KEY) !== null;
+  } catch { return false; }
 }

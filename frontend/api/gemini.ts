@@ -87,11 +87,19 @@ function json(body: unknown, status: number, extra: Record<string, string> = {})
 }
 
 function clientIp(req: Request): string {
-  return (
-    req.headers.get('x-real-ip') ||
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    'unknown'
-  );
+  // On Vercel Edge, req.ip is injected by the platform (not spoofable by clients)
+  // @ts-ignore — Vercel Edge adds .ip
+  if ((req as any).ip) return (req as any).ip;
+
+  // Fallback for local dev: use x-forwarded-for but take LAST address
+  // (in a proxy chain, the rightmost is the most-trusted relay)
+  const xff = req.headers.get('x-forwarded-for');
+  if (xff) {
+    const parts = xff.split(',').map(s => s.trim());
+    return parts[parts.length - 1]; // rightmost = most trusted
+  }
+
+  return req.headers.get('x-real-ip') || 'unknown';
 }
 
 // ─── In-memory Rate Limiting ─────────────────────────────────────────────────

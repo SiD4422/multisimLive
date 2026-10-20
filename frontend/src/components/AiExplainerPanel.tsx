@@ -320,17 +320,23 @@ export default function AiExplainerPanel({ isOpen, onClose, onFocusNode }: Props
       {/* API Key Row */}
       <div style={{ padding: '8px 16px', borderBottom: '1px solid #f1f5f9', background: '#fafafa' }}>
         {showKeyInput ? (
-          <div style={{ display: 'flex', gap: 6 }}>
-            <input
-              type="password" placeholder="Paste your Gemini API key..." defaultValue={apiKey}
-              id="gemini-api-key-input" autoFocus
-              onKeyDown={e => { if (e.key === 'Enter') saveKey((e.target as HTMLInputElement).value); }}
-              style={{ flex: 1, padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none' }}
-            />
-            <button onClick={() => saveKey((document.getElementById('gemini-api-key-input') as HTMLInputElement)?.value || '')}
-              style={{ padding: '6px 12px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
-              Save
-            </button>
+          <div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                type="password" placeholder="Paste your Gemini API key..." defaultValue={apiKey}
+                id="gemini-api-key-input" autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') saveKey((e.target as HTMLInputElement).value); }}
+                style={{ flex: 1, padding: '6px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 12, outline: 'none' }}
+              />
+              <button onClick={() => saveKey((document.getElementById('gemini-api-key-input') as HTMLInputElement)?.value || '')}
+                style={{ padding: '6px 12px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                Save
+              </button>
+            </div>
+            <p style={{ fontSize: 11, color: '#f59e0b', marginTop: 6, display: 'flex', gap: 4, alignItems: 'flex-start' }}>
+              <span>⚠️</span>
+              <span>Your key is stored locally in your browser. Do not use this on shared or public computers.</span>
+            </p>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
