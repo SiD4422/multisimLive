@@ -133,20 +133,20 @@ export const universityLabPacks: UniversityLabPack[] = [
       {
         id: 'vtu-22ecl35-exp2',
         experimentNo: 2,
-        title: 'RC Phase Shift Oscillator',
-        aim: 'To design and simulate an RC phase shift oscillator and verify the frequency of oscillation.',
+        title: 'Wien Bridge Oscillator',
+        aim: 'To design and simulate a Wien bridge RC oscillator using an op-amp and verify the frequency of oscillation.',
         university: 'VTU',
         courseCode: '22ECL35',
         courseName: 'Analog Circuits Laboratory',
         circuitId: 'wien_bridge', // matched to example circuit ID
-        theory: 'An RC phase shift oscillator uses three RC sections each providing 60° phase shift, totaling 180°. Combined with the 180° inversion of the transistor, total phase shift = 360°. Frequency f = 1/(2π√6 RC).',
-        expectedObservations: 'Stable sinusoidal oscillation at frequency f = 1/(2π√6 RC) ≈ 1.6 kHz for typical values.',
+        theory: 'The Wien bridge oscillator uses an op-amp with a frequency-selective RC positive feedback network. Oscillation occurs when the Barkhausen criteria are satisfied: loop gain = 1 and total phase shift = 0°. Frequency f = 1/(2πRC). The non-inverting gain must be exactly 3 (Rf = 2R1) to sustain oscillation.',
+        expectedObservations: 'Stable sinusoidal oscillation at frequency f = 1/(2πRC) ≈ 1.59 kHz for R = 10 kΩ and C = 10 nF.',
         vivaQuestions: [
           'What are the Barkhausen criteria for oscillation?',
-          'Why are three RC sections needed?',
-          'What is the minimum gain needed to sustain oscillation?',
-          'Difference between RC and LC oscillators?',
-          'What is frequency stability?'
+          'Why must the gain be exactly 3 in a Wien bridge oscillator?',
+          'How does the Wien bridge RC network provide 0° phase shift at f₀?',
+          'Difference between Wien bridge and RC phase shift oscillator?',
+          'What is frequency stability and how is it improved?'
         ]
       }
     ]

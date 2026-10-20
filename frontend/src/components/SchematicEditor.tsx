@@ -163,6 +163,13 @@ export default function SchematicEditor() {
       setDotPhase(0);
       return;
     }
+    // When SVG overlay (CurrentFlowOverlay) is active, skip the Konva-layer dot animation
+    // entirely — the overlay already animates at 30fps. Running both wastes 60fps React
+    // re-renders on the 1600-line SchematicEditor component tree.
+    if (isFlowMode) {
+      if (dotAnimRef.current) cancelAnimationFrame(dotAnimRef.current);
+      return;
+    }
     const animate = (ts: number) => {
       if (dotStartRef.current === null) dotStartRef.current = ts;
       const elapsed = (ts - dotStartRef.current) / 1000;
@@ -172,7 +179,7 @@ export default function SchematicEditor() {
     dotStartRef.current = null;
     dotAnimRef.current = requestAnimationFrame(animate);
     return () => { if (dotAnimRef.current) cancelAnimationFrame(dotAnimRef.current); };
-  }, [isPlaying, simulationBuffer]);
+  }, [isPlaying, simulationBuffer, isFlowMode]);
 
   // Auto-enable flow mode when simulation data first arrives
   const prevSimBufferRef = useRef<typeof simulationBuffer>(null);

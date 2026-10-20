@@ -15,8 +15,8 @@ export default function SEO({
   description, 
   name = "NodeSim", 
   type = "website", 
-  url = "https://nodesimapp.com",
-  image = "https://nodesimapp.com/logo_main.png" 
+  url = "https://www.nodesimapp.com",
+  image = "https://www.nodesimapp.com/logo_main.png" 
 }: SEOProps) {
   return (
     <Helmet>

@@ -1,1 +1,6 @@
+# Canonical host: always redirect non-www to www (301 permanent)
+https://nodesimapp.com/* https://www.nodesimapp.com/:splat 301!
+http://nodesimapp.com/* https://www.nodesimapp.com/:splat 301!
+
+# SPA fallback: all other requests serve index.html
 /*    /index.html   200

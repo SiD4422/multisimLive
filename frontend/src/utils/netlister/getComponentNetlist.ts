@@ -38,8 +38,8 @@ Rout Y GND 10Meg
 
   UA741_SUB: `.subckt UA741_SUB INP INM VCC VEE OUT
 Rin INP INM 2Meg
-B1 OUT 0 V = (V(VCC)-V(VEE)-1.5)*tanh((V(INP)-V(INM))*200000)+(V(VCC)+V(VEE))/2
-Rout OUT 0 10Meg
+B1 OUT GND V = (V(VCC)-V(VEE)-1.5)*tanh((V(INP)-V(INM))*200000)+(V(VCC)+V(VEE))/2
+Rout OUT GND 10Meg
 .ends UA741_SUB`,
 
   LM358: `.subckt LM358 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC GND
@@ -58,7 +58,7 @@ R_set set_drv set_mid 1k
 D_set set_mid latch DMOD555
 B_rst rst_drv GND V = (V(RESET) < 0.8) ? 5 : ((V(THR) > V(CTRL)) ? 5 : -5)
 R_rst rst_drv rst_mid 1k
-D_rst latch rst_mid DMOD555
+D_rst rst_mid latch DMOD555
 B_out OUT GND V = (V(RESET) < 0.8) ? 0 : ((V(latch) > 2.5) ? (V(VCC)-1.5) : 0)
 B_dis_gate dis_gate GND V = (V(latch) > 2.5) ? 0 : 5
 S_dis DIS GND dis_gate GND SMOD555
@@ -67,13 +67,13 @@ S_dis DIS GND dis_gate GND SMOD555
 .ends LM555_BEHAVIORAL`,
 
   LM317_REG: `.subckt LM317_REG ADJ OUT IN
-B_reg OUT 0 V = min(V(IN)-2, V(ADJ) + 1.25)
-I_adj ADJ 0 50u
-R_out OUT 0 10Meg
+B_reg OUT IN V = min(V(IN)-2, V(ADJ) + 1.25)
+I_adj ADJ IN 50u
+R_out OUT IN 10Meg
 .ends LM317_REG`,
 
   TL431_REF: `.subckt TL431_REF REF CATHODE ANODE
-B_shunt CATHODE ANODE I = max(0, (V(REF,ANODE) - 2.5) * 1000)
+B_shunt CATHODE ANODE I = 0.1 * tanh((V(REF,ANODE) - 2.5) * 50)
 R_leak CATHODE ANODE 10Meg
 R_in REF ANODE 100Meg
 .ends TL431_REF`
