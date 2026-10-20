@@ -93,6 +93,10 @@ function Simulator() {
   const [graphSnapshot, setGraphSnapshot] = useState<string | undefined>();
   const stageRef = useRef<any>(null);
 
+  useEffect(() => {
+    (window as any).useSchematicStore = useSchematicStore;
+  }, []);
+
   // ── Circuit DRC ────────────────────────────────────────────────────────────────
   // Pre-flight checks before simulation to surface common mistakes
   const drcIssues: string[] = useMemo(() => {
@@ -504,7 +508,7 @@ function Simulator() {
       {/* Toast Notification */}
       {toast && (
         <div style={{
-          position: 'fixed', top: '1rem', left: '50%', transform: 'translateX(-50%)',
+          position: 'fixed', top: '64px', left: '50%', transform: 'translateX(-50%)',
           zIndex: 1000, padding: '0.75rem 1rem', borderRadius: '0.5rem',
           boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
           border: `1px solid ${toast.type === 'success' ? '#bbf7d0' : '#fde68a'}`,

@@ -686,16 +686,18 @@ function DcSweepPlot({
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
               );
             })}
-            <Brush
-              dataKey={sweepKey}
-              height={30}
-              stroke={isOscilloscope ? "#00ff00" : "#10b981"}
-              fill={isOscilloscope ? "#002200" : undefined}
-              tickFormatter={(v) => `${Number(v).toFixed(1)}V`}
-              startIndex={Number.isFinite(brushRange?.start) ? brushRange!.start : 0}
-              endIndex={Number.isFinite(brushRange?.end) ? brushRange!.end : Math.max(0, data.length - 1)}
-              onChange={(e: any) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
-            />
+            {data && data.length >= 2 && (
+              <Brush
+                dataKey={sweepKey}
+                height={30}
+                stroke={isOscilloscope ? "#00ff00" : "#10b981"}
+                fill={isOscilloscope ? "#002200" : undefined}
+                tickFormatter={(v) => `${Number(v).toFixed(1)}V`}
+                startIndex={Number.isFinite(brushRange?.start) ? brushRange!.start : 0}
+                endIndex={Number.isFinite(brushRange?.end) ? brushRange!.end : Math.max(0, data.length - 1)}
+                onChange={(e: any) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -808,16 +810,18 @@ function TransientPlot({
                     stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} filter={isOscilloscope ? 'url(#glow)' : undefined} />
                 );
               })}
-              <Brush
-                dataKey="time"
-                height={30}
-                stroke={isOscilloscope ? "#00ff00" : "#10b981"}
-                fill={isOscilloscope ? "#002200" : undefined}
-                tickFormatter={(val) => `${(val * 1000).toFixed(1)}ms`}
-                startIndex={Number.isFinite(brushRange?.start) ? brushRange!.start : Math.max(0, data.length > 0 ? data.length - Math.min(200, data.length) : 0)}
-                endIndex={Number.isFinite(brushRange?.end) ? brushRange!.end : Math.max(0, data.length - 1)}
-                onChange={(e: any) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
-              />
+              {data && data.length >= 2 && (
+                <Brush
+                  dataKey="time"
+                  height={30}
+                  stroke={isOscilloscope ? "#00ff00" : "#10b981"}
+                  fill={isOscilloscope ? "#002200" : undefined}
+                  tickFormatter={(val) => `${(val * 1000).toFixed(1)}ms`}
+                  startIndex={Number.isFinite(brushRange?.start) ? brushRange!.start : Math.max(0, data.length > 0 ? data.length - Math.min(200, data.length) : 0)}
+                  endIndex={Number.isFinite(brushRange?.end) ? brushRange!.end : Math.max(0, data.length - 1)}
+                  onChange={(e: any) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>
