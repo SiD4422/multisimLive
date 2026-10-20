@@ -36,7 +36,7 @@ const EXPERIMENTS: ExperimentItem[] = [
     course: 'First Year / Basic Electronics',
     difficulty: 'Beginner',
     diffColor: '#10b981',
-    desc: 'Verify 3dB cutoff frequency (fc = 1/2πRC), frequency roll-off (-20dB/decade), and transient pulse step response.',
+    desc: 'Verify 3dB cutoff frequency (fc = 1/2*RC), frequency roll-off (-20dB/decade), and transient pulse step response.',
     tags: ['Frequency Response', 'Bode Plot', 'AC Sweep'],
   },
   {
@@ -44,7 +44,7 @@ const EXPERIMENTS: ExperimentItem[] = [
     course: 'Second Year / Linear ICs Lab',
     difficulty: 'Intermediate',
     diffColor: '#f59e0b',
-    desc: 'Measure closed-loop voltage gain (Av = -Rf/R1), examine the virtual ground node, and observe 180° phase inversion.',
+    desc: 'Measure closed-loop voltage gain (Av = -Rf/R1), examine the virtual ground node, and observe 180* phase inversion.',
     tags: ['Negative Feedback', 'Virtual Ground', 'Gain Analysis'],
   },
   {
@@ -97,36 +97,36 @@ const WORKSHEETS: WorksheetItem[] = [
     name: 'RC Circuit Analysis',
     subtitle: 'Pre-lab + Post-lab (Transient & Frequency Response)',
     course: 'First Year / Basic Electronics & Circuit Theory',
-    desc: 'Ready-to-print pre-lab formulas, time constant τ = RC transient measurement tables, AC frequency response log, and viva questions.',
-    topics: ['Cutoff Frequency fc', 'Time Constant τ = RC', 'Step Response', 'Bode Phase & Magnitude'],
-    pages: 'Pre-Lab + Post-Lab • 4 Pages',
+    desc: 'Ready-to-print pre-lab formulas, time constant * = RC transient measurement tables, AC frequency response log, and viva questions.',
+    topics: ['Cutoff Frequency fc', 'Time Constant * = RC', 'Step Response', 'Bode Phase & Magnitude'],
+    pages: 'Complete A4 Lab Worksheet * 12 Sections',
   },
   {
-    id: 'op-amp-configurations',
+    id: 'opamp-configurations',
     name: 'Op-Amp Configurations',
     subtitle: 'Inverting, Non-inverting, Summing, Difference Amplifier',
     course: 'Second Year / Linear Integrated Circuits (LIC)',
     desc: 'Step-by-step verification grids for 4 key operational amplifier circuits, virtual ground evaluation, closed-loop gain, and saturation limits.',
     topics: ['Closed-Loop Gain Av', 'Virtual Ground Concept', 'Summing Node Equations', 'Slew Rate & Bandwidth'],
-    pages: 'Pre-Lab + Post-Lab • 5 Pages',
+    pages: 'Complete A4 Lab Worksheet * 12 Sections',
   },
   {
     id: 'bjt-amplifier',
     name: 'BJT Amplifier Characteristics',
-    subtitle: 'CE, CB, CC Configurations & h-Parameter Extraction',
+    subtitle: 'CE Configuration, Q-Point Stability & Frequency Response',
     course: 'Second Year / Electronic Devices & Circuits (EDC)',
     desc: 'DC bias Q-point determination, voltage divider stability, AC voltage gain tables, and lower/upper cutoff frequency extraction.',
     topics: ['VDB Biasing & Stability', 'AC Voltage Gain Av', 'Input/Output Impedance', 'Midband Bandwidth'],
-    pages: 'Pre-Lab + Post-Lab • 5 Pages',
+    pages: 'Complete A4 Lab Worksheet * 12 Sections',
   },
   {
-    id: 'rectifier-and-filter',
+    id: 'rectifier-filter',
     name: 'Rectifier & Filter Design',
     subtitle: 'HWR, FWR, Bridge with and without Filter Capacitor',
     course: 'First Year / Basic Electrical & Electronics Lab',
-    desc: 'Comprehensive observation tables for half-wave and bridge rectifiers. Includes ripple factor γ, efficiency η, and PIV evaluation.',
-    topics: ['Peak Inverse Voltage', 'Ripple Factor γ', 'Capacitive Filtering', 'Diode Conduction Angle'],
-    pages: 'Pre-Lab + Post-Lab • 4 Pages',
+    desc: 'Comprehensive observation tables for half-wave and bridge rectifiers. Includes ripple factor *, efficiency *, and PIV evaluation.',
+    topics: ['Peak Inverse Voltage', 'Ripple Factor *', 'Capacitive Filtering', 'Diode Conduction Angle'],
+    pages: 'Complete A4 Lab Worksheet * 12 Sections',
   },
 ];
 
@@ -171,7 +171,7 @@ export function EducatorsPage() {
   const schemaData = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    name: 'NodeSim for Educators — Free SPICE Simulator for ECE & EEE Lab Courses',
+    name: 'NodeSim for Educators - Free SPICE Simulator for ECE & EEE Lab Courses',
     description:
       'NodeSim is a free browser-based SPICE circuit simulator for ECE and EEE lab courses. No installation required. Includes AI lab record generator, real ngspice engine, and downloadable lab worksheets.',
     url: 'https://nodesimapp.com/educators',
@@ -207,9 +207,9 @@ export function EducatorsPage() {
   };
 
   return (
-    <>
+    <React.Fragment>
       <SEO
-        title="NodeSim for Educators — Free SPICE Simulator for ECE & EEE Lab Courses"
+        title="NodeSim for Educators - Free SPICE Simulator for ECE & EEE Lab Courses"
         description="NodeSim is a free browser-based SPICE circuit simulator for ECE and EEE lab courses. No installation required. Includes AI lab record generator, real ngspice engine, and downloadable lab worksheets."
         url="https://nodesimapp.com/educators"
       />
@@ -233,7 +233,7 @@ export function EducatorsPage() {
         }}
       >
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          {/* ─── 1. HERO SECTION ─── */}
+          {/* *** 1. HERO SECTION *** */}
           <section style={{ textAlign: 'center', marginBottom: 72 }}>
             <div
               style={{
@@ -365,11 +365,11 @@ export function EducatorsPage() {
               }}
             >
               {[
-                '✓ 100% Free Forever for Colleges',
-                '✓ ngspice WASM Engine',
-                '✓ Zero Lab Computer Installs',
-                '✓ Works on Low-End Hardware & Chromebooks',
-                '✓ Automated IEEE Lab Reports',
+                '* 100% Free Forever for Colleges',
+                '* ngspice WASM Engine',
+                '* Zero Lab Computer Installs',
+                '* Works on Low-End Hardware & Chromebooks',
+                '* Automated IEEE Lab Reports',
               ].map((pill) => (
                 <span
                   key={pill}
@@ -389,7 +389,7 @@ export function EducatorsPage() {
             </div>
           </section>
 
-          {/* ─── 2. WHY NODESIM FOR LABS (3 CARDS) ─── */}
+          {/* *** 2. WHY NODESIM FOR LABS (3 CARDS) *** */}
           <section style={{ marginBottom: 96 }}>
             <div style={{ textAlign: 'center', marginBottom: 40 }}>
               <div
@@ -642,7 +642,7 @@ export function EducatorsPage() {
             </div>
           </section>
 
-          {/* ─── 3. CURRICULUM-READY CIRCUITS SECTION ─── */}
+          {/* *** 3. CURRICULUM-READY CIRCUITS SECTION *** */}
           <section style={{ marginBottom: 96 }}>
             <div style={{ textAlign: 'center', marginBottom: 44 }}>
               <div
@@ -815,7 +815,7 @@ export function EducatorsPage() {
                         e.currentTarget.style.color = C.primary;
                       }}
                     >
-                      Simulate →
+                      Simulate *
                     </Link>
                   </div>
                 </div>
@@ -823,7 +823,7 @@ export function EducatorsPage() {
             </div>
           </section>
 
-          {/* ─── 4. FREE LAB WORKSHEET PACK SECTION (id="worksheets") ─── */}
+          {/* *** 4. FREE LAB WORKSHEET PACK SECTION (id="worksheets") *** */}
           <section id="worksheets" style={{ marginBottom: 96, scrollMarginTop: 80 }}>
             <div
               style={{
@@ -988,7 +988,7 @@ export function EducatorsPage() {
                           marginBottom: 12,
                         }}
                       >
-                        📄 {ws.pages}
+                        ** {ws.pages}
                       </div>
 
                       <Link
@@ -1039,7 +1039,7 @@ export function EducatorsPage() {
                   color: C.textSecondary,
                 }}
               >
-                🏫 <strong style={{ color: C.textPrimary }}>University Lab Coordinators:</strong>{' '}
+                ** <strong style={{ color: C.textPrimary }}>University Lab Coordinators:</strong>{' '}
                 You have permission to link to these worksheets from your departmental syllabus,
                 course moodle/LMS, or lab manuals. All worksheets remain freely accessible without
                 paywalls.
@@ -1047,7 +1047,7 @@ export function EducatorsPage() {
             </div>
           </section>
 
-          {/* ─── 5. EDUCATOR TESTIMONIALS / SOCIAL PROOF ─── */}
+          {/* *** 5. EDUCATOR TESTIMONIALS / SOCIAL PROOF *** */}
           <section style={{ marginBottom: 96 }}>
             <div style={{ textAlign: 'center', marginBottom: 44 }}>
               <div
@@ -1169,7 +1169,7 @@ export function EducatorsPage() {
             </div>
           </section>
 
-          {/* ─── 6. CONTACT / PILOT PROGRAM SECTION ─── */}
+          {/* *** 6. CONTACT / PILOT PROGRAM SECTION *** */}
           <section>
             <div
               style={{
@@ -1202,7 +1202,7 @@ export function EducatorsPage() {
                 }}
               >
                 <Award size={15} />
-                2025–2026 Academic Pilot Program
+                2025-2026 Academic Pilot Program
               </div>
 
               <h2
@@ -1226,7 +1226,7 @@ export function EducatorsPage() {
                   lineHeight: 1.7,
                 }}
               >
-                We're working with 10 pilot colleges for the 2025–26 academic year. Get priority
+                We're working with 10 pilot colleges for the 2025-26 academic year. Get priority
                 support, custom example circuits for your syllabus, and co-authorship on academic
                 case studies.
               </p>
@@ -1295,20 +1295,20 @@ export function EducatorsPage() {
                   }}
                 >
                   <Mail size={20} />
-                  Apply Now → educators@nodesimapp.com
+                  Apply Now * educators@nodesimapp.com
                 </a>
               </div>
             </div>
           </section>
         </div>
       </div>
-    </>
+    </React.Fragment>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// *****************************************************************************
 // WORKSHEET STUB / PRINTABLE PAGE COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
+// *****************************************************************************
 
 interface WorksheetData {
   title: string;
@@ -1324,99 +1324,99 @@ interface WorksheetData {
 
 const WORKSHEET_DETAILS: Record<string, WorksheetData> = {
   'rc-circuit-analysis': {
-    title: 'RC Circuit Analysis — Transient and Frequency Response',
+    title: 'RC Circuit Analysis - Transient and Frequency Response',
     course: 'Basic Electronics / Circuit Theory Lab',
     aim: 'To investigate the transient step response and frequency response characteristics of an RC low-pass network and determine its 3dB cutoff frequency.',
     components: [
-      'Resistor: 1 kΩ (1/4 W)',
-      'Capacitor: 0.1 µF (Ceramic/Film)',
+      'Resistor: 1 k* (1/4 W)',
+      'Capacitor: 0.1 *F (Ceramic/Film)',
       'Function Generator / Pulse Source (NodeSim or Hardware)',
       'Dual Channel Oscilloscope',
       'Connecting Probes and Breadboard',
     ],
     theory: [
-      'The cutoff frequency (half-power frequency) of an RC low-pass filter is given by fc = 1 / (2πRC).',
-      'For R = 1 kΩ and C = 0.1 µF, theoretical cutoff frequency is fc = 1 / (2π × 1000 × 0.1×10⁻⁶) ≈ 1.59 kHz.',
-      'The time constant τ = R × C = 100 µs. During charging, Vc(t) = Vin(1 - e^(-t/τ)). At t = τ, Vc reaches 63.2% of final value.',
-      'In the frequency domain, the voltage transfer function is H(jω) = 1 / (1 + jωRC), with a phase shift of θ = -arctan(ωRC). At fc, gain drops to -3dB and phase is -45°.',
+      'The cutoff frequency (half-power frequency) of an RC low-pass filter is given by fc = 1 / (2*RC).',
+      'For R = 1 k* and C = 0.1 *F, theoretical cutoff frequency is fc = 1 / (2* * 1000 * 0.1*10**) * 1.59 kHz.',
+      'The time constant * = R * C = 100 *s. During charging, Vc(t) = Vin(1 - e^(-t/*)). At t = *, Vc reaches 63.2% of final value.',
+      'In the frequency domain, the voltage transfer function is H(j*) = 1 / (1 + j*RC), with a phase shift of * = -arctan(*RC). At fc, gain drops to -3dB and phase is -45*.',
     ],
     procedure: [
-      '1. Open NodeSim (or assemble the physical breadboard) with R = 1 kΩ in series with C = 0.1 µF connected to ground.',
+      '1. Open NodeSim (or assemble the physical breadboard) with R = 1 k* in series with C = 0.1 *F connected to ground.',
       '2. Transient Analysis: Apply a 1 kHz square wave (0V to 5V). Observe the charging curve on Channel 2.',
-      '3. Measure the rise time (10% to 90%) and determine the time constant τ from the waveform.',
+      '3. Measure the rise time (10% to 90%) and determine the time constant * from the waveform.',
       '4. AC Frequency Sweep: Set input to a 2V peak-to-peak sinusoidal wave. Vary frequency from 100 Hz to 100 kHz.',
       '5. Record the output peak-to-peak voltage and phase angle at each frequency in the observation table.',
       '6. Plot Gain in dB vs. Frequency on semi-log graph paper and locate the -3dB cutoff point.',
     ],
-    tableHeaders: ['Freq (Hz)', 'Vin (Vp-p)', 'Vout (Vp-p)', 'Gain (Vout/Vin)', 'Gain (dB = 20logAv)', 'Phase θ (deg)'],
+    tableHeaders: ['Freq (Hz)', 'Vin (Vp-p)', 'Vout (Vp-p)', 'Gain (Vout/Vin)', 'Gain (dB = 20logAv)', 'Phase * (deg)'],
     sampleRows: [
-      ['100 Hz', '2.00 V', '1.99 V', '0.995', '-0.04 dB', '-3.6°'],
-      ['500 Hz', '2.00 V', '1.91 V', '0.954', '-0.41 dB', '-17.4°'],
-      ['1.00 kHz', '2.00 V', '1.69 V', '0.846', '-1.45 dB', '-32.1°'],
-      ['1.59 kHz (fc)', '2.00 V', '1.41 V', '0.707', '-3.01 dB', '-45.0°'],
-      ['5.00 kHz', '2.00 V', '0.61 V', '0.303', '-10.37 dB', '-72.3°'],
-      ['10.0 kHz', '2.00 V', '0.31 V', '0.157', '-16.08 dB', '-81.0°'],
+      ['100 Hz', '2.00 V', '1.99 V', '0.995', '-0.04 dB', '-3.6*'],
+      ['500 Hz', '2.00 V', '1.91 V', '0.954', '-0.41 dB', '-17.4*'],
+      ['1.00 kHz', '2.00 V', '1.69 V', '0.846', '-1.45 dB', '-32.1*'],
+      ['1.59 kHz (fc)', '2.00 V', '1.41 V', '0.707', '-3.01 dB', '-45.0*'],
+      ['5.00 kHz', '2.00 V', '0.61 V', '0.303', '-10.37 dB', '-72.3*'],
+      ['10.0 kHz', '2.00 V', '0.31 V', '0.157', '-16.08 dB', '-81.0*'],
     ],
     vivaQuestions: [
-      '1. Why is the RC circuit called a low-pass filter? Explain its behavior at ω = 0 and ω → ∞.',
-      '2. What is the relationship between the time constant τ and the 10%-90% rise time tr?',
+      '1. Why is the RC circuit called a low-pass filter? Explain its behavior at * = 0 and * * *.',
+      '2. What is the relationship between the time constant * and the 10%-90% rise time tr?',
       '3. How does capacitor ESR affect the high-frequency attenuation of this filter?',
       '4. What is the roll-off rate of a first-order RC filter in dB per decade and dB per octave?',
     ],
   },
   'op-amp-configurations': {
-    title: 'Operational Amplifier Configurations — Inverting, Non-Inverting, and Summing',
+    title: 'Operational Amplifier Configurations - Inverting, Non-Inverting, and Summing',
     course: 'Linear Integrated Circuits (LIC) Lab',
     aim: 'To design, simulate, and verify inverting, non-inverting, and summing operational amplifier configurations using LM741 / ideal SPICE op-amp.',
     components: [
       'Operational Amplifier IC (LM741 or OP07)',
-      'Resistors: R1 = 10 kΩ, Rf = 100 kΩ, 47 kΩ, 22 kΩ (1/4 W)',
-      'Dual DC Power Supply (±15 V)',
+      'Resistors: R1 = 10 k*, Rf = 100 k*, 47 k*, 22 k* (1/4 W)',
+      'Dual DC Power Supply (*15 V)',
       'Audio / Function Signal Generator',
       'Dual Channel Digital Storage Oscilloscope (DSO)',
     ],
     theory: [
-      'An ideal op-amp exhibits infinite open-loop gain (Aol → ∞), infinite input impedance (Rin → ∞), and zero output impedance (Rout = 0).',
-      'Inverting Amplifier: The non-inverting terminal is grounded. Due to negative feedback, node V- is maintained at virtual ground (V- ≈ 0V). Voltage gain is Av = -Rf / R1.',
+      'An ideal op-amp exhibits infinite open-loop gain (Aol * *), infinite input impedance (Rin * *), and zero output impedance (Rout = 0).',
+      'Inverting Amplifier: The non-inverting terminal is grounded. Due to negative feedback, node V- is maintained at virtual ground (V- * 0V). Voltage gain is Av = -Rf / R1.',
       'Non-Inverting Amplifier: The input is applied directly to V+. The closed-loop gain is Av = 1 + (Rf / R1), with zero phase inversion.',
-      'Summing Amplifier: Multiple input currents are summed at the inverting virtual ground node: Vout = -Rf × (V1/R1 + V2/R2 + ...).',
+      'Summing Amplifier: Multiple input currents are summed at the inverting virtual ground node: Vout = -Rf * (V1/R1 + V2/R2 + ...).',
     ],
     procedure: [
-      '1. Inverting Setup: Connect dual supplies ±15V to pins 7 and 4 of LM741. Connect R1 = 10 kΩ to inverting pin 2 and Rf = 100 kΩ across pins 2 and 6.',
-      '2. Ground pin 3 through a compensating resistor Rcomp = R1 || Rf ≈ 9.1 kΩ.',
+      '1. Inverting Setup: Connect dual supplies *15V to pins 7 and 4 of LM741. Connect R1 = 10 k* to inverting pin 2 and Rf = 100 k* across pins 2 and 6.',
+      '2. Ground pin 3 through a compensating resistor Rcomp = R1 || Rf * 9.1 k*.',
       '3. Apply a 1 kHz, 100 mVp-p sine wave at the input. Measure Vout and verify Av = -10.',
       '4. Non-Inverting Setup: Connect input to pin 3. Connect R1 from pin 2 to ground and Rf from pin 2 to pin 6. Measure gain and phase.',
       '5. Increase input amplitude until clipping occurs to observe the positive and negative output voltage saturation limits.',
     ],
-    tableHeaders: ['Configuration', 'R1 (kΩ)', 'Rf (kΩ)', 'Theoretical Av', 'Vin (mVp-p)', 'Vout (Vp-p)', 'Measured Av', 'Phase Shift'],
+    tableHeaders: ['Configuration', 'R1 (k*)', 'Rf (k*)', 'Theoretical Av', 'Vin (mVp-p)', 'Vout (Vp-p)', 'Measured Av', 'Phase Shift'],
     sampleRows: [
-      ['Inverting (Gain 5)', '10 kΩ', '47 kΩ', '-4.7', '200 mV', '0.94 V', '-4.70', '180°'],
-      ['Inverting (Gain 10)', '10 kΩ', '100 kΩ', '-10.0', '100 mV', '1.00 V', '-10.0', '180°'],
-      ['Non-Inverting (Gain 5)', '10 kΩ', '39 kΩ', '+4.9', '200 mV', '0.98 V', '+4.90', '0°'],
-      ['Non-Inverting (Gain 11)', '10 kΩ', '100 kΩ', '+11.0', '100 mV', '1.10 V', '+11.0', '0°'],
+      ['Inverting (Gain 5)', '10 k*', '47 k*', '-4.7', '200 mV', '0.94 V', '-4.70', '180*'],
+      ['Inverting (Gain 10)', '10 k*', '100 k*', '-10.0', '100 mV', '1.00 V', '-10.0', '180*'],
+      ['Non-Inverting (Gain 5)', '10 k*', '39 k*', '+4.9', '200 mV', '0.98 V', '+4.90', '0*'],
+      ['Non-Inverting (Gain 11)', '10 k*', '100 k*', '+11.0', '100 mV', '1.10 V', '+11.0', '0*'],
     ],
     vivaQuestions: [
       '1. What is the physical meaning of "Virtual Ground" and why does it not draw current?',
       '2. Why is a compensating resistor placed at the non-inverting terminal in bipolar op-amps?',
       '3. What defines the Slew Rate of an op-amp and how does it distort high-frequency square waves?',
-      '4. How do supply rails ±Vcc constrain the maximum undistorted peak-to-peak output swing?',
+      '4. How do supply rails *Vcc constrain the maximum undistorted peak-to-peak output swing?',
     ],
   },
   'bjt-amplifier': {
-    title: 'BJT Common Emitter Amplifier — Biasing & Frequency Response',
+    title: 'BJT Common Emitter Amplifier - Biasing & Frequency Response',
     course: 'Electronic Devices & Circuits (EDC) Lab',
     aim: 'To design a voltage divider biased NPN Common Emitter (CE) amplifier, establish its Q-point, and evaluate its frequency response and midband voltage gain.',
     components: [
       'NPN Transistor: 2N2222 or BC547B',
-      'Resistors: R1 = 47 kΩ, R2 = 10 kΩ, Rc = 2.2 kΩ, Re = 1 kΩ, RL = 10 kΩ',
-      'Capacitors: Cin = 10 µF, Cout = 10 µF, Bypass Ce = 100 µF',
+      'Resistors: R1 = 47 k*, R2 = 10 k*, Rc = 2.2 k*, Re = 1 k*, RL = 10 k*',
+      'Capacitors: Cin = 10 *F, Cout = 10 *F, Bypass Ce = 100 *F',
       'DC Power Supply: +12 V',
       'Function Generator & Digital Oscilloscope',
     ],
     theory: [
-      'Voltage divider biasing provides stable operating point (Q-point) against transistor temperature drift and β variation.',
-      'Base voltage VB = Vcc × R2 / (R1 + R2). Emitter voltage VE = VB - VBE (where VBE ≈ 0.7 V). Collector current IC ≈ IE = VE / Re.',
-      'The bypass capacitor Ce shorts the AC emitter degeneration, providing high midband voltage gain Av ≈ -gm(Rc || RL) = -(IC / 26mV) × (Rc || RL).',
+      'Voltage divider biasing provides stable operating point (Q-point) against transistor temperature drift and * variation.',
+      'Base voltage VB = Vcc * R2 / (R1 + R2). Emitter voltage VE = VB - VBE (where VBE * 0.7 V). Collector current IC * IE = VE / Re.',
+      'The bypass capacitor Ce shorts the AC emitter degeneration, providing high midband voltage gain Av * -gm(Rc || RL) = -(IC / 26mV) * (Rc || RL).',
       'At low frequencies, coupling capacitors Cin and Cout and bypass capacitor Ce roll off gain (fL). At high frequencies, internal parasitic capacitances Cbe and Cbc reduce gain (fH).',
     ],
     procedure: [
@@ -1447,32 +1447,32 @@ const WORKSHEET_DETAILS: Record<string, WorksheetData> = {
     course: 'Basic Electrical & Electronics Engineering Lab',
     aim: 'To compare the rectification efficiency, ripple factor, and peak inverse voltage of Half-Wave and Full-Wave Bridge Rectifiers with and without C-filter.',
     components: [
-      'Silicon Diodes: 4× 1N4007 (1A, 1000V PIV)',
+      'Silicon Diodes: 4* 1N4007 (1A, 1000V PIV)',
       'Step-Down Center-Tapped Transformer: 230V to 12-0-12V AC (or AC source in NodeSim)',
-      'Load Resistors: 1 kΩ, 2.2 kΩ (2 W)',
-      'Filter Capacitors: 47 µF, 470 µF, 1000 µF (25V Electrolytic)',
+      'Load Resistors: 1 k*, 2.2 k* (2 W)',
+      'Filter Capacitors: 47 *F, 470 *F, 1000 *F (25V Electrolytic)',
       'DSO and True-RMS Digital Multimeter',
     ],
     theory: [
       'A rectifier converts alternating current (AC) into pulsating direct current (DC).',
-      'Half-Wave Rectifier: Conduction occurs for only 180° of the input AC cycle. Theoretical ripple factor γ = 1.21, maximum efficiency η = 40.6%. PIV = Vm.',
-      'Full-Wave Bridge Rectifier: Conduction occurs during both half cycles through alternating diode pairs (D1-D2 and D3-D4). Theoretical ripple factor γ = 0.482, efficiency η = 81.2%. PIV = Vm.',
-      'Capacitor Smoothing Filter: The capacitor charges to peak voltage Vm and discharges slowly into RL during diode non-conduction. Ripple factor with filter: γ ≈ 1 / (4√3 × f × C × RL) for full-wave.',
+      'Half-Wave Rectifier: Conduction occurs for only 180* of the input AC cycle. Theoretical ripple factor * = 1.21, maximum efficiency * = 40.6%. PIV = Vm.',
+      'Full-Wave Bridge Rectifier: Conduction occurs during both half cycles through alternating diode pairs (D1-D2 and D3-D4). Theoretical ripple factor * = 0.482, efficiency * = 81.2%. PIV = Vm.',
+      'Capacitor Smoothing Filter: The capacitor charges to peak voltage Vm and discharges slowly into RL during diode non-conduction. Ripple factor with filter: * * 1 / (4*3 * f * C * RL) for full-wave.',
     ],
     procedure: [
-      '1. Half-Wave Circuit: Connect a 12V RMS 50Hz AC source through 1N4007 diode into RL = 1 kΩ.',
+      '1. Half-Wave Circuit: Connect a 12V RMS 50Hz AC source through 1N4007 diode into RL = 1 k*.',
       '2. Measure DC output voltage Vdc and AC ripple voltage Vac using True-RMS multimeter and DSO.',
       '3. Full-Wave Bridge: Assemble 4 diodes in bridge formation. Measure Vdc, Vac ripple, and observe the 100Hz ripple frequency.',
-      '4. Connect filter capacitor C = 470 µF in parallel with RL. Note reduction in ripple voltage and increase in average Vdc.',
-      '5. Calculate practical ripple factor γ = Vac(rms) / Vdc and compare with theoretical predictions.',
+      '4. Connect filter capacitor C = 470 *F in parallel with RL. Note reduction in ripple voltage and increase in average Vdc.',
+      '5. Calculate practical ripple factor * = Vac(rms) / Vdc and compare with theoretical predictions.',
     ],
-    tableHeaders: ['Rectifier Type', 'Filter Cap', 'Vin (Vrms)', 'Vdc (V)', 'Vac Ripple (Vrms)', 'Ripple Factor γ', 'Efficiency η (%)'],
+    tableHeaders: ['Rectifier Type', 'Filter Cap', 'Vin (Vrms)', 'Vdc (V)', 'Vac Ripple (Vrms)', 'Ripple Factor *', 'Efficiency * (%)'],
     sampleRows: [
       ['Half-Wave', 'None', '12.0 V', '5.20 V', '6.30 V', '1.21', '38.5%'],
-      ['Half-Wave', '470 µF', '12.0 V', '14.8 V', '0.85 V', '0.057', '82.0%'],
+      ['Half-Wave', '470 *F', '12.0 V', '14.8 V', '0.85 V', '0.057', '82.0%'],
       ['Full-Wave Bridge', 'None', '12.0 V', '10.5 V', '5.10 V', '0.485', '78.2%'],
-      ['Full-Wave Bridge', '47 µF', '12.0 V', '15.1 V', '1.10 V', '0.073', '88.5%'],
-      ['Full-Wave Bridge', '470 µF', '12.0 V', '15.8 V', '0.22 V', '0.014', '94.2%'],
+      ['Full-Wave Bridge', '47 *F', '12.0 V', '15.1 V', '1.10 V', '0.073', '88.5%'],
+      ['Full-Wave Bridge', '470 *F', '12.0 V', '15.8 V', '0.22 V', '0.014', '94.2%'],
     ],
     vivaQuestions: [
       '1. Why is the ripple factor of a full-wave rectifier significantly lower than a half-wave rectifier?',
@@ -1483,9 +1483,21 @@ const WORKSHEET_DETAILS: Record<string, WorksheetData> = {
   },
 };
 
+// Aliases to handle alternate slug formats (e.g. opamp vs op-amp, rectifier-filter vs rectifier-and-filter)
+WORKSHEET_DETAILS['opamp-configurations'] = WORKSHEET_DETAILS['op-amp-configurations'];
+WORKSHEET_DETAILS['rectifier-filter'] = WORKSHEET_DETAILS['rectifier-and-filter'];
+
+const SLUG_ALIASES: Record<string, string> = {
+  'opamp-configurations': 'op-amp-configurations',
+  'rectifier-filter': 'rectifier-and-filter',
+};
+
 export function WorksheetPage() {
   const { slug } = useParams<{ slug: string }>();
-  const validSlug = slug && WORKSHEET_DETAILS[slug] ? slug : 'rc-circuit-analysis';
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const resolvedSlug = slug ? (SLUG_ALIASES[slug] || slug) : '';
+  const validSlug = resolvedSlug && WORKSHEET_DETAILS[resolvedSlug] ? resolvedSlug : 'rc-circuit-analysis';
   const data = WORKSHEET_DETAILS[validSlug];
 
   const handlePrint = () => {
@@ -1493,9 +1505,9 @@ export function WorksheetPage() {
   };
 
   return (
-    <>
+    <React.Fragment>
       <SEO
-        title={`${data.title} — Lab Worksheet | NodeSim`}
+        title={`${data.title} - Lab Worksheet | NodeSim`}
         description={`Download and print the official ECE/EEE lab worksheet for ${data.title}. Includes pre-lab calculations, schematic, observation tables, and post-lab viva questions.`}
         url={`https://nodesimapp.com/educators/worksheets/${validSlug}`}
       />
@@ -1528,8 +1540,8 @@ export function WorksheetPage() {
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          backgroundColor: '#0d1a12',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          backgroundColor: isDark ? '#0d1a12' : '#ffffff',
+          borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e2e8f0',
           padding: '12px 24px',
           display: 'flex',
           alignItems: 'center',
@@ -1545,7 +1557,7 @@ export function WorksheetPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              color: '#94a3b8',
+              color: isDark ? '#94a3b8' : '#64748b',
               fontSize: 13,
               fontWeight: 600,
               textDecoration: 'none',
@@ -1553,8 +1565,8 @@ export function WorksheetPage() {
           >
             <ArrowLeft size={16} /> Back to Educators
           </Link>
-          <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-          <span style={{ color: '#4ade80', fontSize: 13, fontWeight: 700 }}>
+          <span style={{ color: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }}>|</span>
+          <span style={{ color: isDark ? '#4ade80' : '#16a34a', fontSize: 13, fontWeight: 700 }}>
             {data.course}
           </span>
         </div>
@@ -1566,14 +1578,14 @@ export function WorksheetPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              backgroundColor: 'rgba(255,255,255,0.08)',
-              color: '#f1f5f9',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9',
+              color: isDark ? '#f1f5f9' : '#0f172a',
               padding: '8px 14px',
               borderRadius: 8,
               fontSize: 13,
               fontWeight: 600,
               textDecoration: 'none',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1',
             }}
           >
             Open in Simulator <ExternalLink size={14} />
@@ -1604,11 +1616,12 @@ export function WorksheetPage() {
       {/* Printable Sheet View */}
       <div
         style={{
-          backgroundColor: '#f1f5f9',
+          backgroundColor: isDark ? '#060a08' : '#f1f5f9',
           minHeight: '100vh',
           padding: '40px 16px 80px',
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           color: '#0f172a',
+          transition: 'background-color 0.25s ease',
         }}
       >
         <div
@@ -1643,7 +1656,7 @@ export function WorksheetPage() {
                 marginBottom: 4,
               }}
             >
-              NodeSim Open Educational Resources • Department of ECE &amp; EEE
+              NodeSim Open Educational Resources * Department of ECE &amp; EEE
             </div>
             <h1
               style={{
@@ -1656,20 +1669,21 @@ export function WorksheetPage() {
               {data.title}
             </h1>
             <div style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>
-              Course: {data.course} • Simulation &amp; Physical Lab Verification Sheet
+              Course: {data.course} * Simulation &amp; Physical Lab Verification Sheet
             </div>
           </div>
 
           {/* Student Record Meta Box */}
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              marginBottom: 32,
-              fontSize: 12,
-              border: '1px solid #cbd5e1',
-            }}
-          >
+          <div style={{ overflowX: 'auto', marginBottom: 32 }}>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                fontSize: 12,
+                border: '1px solid #cbd5e1',
+                minWidth: 480,
+              }}
+            >
             <tbody>
               <tr>
                 <td style={{ padding: '8px 12px', border: '1px solid #cbd5e1', fontWeight: 600, width: '18%', backgroundColor: '#f8fafc' }}>
@@ -1734,7 +1748,7 @@ export function WorksheetPage() {
             <div style={{ fontSize: 13, lineHeight: 1.6, color: '#334155' }}>
               {data.theory.map((t, i) => (
                 <p key={i} style={{ margin: '0 0 6px' }}>
-                  • {t}
+                  * {t}
                 </p>
               ))}
             </div>
@@ -1858,12 +1872,13 @@ export function WorksheetPage() {
               alignItems: 'center',
             }}
           >
-            <span>NodeSim Open Courseware • https://nodesimapp.com/educators</span>
-            <span>Free for Academic Use • No Commercial Attribution Required</span>
+            <span>NodeSim Open Courseware * https://nodesimapp.com/educators</span>
+            <span>Free for Academic Use * No Commercial Attribution Required</span>
           </div>
         </div>
       </div>
-    </>
+    </div>
+    </React.Fragment>
   );
 }
 

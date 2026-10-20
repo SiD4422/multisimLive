@@ -1,6 +1,6 @@
 // Curated example circuits shown on /circuits and /circuits/:id.
 
-import { Activity, ArrowUpDown, Cpu, Filter, GitBranch, GitMerge, Radio, Sliders, ToggleRight, TrendingUp, Triangle, Waves, Zap } from 'lucide-react';
+import { Activity, ArrowUpDown, Cpu, Filter, GitBranch, GitMerge, Radio, RefreshCw, Sliders, ToggleRight, TrendingUp, Triangle, Waves, Zap } from 'lucide-react';
 import { C } from './circuitsTheme';
 import lowPassFilter        from '../examples/low_pass_filter.json';
 import rcHighPassFilter     from '../examples/rc_high_pass_filter.json';
@@ -18,6 +18,13 @@ import mosfetSwitch         from '../examples/mosfet_switch.json';
 import rcIntegrator         from '../examples/rc_integrator.json';
 import commonEmitter        from '../examples/common_emitter.json';
 import comparatorCircuit    from '../examples/comparator_circuit.json';
+import pnpAmplifier         from '../examples/pnp_amplifier.json';
+import bjtCommonBaseAmp     from '../examples/bjt_common_base_amp.json';
+import schmittOscillator    from '../examples/schmitt_oscillator.json';
+import wienBridge           from '../examples/wien_bridge_oscillator.json';
+import mosfetInverter       from '../examples/mosfet_inverter.json';
+import voltageRegulator5V   from '../examples/voltage_regulator_5v.json';
+import zenerVoltageReg      from '../examples/zener_voltage_regulator.json';
 
 export const EXAMPLES = [
   // ── FILTERS ────────────────────────────────────────────────────
@@ -44,7 +51,18 @@ export const EXAMPLES = [
 
   // ── SWITCHING ──────────────────────────────────────────────────
   { id: 'mosfet_sw', name: 'MOSFET Switch', category: 'Switching', description: 'N-Channel MOSFET as a digital switch. Gate voltage controls the drain-source resistance.', analysis: 'DC Sweep', analysisColor: C.dcSweep, difficulty: 'Beginner', components: ['N-MOSFET', 'Resistor', 'DC Source'], Icon: ToggleRight, accent: '#0284c7', data: mosfetSwitch },
+  { id: 'schmitt', name: 'Schmitt Trigger Oscillator', category: 'Switching', description: 'Op-amp with positive feedback creates hysteresis. Observe clean switching thresholds VUT and VLT.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Op-Amp', 'RC Network', 'Dual Supply'], Icon: ToggleRight, accent: '#7c3aed', data: schmittOscillator },
+  { id: 'mosfet_inv', name: 'MOSFET Inverter (CMOS)', category: 'Switching', description: 'NMOS common-source inverter with resistive load. Digital NOT gate at transistor level.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['N-MOSFET', 'Resistor', 'Pulse Source'], Icon: RefreshCw, accent: '#0891b2', data: mosfetInverter },
 
   // ── SOURCES ────────────────────────────────────────────────────
   { id: '555', name: '555 Astable Oscillator', category: 'Sources', description: '555 timer in astable mode generates a continuous square wave at adjustable frequency.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['Transistor Amplifier', 'RC Network'], Icon: Cpu, accent: '#e11d48', data: astable555 },
+  { id: 'wien', name: 'Wien Bridge Oscillator', category: 'Sources', description: 'Op-amp RC oscillator generating a sinusoidal output. Frequency set by f = 1/(2πRC).', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Advanced', components: ['Op-Amp', 'RC Network', 'Dual Supply'], Icon: Waves, accent: '#d97706', data: wienBridge },
+
+  // ── AMPLIFIERS (additional) ────────────────────────────────────
+  { id: 'pnp_amp', name: 'PNP Transistor Amplifier', category: 'Amplifiers', description: 'PNP BJT in common-emitter config. Complementary to NPN — useful in push-pull power stages.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Intermediate', components: ['PNP BJT', 'Resistors', 'DC + AC'], Icon: GitBranch, accent: '#9333ea', data: pnpAmplifier },
+  { id: 'cb_amp', name: 'BJT Common-Base Amplifier', category: 'Amplifiers', description: 'Low input impedance, high voltage gain, no phase inversion. Used in RF and high-frequency apps.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Advanced', components: ['NPN BJT', 'Resistors', 'DC + AC'], Icon: Activity, accent: '#0f766e', data: bjtCommonBaseAmp },
+
+  // ── POWER (additional) ─────────────────────────────────────────
+  { id: 'vreg_5v', name: '5V Linear Voltage Regulator', category: 'Power', description: 'Behavioral voltage regulator holds output at 5V regardless of load or input variation.', analysis: 'DC Sweep', analysisColor: C.dcSweep, difficulty: 'Intermediate', components: ['B-Source Reg', 'Capacitors', 'DC Source'], Icon: Zap, accent: '#16a34a', data: voltageRegulator5V },
+  { id: 'zener_reg', name: 'Zener Voltage Regulator', category: 'Power', description: 'Zener diode shunt regulator. Clamps output voltage at Vz. Simple low-current regulation.', analysis: 'DC Sweep', analysisColor: C.dcSweep, difficulty: 'Beginner', components: ['Zener Diode', 'Resistor', 'DC Source'], Icon: Sliders, accent: '#b45309', data: zenerVoltageReg },
 ];
