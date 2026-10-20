@@ -1,14 +1,18 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import SEO from '../../components/SEO';
 
 const VsFalstad: React.FC = () => {
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <SEO
+        title="NodeSim vs Falstad Circuit Simulator — Browser SPICE Comparison"
+        description="Compare NodeSim vs Falstad Circuit Simulator. NodeSim features professional ngspice WASM accuracy, modern UI, and AI assistance. See the full feature comparison."
+        url="https://www.nodesimapp.com/compare/falstad"
+      />
       <Helmet>
-        <title>Falstad vs SPICE | Falstad Alternative with AI</title>
-        <meta name="description" content="Compare Falstad circuit simulator vs NodeSim. Discover an alternative that offers professional SPICE accuracy with a modern UI and AI assistance." />
-        <meta name="keywords" content="Falstad vs SPICE, Falstad alternative with AI, NodeSim vs Falstad, free circuit simulator" />
+        <meta name="keywords" content="NodeSim vs Falstad, Falstad Circuit Simulator, free circuit simulator, browser SPICE" />
       </Helmet>
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>NodeSim vs Falstad</h1>

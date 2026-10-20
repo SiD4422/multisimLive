@@ -1,14 +1,18 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import SEO from '../../components/SEO';
 
 const VsLtspice: React.FC = () => {
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <SEO
+        title="NodeSim vs LTspice XVII — Free Browser SPICE Simulator Comparison"
+        description="Compare NodeSim vs LTspice XVII. NodeSim provides instant browser-based circuit simulation with zero install, cross-platform ease, and an AI tutor. See the full comparison."
+        url="https://www.nodesimapp.com/compare/ltspice"
+      />
       <Helmet>
-        <title>NodeSim vs LTspice | Online LTspice Alternative</title>
-        <meta name="description" content="Compare NodeSim and LTspice. Find out why NodeSim is the best free LTspice alternative online for quick circuit simulations in your browser." />
-        <meta name="keywords" content="NodeSim vs LTspice, LTspice alternative online, free SPICE simulator, browser circuit simulation" />
+        <meta name="keywords" content="NodeSim vs LTspice, LTspice XVII, free SPICE simulator, browser circuit simulation" />
       </Helmet>
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>NodeSim vs LTspice</h1>

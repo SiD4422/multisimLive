@@ -15,6 +15,18 @@ const C = {
   primaryHover: '#15803d',
 };
 
+const CANONICAL_MAPPINGS: Record<string, string> = {
+  lpf: 'https://www.nodesimapp.com/circuits/rc-low-pass-filter',
+  opamp: 'https://www.nodesimapp.com/circuits/inverting-op-amp',
+  '555': 'https://www.nodesimapp.com/circuits/555-timer-astable',
+  rectifier: 'https://www.nodesimapp.com/circuits/full-wave-rectifier',
+  half_wave: 'https://www.nodesimapp.com/circuits/half-wave-rectifier',
+  ce_amp: 'https://www.nodesimapp.com/circuits/common-emitter-amplifier',
+  vdivider: 'https://www.nodesimapp.com/circuits/voltage-divider',
+  zener: 'https://www.nodesimapp.com/circuits/zener-diode',
+  mosfet_sw: 'https://www.nodesimapp.com/circuits/mosfet-switch',
+};
+
 export default function CircuitTemplatePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -37,12 +49,14 @@ export default function CircuitTemplatePage() {
     navigate('/simulator');
   };
 
+  const canonicalUrl = (circuit.id && CANONICAL_MAPPINGS[circuit.id]) || `https://www.nodesimapp.com/circuits/${circuit.id}`;
+
   return (
     <>
       <SEO 
         title={`${circuit.name} | Free Circuit Simulator Template`} 
         description={`Interactive simulation template for the ${circuit.name}. ${circuit.description} Load and run it instantly in NodeSim's browser-based SPICE simulator.`}
-        url={`https://nodesimapp.com/circuits/${circuit.id}`}
+        url={canonicalUrl}
       />
       <div style={{ minHeight: '100vh', backgroundColor: C.bgApp, padding: '60px 20px', color: C.textPrimary, fontFamily: "'Inter', sans-serif" }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>

@@ -1,14 +1,18 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import SEO from '../../components/SEO';
 
 const VsMultisim: React.FC = () => {
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <SEO
+        title="NodeSim vs NI Multisim Live — Browser SPICE Simulator Comparison"
+        description="Compare NodeSim vs Multisim Live. NodeSim is free, browser-based, no login required, with real ngspice WASM. See the full feature comparison."
+        url="https://www.nodesimapp.com/compare/multisim"
+      />
       <Helmet>
-        <title>Multisim Alternative | Free Multisim Replacement Online</title>
-        <meta name="description" content="Looking for a free Multisim alternative? NodeSim provides professional SPICE simulations directly in your browser without accounts or paywalls." />
-        <meta name="keywords" content="Multisim alternative, free Multisim replacement, NI Multisim online, free circuit simulator" />
+        <meta name="keywords" content="NodeSim vs Multisim, free circuit simulator, browser SPICE" />
       </Helmet>
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>NodeSim vs NI Multisim</h1>
