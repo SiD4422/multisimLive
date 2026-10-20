@@ -21,6 +21,7 @@ export default function KiCadSymbol({ component, symbolName, selected, onSelect,
   if (!symDef) return null;
 
   const strokeColor = selected ? "#3b82f6" : "#1e3a8a";
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 
   return (
     <Group
@@ -105,7 +106,14 @@ export default function KiCadSymbol({ component, symbolName, selected, onSelect,
           <React.Fragment key={`pin-${i}`}>
             <Line points={linePoints} stroke={strokeColor} strokeWidth={2} />
             <Circle 
-              x={nodeX} y={nodeY} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={15}
+              x={nodeX} y={nodeY} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={isTouch ? 56 : 15}
+              onPointerDown={(e) => { 
+                e.cancelBubble = true; 
+                const rad = (component.rotation || 0) * Math.PI / 180;
+                const rotX = nodeX * Math.cos(rad) - nodeY * Math.sin(rad);
+                const rotY = nodeX * Math.sin(rad) + nodeY * Math.cos(rad);
+                onNodeClick(e, { x: component.position.x + rotX, y: component.position.y + rotY }); 
+              }}
               onMouseDown={(e) => { 
                 e.cancelBubble = true; 
                 // We must apply rotation matrix to node point before sending it to SchematicStore

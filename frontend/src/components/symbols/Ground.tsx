@@ -12,6 +12,7 @@ interface GroundProps {
 
 export default function Ground({ component, selected, onSelect, onDragMove, onDragEnd, onNodeClick }: GroundProps) {
   const strokeColor = selected ? "#3b82f6" : "#1e3a8a";
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 
   return (
     <Group
@@ -30,7 +31,8 @@ export default function Ground({ component, selected, onSelect, onDragMove, onDr
       <Line points={[-10, 20, 10, 20]} stroke={strokeColor} strokeWidth={2} />
       <Line points={[-5, 25, 5, 25]} stroke={strokeColor} strokeWidth={2} />
       <Circle 
-        x={0} y={0} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={15}
+        x={0} y={0} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={isTouch ? 56 : 15}
+        onPointerDown={(e) => { e.cancelBubble = true; onNodeClick(e, { x: component.position.x, y: component.position.y }); }}
         onMouseDown={(e) => { e.cancelBubble = true; onNodeClick(e, { x: component.position.x, y: component.position.y }); }}
         onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as any).fill('#e5e7eb'); }}
         onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}

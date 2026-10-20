@@ -12,6 +12,7 @@ interface SourceSymbolProps {
 
 export default function SourceSymbol({ component, selected, onSelect, onDragMove, onDragEnd, onNodeClick }: SourceSymbolProps) {
   const strokeColor = selected ? "#3b82f6" : "#1e3a8a";
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
   
   // Default bounds/positions
   const radius = 15;
@@ -95,7 +96,11 @@ export default function SourceSymbol({ component, selected, onSelect, onDragMove
       
       {/* Interaction nodes (Terminals) */}
       <Circle 
-        x={0} y={0} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={15}
+        x={0} y={0} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={isTouch ? 56 : 15}
+        onPointerDown={(e) => { 
+          e.cancelBubble = true; 
+          onNodeClick(e, { x: component.position.x, y: component.position.y }); 
+        }}
         onMouseDown={(e) => { 
           e.cancelBubble = true; 
           onNodeClick(e, { x: component.position.x, y: component.position.y }); 
@@ -104,7 +109,14 @@ export default function SourceSymbol({ component, selected, onSelect, onDragMove
         onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}
       />
       <Circle 
-        x={60} y={0} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={15}
+        x={60} y={0} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={isTouch ? 56 : 15}
+        onPointerDown={(e) => { 
+          e.cancelBubble = true; 
+          const rad = (component.rotation || 0) * Math.PI / 180;
+          const rotX = 60 * Math.cos(rad);
+          const rotY = 60 * Math.sin(rad);
+          onNodeClick(e, { x: component.position.x + rotX, y: component.position.y + rotY }); 
+        }}
         onMouseDown={(e) => { 
           e.cancelBubble = true; 
           const rad = (component.rotation || 0) * Math.PI / 180;
