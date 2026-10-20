@@ -572,9 +572,9 @@ function BodePlot({
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
-            {isCursorMode && cursorA && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
-            {isCursorMode && cursorB && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
-            {isCursorMode && cursorA && !cursorB && hoverRow && <ReferenceLine x={hoverRow.frequency} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
+            {isCursorMode && cursorA && Number.isFinite(cursorA.frequency as number) && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
+            {isCursorMode && cursorB && Number.isFinite(cursorB.frequency as number) && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+            {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow.frequency as number) && <ReferenceLine x={hoverRow.frequency} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
             {/* -3dB reference line: at maxDb - 3 */}
             {dbTraces.length > 0 && (() => {
               const allDbVals = data.flatMap(row => dbTraces.map(t => row[t] ?? -Infinity));
@@ -614,9 +614,9 @@ function BodePlot({
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
-            {isCursorMode && cursorA && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
-            {isCursorMode && cursorB && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
-            {isCursorMode && cursorA && !cursorB && hoverRow && <ReferenceLine x={hoverRow.frequency} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
+            {isCursorMode && cursorA && Number.isFinite(cursorA.frequency as number) && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
+            {isCursorMode && cursorB && Number.isFinite(cursorB.frequency as number) && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+            {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow.frequency as number) && <ReferenceLine x={hoverRow.frequency} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
             {phaseTraces.map((t, i) => (
               <Line key={t} name={getDisplayName(t) + ' phase'} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} strokeDasharray="5 3" isAnimationActive={false}  />
@@ -676,9 +676,9 @@ function DcSweepPlot({
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={36} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
-            {isCursorMode && cursorA && <ReferenceLine x={cursorA[sweepKey]} stroke="#ff0000" strokeWidth={2} />}
-            {isCursorMode && cursorB && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
-            {isCursorMode && cursorA && !cursorB && hoverRow && <ReferenceLine x={hoverRow[sweepKey]} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
+            {isCursorMode && cursorA && Number.isFinite(cursorA[sweepKey] as number) && <ReferenceLine x={cursorA[sweepKey]} stroke="#ff0000" strokeWidth={2} />}
+            {isCursorMode && cursorB && Number.isFinite(cursorB[sweepKey] as number) && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+            {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow[sweepKey] as number) && <ReferenceLine x={hoverRow[sweepKey]} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
             {traces.map((t, i) => {
               const displayName = probeMap[t] || probeMap[t.toLowerCase()] || formatTraceName(t);
               return (
@@ -692,8 +692,8 @@ function DcSweepPlot({
               stroke={isOscilloscope ? "#00ff00" : "#10b981"}
               fill={isOscilloscope ? "#002200" : undefined}
               tickFormatter={(v) => `${Number(v).toFixed(1)}V`}
-              startIndex={brushRange?.start ?? 0}
-              endIndex={brushRange?.end ?? (data.length - 1)}
+              startIndex={Number.isFinite(brushRange?.start) ? brushRange!.start : 0}
+              endIndex={Number.isFinite(brushRange?.end) ? brushRange!.end : Math.max(0, data.length - 1)}
               onChange={(e: any) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
             />
           </LineChart>
@@ -730,10 +730,12 @@ function TransientPlot({
   const handleWheel = (e: React.WheelEvent) => {
     if (!data || data.length < 2) return;
     if (e.cancelable) e.preventDefault();
-    const dataMin = data[0].time;
-    const dataMax = data[data.length - 1].time;
+    const dataMin = data[0]?.time;
+    const dataMax = data[data.length - 1]?.time;
+    if (!Number.isFinite(dataMin) || !Number.isFinite(dataMax)) return;
     let currentMin = zoomDomain[0] === 'dataMin' ? dataMin : (zoomDomain[0] as number);
     let currentMax = zoomDomain[1] === 'dataMax' ? dataMax : (zoomDomain[1] as number);
+    if (!Number.isFinite(currentMin) || !Number.isFinite(currentMax)) return;
     const range = currentMax - currentMin;
     if (range <= 0) return;
     const zoomDelta = e.deltaY < 0 ? -(range * 0.1) : (range * 0.1);
@@ -796,9 +798,9 @@ function TransientPlot({
                 contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
               />
               <Legend verticalAlign="top" height={36} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
-              {isCursorMode && cursorA && <ReferenceLine x={cursorA.time} stroke="#ff0000" strokeWidth={2} />}
-              {isCursorMode && cursorB && <ReferenceLine x={cursorB.time} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
-              {isCursorMode && cursorA && !cursorB && hoverRow && <ReferenceLine x={hoverRow.time} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
+              {isCursorMode && cursorA && Number.isFinite(cursorA.time as number) && <ReferenceLine x={cursorA.time} stroke="#ff0000" strokeWidth={2} />}
+              {isCursorMode && cursorB && Number.isFinite(cursorB.time as number) && <ReferenceLine x={cursorB.time} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+              {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow.time as number) && <ReferenceLine x={hoverRow.time} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
               {traces.map((traceName, idx) => {
                 const displayName = probeMap[traceName] || probeMap[traceName.toLowerCase()] || formatTraceName(traceName);
                 return (
@@ -812,8 +814,8 @@ function TransientPlot({
                 stroke={isOscilloscope ? "#00ff00" : "#10b981"}
                 fill={isOscilloscope ? "#002200" : undefined}
                 tickFormatter={(val) => `${(val * 1000).toFixed(1)}ms`}
-                startIndex={brushRange?.start ?? Math.max(0, data.length - 200)}
-                endIndex={brushRange?.end ?? (data.length - 1)}
+                startIndex={Number.isFinite(brushRange?.start) ? brushRange!.start : Math.max(0, data.length > 0 ? data.length - Math.min(200, data.length) : 0)}
+                endIndex={Number.isFinite(brushRange?.end) ? brushRange!.end : Math.max(0, data.length - 1)}
                 onChange={(e: any) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
               />
             </LineChart>
@@ -979,9 +981,12 @@ export default function Grapher() {
     // For AC/DC: always show all data.
     // For Transient: show all data when NOT actively playing (i.e. playback is paused/done).
     // Only filter by time when isPlaying is true (live animation).
+    // GUARD: playbackTime=0 or NaN at animation start causes empty filtered array → Recharts NaN flood.
+    // Use Infinity as fallback so all rows pass through until animation properly advances.
+    const safePlaybackTime = (Number.isFinite(playbackTime) && playbackTime > 0) ? playbackTime : Infinity;
     const activeData = (isAcOrDc || !isPlaying)
       ? simulationBuffer
-      : simulationBuffer.filter(row => row.time <= playbackTime);
+      : simulationBuffer.filter(row => Number.isFinite(row.time as number) && (row.time as number) <= safePlaybackTime);
 
     const visible = activeData.length === 0 && simulationBuffer.length > 0
       ? [simulationBuffer[0]]
