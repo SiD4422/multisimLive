@@ -1501,7 +1501,7 @@ export function EducatorsPage() {
 
               <div>
                 <a
-                  href="mailto:educators@nodesimapp.com?subject=NodeSim%20Educator%20Pilot%20Application&body=Hello%20NodeSim%20Team%2C%0A%0AI%20am%20interested%20in%20the%20NodeSim%20Educator%20Pilot%20Program%20for%20our%20department.%0A%0AInstitution%20Name%3A%20%0ADepartment%3A%20%0ACourses%20Taught%3A%20%0AEstimated%20Number%20of%20Students%3A%20%0A%0AThank%20you!"
+                  href="mailto:siddharth@nodesimapp.com?subject=NodeSim%20Educator%20Pilot%20Application&body=Hello%20Siddharth%2C%0A%0AI%20am%20interested%20in%20the%20NodeSim%20Educator%20Pilot%20Program%20for%20our%20department.%0A%0AInstitution%20Name%3A%20%0ADepartment%3A%20%0ACourses%20Taught%3A%20%0AEstimated%20Number%20of%20Students%3A%20%0A%0AThank%20you!"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -1526,7 +1526,7 @@ export function EducatorsPage() {
                   }}
                 >
                   <Mail size={20} />
-                  Apply Now * educators@nodesimapp.com
+                  Apply Now • siddharth@nodesimapp.com
                 </a>
               </div>
             </div>

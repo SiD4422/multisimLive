@@ -414,7 +414,7 @@ Tone: Rigorous, precise, and professional, suitable for a technical design revie
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360, margin: '0 auto' }}>
                   <a 
-                    href="mailto:nodesimapp@gmail.com?subject=Institutional%20Access%20Request%20-%20NodeSim"
+                    href="mailto:siddharth@nodesimapp.com?subject=Institutional%20Access%20Request%20-%20NodeSim"
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#16a34a', color: '#fff', textDecoration: 'none', padding: '12px', borderRadius: 9, fontWeight: 700, fontSize: 14 }}
                   >
                     Request Institutional Access

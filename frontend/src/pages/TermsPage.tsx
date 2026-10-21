@@ -48,7 +48,7 @@ export default function TermsPage() {
 
       <section style={{ marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem' }}>7. Contact</h2>
-        <p><a href="mailto:nodesimapp@gmail.com" style={{ color: '#16a34a' }}>nodesimapp@gmail.com</a></p>
+        <p><a href="mailto:siddharth@nodesimapp.com" style={{ color: '#16a34a' }}>siddharth@nodesimapp.com</a></p>
       </section>
     </div>
   );
