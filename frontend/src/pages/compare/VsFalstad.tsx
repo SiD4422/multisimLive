@@ -1,9 +1,32 @@
-import React from 'react';
+﻿import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import SEO from '../../components/SEO';
 
 const VsFalstad: React.FC = () => {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Is Falstad a SPICE simulator?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'No. Falstad uses a simplified custom engine for educational approximation. It is not SPICE-accurate and cannot reliably reproduce results for engineering lab reports.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is NodeSim better than Falstad?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'NodeSim uses ngspice, an industry-standard SPICE engine, giving accurate transient, AC, and DC analysis. Falstad is better for visual intuition for beginners. NodeSim is better when accuracy matters.',
+        },
+      },
+    ],
+  };
+
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
@@ -13,6 +36,7 @@ const VsFalstad: React.FC = () => {
       />
       <Helmet>
         <meta name="keywords" content="NodeSim vs Falstad, Falstad Circuit Simulator, free circuit simulator, browser SPICE" />
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>NodeSim vs Falstad</h1>

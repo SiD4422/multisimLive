@@ -1,9 +1,32 @@
-import React from 'react';
+﻿import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import SEO from '../../components/SEO';
 
 const VsMultisim: React.FC = () => {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Is Multisim Live shut down?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. NI Multisim Live (the online version) was shut down in September 2026. NodeSim is a free, open-source replacement that runs real ngspice SPICE simulation in the browser.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is a free alternative to Multisim?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'NodeSim is a free browser-based alternative to Multisim. It uses the ngspice engine for accurate SPICE simulation, supports transient, AC sweep, DC analysis, and includes a 1-click lab report generator.',
+        },
+      },
+    ],
+  };
+
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
@@ -13,6 +36,7 @@ const VsMultisim: React.FC = () => {
       />
       <Helmet>
         <meta name="keywords" content="NodeSim vs Multisim, free circuit simulator, browser SPICE" />
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>NodeSim vs NI Multisim</h1>

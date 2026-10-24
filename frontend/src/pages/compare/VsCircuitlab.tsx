@@ -1,9 +1,32 @@
-import React from 'react';
+﻿import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import SEO from '../../components/SEO';
 
 const VsCircuitlab: React.FC = () => {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How much does CircuitLab cost?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'CircuitLab charges  per month for full access. The free tier has severe limitations on saved circuits and simulation runs. NodeSim is 100% free forever with no account required.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is a free alternative to CircuitLab?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'NodeSim is a free alternative to CircuitLab. It runs real ngspice SPICE simulation in the browser with no login, no subscription, and no install required. It supports transient, AC sweep, DC analysis, and exports IEEE lab reports.',
+        },
+      },
+    ],
+  };
+
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
@@ -13,6 +36,7 @@ const VsCircuitlab: React.FC = () => {
       />
       <Helmet>
         <meta name="keywords" content="NodeSim vs CircuitLab, CircuitLab alternative free, free online circuit simulator, SPICE browser simulation, CircuitLab pricing" />
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', color: '#10b981' }}>NodeSim vs CircuitLab</h1>

@@ -1,9 +1,32 @@
-import React from 'react';
+﻿import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import SEO from '../../components/SEO';
 
 const VsTinkercad: React.FC = () => {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Does Tinkercad support SPICE simulation?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'No. Tinkercad Circuits uses a simplified non-SPICE solver. It cannot perform transient, AC sweep, or DC operating point analysis. For real SPICE simulation in the browser, use NodeSim which is powered by ngspice.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is a Tinkercad alternative for SPICE simulation?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'NodeSim is a free browser-based SPICE simulator that uses the ngspice engine. Unlike Tinkercad, it supports accurate transient, AC sweep, and DC analysis of analog circuits without requiring an account or installation.',
+        },
+      },
+    ],
+  };
+
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
@@ -13,6 +36,7 @@ const VsTinkercad: React.FC = () => {
       />
       <Helmet>
         <meta name="keywords" content="NodeSim vs Tinkercad, Tinkercad alternative, Tinkercad SPICE, free circuit simulator, browser SPICE simulation, Tinkercad circuits" />
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', color: '#10b981' }}>NodeSim vs Tinkercad Circuits</h1>

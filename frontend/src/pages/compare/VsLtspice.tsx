@@ -1,9 +1,32 @@
-import React from 'react';
+﻿import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import SEO from '../../components/SEO';
 
 const VsLtspice: React.FC = () => {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Do I need to install LTspice to simulate circuits?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'LTspice requires a local Windows or macOS installation. NodeSim runs entirely in the browser using ngspice compiled to WebAssembly — no installation, no account, no setup required.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is NodeSim as accurate as LTspice?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Both use SPICE solvers. LTspice uses a proprietary Analog Devices SPICE with a massive component library. NodeSim uses ngspice, the open-source SPICE reference. For standard circuits, results are equivalent.',
+        },
+      },
+    ],
+  };
+
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
@@ -13,6 +36,7 @@ const VsLtspice: React.FC = () => {
       />
       <Helmet>
         <meta name="keywords" content="NodeSim vs LTspice, LTspice XVII, free SPICE simulator, browser circuit simulation" />
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>NodeSim vs LTspice</h1>

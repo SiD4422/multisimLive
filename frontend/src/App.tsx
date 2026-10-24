@@ -38,6 +38,7 @@ const VsMultisim = lazy(() => import('./pages/compare/VsMultisim'));
 const VsFalstad = lazy(() => import('./pages/compare/VsFalstad'));
 const VsCircuitlab = lazy(() => import('./pages/compare/VsCircuitlab'));
 const VsTinkercad = lazy(() => import('./pages/compare/VsTinkercad'));
+const VsWokwi = lazy(() => import('./pages/compare/VsWokwi'));
 
 // Programmatic SEO — circuit pages
 const RcLowPassFilter = lazy(() => import('./pages/circuits/RcLowPassFilter'));
@@ -112,6 +113,7 @@ function App() {
               <Route path="/compare/falstad" element={<Suspense fallback={LOADING_DARK}><VsFalstad /></Suspense>} />
               <Route path="/compare/circuitlab" element={<Suspense fallback={LOADING_DARK}><VsCircuitlab /></Suspense>} />
               <Route path="/compare/tinkercad" element={<Suspense fallback={LOADING_DARK}><VsTinkercad /></Suspense>} />
+              <Route path="/compare/wokwi" element={<Suspense fallback={LOADING_DARK}><VsWokwi /></Suspense>} />
 
               {/* Programmatic SEO — individual circuit simulator pages */}
               <Route path="/circuits/rc-low-pass-filter" element={<Suspense fallback={LOADING}><RcLowPassFilter /></Suspense>} />
