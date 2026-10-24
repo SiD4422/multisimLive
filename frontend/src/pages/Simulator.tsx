@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import SEO from '../components/SEO';
 
 import { Link } from 'react-router-dom';
@@ -784,6 +784,61 @@ function Simulator() {
       />
       <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
       <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
+      {/* Viral Embed Badge — shows only in embedded iframe mode */}
+      {isEmbed && (
+        <a
+          href="https://www.nodesimapp.com/simulator"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open full NodeSim Circuit Editor"
+          style={{
+            position: 'fixed',
+            bottom: 14,
+            right: 14,
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 7,
+            padding: '7px 13px',
+            borderRadius: 999,
+            background: 'rgba(15, 23, 42, 0.82)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(22, 163, 74, 0.45)',
+            color: '#ffffff',
+            textDecoration: 'none',
+            fontSize: 12,
+            fontWeight: 600,
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            letterSpacing: '0.01em',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+            transition: 'all 0.2s ease',
+            cursor: 'pointer',
+            userSelect: 'none',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(22, 163, 74, 0.92)';
+            (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(22, 163, 74, 0.9)';
+            (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 6px 24px rgba(22,163,74,0.35)';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(15, 23, 42, 0.82)';
+            (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(22, 163, 74, 0.45)';
+            (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.35)';
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          <span style={{ color: '#e2e8f0' }}>Simulated in</span>
+          <span style={{ color: '#4ade80', fontWeight: 700 }}>NodeSim</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 2 }}>
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </a>
+      )}
     </div>
     </>
   );
