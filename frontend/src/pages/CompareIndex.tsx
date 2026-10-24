@@ -5,6 +5,8 @@ import { Helmet } from 'react-helmet-async';
 const COMPARISONS = [
   { path: '/compare/ltspice', title: 'NodeSim vs LTspice', desc: 'Browser-based vs desktop. No install, cross-platform, free — vs the industry standard for SPICE simulation.', badge: 'Most Searched' },
   { path: '/compare/multisim', title: 'NodeSim vs Multisim', desc: 'Multisim Live shut down in September 2026. NodeSim is the free, open-source web replacement.', badge: '🔥 Trending' },
+  { path: '/compare/circuitlab', title: 'NodeSim vs CircuitLab', desc: 'CircuitLab charges $24/month. NodeSim gives you real ngspice SPICE simulation in the browser for free, forever.', badge: '💰 Save $24/mo' },
+  { path: '/compare/tinkercad', title: 'NodeSim vs Tinkercad', desc: 'Tinkercad is not a SPICE simulator. NodeSim runs real ngspice for accurate transient, AC, and DC analysis.', badge: '⚡ Real SPICE' },
   { path: '/compare/falstad', title: 'NodeSim vs Falstad', desc: 'SPICE-accurate ngspice simulation vs Falstad visual simulation. Which is right for you?', badge: '' },
 ];
 
@@ -13,8 +15,8 @@ export default function CompareIndex() {
     <>
       <Helmet>
         <title>NodeSim vs Other Circuit Simulators | Honest Comparison</title>
-        <meta name="description" content="How does NodeSim compare to LTspice, Multisim, and Falstad? Honest, detailed feature-by-feature comparisons of the best free circuit simulators available in 2026." />
-        <meta name="keywords" content="NodeSim vs LTspice, Multisim alternative free, Falstad alternative, best online circuit simulator, free SPICE simulator comparison" />
+        <meta name="description" content="How does NodeSim compare to LTspice, Multisim, CircuitLab, Tinkercad, and Falstad? Honest, detailed feature-by-feature comparisons of the best free circuit simulators available in 2026." />
+        <meta name="keywords" content="NodeSim vs LTspice, NodeSim vs CircuitLab, NodeSim vs Tinkercad, Multisim alternative free, Falstad alternative, best online circuit simulator, free SPICE simulator comparison" />
       </Helmet>
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '48px 24px', fontFamily: 'Inter, system-ui, sans-serif' }}>
         <div style={{ marginBottom: 40 }}>

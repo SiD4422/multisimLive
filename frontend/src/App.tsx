@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+﻿import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './pages/Layout';
@@ -36,6 +36,8 @@ const Timer555Tutorial = lazy(() => import('./pages/tutorials/Timer555Tutorial')
 const VsLtspice = lazy(() => import('./pages/compare/VsLtspice'));
 const VsMultisim = lazy(() => import('./pages/compare/VsMultisim'));
 const VsFalstad = lazy(() => import('./pages/compare/VsFalstad'));
+const VsCircuitlab = lazy(() => import('./pages/compare/VsCircuitlab'));
+const VsTinkercad = lazy(() => import('./pages/compare/VsTinkercad'));
 
 // Programmatic SEO — circuit pages
 const RcLowPassFilter = lazy(() => import('./pages/circuits/RcLowPassFilter'));
@@ -108,6 +110,8 @@ function App() {
               <Route path="/compare/ltspice" element={<Suspense fallback={LOADING_DARK}><VsLtspice /></Suspense>} />
               <Route path="/compare/multisim" element={<Suspense fallback={LOADING_DARK}><VsMultisim /></Suspense>} />
               <Route path="/compare/falstad" element={<Suspense fallback={LOADING_DARK}><VsFalstad /></Suspense>} />
+              <Route path="/compare/circuitlab" element={<Suspense fallback={LOADING_DARK}><VsCircuitlab /></Suspense>} />
+              <Route path="/compare/tinkercad" element={<Suspense fallback={LOADING_DARK}><VsTinkercad /></Suspense>} />
 
               {/* Programmatic SEO — individual circuit simulator pages */}
               <Route path="/circuits/rc-low-pass-filter" element={<Suspense fallback={LOADING}><RcLowPassFilter /></Suspense>} />
