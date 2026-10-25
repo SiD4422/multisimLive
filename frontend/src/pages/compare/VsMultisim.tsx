@@ -28,7 +28,7 @@ const VsMultisim: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#e2e8f0', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
         title="NodeSim vs NI Multisim Live — Browser SPICE Simulator Comparison"
         description="Compare NodeSim vs Multisim Live. NodeSim is free, browser-based, no login required, with real ngspice WASM. See the full feature comparison."
@@ -45,49 +45,49 @@ const VsMultisim: React.FC = () => {
         NI Multisim is widely used in universities, but its desktop version is expensive and Multisim Live has restrictions. NodeSim offers a fully free, modern alternative that runs directly in your browser.
       </p>
 
-      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Comparison</h2>
+      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Comparison</h2>
       
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left', color: '#ffffff' }}>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Feature</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NodeSim</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NI Multisim Live</th>
+          <tr style={{ backgroundColor: '#0f172a', textAlign: 'left', color: '#ffffff' }}>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Feature</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>NodeSim</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>NI Multisim Live</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Access</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Free, no login required</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Login required (Premium tier exists)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Access</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Free, no login required</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Login required (Premium tier exists)</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Simulation Speed</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Instant (runs on your CPU via WASM)</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Server-dependent</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Simulation Speed</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Instant (runs on your CPU via WASM)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Server-dependent</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Privacy</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>100% Local Processing</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Cloud-based</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Privacy</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>100% Local Processing</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Cloud-based</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>AI Assistance</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Built-in Engineering Tutor</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>None</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>AI Assistance</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Built-in Engineering Tutor</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>None</td>
           </tr>
         </tbody>
       </table>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Who is NodeSim for?</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Who is NodeSim for?</h2>
         <p>
           Anyone tired of paywalls, server lag, or cumbersome registration processes just to simulate basic circuits. NodeSim is ideal for rapid prototyping and educational environments where accessibility is key.
         </p>
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations</h2>
         <p>
           While NodeSim excels at standard educational simulations, it does not currently offer the vast proprietary vendor models or advanced instrumentation graphics found in the paid desktop versions of Multisim.
         </p>

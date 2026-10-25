@@ -28,7 +28,7 @@ const VsTinkercad: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#e2e8f0', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
         title="NodeSim vs Tinkercad Circuits — Real SPICE vs Visual Toy Simulator"
         description="Compare NodeSim vs Tinkercad Circuits. Tinkercad is great for basic Arduino/LED demos but has no real SPICE engine. NodeSim runs ngspice WASM for accurate analog simulation."
@@ -48,87 +48,87 @@ const VsTinkercad: React.FC = () => {
         NodeSim uses ngspice, the same engine trusted by professional engineers worldwide.
       </p>
 
-      <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 12, padding: '1rem 1.5rem', marginBottom: '2rem' }}>
-        <strong style={{ color: '#c2410c' }}>⚠️ Tinkercad is not a SPICE simulator.</strong>
-        <span style={{ color: '#78350f' }}> It uses a simplified visual solver and does not support Transient, AC Sweep, or accurate analog analysis. If you need real simulation results, you need ngspice or equivalent.</span>
+      <div style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.3)', borderRadius: 12, padding: '1rem 1.5rem', marginBottom: '2rem' }}>
+        <strong style={{ color: '#fb923c' }}>⚠️ Tinkercad is not a SPICE simulator.</strong>
+        <span style={{ color: '#fdba74' }}> It uses a simplified visual solver and does not support Transient, AC Sweep, or accurate analog analysis. If you need real simulation results, you need ngspice or equivalent.</span>
       </div>
 
-      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Feature Comparison</h2>
+      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Feature Comparison</h2>
 
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left', color: '#ffffff' }}>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Feature</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NodeSim</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Tinkercad Circuits</th>
+          <tr style={{ backgroundColor: '#0f172a', textAlign: 'left', color: '#ffffff' }}>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Feature</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>NodeSim</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Tinkercad Circuits</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Simulation Engine</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', fontWeight: 700, color: '#15803d' }}>ngspice WASM — industry-standard SPICE</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', color: '#dc2626' }}>Non-standard simplified solver (not SPICE)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Simulation Engine</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', fontWeight: 700, color: '#4ade80' }}>ngspice WASM — industry-standard SPICE</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', color: '#f87171' }}>Non-standard simplified solver (not SPICE)</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Transient Analysis</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Full SPICE transient</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>⚠️ Basic animation only</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>AC Sweep / Bode Plot</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Full AC analysis</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not supported</td>
-          </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>DC Operating Point</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Full SPICE .op analysis</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not supported</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Transient Analysis</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Full SPICE transient</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>⚠️ Basic animation only</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Price</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>100% Free</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Free (Autodesk account required)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>AC Sweep / Bode Plot</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Full AC analysis</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not supported</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Login Required</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>No — open instantly</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Yes — Autodesk account required</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Op-Amp Simulation</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Accurate LM741, LM358 models</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>⚠️ Simplified, not SPICE-accurate</td>
-          </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>BJT / MOSFET Simulation</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Full SPICE device models</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>⚠️ Simplified behavioral models</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>DC Operating Point</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Full SPICE .op analysis</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not supported</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Arduino / Microcontroller</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Analog circuits only</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Arduino simulation supported</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Price</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>100% Free</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Free (Autodesk account required)</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Lab Report / PDF Export</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ 1-click IEEE/DVR PDF</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not available</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Login Required</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>No — open instantly</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Yes — Autodesk account required</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Current Flow Visualization</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ 60 FPS animated particles with real current values</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Basic current animation</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Op-Amp Simulation</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Accurate LM741, LM358 models</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>⚠️ Simplified, not SPICE-accurate</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Offline / No Login</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Works without login</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Requires Autodesk account</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>BJT / MOSFET Simulation</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Full SPICE device models</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>⚠️ Simplified behavioral models</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Arduino / Microcontroller</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Analog circuits only</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Arduino simulation supported</td>
+          </tr>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Lab Report / PDF Export</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ 1-click IEEE/DVR PDF</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not available</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Current Flow Visualization</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ 60 FPS animated particles with real current values</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Basic current animation</td>
+          </tr>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Offline / No Login</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Works without login</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Requires Autodesk account</td>
           </tr>
         </tbody>
       </table>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>When Should You Use Tinkercad?</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>When Should You Use Tinkercad?</h2>
         <p>
           Tinkercad Circuits is excellent for <strong>beginners and K-12 students</strong> learning basic electronics and Arduino programming. 
           Its 3D breadboard view is intuitive, and the Arduino integration is genuinely useful for maker projects. 
@@ -137,7 +137,7 @@ const VsTinkercad: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>When Should You Use NodeSim?</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>When Should You Use NodeSim?</h2>
         <p>
           NodeSim is the right choice when you need <strong>real SPICE simulation</strong>: precise voltage and current waveforms, 
           accurate op-amp behavior, transistor Q-point analysis, filter frequency response, or any circuit that requires 
@@ -147,7 +147,7 @@ const VsTinkercad: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations of NodeSim</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations of NodeSim</h2>
         <p>
           NodeSim does not simulate Arduino or microcontroller code — it's purely an analog/mixed-signal SPICE tool. 
           If your project involves coding an ATmega or ESP32, Tinkercad or Wokwi are better options for the firmware side.

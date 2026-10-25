@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import SEO from '../../components/SEO';
@@ -36,7 +36,7 @@ const VsWokwi: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#e2e8f0', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
         title="NodeSim vs Wokwi — SPICE Analog Simulator vs Arduino/ESP32 Emulator"
         description="Compare NodeSim vs Wokwi. Wokwi simulates Arduino and ESP32 firmware. NodeSim runs real ngspice SPICE for accurate analog circuit simulation. Different tools for different jobs."
@@ -56,87 +56,87 @@ const VsWokwi: React.FC = () => {
         Wokwi runs your <em>firmware code</em>. NodeSim runs real <em>SPICE circuit simulation</em> using ngspice compiled to WebAssembly.
       </p>
 
-      <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '1rem 1.5rem', marginBottom: '2rem' }}>
-        <strong style={{ color: '#1d4ed8' }}>🔑 Key difference:</strong>
-        <span style={{ color: '#1e3a8a' }}> Wokwi emulates a microcontroller's CPU and runs C/C++ sketch code. NodeSim numerically solves circuit differential equations using SPICE algorithms. They are not interchangeable.</span>
+      <div style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 12, padding: '1rem 1.5rem', marginBottom: '2rem' }}>
+        <strong style={{ color: '#60a5fa' }}>🔑 Key difference:</strong>
+        <span style={{ color: '#93c5fd' }}> Wokwi emulates a microcontroller's CPU and runs C/C++ sketch code. NodeSim numerically solves circuit differential equations using SPICE algorithms. They are not interchangeable.</span>
       </div>
 
-      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Feature Comparison</h2>
+      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Feature Comparison</h2>
 
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left', color: '#ffffff' }}>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Feature</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NodeSim</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Wokwi</th>
+          <tr style={{ backgroundColor: '#0f172a', textAlign: 'left', color: '#ffffff' }}>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Feature</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>NodeSim</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Wokwi</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Core Purpose</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', fontWeight: 600 }}>Analog / mixed-signal SPICE simulation</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', fontWeight: 600 }}>Arduino / ESP32 / RP2040 firmware emulation</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Core Purpose</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', fontWeight: 600 }}>Analog / mixed-signal SPICE simulation</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', fontWeight: 600 }}>Arduino / ESP32 / RP2040 firmware emulation</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Simulation Engine</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>ngspice WASM (industry-standard SPICE)</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>AVR / Xtensa / ARM CPU emulator</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>SPICE Analysis (Transient / AC / DC)</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Full SPICE solver</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not supported</td>
-          </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Arduino / ESP32 Code Execution</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not supported</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Full firmware execution</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Simulation Engine</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>ngspice WASM (industry-standard SPICE)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>AVR / Xtensa / ARM CPU emulator</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Op-Amp / BJT / MOSFET Models</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Accurate SPICE device models</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>⚠️ Basic behavioral only</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>SPICE Analysis (Transient / AC / DC)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Full SPICE solver</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not supported</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Bode Plot / AC Frequency Sweep</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Full AC analysis</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not supported</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Price</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>100% Free, no account</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Free tier + paid plans for advanced features</td>
-          </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Login Required</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>No — open instantly</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Yes — account required to save</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Arduino / ESP32 Code Execution</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not supported</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Full firmware execution</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>60 FPS Current Flow Visualization</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Animated current particles (SPICE-accurate values)</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not available</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Op-Amp / BJT / MOSFET Models</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Accurate SPICE device models</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>⚠️ Basic behavioral only</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Lab Report / PDF Export</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ 1-click IEEE / DVR PDF report</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not available</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Bode Plot / AC Frequency Sweep</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Full AC analysis</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not supported</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>KiCad Netlist Export</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Supported</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not supported</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Price</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>100% Free, no account</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Free tier + paid plans for advanced features</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Iframe Embedding</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Free embed</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Paid embed</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Login Required</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>No — open instantly</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Yes — account required to save</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>60 FPS Current Flow Visualization</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Animated current particles (SPICE-accurate values)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not available</td>
+          </tr>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Lab Report / PDF Export</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ 1-click IEEE / DVR PDF report</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not available</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>KiCad Netlist Export</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Supported</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not supported</td>
+          </tr>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Iframe Embedding</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Free embed</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Paid embed</td>
           </tr>
         </tbody>
       </table>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Use Both — They Complement Each Other</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Use Both — They Complement Each Other</h2>
         <p>
           A common workflow for embedded systems engineers: <strong>design and verify the analog front-end in NodeSim</strong> (sensor conditioning, power supply, signal amplification), 
           then <strong>simulate the microcontroller firmware in Wokwi</strong> to test the software side. 
@@ -145,7 +145,7 @@ const VsWokwi: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>When NodeSim is the Right Choice</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>When NodeSim is the Right Choice</h2>
         <p>
           Choose NodeSim when you need to answer questions like:
         </p>
@@ -160,7 +160,7 @@ const VsWokwi: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>FAQ</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>FAQ</h2>
         <div style={{ marginBottom: '1rem' }}>
           <strong>Q: Is Wokwi a SPICE simulator?</strong>
           <p style={{ marginTop: '0.3rem' }}>No. Wokwi emulates microcontroller CPUs (AVR, Xtensa, ARM). It does not solve SPICE equations and cannot accurately simulate analog circuits.</p>

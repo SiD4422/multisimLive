@@ -28,7 +28,7 @@ const VsFalstad: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#e2e8f0', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
         title="NodeSim vs Falstad Circuit Simulator — Browser SPICE Comparison"
         description="Compare NodeSim vs Falstad Circuit Simulator. NodeSim features professional ngspice WASM accuracy, modern UI, and AI assistance. See the full feature comparison."
@@ -45,49 +45,49 @@ const VsFalstad: React.FC = () => {
         Falstad is famous for its animated "water flow" current visualization, making it great for early beginners. However, it uses a simplified engine. NodeSim provides an easy UI but runs professional-grade SPICE under the hood.
       </p>
 
-      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Comparison</h2>
+      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Comparison</h2>
       
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left', color: '#ffffff' }}>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Feature</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NodeSim</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Falstad</th>
+          <tr style={{ backgroundColor: '#0f172a', textAlign: 'left', color: '#ffffff' }}>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Feature</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>NodeSim</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Falstad</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Simulation Engine</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Industry-standard ngspice</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Custom simplified engine</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Simulation Engine</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Industry-standard ngspice</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Custom simplified engine</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Accuracy</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Professional / Academic</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Educational / Approximated</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Accuracy</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Professional / Academic</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Educational / Approximated</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Visuals</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Standard Schematic + Graphs</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Animated current flow</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Visuals</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Standard Schematic + Graphs</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Animated current flow</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Modern Features</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>AI Tutor, Dark Mode</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Classic Java-era UI</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Modern Features</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>AI Tutor, Dark Mode</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Classic Java-era UI</td>
           </tr>
         </tbody>
       </table>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Who is NodeSim for?</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Who is NodeSim for?</h2>
         <p>
           Users who have outgrown Falstad's educational models and need a simulator they can trust for actual lab reports, assignments, or real-world prototyping, while still maintaining an easy-to-use web interface.
         </p>
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations</h2>
         <p>
           If you are a complete beginner who relies heavily on the visual "moving dots" to understand current flow, Falstad is still an excellent tool. NodeSim focuses on standard electrical schematics and rigorous graphing instead.
         </p>

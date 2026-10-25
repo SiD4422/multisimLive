@@ -28,7 +28,7 @@ const VsCircuitlab: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#e2e8f0', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
         title="NodeSim vs CircuitLab — Free Browser SPICE Simulator vs $24/mo"
         description="Compare NodeSim vs CircuitLab. NodeSim is 100% free with real ngspice SPICE simulation in the browser. CircuitLab charges $24/month. Full feature-by-feature comparison."
@@ -47,72 +47,72 @@ const VsCircuitlab: React.FC = () => {
         NodeSim is 100% free, runs real ngspice WASM simulation, and has no login required. Here's the honest comparison.
       </p>
 
-      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Feature Comparison</h2>
+      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Feature Comparison</h2>
 
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left', color: '#ffffff' }}>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Feature</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NodeSim</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>CircuitLab</th>
+          <tr style={{ backgroundColor: '#0f172a', textAlign: 'left', color: '#ffffff' }}>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Feature</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>NodeSim</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>CircuitLab</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Price</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', fontWeight: 700, color: '#15803d' }}>100% Free — forever</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0', color: '#dc2626' }}>$24/month (paid plan required for full access)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Price</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', fontWeight: 700, color: '#4ade80' }}>100% Free — forever</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', color: '#f87171' }}>$24/month (paid plan required for full access)</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Login Required</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>No — open instantly</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Yes — account required</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Simulation Engine</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>ngspice (industry-standard SPICE, compiled to WASM)</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Proprietary solver</td>
-          </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Platform</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Any browser — desktop, tablet, mobile</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Browser (desktop-focused)</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Login Required</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>No — open instantly</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Yes — account required</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Simulation Types</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Transient, AC Sweep, DC Operating Point, DC Sweep</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Transient, AC Frequency, DC</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Simulation Engine</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>ngspice (industry-standard SPICE, compiled to WASM)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Proprietary solver</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Component Library</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>85+ components (BJT, MOSFET, Op-Amps, 74xx logic, 555 timer)</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Large component library</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Current Flow Animation</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ 60 FPS animated current particles</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not available</td>
-          </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Lab Report Generator</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ 1-click IEEE/DVR PDF report</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Not available</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Platform</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Any browser — desktop, tablet, mobile</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Browser (desktop-focused)</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Iframe Embedding</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ Free embed with powered-by badge</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Paid plan required</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Simulation Types</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Transient, AC Sweep, DC Operating Point, DC Sweep</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Transient, AC Frequency, DC</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Open Source</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>✅ MIT licensed</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>❌ Proprietary</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Component Library</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>85+ components (BJT, MOSFET, Op-Amps, 74xx logic, 555 timer)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Large component library</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Current Flow Animation</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ 60 FPS animated current particles</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not available</td>
+          </tr>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Lab Report Generator</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ 1-click IEEE/DVR PDF report</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Not available</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Iframe Embedding</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ Free embed with powered-by badge</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Paid plan required</td>
+          </tr>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Open Source</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>✅ MIT licensed</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>❌ Proprietary</td>
           </tr>
         </tbody>
       </table>
 
-      <section style={{ marginBottom: '2rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.3rem', marginBottom: '0.75rem', color: '#15803d' }}>💡 The Key Difference: Price</h2>
+      <section style={{ marginBottom: '2rem', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 12, padding: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.3rem', marginBottom: '0.75rem', color: '#4ade80' }}>💡 The Key Difference: Price</h2>
         <p>
           CircuitLab's free tier is severely limited — you can't save more than a few circuits or run full SPICE simulations without upgrading to <strong>$24/month</strong>. 
           NodeSim gives you the full simulator for free, forever. No credit card. No account. No limits.
@@ -120,7 +120,7 @@ const VsCircuitlab: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>When Should You Use CircuitLab?</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>When Should You Use CircuitLab?</h2>
         <p>
           CircuitLab has a very polished UI and excellent textbook integration. If your institution has a paid CircuitLab license already, it's a solid choice. 
           For individual engineers or students paying out of pocket, the $24/month price tag is hard to justify when NodeSim is free and uses the same industry-standard SPICE engine.
@@ -128,7 +128,7 @@ const VsCircuitlab: React.FC = () => {
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations of NodeSim</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations of NodeSim</h2>
         <p>
           NodeSim currently has fewer schematic templates than CircuitLab and does not support mixed-signal (digital + analog) simulation in the same canvas. 
           For deeply complex analog front-end design at the professional level, LTspice or commercial tools may be more appropriate.

@@ -28,7 +28,7 @@ const VsLtspice: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#e2e8f0', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
         title="NodeSim vs LTspice XVII — Free Browser SPICE Simulator Comparison"
         description="Compare NodeSim vs LTspice XVII. NodeSim provides instant browser-based circuit simulation with zero install, cross-platform ease, and an AI tutor. See the full comparison."
@@ -45,54 +45,54 @@ const VsLtspice: React.FC = () => {
         LTspice is an industry powerhouse for circuit simulation, but it requires a local installation and has a steep learning curve. NodeSim provides an accessible, browser-based alternative.
       </p>
 
-      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Comparison</h2>
+      <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Comparison</h2>
       
       <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
         <thead>
-          <tr style={{ backgroundColor: '#1e293b', textAlign: 'left', color: '#ffffff' }}>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Feature</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>NodeSim</th>
-            <th style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>LTspice</th>
+          <tr style={{ backgroundColor: '#0f172a', textAlign: 'left', color: '#ffffff' }}>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Feature</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>NodeSim</th>
+            <th style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>LTspice</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Platform</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Web Browser (No Install)</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Windows / macOS (Install Required)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Platform</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Web Browser (No Install)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Windows / macOS (Install Required)</td>
           </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Ease of Use</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Beginner Friendly</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Steep Learning Curve</td>
-          </tr>
-          <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Simulation Engine</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>ngspice (WASM)</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Proprietary SPICE</td>
-          </tr>
-          <tr style={{ backgroundColor: '#f8fafc' }}>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Component Library</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Basic standard models</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Massive vendor library</td>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Ease of Use</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Beginner Friendly</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Steep Learning Curve</td>
           </tr>
           <tr>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Price</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>100% Free</td>
-            <td style={{ padding: '0.75rem', border: '1px solid #e2e8f0' }}>Free (Proprietary)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Simulation Engine</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>ngspice (WASM)</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Proprietary SPICE</td>
+          </tr>
+          <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Component Library</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Basic standard models</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Massive vendor library</td>
+          </tr>
+          <tr>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Price</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>100% Free</td>
+            <td style={{ padding: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>Free (Proprietary)</td>
           </tr>
         </tbody>
       </table>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Who is NodeSim for?</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Who is NodeSim for?</h2>
         <p>
           Students, educators, and hobbyists who need to quickly sketch a schematic and verify behavior without dealing with software installations or complex UI. It’s perfect for homework, lab prep, and conceptual learning.
         </p>
       </section>
 
       <section style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations</h2>
+        <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Honest Limitations</h2>
         <p>
           NodeSim uses the highly capable ngspice engine, but currently lacks the massive proprietary component libraries that LTspice includes for specific commercial ICs. It also does not support PCB layout generation.
         </p>
