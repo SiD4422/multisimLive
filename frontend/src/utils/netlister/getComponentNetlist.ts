@@ -730,6 +730,111 @@ Bosc osc_n GND VALUE = { (sin(2*3.14159*50000*time)>0 ? 1 : 0) }
 Bout OUTP GND VALUE = { (V(VCC,GND)<10) ? 0 : (V(ISNS)>1) ? 0 : (V(osc_n)>0.5 && V(err_n,GND)>0) ? V(VCC,GND)*0.9 : 0 }
 Rvcc VCC GND 100Meg
 .ends UC3842`,
+
+  SCR: `.subckt SCR A K G
+* SCR (Thyristor): conducts A->K when gate triggered, latches until current drops
+* Simplified: two BJT latch model
+Q_pnp A g_int K SCR_PNP
+Q_npn g_int G K SCR_NPN
+R_gate G K 10k
+.model SCR_PNP PNP (Is=1e-14 Bf=50)
+.model SCR_NPN NPN (Is=1e-14 Bf=50)
+.ends SCR`,
+
+  JFET_N: `.subckt JFET_N G D S
+* N-Channel JFET depletion model
+* Vp=-2V, Idss=5mA
+Bids D S I = { MAX(0, 5m*(1 - V(G,S)/(-2))^2 * (V(D,S) > 0 ? 1 : 0)) }
+Rgs G S 1000Meg
+.ends JFET_N`,
+
+  JFET_P: `.subckt JFET_P G D S
+* P-Channel JFET depletion model
+* Vp=+2V, Idss=5mA
+Bids S D I = { MAX(0, 5m*(1 - V(G,S)/2)^2 * (V(S,D) > 0 ? 1 : 0)) }
+Rgs G S 1000Meg
+.ends JFET_P`,
+
+  HC244: `.subckt HC244 A1 A2 A3 A4 A5 A6 A7 A8 OE1 Y1 Y2 Y3 Y4 Y5 Y6 Y7 Y8 VCC GND
+* 74HC244 Octal Buffer -- non-inverting, 3-state
+E1 Y1 GND VALUE = { (V(OE1)<1.5) ? V(A1) : 0 }
+E2 Y2 GND VALUE = { (V(OE1)<1.5) ? V(A2) : 0 }
+E3 Y3 GND VALUE = { (V(OE1)<1.5) ? V(A3) : 0 }
+E4 Y4 GND VALUE = { (V(OE1)<1.5) ? V(A4) : 0 }
+E5 Y5 GND VALUE = { (V(OE1)<1.5) ? V(A5) : 0 }
+E6 Y6 GND VALUE = { (V(OE1)<1.5) ? V(A6) : 0 }
+E7 Y7 GND VALUE = { (V(OE1)<1.5) ? V(A7) : 0 }
+E8 Y8 GND VALUE = { (V(OE1)<1.5) ? V(A8) : 0 }
+Rvcc VCC GND 100Meg
+.ends HC244`,
+
+  HC374: `.subckt HC374 D1 D2 D3 D4 D5 D6 D7 D8 CLK OE Q1 Q2 Q3 Q4 Q5 Q6 Q7 Q8 VCC GND
+* 74HC374 Octal D Flip-Flop edge-triggered -- simplified level model
+E1 Q1 GND VALUE = { (V(OE)<1.5) ? V(D1) : 0 }
+E2 Q2 GND VALUE = { (V(OE)<1.5) ? V(D2) : 0 }
+E3 Q3 GND VALUE = { (V(OE)<1.5) ? V(D3) : 0 }
+E4 Q4 GND VALUE = { (V(OE)<1.5) ? V(D4) : 0 }
+E5 Q5 GND VALUE = { (V(OE)<1.5) ? V(D5) : 0 }
+E6 Q6 GND VALUE = { (V(OE)<1.5) ? V(D6) : 0 }
+E7 Q7 GND VALUE = { (V(OE)<1.5) ? V(D7) : 0 }
+E8 Q8 GND VALUE = { (V(OE)<1.5) ? V(D8) : 0 }
+Rvcc VCC GND 100Meg
+.ends HC374`,
+
+  HC151: `.subckt HC151 D0 D1 D2 D3 D4 D5 D6 D7 S0 S1 S2 EN Y W VCC GND
+* 74HC151 8-to-1 MUX
+* sel = 4*S2 + 2*S1 + S0
+Bsel sel_n GND VALUE = { (V(S2)>1.5 ? 4 : 0) + (V(S1)>1.5 ? 2 : 0) + (V(S0)>1.5 ? 1 : 0) }
+By Y GND VALUE = { (V(EN)>1.5) ? 0 :
++ (V(sel_n)<0.5) ? V(D0) :
++ (V(sel_n)<1.5) ? V(D1) :
++ (V(sel_n)<2.5) ? V(D2) :
++ (V(sel_n)<3.5) ? V(D3) :
++ (V(sel_n)<4.5) ? V(D4) :
++ (V(sel_n)<5.5) ? V(D5) :
++ (V(sel_n)<6.5) ? V(D6) : V(D7) }
+Bw W GND VALUE = { 5 - V(Y,GND) }
+Rvcc VCC GND 100Meg
+.ends HC151`,
+
+  HC283: `.subckt HC283 A1 A2 A3 A4 B1 B2 B3 B4 C0 S1 S2 S3 S4 C4 VCC GND
+* 74HC283 4-bit binary adder
+Bsum sum_n GND VALUE = {
++ (V(A1)>1.5 ? 1 : 0) + (V(A2)>1.5 ? 2 : 0) + (V(A3)>1.5 ? 4 : 0) + (V(A4)>1.5 ? 8 : 0) +
++ (V(B1)>1.5 ? 1 : 0) + (V(B2)>1.5 ? 2 : 0) + (V(B3)>1.5 ? 4 : 0) + (V(B4)>1.5 ? 8 : 0) +
++ (V(C0)>1.5 ? 1 : 0) }
+BS1 S1 GND VALUE = { (int(V(sum_n)+0.5) & 1) ? 5 : 0 }
+BS2 S2 GND VALUE = { (int(V(sum_n)+0.5) & 2) ? 5 : 0 }
+BS3 S3 GND VALUE = { (int(V(sum_n)+0.5) & 4) ? 5 : 0 }
+BS4 S4 GND VALUE = { (int(V(sum_n)+0.5) & 8) ? 5 : 0 }
+BC4 C4 GND VALUE = { (V(sum_n) >= 16) ? 5 : 0 }
+Rvcc VCC GND 100Meg
+.ends HC283`,
+
+  MCP4725: `.subckt MCP4725 SDA SCL A0 VOUT VCC GND
+* MCP4725 I2C 12-bit DAC -- simplified: VOUT = VCC * 0.5 (mid-scale default)
+Bvout VOUT GND VALUE = { V(VCC,GND) * 0.5 }
+Rsda SDA GND 10Meg
+Rscl SCL GND 10Meg
+Rvcc VCC GND 100Meg
+.ends MCP4725`,
+
+  INA219: `.subckt INA219 IN_P IN_N SDA SCL A0 A1 VCC GND
+* INA219 current/power monitor -- shunt voltage across IN_P/IN_N
+* Simplified: no I2C model; shunt resistor 0.1 ohm represented
+Rshunt IN_P IN_N 0.1
+Rsda SDA GND 10Meg
+Rscl SCL GND 10Meg
+Rvcc VCC GND 100Meg
+.ends INA219`,
+
+  NRF24L01: `.subckt NRF24L01 CE CSN SCK MOSI MISO IRQ VCC GND
+* nRF24L01 RF transceiver -- SPI passthrough model
+Bmiso MISO GND VALUE = { V(MOSI) }
+Rce   CE   GND 10Meg
+Rcsn  CSN  GND 10Meg
+Rvcc  VCC  GND 100Meg
+.ends NRF24L01`,
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -1362,6 +1467,47 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'ic_uc3842': {
       const [comp2='0',fb='0',isns='0',rt='0',gnd='0',outp='0',vcc='0',vref='0'] = nodes;
       return { line: `X_${comp.id} ${comp2} ${fb} ${isns} ${rt} ${gnd} ${outp} ${vcc} ${vref} UC3842`, subckts: [SUBCKT_DEFINITIONS.UC3842] };
+    }
+
+    case 'scr': {
+      const [a='0',k='0',g='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} ${g} SCR`, subckts: [SUBCKT_DEFINITIONS.SCR] };
+    }
+    case 'jfet_n': {
+      const [gp='0',d='0',s='0'] = nodes;
+      return { line: `X_${comp.id} ${gp} ${d} ${s} JFET_N`, subckts: [SUBCKT_DEFINITIONS.JFET_N] };
+    }
+    case 'jfet_p': {
+      const [gp='0',d='0',s='0'] = nodes;
+      return { line: `X_${comp.id} ${gp} ${d} ${s} JFET_P`, subckts: [SUBCKT_DEFINITIONS.JFET_P] };
+    }
+    case 'ic_74hc244': {
+      const [a1='0',a2='0',a3='0',a4='0',a5='0',a6='0',a7='0',a8='0',oe1='0',y1='0',y2='0',y3='0',y4='0',y5='0',y6='0',y7='0',y8='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${a2} ${a3} ${a4} ${a5} ${a6} ${a7} ${a8} ${oe1} ${y1} ${y2} ${y3} ${y4} ${y5} ${y6} ${y7} ${y8} ${vcc} ${gnd} HC244`, subckts: [SUBCKT_DEFINITIONS.HC244] };
+    }
+    case 'ic_74hc374': {
+      const [d1='0',d2='0',d3='0',d4='0',d5='0',d6='0',d7='0',d8='0',clk='0',oe='0',q1='0',q2='0',q3='0',q4='0',q5='0',q6='0',q7='0',q8='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${d1} ${d2} ${d3} ${d4} ${d5} ${d6} ${d7} ${d8} ${clk} ${oe} ${q1} ${q2} ${q3} ${q4} ${q5} ${q6} ${q7} ${q8} ${vcc} ${gnd} HC374`, subckts: [SUBCKT_DEFINITIONS.HC374] };
+    }
+    case 'ic_74hc151': {
+      const [d0='0',d1='0',d2='0',d3='0',d4='0',d5='0',d6='0',d7='0',s0='0',s1='0',s2='0',en='0',y='0',w='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${d0} ${d1} ${d2} ${d3} ${d4} ${d5} ${d6} ${d7} ${s0} ${s1} ${s2} ${en} ${y} ${w} ${vcc} ${gnd} HC151`, subckts: [SUBCKT_DEFINITIONS.HC151] };
+    }
+    case 'ic_74hc283': {
+      const [a1='0',a2='0',a3='0',a4='0',b1='0',b2='0',b3='0',b4='0',c0='0',s1='0',s2='0',s3='0',s4='0',c4='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${a2} ${a3} ${a4} ${b1} ${b2} ${b3} ${b4} ${c0} ${s1} ${s2} ${s3} ${s4} ${c4} ${vcc} ${gnd} HC283`, subckts: [SUBCKT_DEFINITIONS.HC283] };
+    }
+    case 'ic_mcp4725': {
+      const [sda='0',scl='0',a0='0',vout='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${sda} ${scl} ${a0} ${vout} ${vcc} ${gnd} MCP4725`, subckts: [SUBCKT_DEFINITIONS.MCP4725] };
+    }
+    case 'ic_ina219': {
+      const [inp='0',inn='0',sda='0',scl='0',a0='0',a1='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${inp} ${inn} ${sda} ${scl} ${a0} ${a1} ${vcc} ${gnd} INA219`, subckts: [SUBCKT_DEFINITIONS.INA219] };
+    }
+    case 'ic_nrf24l01': {
+      const [ce='0',csn='0',sck='0',mosi='0',miso='0',irq='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${ce} ${csn} ${sck} ${mosi} ${miso} ${irq} ${vcc} ${gnd} NRF24L01`, subckts: [SUBCKT_DEFINITIONS.NRF24L01] };
     }
 
     default:
