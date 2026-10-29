@@ -41,6 +41,8 @@ function formatRefDes(id: string, type: string): string {
     triac: 'T', diac: 'D', igbt_n: 'Q', photo_resistor: 'R',
     ic_lm311: 'U', ic_l298n: 'U', ic_74hc08: 'U', ic_74hc00: 'U',
     ic_ds18b20: 'U', ic_sg3525: 'U',
+    tunnel_diode: 'D', ic_74hc04: 'U', ic_74hc138: 'U', ic_74hc148: 'U',
+    ic_ne5534: 'U', ic_lm337: 'U', ic_max7219: 'U', ic_cd4060: 'U', ic_mcp3208: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -2167,6 +2169,182 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       { x:  85, y:  20 },
     ];
     labelOffset = { x: 35, y: -90 }; valueOffset = { x: 35, y: 90 };
+  }
+  // ── BATCH 6 ──────────────────────────────────────────────────────────────
+  else if (type === 'tunnel_diode') {
+    // Tunnel diode: diode triangle + T-bar on cathode
+    paths.push({ data: 'M 20 0 L 36 -12 L 36 12 Z', fill: '#333' });
+    lines.push({ points: [36, -12, 36, 12] });
+    lines.push({ points: [36,  -5, 36,  5] }); // extra tick marks (T-bar)
+    lines.push({ points: [ 0,   0, 20,  0] });
+    lines.push({ points: [36,   0, 55,  0] });
+    pins = [{ x: 0, y: 0 }, { x: 55, y: 0 }];
+    labelOffset = { x: 27, y: -22 }; valueOffset = { x: 27, y: 18 };
+  }
+  else if (type === 'ic_74hc04') {
+    // Single inverter: triangle + bubble
+    paths.push({ data: 'M 5 -18 L 5 18 L 38 0 Z', fill: '#fff', stroke: '#333' });
+    circles.push({ x: 41, y: 0, r: 3, fill: '#fff', stroke: '#333' });
+    lines.push({ points: [ 0,  0,  5,  0] });
+    lines.push({ points: [44,  0, 55,  0] });
+    lines.push({ points: [25, 18, 25, 26] });
+    texts.push({ text: 'GND', x: 12, y: 28, size: 8 });
+    pins = [{ x: 0, y: 0 }, { x: 55, y: 0 }, { x: 25, y: 26 }];
+    labelOffset = { x: 25, y: -30 }; valueOffset = { x: 25, y: 35 };
+  }
+  else if (type === 'ic_74hc138') {
+    // 74HC138 — wide IC box, 6 inputs left, 8 outputs right
+    rects.push({ x: 0, y: -75, width: 70, height: 150, fill: '#fff', stroke: '#333' });
+    texts.push({ text: '74HC138', x: 10, y: -6, size: 9 });
+    texts.push({ text: '3-8 DEC',  x: 12, y:  6, size: 8 });
+    ([['A',-45],['B',-30],['C',-15],['G1',0],['/G2A',15],['/G2B',30]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['Y0',-45],['Y1',-30],['Y2',-15],['Y3',0],['Y4',15],['Y5',30],['Y6',45],['Y7',60]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 52, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [35, -75, 35, -85] });
+    lines.push({ points: [35,  75, 35,  85] });
+    texts.push({ text: 'VCC', x: 20, y: -87, size: 8 });
+    texts.push({ text: 'GND', x: 20, y:  90, size: 8 });
+    pins = [
+      { x: -15, y: -45 }, { x: -15, y: -30 }, { x: -15, y: -15 },
+      { x: -15, y:   0 }, { x: -15, y:  15 }, { x: -15, y:  30 },
+      { x:  85, y: -45 }, { x:  85, y: -30 }, { x:  85, y: -15 }, { x:  85, y:   0 },
+      { x:  85, y:  15 }, { x:  85, y:  30 }, { x:  85, y:  45 }, { x:  85, y:  60 },
+      { x:  35, y: -85 }, { x:  35, y:  85 },
+    ];
+    labelOffset = { x: 35, y: -100 }; valueOffset = { x: 35, y: 100 };
+  }
+  else if (type === 'ic_74hc148') {
+    // 74HC148 — 8-input priority encoder
+    rects.push({ x: 0, y: -75, width: 70, height: 165, fill: '#fff', stroke: '#333' });
+    texts.push({ text: '74HC148', x: 10, y: -6, size: 9 });
+    texts.push({ text: '8-3 ENC',  x: 12, y:  6, size: 8 });
+    ([['I0',-40],['I1',-25],['I2',-10],['I3',5],['I4',20],['I5',35],['I6',50],['I7',65],['EI',80]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['A0',-25],['A1',-10],['A2',5],['GS',20],['EO',35]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 52, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [35, -75, 35, -85] });
+    lines.push({ points: [35,  90, 35, 100] });
+    texts.push({ text: 'VCC', x: 20, y: -87, size: 8 });
+    texts.push({ text: 'GND', x: 20, y: 105, size: 8 });
+    pins = [
+      { x: -15, y: -40 }, { x: -15, y: -25 }, { x: -15, y: -10 }, { x: -15, y:  5 },
+      { x: -15, y:  20 }, { x: -15, y:  35 }, { x: -15, y:  50 }, { x: -15, y:  65 },
+      { x: -15, y:  80 },
+      { x:  85, y: -25 }, { x:  85, y: -10 }, { x:  85, y:   5 }, { x:  85, y:  20 }, { x:  85, y:  35 },
+      { x:  35, y: -85 }, { x:  35, y: 100 },
+    ];
+    labelOffset = { x: 35, y: -100 }; valueOffset = { x: 35, y: 115 };
+  }
+  else if (type === 'ic_ne5534') {
+    // NE5534 — op-amp triangle with COMP pin
+    paths.push({ data: 'M 5 -30 L 5 30 L 55 0 Z', fill: '#fff', stroke: '#333' });
+    lines.push({ points: [ 0,-10,  5,-10] });
+    lines.push({ points: [ 0, 10,  5, 10] });
+    lines.push({ points: [55,  0, 60,  0] });
+    lines.push({ points: [30,-30, 30,-35] });
+    lines.push({ points: [30, 30, 30, 35] });
+    lines.push({ points: [10,-30, 10,-38] }); // COMP pin
+    texts.push({ text: '+',    x:  8, y: -14, size: 11 });
+    texts.push({ text: '\u2212', x:  8, y:   6, size: 11 });
+    texts.push({ text: 'COMP', x:  1, y: -48, size: 7 });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 60, y: 0 }, { x: 30, y: -35 }, { x: 30, y: 35 }, { x: 10, y: -38 }];
+    labelOffset = { x: 30, y: -50 }; valueOffset = { x: 30, y: 50 };
+  }
+  else if (type === 'ic_lm337') {
+    // LM337 — 3-pin voltage regulator (mirror of LM317 but for negative)
+    rects.push({ x: 10, y: -18, width: 40, height: 36, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'LM337', x: 12, y: -5, size: 9 });
+    texts.push({ text: 'NEG REG', x: 10, y:  7, size: 7 });
+    lines.push({ points: [ 0,  0, 10,  0] }); // IN
+    lines.push({ points: [50,  0, 60,  0] }); // OUT
+    lines.push({ points: [30, 18, 30, 35] }); // ADJ
+    texts.push({ text: 'IN',  x: -15, y: -4, size: 8 });
+    texts.push({ text: 'OUT', x:  62, y: -4, size: 8 });
+    texts.push({ text: 'ADJ', x:  20, y:  38, size: 8 });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }, { x: 30, y: 35 }];
+    labelOffset = { x: 30, y: -32 }; valueOffset = { x: 30, y: 50 };
+  }
+  else if (type === 'ic_max7219') {
+    // MAX7219 — IC box with SPI pins
+    rects.push({ x: 0, y: -45, width: 70, height: 90, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'MAX7219', x: 8, y: -5, size: 9 });
+    texts.push({ text: 'LED DRV', x: 10, y:  7, size: 8 });
+    ([['DIN',-25],['CLK',-10],['CS',5]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [70,-25, 85,-25] });
+    texts.push({ text: 'DOUT', x: 48, y: -32, size: 8 });
+    lines.push({ points: [35,-45, 35,-55] });
+    lines.push({ points: [35, 45, 35, 55] });
+    texts.push({ text: 'VCC', x: 20, y: -57, size: 8 });
+    texts.push({ text: 'GND', x: 20, y:  60, size: 8 });
+    pins = [
+      { x: -15, y: -25 }, { x: -15, y: -10 }, { x: -15, y:  5 },
+      { x:  85, y: -25 }, { x:  35, y: -55 }, { x:  35, y:  55 },
+    ];
+    labelOffset = { x: 35, y: -70 }; valueOffset = { x: 35, y: 70 };
+  }
+  else if (type === 'ic_cd4060') {
+    // CD4060 — counter IC box
+    rects.push({ x: 0, y: -75, width: 70, height: 150, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'CD4060', x: 10, y: -6, size: 9 });
+    texts.push({ text: 'OSC+CTR', x: 8, y:  6, size: 7 });
+    ([['OSC1',-30],['OSC2',-15],['RST',0]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['Q4',-45],['Q5',-30],['Q6',-15],['Q7',0],['Q8',15],['Q9',30],['Q10',45],['Q14',60]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 52, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [35,-75, 35,-85] });
+    lines.push({ points: [35, 75, 35, 85] });
+    texts.push({ text: 'VDD', x: 20, y: -87, size: 8 });
+    texts.push({ text: 'VSS', x: 20, y:  90, size: 8 });
+    pins = [
+      { x: -15, y: -30 }, { x: -15, y: -15 }, { x: -15, y:   0 },
+      { x:  85, y: -45 }, { x:  85, y: -30 }, { x:  85, y: -15 }, { x:  85, y:   0 },
+      { x:  85, y:  15 }, { x:  85, y:  30 }, { x:  85, y:  45 }, { x:  85, y:  60 },
+      { x:  35, y: -85 }, { x:  35, y:  85 },
+    ];
+    labelOffset = { x: 35, y: -100 }; valueOffset = { x: 35, y: 100 };
+  }
+  else if (type === 'ic_mcp3208') {
+    // MCP3208 — wide IC box, 8 analog in left, SPI right
+    rects.push({ x: 0, y: -75, width: 70, height: 150, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'MCP3208', x: 8, y: -6, size: 9 });
+    texts.push({ text: '12b ADC', x: 10, y:  6, size: 8 });
+    ([['CH0',-50],['CH1',-35],['CH2',-20],['CH3',-5],['CH4',10],['CH5',25],['CH6',40],['CH7',55]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['CS',-50],['DIN',-35],['DOUT',-20],['CLK',-5],['VREF',20]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 48, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [35,-75, 35,-85] });
+    lines.push({ points: [35, 75, 35, 85] });
+    lines.push({ points: [55, 75, 55, 85] });
+    texts.push({ text: 'VDD',  x: 20, y: -87, size: 8 });
+    texts.push({ text: 'AGND', x: 20, y:  90, size: 8 });
+    texts.push({ text: 'DGND', x: 42, y:  90, size: 8 });
+    pins = [
+      { x: -15, y: -50 }, { x: -15, y: -35 }, { x: -15, y: -20 }, { x: -15, y:  -5 },
+      { x: -15, y:  10 }, { x: -15, y:  25 }, { x: -15, y:  40 }, { x: -15, y:  55 },
+      { x:  85, y: -50 }, { x:  85, y: -35 }, { x:  85, y: -20 }, { x:  85, y:  -5 },
+      { x:  85, y:  20 }, { x:  35, y: -85 }, { x:  35, y:  85 }, { x:  55, y:  85 },
+    ];
+    labelOffset = { x: 35, y: -100 }; valueOffset = { x: 35, y: 100 };
   }
   // --- FALLBACK ---
   else {

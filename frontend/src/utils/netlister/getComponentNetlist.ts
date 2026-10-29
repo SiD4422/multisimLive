@@ -1,4 +1,4 @@
-import type { SchematicComponent } from '../../store/useSchematicStore';
+﻿import type { SchematicComponent } from '../../store/useSchematicStore';
 
 export interface ComponentNetlistResult {
   line: string;
@@ -78,9 +78,9 @@ R_leak CATHODE ANODE 10Meg
 R_in REF ANODE 100Meg
 .ends TL431_REF`,
 
-  // ── Discrete Semiconductors ────────────────────────────────────────────────
+  // â”€â”€ Discrete Semiconductors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // NPN BJT — Ebers-Moll behavioural model (IS=1e-14, BF=200)
+  // NPN BJT â€” Ebers-Moll behavioural model (IS=1e-14, BF=200)
   BJT_NPN: `.subckt BJT_NPN B C E
 * Ebers-Moll large-signal model (forward active)
 B_be ic_be B E I = 1e-14*(exp(V(B,E)/0.02585)-1)
@@ -88,7 +88,7 @@ B_ice C E I = 200*I(B_be)
 Rb B E 1G
 .ends BJT_NPN`,
 
-  // PNP BJT — Ebers-Moll behavioural model (IS=1e-14, BF=150)
+  // PNP BJT â€” Ebers-Moll behavioural model (IS=1e-14, BF=150)
   BJT_PNP: `.subckt BJT_PNP B C E
 * PNP Ebers-Moll: currents flow opposite convention
 B_be ic_be E B I = 1e-14*(exp(V(E,B)/0.02585)-1)
@@ -96,7 +96,7 @@ B_ice E C I = 150*I(B_be)
 Rb B E 1G
 .ends BJT_PNP`,
 
-  // N-Channel Enhancement MOSFET (Vth=2V, Kp=0.5A/V²)
+  // N-Channel Enhancement MOSFET (Vth=2V, Kp=0.5A/VÂ²)
   MOSFET_N: `.subckt MOSFET_N G D S
 * Quadratic NMOS model: Id = Kp/2*(Vgs-Vth)^2 in saturation
 B_id D S I = {max(0, (V(G,S)>2) ? 0.5/2*(V(G,S)-2)^2 : 0)}
@@ -104,7 +104,7 @@ Rgs G S 100Meg
 Rds D S 1G
 .ends MOSFET_N`,
 
-  // P-Channel Enhancement MOSFET (Vth=-4V, Kp=0.5A/V²)
+  // P-Channel Enhancement MOSFET (Vth=-4V, Kp=0.5A/VÂ²)
   MOSFET_P: `.subckt MOSFET_P G D S
 * Quadratic PMOS model: Id flows from S to D when Vgs < Vth
 B_id S D I = {max(0, (V(S,G)>4) ? 0.5/2*(V(S,G)-4)^2 : 0)}
@@ -112,20 +112,20 @@ Rgs G S 100Meg
 Rds D S 1G
 .ends MOSFET_P`,
 
-  // Schottky Diode — low Vf (IS=1e-8, N=1.05) approximating 1N5819
+  // Schottky Diode â€” low Vf (IS=1e-8, N=1.05) approximating 1N5819
   SCHOTTKY: `.subckt SCHOTTKY A K
 D1 A K DSCHOTTKY
 .model DSCHOTTKY D(IS=1e-8 N=1.05 RS=0.01)
 .ends SCHOTTKY`,
 
-  // ── Additional Linear ICs ──────────────────────────────────────────────────
+  // â”€â”€ Additional Linear ICs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   // LM741 single op-amp (reuses UA741_SUB core)
   LM741: `.subckt LM741 INP INM VCC VEE OUT
 X1 INP INM VCC VEE OUT UA741_SUB
 .ends LM741`,
 
-  // LM324 Quad Op-Amp — exposed as dual (same behavioural core as LM358)
+  // LM324 Quad Op-Amp â€” exposed as dual (same behavioural core as LM358)
   LM324: `.subckt LM324 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC GND
 XOP1 IN1P IN1M VCC GND OUT1 UA741_SUB
 XOP2 IN2P IN2M VCC GND OUT2 UA741_SUB
@@ -137,7 +137,7 @@ XOP1 IN1P IN1M VCC GND OUT1 UA741_SUB
 XOP2 IN2P IN2M VCC GND OUT2 UA741_SUB
 .ends NE5532`,
 
-  // 7474 D Flip-Flop — behavioural latch with edge-detect
+  // 7474 D Flip-Flop â€” behavioural latch with edge-detect
   DFF_7474: `.subckt DFF_7474 D CLK PRE CLR Q QB VCC GND
 * Rising-edge D flip-flop with active-low async PRE and CLR
 C_clk clk_prev GND 1p
@@ -151,7 +151,7 @@ B_Q Q GND V = (V(q_state)>2.5) ? 5 : 0
 B_QB QB GND V = (V(q_state)>2.5) ? 0 : 5
 .ends DFF_7474`,
 
-  // L293D Motor Driver — two H-bridge half-channels (EN1, IN1→OUT1, IN2→OUT2)
+  // L293D Motor Driver â€” two H-bridge half-channels (EN1, IN1â†’OUT1, IN2â†’OUT2)
   L293D: `.subckt L293D EN1 IN1 OUT1 OUT2 IN2 VCC1 VCC2 GND
 * Half-bridge: OUT = VCC2 when INx=1&&EN=1, GND when INx=0&&EN=1, Hi-Z (10G) otherwise
 B_out1 OUT1 GND V = (V(EN1)>2.5) ? ((V(IN1)>2.5) ? V(VCC2) : 0) : 0
@@ -161,15 +161,15 @@ R_vcc1 VCC1 GND 100k
 R_vcc2 VCC2 GND 100k
 .ends L293D`,
 
-  // ── Common Discrete Diodes & Passives ─────────────────────────────────────
+  // â”€â”€ Common Discrete Diodes & Passives â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // LED — standard forward-biased diode (Vf ≈ 2V, IS=1e-30)
+  // LED â€” standard forward-biased diode (Vf â‰ˆ 2V, IS=1e-30)
   LED_MODEL: `.subckt LED_MODEL A K
 D1 A K DLED
 .model DLED D(IS=1e-30 N=1.8 RS=5)
 .ends LED_MODEL`,
 
-  // Zener Diode — ideal zener using behavioural current source
+  // Zener Diode â€” ideal zener using behavioural current source
   ZENER: `.subckt ZENER A K
 * Forward: standard diode. Reverse: clamps at Vz=5.1V
 D_fwd A K DFWD
@@ -178,23 +178,23 @@ B_rev K A I = max(0, (V(K,A)-5.1)*0.5)
 R_leak K A 100Meg
 .ends ZENER`,
 
-  // Quartz Crystal — Butterworth-Van Dyke model (Ls, Cs, Rs, Cp)
+  // Quartz Crystal â€” Butterworth-Van Dyke model (Ls, Cs, Rs, Cp)
   CRYSTAL: `.subckt CRYSTAL P1 P2
-* BVD model: motional arm Ls=10mH, Cs=1.6fF, Rs=10Ω in series; Cp=3pF parallel
+* BVD model: motional arm Ls=10mH, Cs=1.6fF, Rs=10Î© in series; Cp=3pF parallel
 Ls P1 n1 10m
 Cs n1 n2 1.6f
 Rs n2 P2 10
 Cp P1 P2 3p
 .ends CRYSTAL`,
 
-  // Variable Capacitor — fixed capacitor (user edits defaultProps.capacitance)
+  // Variable Capacitor â€” fixed capacitor (user edits defaultProps.capacitance)
   VAR_CAP: `.subckt VAR_CAP P1 P2
 C1 P1 P2 30p
 .ends VAR_CAP`,
 
-  // SPDT Relay — coil energises at ≥3.5V, switches COM between NC and NO
+  // SPDT Relay â€” coil energises at â‰¥3.5V, switches COM between NC and NO
   RELAY_SPDT: `.subckt RELAY_SPDT COIL_P COIL_N COM NO NC
-* Coil: 70Ω resistance
+* Coil: 70Î© resistance
 R_coil COIL_P COIL_N 70
 * Energise detect: latch voltage proportional to coil current
 B_energised energised GND V = (V(COIL_P,COIL_N)>3.5) ? 5 : 0
@@ -209,9 +209,9 @@ S_nc COM NC nc_ctrl GND SW_NC
 .model SW_NC SW(VT=2.5 VH=0.5 RON=0.1 ROFF=100Meg)
 .ends RELAY_SPDT`,
 
-  // ── Additional ICs ─────────────────────────────────────────────────────────
+  // â”€â”€ Additional ICs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // LM386 Audio Amplifier — behavioural voltage-mode amplifier (gain=20 default)
+  // LM386 Audio Amplifier â€” behavioural voltage-mode amplifier (gain=20 default)
   LM386: `.subckt LM386 INP INM VS GND OUT GAIN
 * Non-inverting audio amp: gain set by GAIN pin load (20 default, up to 200)
 Rin INP INM 50k
@@ -219,7 +219,7 @@ B_amp OUT GND V = min(V(VS)-0.5, max(0.5, V(VS)/2 + 20*(V(INP)-V(INM))))
 Rout OUT GND 8
 .ends LM386`,
 
-  // LM393 Dual Comparator — open-collector output (requires external pull-up)
+  // LM393 Dual Comparator â€” open-collector output (requires external pull-up)
   LM393: `.subckt LM393 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC GND
 * Output is open-collector: LOW when INP<INM, else Hi-Z (simulated as 1G)
 B_out1 OUT1 GND V = (V(IN1P)>V(IN1M)) ? 0 : V(VCC)
@@ -228,7 +228,7 @@ Ri1 IN1P IN1M 1Meg
 Ri2 IN2P IN2M 1Meg
 .ends LM393`,
 
-  // 7490 Decade Counter — behavioural BCD counter (clocked on CLKA negedge)
+  // 7490 Decade Counter â€” behavioural BCD counter (clocked on CLKA negedge)
   CTR_7490: `.subckt CTR_7490 CLKA CLKB R01 R02 QA QB QC QD VCC GND
 * Simplified behavioural: counts mod-10 on CLKA falling edge
 * State stored in capacitor node; reset forces 0
@@ -241,7 +241,7 @@ B_qc QC GND V = ((int(V(cnt)*10) >> 2) & 1) ? 5 : 0
 B_qd QD GND V = ((int(V(cnt)*10) >> 3) & 1) ? 5 : 0
 .ends CTR_7490`,
 
-  // ULN2003 — 4-channel Darlington sink driver (open-collector, 500mA/ch)
+  // ULN2003 â€” 4-channel Darlington sink driver (open-collector, 500mA/ch)
   ULN2003: `.subckt ULN2003 IN1 IN2 IN3 IN4 OUT1 OUT2 OUT3 OUT4 COM GND
 * Each channel: saturates to GND when INx>1V, else open (1G)
 B_o1 OUT1 GND V = (V(IN1)>1) ? 0 : V(COM)
@@ -251,7 +251,7 @@ B_o4 OUT4 GND V = (V(IN4)>1) ? 0 : V(COM)
 Rcom COM GND 1Meg
 .ends ULN2003`,
 
-  // 74HC595 Shift Register — behavioural 8-bit SIPO with latch
+  // 74HC595 Shift Register â€” behavioural 8-bit SIPO with latch
   SR_74HC595: `.subckt SR_74HC595 SER SRCLK RCLK SRCLR OE Q7S VCC GND
 * Simplified: Q7S mirrors SER delayed one clock (fully behavioural output)
 * Real parallel outputs (QA-QH) are accessed via DIP14 in full schematics
@@ -261,33 +261,33 @@ B_sr sr_node GND V = (V(SRCLR)<1) ? 0 : V(SER)
 B_q7s Q7S GND V = (V(OE)<1) ? V(sr_node) : 0
 .ends SR_74HC595`,
 
-  // ── Fixed Voltage Regulators (78xx) ───────────────────────────────────────
+  // â”€â”€ Fixed Voltage Regulators (78xx) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // 7805 — behavioural fixed +5V regulator
+  // 7805 â€” behavioural fixed +5V regulator
   REG_7805: `.subckt REG_7805 IN GND OUT
 B_reg OUT GND V = min(V(IN)-2, 5)
 R_load OUT GND 10Meg
 .ends REG_7805`,
 
-  // 7812 — behavioural fixed +12V regulator
+  // 7812 â€” behavioural fixed +12V regulator
   REG_7812: `.subckt REG_7812 IN GND OUT
 B_reg OUT GND V = min(V(IN)-2, 12)
 R_load OUT GND 10Meg
 .ends REG_7812`,
 
-  // ── Sensors ───────────────────────────────────────────────────────────────
+  // â”€â”€ Sensors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // NTC Thermistor — Steinhart-Hart B-constant model at user temperature
+  // NTC Thermistor â€” Steinhart-Hart B-constant model at user temperature
   THERMISTOR: `.subckt THERMISTOR P1 P2
 * R = R25 * exp(B*(1/T - 1/T25)), default R25=10k, B=3950, T=298.15K
 R_ntc P1 P2 10k
 .ends THERMISTOR`,
 
-  // ── Additional ICs ─────────────────────────────────────────────────────────
+  // â”€â”€ Additional ICs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // 7447 BCD-to-7-Segment Decoder — behavioural active-low outputs
+  // 7447 BCD-to-7-Segment Decoder â€” behavioural active-low outputs
   DEC_7447: `.subckt DEC_7447 A B C D oa ob oc od oe of og VCC GND
-* BCD input → segment outputs (active LOW, common-anode display)
+* BCD input â†’ segment outputs (active LOW, common-anode display)
 * Decode integer value N = D*8 + C*4 + B*2 + A
 B_n n GND V = {(V(D)>2.5)*8 + (V(C)>2.5)*4 + (V(B)>2.5)*2 + (V(A)>2.5)}
 B_a oa GND V = {(int(V(n))==1||int(V(n))==4) ? 5 : 0}
@@ -299,44 +299,44 @@ B_f of GND V = {(int(V(n))==1||int(V(n))==2||int(V(n))==3||int(V(n))==7) ? 5 : 0
 B_g og GND V = {(int(V(n))==0) ? 5 : 0}
 .ends DEC_7447`,
 
-  // 74HC245 Octal Bus Transceiver — DIR-controlled bidirectional buffer
+  // 74HC245 Octal Bus Transceiver â€” DIR-controlled bidirectional buffer
   BUF_74HC245: `.subckt BUF_74HC245 DIR OE A1 A2 B1 B2 VCC GND
-* A→B when DIR=1, B→A when DIR=0; disabled when /OE=1
+* Aâ†’B when DIR=1, Bâ†’A when DIR=0; disabled when /OE=1
 B_b1 B1 GND V = (V(OE)<1 && V(DIR)>2.5) ? V(A1) : 0
 B_b2 B2 GND V = (V(OE)<1 && V(DIR)>2.5) ? V(A2) : 0
 B_a1 A1 GND V = (V(OE)<1 && V(DIR)<2.5) ? V(B1) : V(A1)
 B_a2 A2 GND V = (V(OE)<1 && V(DIR)<2.5) ? V(B2) : V(A2)
 .ends BUF_74HC245`,
 
-  // MAX232 — behavioural RS-232 level shifter (TTL→±12V and ±12V→TTL)
+  // MAX232 â€” behavioural RS-232 level shifter (TTLâ†’Â±12V and Â±12Vâ†’TTL)
   MAX232: `.subckt MAX232 T1IN T2IN R1OUT R2OUT T1OUT T2OUT R1IN R2IN VCC GND
-* T-side: TTL 0/5V → RS-232 -10V/+10V (inverted)
+* T-side: TTL 0/5V â†’ RS-232 -10V/+10V (inverted)
 B_t1 T1OUT GND V = (V(T1IN)>2.5) ? -10 : 10
 B_t2 T2OUT GND V = (V(T2IN)>2.5) ? -10 : 10
-* R-side: RS-232 ±10V → TTL 0/5V (inverted)
+* R-side: RS-232 Â±10V â†’ TTL 0/5V (inverted)
 B_r1 R1OUT GND V = (V(R1IN)>0.5) ? 0 : 5
 B_r2 R2OUT GND V = (V(R2IN)>0.5) ? 0 : 5
 .ends MAX232`,
 
-  // TL074 Quad JFET Op-Amp — dual channel (same core as LM358)
+  // TL074 Quad JFET Op-Amp â€” dual channel (same core as LM358)
   TL074: `.subckt TL074 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC VEE
 * JFET input: higher Rin, same behavioural gain core
 XOP1 IN1P IN1M VCC VEE OUT1 UA741_SUB
 XOP2 IN2P IN2M VCC VEE OUT2 UA741_SUB
 .ends TL074`,
 
-  // AD620 Instrumentation Amplifier — single Rg sets gain: G = 1 + 49.4k/Rg
+  // AD620 Instrumentation Amplifier â€” single Rg sets gain: G = 1 + 49.4k/Rg
   AD620: `.subckt AD620 INP INM RG1 RG2 REF OUT VCC VEE
 * Gain determined by Rg between RG1-RG2: G = 1 + 49400/Rg
 R_gain RG1 RG2 4940
-* Difference amp with gain G≈10 default (Rg=4940Ω)
+* Difference amp with gain Gâ‰ˆ10 default (Rg=4940Î©)
 B_out OUT REF V = 10*(V(INP)-V(INM))
 Rin INP INM 1Meg
 .ends AD620`,
 
-  // NE566 VCO — square + triangle outputs, freq proportional to control voltage
+  // NE566 VCO â€” square + triangle outputs, freq proportional to control voltage
   NE566: `.subckt NE566 GND MODV SQOUT TRIOUT RTIM CTIM VCC
-* f ≈ 2*(VCC-Vc)/(R*C*VCC), simplified behavioural
+* f â‰ˆ 2*(VCC-Vc)/(R*C*VCC), simplified behavioural
 B_freq f_node GND V = max(100, 2*(V(VCC)-V(MODV))/(10k*100n*V(VCC)+1e-9))
 C_int tri_node GND 1p
 R_int tri_node GND 1Meg
@@ -344,7 +344,7 @@ B_tri TRIOUT GND V = sin(2*3.14159*V(f_node)*TIME)*V(VCC)/2 + V(VCC)/2
 B_sq  SQOUT  GND V = (V(TRIOUT)>V(VCC)/2) ? V(VCC)-1 : 1
 .ends NE566`,
 
-  // CD4017 Johnson Decade Counter — 10 decoded outputs Q0–Q4 + carry-out
+  // CD4017 Johnson Decade Counter â€” 10 decoded outputs Q0â€“Q4 + carry-out
   CD4017: `.subckt CD4017 CLK CLKINH RST Q0 Q1 Q2 Q3 Q4 CO VDD VSS
 * Simplified: counts 0-9, exposes Q0-Q4 and carry-out CO
 C_cnt cnt VSS 1p
@@ -358,36 +358,36 @@ B_q4 Q4 VSS V = (int(V(cnt)*10)==4) ? V(VDD) : 0
 B_co CO VSS V = (V(cnt)>0.5) ? V(VDD) : 0
 .ends CD4017`,
 
-  // ── Isolation, Protection & Power ─────────────────────────────────────────
+  // â”€â”€ Isolation, Protection & Power â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  // 4N35 Optocoupler — LED + phototransistor behavioural
+  // 4N35 Optocoupler â€” LED + phototransistor behavioural
   OC_4N35: `.subckt OC_4N35 A K C E
 * LED input: diode forward-biased above 1.2V
 D_led A K DLED4N35
 .model DLED4N35 D(IS=1e-15 N=1.8)
-* Phototransistor: collector current proportional to LED current (CTR≈100%)
+* Phototransistor: collector current proportional to LED current (CTRâ‰ˆ100%)
 B_led i_led GND V = max(0, (V(A)-V(K)-1.2)/100)
 B_xtr C E I = V(i_led) * 1.0
 R_ce C E 100Meg
 .ends OC_4N35`,
 
-  // MOV Varistor — clamps above threshold (behavioural)
+  // MOV Varistor â€” clamps above threshold (behavioural)
   VARISTOR: `.subckt VARISTOR P1 P2
-* Conducts heavily above V_clamp ≈ 390V; essentially open below
+* Conducts heavily above V_clamp â‰ˆ 390V; essentially open below
 B_clamp P1 P2 I = max(0, (abs(V(P1,P2))-390)*0.1)
 R_bleed P1 P2 10Meg
 .ends VARISTOR`,
 
-  // LM2596 Buck Converter — behavioural step-down
+  // LM2596 Buck Converter â€” behavioural step-down
   LM2596: `.subckt LM2596 VIN VOUT FB ON_OFF GND
 * Output regulated by FB; default Vout = 5V (FB sets ratio via external divider)
-* Simplified: Vout = VIN * min(1, (Vtarget/VIN)) with efficiency ≈ 85%
+* Simplified: Vout = VIN * min(1, (Vtarget/VIN)) with efficiency â‰ˆ 85%
 B_out VOUT GND V = min(V(VIN)*0.85, 5.0)
 R_fb FB GND 1Meg
 R_load VOUT GND 10Meg
 .ends LM2596`,
 
-  // IR2110 Gate Driver — behavioural high/low side driver
+  // IR2110 Gate Driver â€” behavioural high/low side driver
   IR2110: `.subckt IR2110 HIN LIN SD VDD HO VS VB LO VCC COM
 * High-side output HO = VB when HIN=1, SD=0; else off
 B_ho HO VS V = (V(SD)<1 && V(HIN)>2.5) ? (V(VB)-V(VS)) : 0
@@ -396,7 +396,7 @@ B_lo LO COM V = (V(SD)<1 && V(LIN)>2.5) ? V(VCC) : 0
 R_vdd VDD COM 100k
 .ends IR2110`,
 
-  // ACS712 Current Sensor — Hall effect, Vout = 2.5 + 0.185*I
+  // ACS712 Current Sensor â€” Hall effect, Vout = 2.5 + 0.185*I
   ACS712: `.subckt ACS712 IP1 IP2 VOUT VCC GND
 * Current path: sense resistor, output proportional to current
 R_path IP1 IP2 0.005
@@ -404,7 +404,7 @@ B_out VOUT GND V = V(VCC)/2 + 0.185*(V(IP1)-V(IP2))/0.005
 R_out VOUT GND 10Meg
 .ends ACS712`,
 
-  // LM567 Tone Decoder — output LOW when input freq ≈ centre freq (simplified)
+  // LM567 Tone Decoder â€” output LOW when input freq â‰ˆ centre freq (simplified)
   LM567: `.subckt LM567 OUT VCC INP GND TC1 TC2 TIMR
 * Centre frequency set by external R/C on TIMR,TC1
 * Simplified: output goes LOW when input signal > 100mV threshold
@@ -413,7 +413,7 @@ R_in INP GND 20k
 R_load OUT GND 1Meg
 .ends LM567`,
 
-  // CD4051 8-Ch Mux — channel selected by 3-bit ABC address
+  // CD4051 8-Ch Mux â€” channel selected by 3-bit ABC address
   CD4051: `.subckt CD4051 A B C INH Z Y0 Y1 Y2 Y3 VDD VSS
 * Select channel N = C*4+B*2+A; connect Z to YN
 B_n ch_n VSS V = {(V(C)>2.5)*4+(V(B)>2.5)*2+(V(A)>2.5)}
@@ -423,13 +423,13 @@ B_y2 Z VSS V = (V(INH)<1 && int(V(ch_n))==2) ? V(Y2) : V(Z)
 B_y3 Z VSS V = (V(INH)<1 && int(V(ch_n))==3) ? V(Y3) : V(Z)
 .ends CD4051`,
 
-  // 74HC32 Quad OR Gate — same topology as OR2 but packaged as IC
+  // 74HC32 Quad OR Gate â€” same topology as OR2 but packaged as IC
   HC32: `.subckt HC32 A B Y GND
 E1 Y GND VALUE = { (V(A) > 1.5 || V(B) > 1.5) ? 5 : 0 }
 Rout Y GND 10Meg
 .ends HC32`,
 
-  // TCA9548A I2C Mux — pass-through switch (simplified behavioural)
+  // TCA9548A I2C Mux â€” pass-through switch (simplified behavioural)
   TCA9548: `.subckt TCA9548 SDA SCL RST SD0 SC0 SD1 SC1 VCC GND
 * I2C bus switch: SD0/SC0 channel 0, SD1/SC1 channel 1 (simplified 2-ch)
 R_sda SDA GND 4.7k
@@ -440,7 +440,7 @@ B_sd1 SD1 GND V = V(SDA)
 B_sc1 SC1 GND V = V(SCL)
 .ends TCA9548`,
 
-  // ATmega328P — simplified behavioural passthrough (power + UART only)
+  // ATmega328P â€” simplified behavioural passthrough (power + UART only)
   ATMEGA328: `.subckt ATMEGA328 VCC GND RESET RXD TXD MOSI MISO SCK SDA SCL
 * Minimal model: power rails only; UART/SPI/I2C pins are high-impedance stubs
 R_vcc VCC GND 10k
@@ -452,10 +452,10 @@ R_scl SCL GND 100Meg
 
   TRIAC: `.subckt TRIAC MT1 MT2 G
 * Simplified TRIAC: back-to-back SCR model with behavioural gate control
-* Forward path (MT2+ → MT1): conducts when gate triggered and MT2 > MT1
+* Forward path (MT2+ â†’ MT1): conducts when gate triggered and MT2 > MT1
 B_fwd MT2_int MT1 I = { (V(G,MT1) > 0.7 && V(MT2,MT1) > 0) ? V(MT2,MT1)/0.02 : 0 }
 R_fwd MT2 MT2_int 0.02
-* Reverse path (MT1+ → MT2): conducts when gate triggered and MT1 > MT2
+* Reverse path (MT1+ â†’ MT2): conducts when gate triggered and MT1 > MT2
 B_rev MT1_int MT2 I = { (V(G,MT1) > 0.7 && V(MT1,MT2) > 0) ? V(MT1,MT2)/0.02 : 0 }
 R_rev MT1 MT1_int 0.02
 R_gate G MT1 10k
@@ -489,7 +489,7 @@ R_ldr P1 P2 10k
 .ends PHOTO_RESISTOR`,
 
   LM311: `.subckt LM311 INP INN OUT VCC VEE GND
-* LM311 Voltage Comparator — open-collector output
+* LM311 Voltage Comparator â€” open-collector output
 * Op-amp core drives BJT open-collector output stage
 Bcomp comp_int GND VALUE = { (V(INP) > V(INN)) ? 1 : 0 }
 Rcomp comp_int GND 10Meg
@@ -503,7 +503,7 @@ Rvee VEE GND 100Meg
 .ends LM311`,
 
   L298N: `.subckt L298N IN1 IN2 ENA IN3 IN4 ENB OUT1 OUT2 OUT3 OUT4 VCC VSS GND
-* L298N Dual H-Bridge — behavioural model
+* L298N Dual H-Bridge â€” behavioural model
 * Bridge A: controlled by IN1, IN2 when ENA high
 Bout1 OUT1 GND VALUE = { (V(ENA) > 2.5 && V(IN1) > 2.5) ? V(VCC,GND)*0.95 : (V(ENA) > 2.5 && V(IN2) > 2.5) ? 0 : 0 }
 Bout2 OUT2 GND VALUE = { (V(ENA) > 2.5 && V(IN2) > 2.5) ? V(VCC,GND)*0.95 : (V(ENA) > 2.5 && V(IN1) > 2.5) ? 0 : 0 }
@@ -525,28 +525,121 @@ Rout Y GND 10Meg
 .ends HC00`,
 
   DS18B20: `.subckt DS18B20 GND DQ VDD
-* DS18B20 1-Wire Temp Sensor — outputs ~0.5V per °C on DQ (25°C default → 12.5V clip)
-* Representative: 10mV/°C at 25°C baseline, pulled to ~250mV
+* DS18B20 1-Wire Temp Sensor â€” outputs ~0.5V per Â°C on DQ (25Â°C default â†’ 12.5V clip)
+* Representative: 10mV/Â°C at 25Â°C baseline, pulled to ~250mV
 Btemp DQ GND VALUE = { 0.25 }
 Rpull VDD DQ 4.7k
 Rvdd VDD GND 100Meg
 .ends DS18B20`,
 
   SG3525: `.subckt SG3525 INV NINV SYNC OSC SD SS OUTA OUTB VCC GND VREF
-* SG3525 PWM Controller — simplified behavioural model
+* SG3525 PWM Controller â€” simplified behavioural model
 * Internal 5.1V reference
 Eref VREF GND VALUE = { 5.1 }
 Rref VREF GND 100
 * Error amp: NINV is typically tied to VREF/2 setpoint
 Berr err_n GND VALUE = { LIMIT(V(NINV) - V(INV), -5, 5) }
 Rerr err_n GND 10k
-* Oscillator — fixed 50kHz with SYNC input
+* Oscillator â€” fixed 50kHz with SYNC input
 Bosc osc_n GND VALUE = { (V(SYNC) > 1) ? 0 : ( sin(2*3.14159*50000*time) > 0 ? 1 : 0 ) }
-* Output A / B — push-pull, 180° phase
+* Output A / B â€” push-pull, 180Â° phase
 Bouta OUTA GND VALUE = { (V(SD) > 1 || V(SS) < 0.5) ? 0 : (V(osc_n) > 0.5 && V(err_n,GND) > 0) ? V(VCC,GND)*0.9 : 0 }
 Boutb OUTB GND VALUE = { (V(SD) > 1 || V(SS) < 0.5) ? 0 : (V(osc_n) < 0.5 && V(err_n,GND) > 0) ? V(VCC,GND)*0.9 : 0 }
 Rvcc VCC GND 100Meg
 .ends SG3525`,
+
+  TUNNEL_DIODE: `.subckt TUNNEL_DIODE A K
+* Tunnel diode: NDR modelled with piecewise behavioural current
+* Peak ~1mA at 0.1V, valley ~0.1mA at 0.4V, then rises again
+B_td A K I = { (V(A,K) < 0.1) ? V(A,K)/100 :
++              (V(A,K) < 0.4) ? 0.001*(1 - (V(A,K)-0.1)/0.3*0.9) :
++              0.0001 + V(A,K)/500 }
+R_leak A K 10Meg
+.ends TUNNEL_DIODE`,
+
+  HC04: `.subckt HC04 A Y GND
+E1 Y GND VALUE = { (V(A) > 1.5) ? 0 : 5 }
+Rout Y GND 10Meg
+.ends HC04`,
+
+  HC138: `.subckt HC138 A B C G1 G2A G2B Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 VCC GND
+* 3-to-8 decoder: active-low outputs, enabled when G1=1, G2A=0, G2B=0
+* sel = binary value of C,B,A (0-7)
+E_en en_n GND VALUE = { (V(G1)>1.5 && V(G2A)<1.5 && V(G2B)<1.5) ? 1 : 0 }
+B0 Y0 GND VALUE = { (V(en_n)>0.5 && V(C)<1.5 && V(B)<1.5 && V(A)<1.5) ? 0 : 5 }
+B1 Y1 GND VALUE = { (V(en_n)>0.5 && V(C)<1.5 && V(B)<1.5 && V(A)>1.5) ? 0 : 5 }
+B2 Y2 GND VALUE = { (V(en_n)>0.5 && V(C)<1.5 && V(B)>1.5 && V(A)<1.5) ? 0 : 5 }
+B3 Y3 GND VALUE = { (V(en_n)>0.5 && V(C)<1.5 && V(B)>1.5 && V(A)>1.5) ? 0 : 5 }
+B4 Y4 GND VALUE = { (V(en_n)>0.5 && V(C)>1.5 && V(B)<1.5 && V(A)<1.5) ? 0 : 5 }
+B5 Y5 GND VALUE = { (V(en_n)>0.5 && V(C)>1.5 && V(B)<1.5 && V(A)>1.5) ? 0 : 5 }
+B6 Y6 GND VALUE = { (V(en_n)>0.5 && V(C)>1.5 && V(B)>1.5 && V(A)<1.5) ? 0 : 5 }
+B7 Y7 GND VALUE = { (V(en_n)>0.5 && V(C)>1.5 && V(B)>1.5 && V(A)>1.5) ? 0 : 5 }
+Rvcc VCC GND 100Meg
+.ends HC138`,
+
+  HC148: `.subckt HC148 I0 I1 I2 I3 I4 I5 I6 I7 EI A0 A1 A2 GS EO VCC GND
+* 8-to-3 priority encoder (active-low I/O)
+* Highest priority = I7 (if active-low and EI active-low)
+E_en en_n GND VALUE = { (V(EI)<1.5) ? 1 : 0 }
+Ba0 A0 GND VALUE = { (V(en_n)<0.5) ? 5 : (V(I7)<1.5||V(I5)<1.5||V(I3)<1.5||V(I1)<1.5) ? 0 : 5 }
+Ba1 A1 GND VALUE = { (V(en_n)<0.5) ? 5 : (V(I7)<1.5||V(I6)<1.5||V(I3)<1.5||V(I2)<1.5) ? 0 : 5 }
+Ba2 A2 GND VALUE = { (V(en_n)<0.5) ? 5 : (V(I7)<1.5||V(I6)<1.5||V(I5)<1.5||V(I4)<1.5) ? 0 : 5 }
+Bgs GS GND VALUE = { (V(en_n)<0.5) ? 5 : (V(I0)<1.5||V(I1)<1.5||V(I2)<1.5||V(I3)<1.5||V(I4)<1.5||V(I5)<1.5||V(I6)<1.5||V(I7)<1.5) ? 0 : 5 }
+Beo EO GND VALUE = { (V(en_n)<0.5 || V(I0)<1.5||V(I1)<1.5||V(I2)<1.5||V(I3)<1.5||V(I4)<1.5||V(I5)<1.5||V(I6)<1.5||V(I7)<1.5) ? 5 : 0 }
+Rvcc VCC GND 100Meg
+.ends HC148`,
+
+  NE5534: `.subckt NE5534 INP INN OUTP VCC VEE COMP
+* NE5534 low-noise op-amp -- flat model
+Ediff diff_n 0 VALUE = { V(INP) - V(INN) }
+Egain OUTP 0 VALUE = { LIMIT(100000*V(diff_n), V(VEE)+0.015, V(VCC)-0.015) }
+Rin INP INN 1Meg
+Rvcc VCC 0 100Meg
+Rvee VEE 0 100Meg
+Rcomp COMP OUTP 10k
+.ends NE5534`,
+
+  LM337: `.subckt LM337 IN OUT ADJ
+* LM337 adjustable negative regulator
+* Vout = -1.25 * (1 + R2/R1) â€” R2/R1 set by user externally
+* Model: holds OUT at IN - 1.5V (dropout); real Vout depends on ADJ divider
+Ereg OUT ADJ VALUE = { LIMIT(V(IN,ADJ) - 1.5, V(IN) - 40, -1.2) }
+Radj ADJ IN 10Meg
+Rin IN ADJ 0.1
+.ends LM337`,
+
+  MAX7219: `.subckt MAX7219 DIN CLK CS DOUT VCC GND
+* MAX7219 SPI LED driver â€” pass-through model
+* DOUT mirrors DIN after one SPI cycle (simplified)
+Bdout DOUT GND VALUE = { V(DIN) }
+Rvcc VCC GND 100Meg
+Rcs CS GND 10Meg
+.ends MAX7219`,
+
+  CD4060: `.subckt CD4060 OSC1 OSC2 RST Q4 Q5 Q6 Q7 Q8 Q9 Q10 Q14 VDD VSS
+* CD4060 oscillator + 14-stage counter
+* Oscillator drives internal chain; outputs are /2^n of osc freq
+* Simplified: outputs toggle based on time (100kHz osc)
+Bosc osc_int VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000*time)>0 ? V(VDD,VSS)*0.9 : 0) }
+* Each Q output is successive divide-by-2 of the oscillator
+Bq4  Q4  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/16*time)>0  ? V(VDD,VSS)*0.9 : 0) }
+Bq5  Q5  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/32*time)>0  ? V(VDD,VSS)*0.9 : 0) }
+Bq6  Q6  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/64*time)>0  ? V(VDD,VSS)*0.9 : 0) }
+Bq7  Q7  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/128*time)>0 ? V(VDD,VSS)*0.9 : 0) }
+Bq8  Q8  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/256*time)>0 ? V(VDD,VSS)*0.9 : 0) }
+Bq9  Q9  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/512*time)>0 ? V(VDD,VSS)*0.9 : 0) }
+Bq10 Q10 VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/1024*time)>0? V(VDD,VSS)*0.9 : 0) }
+Bq14 Q14 VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/16384*time)>0?V(VDD,VSS)*0.9 : 0) }
+Rvdd VDD VSS 100Meg
+.ends CD4060`,
+
+  MCP3208: `.subckt MCP3208 CH0 CH1 CH2 CH3 CH4 CH5 CH6 CH7 CS DIN DOUT CLK VREF VDD AGND DGND
+* MCP3208 SPI ADC â€” simplified: DOUT mirrors selected channel voltage as digital-ish
+* Real SPI encoding requires firmware; model returns analog proportional value
+Bdout DOUT DGND VALUE = { V(CS,DGND)>1.5 ? 0 : V(CH0,AGND)/V(VREF,AGND)*3.3 }
+Rvdd VDD AGND 100Meg
+Rcs  CS  DGND 10Meg
+.ends MCP3208`,
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -660,7 +753,7 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       };
     }
 
-    // ── Discrete Semiconductors ───────────────────────────────────────────────
+    // â”€â”€ Discrete Semiconductors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case 'bjt_npn': {
       const [b = '0', c = '0', e = '0'] = nodes;
       return {
@@ -697,7 +790,7 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       };
     }
 
-    // ── Additional Linear ICs ─────────────────────────────────────────────────
+    // â”€â”€ Additional Linear ICs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case 'ic_lm741': {
       const [inp = '0', inm = '0', vcc = '0', vee = '0', out = '0'] = nodes;
       return {
@@ -749,7 +842,7 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       };
     }
 
-    // ── Common Discrete Diodes & Passives ─────────────────────────────────────
+    // â”€â”€ Common Discrete Diodes & Passives â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case 'led': {
       const [a = '0', k = '0'] = nodes;
       return {
@@ -788,7 +881,7 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       };
     }
 
-    // ── Additional ICs ─────────────────────────────────────────────────────────
+    // â”€â”€ Additional ICs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case 'ic_lm386': {
       const [inp = '0', inm = '0', vs = '0', gnd = '0', out = '0', gain = '0'] = nodes;
       return {
@@ -840,7 +933,7 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       };
     }
 
-    // ── Fixed Voltage Regulators (78xx) ───────────────────────────────────────
+    // â”€â”€ Fixed Voltage Regulators (78xx) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case 'ic_7805': {
       const [inN = '0', gnd = '0', out = '0'] = nodes;
       return {
@@ -856,7 +949,7 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       };
     }
 
-    // ── Sensors ───────────────────────────────────────────────────────────────
+    // â”€â”€ Sensors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case 'thermistor': {
       const resistance = comp.props?.resistance ?? 10000;
       const safeId = comp.id.replace(/[^a-zA-Z0-9]/g, '');
@@ -867,7 +960,7 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       };
     }
 
-    // ── Additional ICs ─────────────────────────────────────────────────────────
+    // â”€â”€ Additional ICs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case 'ic_7447': {
       const [
         a = '0', b = '0', c = '0', d = '0',
@@ -933,7 +1026,7 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       };
     }
 
-    // ── Isolation, Protection & Power ─────────────────────────────────────────
+    // â”€â”€ Isolation, Protection & Power â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     case 'optocoupler_4n35': {
       const [a = '0', k = '0', c = '0', e = '0'] = nodes;
       return {
@@ -1073,6 +1166,70 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       return {
         line: `X_${comp.id} ${inv} ${ninv} ${sync} ${osc} ${sd} ${ss} ${outa} ${outb} ${vcc} ${gnd} ${vref} SG3525`,
         subckts: [SUBCKT_DEFINITIONS.SG3525]
+      };
+    }
+
+    case 'tunnel_diode': {
+      const [a = '0', k = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${k} TUNNEL_DIODE`,
+        subckts: [SUBCKT_DEFINITIONS.TUNNEL_DIODE]
+      };
+    }
+    case 'ic_74hc04': {
+      const [a = '0', y = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${y} ${gnd} HC04`,
+        subckts: [SUBCKT_DEFINITIONS.HC04]
+      };
+    }
+    case 'ic_74hc138': {
+      const [a = '0', b = '0', c = '0', g1 = '0', g2a = '0', g2b = '0', y0 = '0', y1 = '0', y2 = '0', y3 = '0', y4 = '0', y5 = '0', y6 = '0', y7 = '0', vcc = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${b} ${c} ${g1} ${g2a} ${g2b} ${y0} ${y1} ${y2} ${y3} ${y4} ${y5} ${y6} ${y7} ${vcc} ${gnd} HC138`,
+        subckts: [SUBCKT_DEFINITIONS.HC138]
+      };
+    }
+    case 'ic_74hc148': {
+      const [i0 = '0', i1 = '0', i2 = '0', i3 = '0', i4 = '0', i5 = '0', i6 = '0', i7 = '0', ei = '0', a0 = '0', a1 = '0', a2 = '0', gs = '0', eo = '0', vcc = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${i0} ${i1} ${i2} ${i3} ${i4} ${i5} ${i6} ${i7} ${ei} ${a0} ${a1} ${a2} ${gs} ${eo} ${vcc} ${gnd} HC148`,
+        subckts: [SUBCKT_DEFINITIONS.HC148]
+      };
+    }
+    case 'ic_ne5534': {
+      const [inp = '0', inn = '0', outp = '0', vcc = '0', vee = '0', compPin = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${inp} ${inn} ${outp} ${vcc} ${vee} ${compPin} NE5534`,
+        subckts: [SUBCKT_DEFINITIONS.NE5534]
+      };
+    }
+    case 'ic_lm337': {
+      const [inp = '0', out = '0', adj = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${inp} ${out} ${adj} LM337`,
+        subckts: [SUBCKT_DEFINITIONS.LM337]
+      };
+    }
+    case 'ic_max7219': {
+      const [din = '0', clk = '0', cs = '0', dout = '0', vcc = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${din} ${clk} ${cs} ${dout} ${vcc} ${gnd} MAX7219`,
+        subckts: [SUBCKT_DEFINITIONS.MAX7219]
+      };
+    }
+    case 'ic_cd4060': {
+      const [osc1 = '0', osc2 = '0', rst = '0', q4 = '0', q5 = '0', q6 = '0', q7 = '0', q8 = '0', q9 = '0', q10 = '0', q14 = '0', vdd = '0', vss = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${osc1} ${osc2} ${rst} ${q4} ${q5} ${q6} ${q7} ${q8} ${q9} ${q10} ${q14} ${vdd} ${vss} CD4060`,
+        subckts: [SUBCKT_DEFINITIONS.CD4060]
+      };
+    }
+    case 'ic_mcp3208': {
+      const [ch0 = '0', ch1 = '0', ch2 = '0', ch3 = '0', ch4 = '0', ch5 = '0', ch6 = '0', ch7 = '0', cs = '0', din = '0', dout = '0', clk = '0', vref = '0', vdd = '0', agnd = '0', dgnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${ch0} ${ch1} ${ch2} ${ch3} ${ch4} ${ch5} ${ch6} ${ch7} ${cs} ${din} ${dout} ${clk} ${vref} ${vdd} ${agnd} ${dgnd} MCP3208`,
+        subckts: [SUBCKT_DEFINITIONS.MCP3208]
       };
     }
 
