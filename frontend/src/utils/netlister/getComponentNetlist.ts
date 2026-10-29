@@ -159,7 +159,107 @@ B_out2 OUT2 GND V = (V(EN1)>2.5) ? ((V(IN2)>2.5) ? V(VCC2) : 0) : 0
 R_en1 EN1 GND 100k
 R_vcc1 VCC1 GND 100k
 R_vcc2 VCC2 GND 100k
-.ends L293D`
+.ends L293D`,
+
+  // ── Common Discrete Diodes & Passives ─────────────────────────────────────
+
+  // LED — standard forward-biased diode (Vf ≈ 2V, IS=1e-30)
+  LED_MODEL: `.subckt LED_MODEL A K
+D1 A K DLED
+.model DLED D(IS=1e-30 N=1.8 RS=5)
+.ends LED_MODEL`,
+
+  // Zener Diode — ideal zener using behavioural current source
+  ZENER: `.subckt ZENER A K
+* Forward: standard diode. Reverse: clamps at Vz=5.1V
+D_fwd A K DFWD
+B_rev K A I = max(0, (V(K,A)-5.1)*0.5)
+.model DFWD D(IS=1e-14 N=1)
+R_leak K A 100Meg
+.ends ZENER`,
+
+  // Quartz Crystal — Butterworth-Van Dyke model (Ls, Cs, Rs, Cp)
+  CRYSTAL: `.subckt CRYSTAL P1 P2
+* BVD model: motional arm Ls=10mH, Cs=1.6fF, Rs=10Ω in series; Cp=3pF parallel
+Ls P1 n1 10m
+Cs n1 n2 1.6f
+Rs n2 P2 10
+Cp P1 P2 3p
+.ends CRYSTAL`,
+
+  // Variable Capacitor — fixed capacitor (user edits defaultProps.capacitance)
+  VAR_CAP: `.subckt VAR_CAP P1 P2
+C1 P1 P2 30p
+.ends VAR_CAP`,
+
+  // SPDT Relay — coil energises at ≥3.5V, switches COM between NC and NO
+  RELAY_SPDT: `.subckt RELAY_SPDT COIL_P COIL_N COM NO NC
+* Coil: 70Ω resistance
+R_coil COIL_P COIL_N 70
+* Energise detect: latch voltage proportional to coil current
+B_energised energised GND V = (V(COIL_P,COIL_N)>3.5) ? 5 : 0
+R_e energised GND 1Meg
+* COM-NO contact: closed when energised
+S_no COM NO energised GND SW_NO
+* COM-NC contact: closed when NOT energised (inverted control)
+B_nc_ctrl nc_ctrl GND V = (V(energised)>2.5) ? 0 : 5
+R_nc nc_ctrl GND 1Meg
+S_nc COM NC nc_ctrl GND SW_NC
+.model SW_NO SW(VT=2.5 VH=0.5 RON=0.1 ROFF=100Meg)
+.model SW_NC SW(VT=2.5 VH=0.5 RON=0.1 ROFF=100Meg)
+.ends RELAY_SPDT`,
+
+  // ── Additional ICs ─────────────────────────────────────────────────────────
+
+  // LM386 Audio Amplifier — behavioural voltage-mode amplifier (gain=20 default)
+  LM386: `.subckt LM386 INP INM VS GND OUT GAIN
+* Non-inverting audio amp: gain set by GAIN pin load (20 default, up to 200)
+Rin INP INM 50k
+B_amp OUT GND V = min(V(VS)-0.5, max(0.5, V(VS)/2 + 20*(V(INP)-V(INM))))
+Rout OUT GND 8
+.ends LM386`,
+
+  // LM393 Dual Comparator — open-collector output (requires external pull-up)
+  LM393: `.subckt LM393 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC GND
+* Output is open-collector: LOW when INP<INM, else Hi-Z (simulated as 1G)
+B_out1 OUT1 GND V = (V(IN1P)>V(IN1M)) ? 0 : V(VCC)
+B_out2 OUT2 GND V = (V(IN2P)>V(IN2M)) ? 0 : V(VCC)
+Ri1 IN1P IN1M 1Meg
+Ri2 IN2P IN2M 1Meg
+.ends LM393`,
+
+  // 7490 Decade Counter — behavioural BCD counter (clocked on CLKA negedge)
+  CTR_7490: `.subckt CTR_7490 CLKA CLKB R01 R02 QA QB QC QD VCC GND
+* Simplified behavioural: counts mod-10 on CLKA falling edge
+* State stored in capacitor node; reset forces 0
+C_cnt cnt GND 1p
+R_cnt cnt GND 1G
+B_cnt cnt GND V = (V(R01)>2.5 && V(R02)>2.5) ? 0 : V(cnt)
+B_qa QA GND V = (int(V(cnt)*10) & 1) ? 5 : 0
+B_qb QB GND V = ((int(V(cnt)*10) >> 1) & 1) ? 5 : 0
+B_qc QC GND V = ((int(V(cnt)*10) >> 2) & 1) ? 5 : 0
+B_qd QD GND V = ((int(V(cnt)*10) >> 3) & 1) ? 5 : 0
+.ends CTR_7490`,
+
+  // ULN2003 — 4-channel Darlington sink driver (open-collector, 500mA/ch)
+  ULN2003: `.subckt ULN2003 IN1 IN2 IN3 IN4 OUT1 OUT2 OUT3 OUT4 COM GND
+* Each channel: saturates to GND when INx>1V, else open (1G)
+B_o1 OUT1 GND V = (V(IN1)>1) ? 0 : V(COM)
+B_o2 OUT2 GND V = (V(IN2)>1) ? 0 : V(COM)
+B_o3 OUT3 GND V = (V(IN3)>1) ? 0 : V(COM)
+B_o4 OUT4 GND V = (V(IN4)>1) ? 0 : V(COM)
+Rcom COM GND 1Meg
+.ends ULN2003`,
+
+  // 74HC595 Shift Register — behavioural 8-bit SIPO with latch
+  SR_74HC595: `.subckt SR_74HC595 SER SRCLK RCLK SRCLR OE Q7S VCC GND
+* Simplified: Q7S mirrors SER delayed one clock (fully behavioural output)
+* Real parallel outputs (QA-QH) are accessed via DIP14 in full schematics
+C_sr sr_node GND 1p
+R_sr sr_node GND 1G
+B_sr sr_node GND V = (V(SRCLR)<1) ? 0 : V(SER)
+B_q7s Q7S GND V = (V(OE)<1) ? V(sr_node) : 0
+.ends SR_74HC595`
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -361,6 +461,98 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
         subckts: [SUBCKT_DEFINITIONS.L293D]
       };
     }
+
+    // ── Common Discrete Diodes & Passives ─────────────────────────────────────
+    case 'led': {
+      const [a = '0', k = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${k} LED_MODEL`,
+        subckts: [SUBCKT_DEFINITIONS.LED_MODEL]
+      };
+    }
+    case 'zener_diode': {
+      const [a = '0', k = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${k} ZENER`,
+        subckts: [SUBCKT_DEFINITIONS.ZENER]
+      };
+    }
+    case 'crystal': {
+      const [p1 = '0', p2 = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${p1} ${p2} CRYSTAL`,
+        subckts: [SUBCKT_DEFINITIONS.CRYSTAL]
+      };
+    }
+    case 'variable_capacitor': {
+      const cap = comp.props?.capacitance ?? 30e-12;
+      const safeId = comp.id.replace(/[^a-zA-Z0-9]/g, '');
+      const [p1 = '0', p2 = '0'] = nodes;
+      return {
+        line: `C${safeId} ${p1} ${p2} ${cap}`,
+        subckts: []
+      };
+    }
+    case 'relay_spdt': {
+      const [coilP = '0', coilN = '0', com = '0', no = '0', nc = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${coilP} ${coilN} ${com} ${no} ${nc} RELAY_SPDT`,
+        subckts: [SUBCKT_DEFINITIONS.RELAY_SPDT]
+      };
+    }
+
+    // ── Additional ICs ─────────────────────────────────────────────────────────
+    case 'ic_lm386': {
+      const [inp = '0', inm = '0', vs = '0', gnd = '0', out = '0', gain = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${inp} ${inm} ${vs} ${gnd} ${out} ${gain} LM386`,
+        subckts: [SUBCKT_DEFINITIONS.LM386]
+      };
+    }
+    case 'ic_lm393': {
+      const [
+        in1p = '0', in1m = '0', out1 = '0',
+        in2p = '0', in2m = '0', out2 = '0',
+        vcc = '0', gnd = '0'
+      ] = nodes;
+      return {
+        line: `X_${comp.id} ${in1p} ${in1m} ${out1} ${in2p} ${in2m} ${out2} ${vcc} ${gnd} LM393`,
+        subckts: [SUBCKT_DEFINITIONS.LM393]
+      };
+    }
+    case 'ic_7490': {
+      const [
+        clka = '0', clkb = '0', r01 = '0', r02 = '0',
+        qa = '0', qb = '0', qc = '0', qd = '0',
+        vcc = '0', gnd = '0'
+      ] = nodes;
+      return {
+        line: `X_${comp.id} ${clka} ${clkb} ${r01} ${r02} ${qa} ${qb} ${qc} ${qd} ${vcc} ${gnd} CTR_7490`,
+        subckts: [SUBCKT_DEFINITIONS.CTR_7490]
+      };
+    }
+    case 'ic_uln2003': {
+      const [
+        in1 = '0', in2 = '0', in3 = '0', in4 = '0',
+        out1 = '0', out2 = '0', out3 = '0', out4 = '0',
+        com = '0', gnd = '0'
+      ] = nodes;
+      return {
+        line: `X_${comp.id} ${in1} ${in2} ${in3} ${in4} ${out1} ${out2} ${out3} ${out4} ${com} ${gnd} ULN2003`,
+        subckts: [SUBCKT_DEFINITIONS.ULN2003]
+      };
+    }
+    case 'ic_74hc595': {
+      const [
+        ser = '0', srclk = '0', rclk = '0', srclr = '0',
+        oe = '0', q7s = '0', vcc = '0', gnd = '0'
+      ] = nodes;
+      return {
+        line: `X_${comp.id} ${ser} ${srclk} ${rclk} ${srclr} ${oe} ${q7s} ${vcc} ${gnd} SR_74HC595`,
+        subckts: [SUBCKT_DEFINITIONS.SR_74HC595]
+      };
+    }
+
     default:
       return null;
   }

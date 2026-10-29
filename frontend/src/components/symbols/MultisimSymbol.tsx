@@ -30,6 +30,8 @@ function formatRefDes(id: string, type: string): string {
     bjt_npn: 'Q', bjt_pnp: 'Q', mosfet_n: 'Q', mosfet_p: 'Q',
     schottky_diode: 'D',
     ic_lm741: 'U', ic_lm324: 'U', ic_ne5532: 'U', ic_7474: 'U', ic_l293d: 'U',
+    led: 'D', zener_diode: 'D', crystal: 'Y', variable_capacitor: 'C', relay_spdt: 'K',
+    ic_lm386: 'U', ic_lm393: 'U', ic_7490: 'U', ic_uln2003: 'U', ic_74hc595: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -1346,6 +1348,248 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     ];
     labelOffset = { x: 30, y: -72 };
     valueOffset = { x: 30, y: 72 };
+  }
+  // --- LED ---
+  else if (type === 'led') {
+    // Filled diode triangle + cathode bar + two light-ray arrows
+    paths.push({ data: "M 23 8 L 36 0 L 23 -8 Z", fill: strokeColor }); // Diode triangle
+    lines.push({ points: [36, 8, 36, -8] });                              // Cathode bar
+    lines.push({ points: [0, 0, 23, 0] });                                // Anode lead
+    lines.push({ points: [36, 0, 60, 0] });                               // Cathode lead
+    // Emission arrows pointing away from diode
+    paths.push({ data: "M 40 -12 L 48 -20 M 48 -20 L 44 -20 M 48 -20 L 48 -16", fill: "transparent" });
+    paths.push({ data: "M 44 -8  L 52 -16 M 52 -16 L 48 -16 M 52 -16 L 52 -12", fill: "transparent" });
+    texts.push({ text: 'A', x: 2,  y: -8, size: 8, fill: '#555' });
+    texts.push({ text: 'K', x: 49, y: -8, size: 8, fill: '#555' });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -30 };
+    valueOffset = { x: 15, y: 15 };
+  }
+  // --- ZENER DIODE ---
+  else if (type === 'zener_diode') {
+    paths.push({ data: "M 23 8 L 36 0 L 23 -8 Z", fill: strokeColor }); // Diode triangle
+    // Zener bar with Z-hooks
+    paths.push({ data: "M 32 -8 L 36 -8 L 36 8 L 40 8", fill: "transparent" });
+    lines.push({ points: [0, 0, 23, 0] });
+    lines.push({ points: [36, 0, 60, 0] });
+    texts.push({ text: 'A', x: 2,  y: -8, size: 8, fill: '#555' });
+    texts.push({ text: 'K', x: 49, y: -8, size: 8, fill: '#555' });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -25 };
+    valueOffset = { x: 15, y: 15 };
+  }
+  // --- QUARTZ CRYSTAL ---
+  else if (type === 'crystal') {
+    lines.push({ points: [0, 0, 18, 0] });                               // Left lead
+    lines.push({ points: [18, -9, 18, 9] });                             // Left plate
+    paths.push({ data: "M 22 -7 L 30 -7 L 30 7 L 22 7 Z", fill: "transparent" }); // Crystal body
+    lines.push({ points: [34, -9, 34, 9] });                             // Right plate
+    lines.push({ points: [34, 0, 60, 0] });                              // Right lead
+    texts.push({ text: 'XTAL', x: 18, y: -16, size: 8, fill: '#555' });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -28 };
+    valueOffset = { x: 15, y: 15 };
+  }
+  // --- VARIABLE CAPACITOR (TRIMMER) ---
+  else if (type === 'variable_capacitor') {
+    // Standard cap plates with diagonal arrow through (trimmer symbol)
+    paths.push({ data: "M 0 0 L 25 0 M 25 -10 L 25 10 M 35 -10 L 35 10 M 35 0 L 60 0", fill: "transparent" });
+    // Diagonal arrow indicating variability
+    paths.push({ data: "M 15 12 L 45 -12 M 42 -12 L 45 -12 L 45 -9", fill: "transparent" });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -25 };
+    valueOffset = { x: 15, y: 18 };
+  }
+  // --- SPDT RELAY ---
+  else if (type === 'relay_spdt') {
+    // Coil (left rectangle)
+    paths.push({ data: "M -28 -10 L -8 -10 L -8 10 L -28 10 Z", fill: "#fff" });
+    // Coil leads
+    lines.push({ points: [-38, -15, -28, -15] });  // COIL+
+    lines.push({ points: [-38,  15, -28,  15] });  // COIL-
+    // Coil internal symbol (small horizontal lines)
+    for (let i = 0; i < 3; i++) {
+      lines.push({ points: [-25 + i*6, -10, -25 + i*6, 10] });
+    }
+    texts.push({ text: '+', x: -37, y: -20, size: 8, fill: '#555' });
+    texts.push({ text: '−', x: -37, y:  10, size: 9, fill: '#555' });
+    // Armature pivot dot
+    circles.push({ x: 8, y: 0, r: 2, fill: strokeColor });
+    // COM lead (centre)
+    lines.push({ points: [8, 0, 30, 0] });
+    // NO contact (above) — switch lever open
+    lines.push({ points: [30, -20, 55, -20] });
+    lines.push({ points: [30,  0,  50, -16] }); // lever
+    circles.push({ x: 30, y: -20, r: 2, fill: "transparent" });
+    // NC contact (below) — normally closed
+    lines.push({ points: [30, 20, 55, 20] });
+    circles.push({ x: 30, y: 20, r: 2, fill: "transparent" });
+    texts.push({ text: 'NO', x: 57, y: -25, size: 8, fill: '#22c55e' });
+    texts.push({ text: 'NC', x: 57, y:  15, size: 8, fill: '#ef4444' });
+    texts.push({ text: 'COM', x: 56, y: -5, size: 7, fill: '#555' });
+    pins = [
+      { x: -38, y: -15 }, // COIL+
+      { x: -38, y:  15 }, // COIL-
+      { x:  55, y:   0 }, // COM
+      { x:  55, y: -20 }, // NO
+      { x:  55, y:  20 }, // NC
+    ];
+    labelOffset = { x: 5, y: -35 };
+    valueOffset = { x: 5, y: 35 };
+  }
+  // --- LM386 AUDIO AMPLIFIER ---
+  else if (type === 'ic_lm386') {
+    paths.push({ data: "M 0 -38 L 60 -38 L 60 38 L 0 38 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -38 A 5 5 0 0 0 35 -38", fill: "transparent" }); // Notch
+    lines.push({ points: [-15, -20, 0, -20] }); // IN+
+    lines.push({ points: [-15,   0, 0,   0] }); // IN-
+    lines.push({ points: [ 60,   0, 75,   0] }); // OUT
+    lines.push({ points: [ 30, -38, 30, -45] }); // VS
+    lines.push({ points: [ 30,  38, 30,  45] }); // GND
+    lines.push({ points: [ 30,  25, 30,  38] }); // GAIN stub
+    texts.push({ text: 'IN+',  x: 3,  y: -24, size: 7 });
+    texts.push({ text: 'IN-',  x: 3,  y:  -4, size: 7 });
+    texts.push({ text: 'OUT',  x: 38, y:  -4, size: 7 });
+    texts.push({ text: 'VS',   x: 21, y: -34, size: 7 });
+    texts.push({ text: 'GND',  x: 18, y:  22, size: 7 });
+    texts.push({ text: 'GAIN', x: 18, y:  14, size: 7 });
+    texts.push({ text: 'LM386', x: 14, y: -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y: -20 }, // INP
+      { x: -15, y:   0 }, // INM
+      { x:  30, y: -45 }, // VS
+      { x:  30, y:  45 }, // GND
+      { x:  75, y:   0 }, // OUT
+      { x:  30, y:  38 }, // GAIN
+    ];
+    labelOffset = { x: 30, y: -58 };
+    valueOffset = { x: 30, y: 58 };
+  }
+  // --- LM393 DUAL COMPARATOR ---
+  else if (type === 'ic_lm393') {
+    paths.push({ data: "M 0 -38 L 60 -38 L 60 38 L 0 38 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -38 A 5 5 0 0 0 35 -38", fill: "transparent" });
+    lines.push({ points: [-15, -25, 0, -25] });
+    lines.push({ points: [-15, -10, 0, -10] });
+    lines.push({ points: [-15,  10, 0,  10] });
+    lines.push({ points: [-15,  25, 0,  25] });
+    texts.push({ text: '1+', x: 3, y: -29, size: 7 });
+    texts.push({ text: '1-', x: 3, y: -14, size: 7 });
+    texts.push({ text: '2+', x: 3, y:   6, size: 7 });
+    texts.push({ text: '2-', x: 3, y:  21, size: 7 });
+    lines.push({ points: [60, -18, 75, -18] });
+    lines.push({ points: [60,  18, 75,  18] });
+    texts.push({ text: 'O1', x: 38, y: -22, size: 7 });
+    texts.push({ text: 'O2', x: 38, y:  14, size: 7 });
+    lines.push({ points: [30, -38, 30, -45] });
+    lines.push({ points: [30,  38, 30,  45] });
+    texts.push({ text: 'VCC', x: 21, y: -34, size: 7 });
+    texts.push({ text: 'GND', x: 21, y:  28, size: 7 });
+    texts.push({ text: 'LM393', x: 14, y: -4, size: 9, fill: '#333' });
+    // Open-collector marker on outputs
+    circles.push({ x: 72, y: -18, r: 3, fill: "#fff" });
+    circles.push({ x: 72, y:  18, r: 3, fill: "#fff" });
+    pins = [
+      { x: -15, y: -25 }, { x: -15, y: -10 }, { x: 75, y: -18 },
+      { x: -15, y:  10 }, { x: -15, y:  25 }, { x: 75, y:  18 },
+      { x:  30, y: -45 }, { x: 30, y: 45 }
+    ];
+    labelOffset = { x: 30, y: -58 };
+    valueOffset = { x: 30, y: 58 };
+  }
+  // --- 7490 DECADE COUNTER ---
+  else if (type === 'ic_7490') {
+    paths.push({ data: "M 0 -45 L 60 -45 L 60 45 L 0 45 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -45 A 5 5 0 0 0 35 -45", fill: "transparent" });
+    // Left pins
+    lines.push({ points: [-15, -30, 0, -30] }); // CLKA
+    lines.push({ points: [-15, -15, 0, -15] }); // CLKB
+    lines.push({ points: [-15,   0, 0,   0] }); // R01
+    lines.push({ points: [-15,  15, 0,  15] }); // R02
+    texts.push({ text: 'CLKA', x: 2, y: -34, size: 7 });
+    texts.push({ text: 'CLKB', x: 2, y: -19, size: 7 });
+    texts.push({ text: 'R01',  x: 2, y:  -4, size: 7 });
+    texts.push({ text: 'R02',  x: 2, y:  11, size: 7 });
+    // Right pins
+    lines.push({ points: [60, -30, 75, -30] }); // QA
+    lines.push({ points: [60, -15, 75, -15] }); // QB
+    lines.push({ points: [60,   0, 75,   0] }); // QC
+    lines.push({ points: [60,  15, 75,  15] }); // QD
+    texts.push({ text: 'QA', x: 38, y: -34, size: 7 });
+    texts.push({ text: 'QB', x: 38, y: -19, size: 7 });
+    texts.push({ text: 'QC', x: 38, y:  -4, size: 7 });
+    texts.push({ text: 'QD', x: 38, y:  11, size: 7 });
+    // Supply
+    lines.push({ points: [30, -45, 30, -55] });
+    lines.push({ points: [30,  45, 30,  55] });
+    texts.push({ text: 'VCC', x: 21, y: -41, size: 7 });
+    texts.push({ text: 'GND', x: 21, y:  34, size: 7 });
+    texts.push({ text: '7490', x: 18, y: -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y: -30 }, { x: -15, y: -15 }, { x: -15, y: 0 }, { x: -15, y: 15 },
+      { x: 75, y: -30 }, { x: 75, y: -15 }, { x: 75, y: 0 }, { x: 75, y: 15 },
+      { x: 30, y: -55 }, { x: 30, y: 55 }
+    ];
+    labelOffset = { x: 30, y: -68 };
+    valueOffset = { x: 30, y: 68 };
+  }
+  // --- ULN2003 DARLINGTON ARRAY ---
+  else if (type === 'ic_uln2003') {
+    paths.push({ data: "M 0 -45 L 60 -45 L 60 45 L 0 45 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -45 A 5 5 0 0 0 35 -45", fill: "transparent" });
+    // Left: 4 inputs
+    const uln_ys = [-30, -15, 0, 15];
+    ['IN1','IN2','IN3','IN4'].forEach((lbl, i) => {
+      lines.push({ points: [-15, uln_ys[i], 0, uln_ys[i]] });
+      texts.push({ text: lbl, x: 2, y: uln_ys[i] - 4, size: 7 });
+    });
+    // Right: 4 outputs
+    ['O1','O2','O3','O4'].forEach((lbl, i) => {
+      lines.push({ points: [60, uln_ys[i], 75, uln_ys[i]] });
+      texts.push({ text: lbl, x: 38, y: uln_ys[i] - 4, size: 7 });
+    });
+    // Supply
+    lines.push({ points: [30, -45, 30, -55] }); // COM
+    lines.push({ points: [30,  45, 30,  55] }); // GND
+    texts.push({ text: 'COM', x: 18, y: -41, size: 7 });
+    texts.push({ text: 'GND', x: 21, y:  34, size: 7 });
+    texts.push({ text: 'ULN2003', x: 9, y: -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y: -30 }, { x: -15, y: -15 }, { x: -15, y: 0 }, { x: -15, y: 15 },
+      { x: 75, y: -30 }, { x: 75, y: -15 }, { x: 75, y: 0 }, { x: 75, y: 15 },
+      { x: 30, y: -55 }, { x: 30, y: 55 }
+    ];
+    labelOffset = { x: 30, y: -68 };
+    valueOffset = { x: 30, y: 68 };
+  }
+  // --- 74HC595 SHIFT REGISTER ---
+  else if (type === 'ic_74hc595') {
+    paths.push({ data: "M 0 -45 L 60 -45 L 60 45 L 0 45 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -45 A 5 5 0 0 0 35 -45", fill: "transparent" });
+    // Left pins
+    const sr_lbls = ['SER','SRCLK','RCLK','/SRCLR','/OE'];
+    const sr_ys   = [-35, -20, -5, 10, 25];
+    sr_lbls.forEach((lbl, i) => {
+      lines.push({ points: [-15, sr_ys[i], 0, sr_ys[i]] });
+      texts.push({ text: lbl, x: 2, y: sr_ys[i] - 4, size: 6 });
+    });
+    // Right: Q7S cascade output
+    lines.push({ points: [60, 25, 75, 25] });
+    texts.push({ text: 'Q7S', x: 38, y: 21, size: 7 });
+    // Supply
+    lines.push({ points: [30, -45, 30, -55] });
+    lines.push({ points: [30,  45, 30,  55] });
+    texts.push({ text: 'VCC', x: 21, y: -41, size: 7 });
+    texts.push({ text: 'GND', x: 21, y:  34, size: 7 });
+    texts.push({ text: '74HC595', x: 8, y: -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y: -35 }, { x: -15, y: -20 }, { x: -15, y: -5 },
+      { x: -15, y:  10 }, { x: -15, y:  25 },
+      { x: 75, y: 25 },
+      { x: 30, y: -55 }, { x: 30, y: 55 }
+    ];
+    labelOffset = { x: 30, y: -68 };
+    valueOffset = { x: 30, y: 68 };
   }
   // --- FALLBACK ---
   else {
