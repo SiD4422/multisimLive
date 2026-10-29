@@ -448,7 +448,105 @@ R_rx RXD GND 100Meg
 R_tx TXD GND 100Meg
 R_sda SDA GND 100Meg
 R_scl SCL GND 100Meg
-.ends ATMEGA328`
+.ends ATMEGA328`,
+
+  TRIAC: `.subckt TRIAC MT1 MT2 G
+* Simplified TRIAC: back-to-back SCR model with behavioural gate control
+* Forward path (MT2+ → MT1): conducts when gate triggered and MT2 > MT1
+B_fwd MT2_int MT1 I = { (V(G,MT1) > 0.7 && V(MT2,MT1) > 0) ? V(MT2,MT1)/0.02 : 0 }
+R_fwd MT2 MT2_int 0.02
+* Reverse path (MT1+ → MT2): conducts when gate triggered and MT1 > MT2
+B_rev MT1_int MT2 I = { (V(G,MT1) > 0.7 && V(MT1,MT2) > 0) ? V(MT1,MT2)/0.02 : 0 }
+R_rev MT1 MT1_int 0.02
+R_gate G MT1 10k
+.ends TRIAC`,
+
+  DIAC: `.subckt DIAC A1 A2
+* DIAC: two zener diodes back-to-back (breakover ~32V each direction)
+D_fwd A1_i A2 DIAC_Z
+D_rev A2_i A1 DIAC_Z
+.model DIAC_Z D(Is=1e-14 BV=32 IBV=10m Rs=10)
+Rfwd A1 A1_i 1
+Rrev A2 A2_i 1
+.ends DIAC`,
+
+  IGBT_N: `.subckt IGBT_N G C E
+* N-Channel IGBT: MOSFET-style gate, BJT-style output, body diode included
+M_ch G_int E E E IGBT_MOS L=2u W=10m
+E_gate G_int E VALUE = { LIMIT(V(G,E), 0, 15) }
+Q_bjt C E_int E IGBT_BJT
+R_ce E_int C 0.05
+D_body E C IGBT_BODY
+.model IGBT_MOS PMOS (Level=1 Vto=-5.5 Kp=20 Lambda=0.01)
+.model IGBT_BJT NPN (Is=1e-14 Bf=100 Cje=1n Cjc=0.5n)
+.model IGBT_BODY D (Is=1e-14 BV=600 Rs=0.01)
+.ends IGBT_N`,
+
+  PHOTO_RESISTOR: `.subckt PHOTO_RESISTOR P1 P2
+* LDR: fixed 10k representative mid-light resistance
+* In real SPICE, lux-dependent resistance requires external parameter
+R_ldr P1 P2 10k
+.ends PHOTO_RESISTOR`,
+
+  LM311: `.subckt LM311 INP INN OUT VCC VEE GND
+* LM311 Voltage Comparator — open-collector output
+* Op-amp core drives BJT open-collector output stage
+Bcomp comp_int GND VALUE = { (V(INP) > V(INN)) ? 1 : 0 }
+Rcomp comp_int GND 10Meg
+Q_oc OUT col_b GND NPN311
+Vcoll col_b comp_int DC 0
+.model NPN311 NPN (Is=1e-14 Bf=200 Vaf=100)
+Rin_p INP GND 1Meg
+Rin_n INN GND 1Meg
+Rvcc VCC GND 100Meg
+Rvee VEE GND 100Meg
+.ends LM311`,
+
+  L298N: `.subckt L298N IN1 IN2 ENA IN3 IN4 ENB OUT1 OUT2 OUT3 OUT4 VCC VSS GND
+* L298N Dual H-Bridge — behavioural model
+* Bridge A: controlled by IN1, IN2 when ENA high
+Bout1 OUT1 GND VALUE = { (V(ENA) > 2.5 && V(IN1) > 2.5) ? V(VCC,GND)*0.95 : (V(ENA) > 2.5 && V(IN2) > 2.5) ? 0 : 0 }
+Bout2 OUT2 GND VALUE = { (V(ENA) > 2.5 && V(IN2) > 2.5) ? V(VCC,GND)*0.95 : (V(ENA) > 2.5 && V(IN1) > 2.5) ? 0 : 0 }
+* Bridge B: controlled by IN3, IN4 when ENB high
+Bout3 OUT3 GND VALUE = { (V(ENB) > 2.5 && V(IN3) > 2.5) ? V(VSS,GND)*0.95 : (V(ENB) > 2.5 && V(IN4) > 2.5) ? 0 : 0 }
+Bout4 OUT4 GND VALUE = { (V(ENB) > 2.5 && V(IN4) > 2.5) ? V(VSS,GND)*0.95 : (V(ENB) > 2.5 && V(IN3) > 2.5) ? 0 : 0 }
+Rvcc VCC GND 100Meg
+Rvss VSS GND 100Meg
+.ends L298N`,
+
+  HC08: `.subckt HC08 A B Y GND
+E1 Y GND VALUE = { (V(A) > 1.5 && V(B) > 1.5) ? 5 : 0 }
+Rout Y GND 10Meg
+.ends HC08`,
+
+  HC00: `.subckt HC00 A B Y GND
+E1 Y GND VALUE = { (V(A) > 1.5 && V(B) > 1.5) ? 0 : 5 }
+Rout Y GND 10Meg
+.ends HC00`,
+
+  DS18B20: `.subckt DS18B20 GND DQ VDD
+* DS18B20 1-Wire Temp Sensor — outputs ~0.5V per °C on DQ (25°C default → 12.5V clip)
+* Representative: 10mV/°C at 25°C baseline, pulled to ~250mV
+Btemp DQ GND VALUE = { 0.25 }
+Rpull VDD DQ 4.7k
+Rvdd VDD GND 100Meg
+.ends DS18B20`,
+
+  SG3525: `.subckt SG3525 INV NINV SYNC OSC SD SS OUTA OUTB VCC GND VREF
+* SG3525 PWM Controller — simplified behavioural model
+* Internal 5.1V reference
+Eref VREF GND VALUE = { 5.1 }
+Rref VREF GND 100
+* Error amp: NINV is typically tied to VREF/2 setpoint
+Berr err_n GND VALUE = { LIMIT(V(NINV) - V(INV), -5, 5) }
+Rerr err_n GND 10k
+* Oscillator — fixed 50kHz with SYNC input
+Bosc osc_n GND VALUE = { (V(SYNC) > 1) ? 0 : ( sin(2*3.14159*50000*time) > 0 ? 1 : 0 ) }
+* Output A / B — push-pull, 180° phase
+Bouta OUTA GND VALUE = { (V(SD) > 1 || V(SS) < 0.5) ? 0 : (V(osc_n) > 0.5 && V(err_n,GND) > 0) ? V(VCC,GND)*0.9 : 0 }
+Boutb OUTB GND VALUE = { (V(SD) > 1 || V(SS) < 0.5) ? 0 : (V(osc_n) < 0.5 && V(err_n,GND) > 0) ? V(VCC,GND)*0.9 : 0 }
+Rvcc VCC GND 100Meg
+.ends SG3525`,
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -904,6 +1002,77 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       return {
         line: `X_${comp.id} ${vcc} ${gnd} ${reset} ${rxd} ${txd} ${mosi} ${miso} ${sck} ${sda} ${scl} ATMEGA328`,
         subckts: [SUBCKT_DEFINITIONS.ATMEGA328]
+      };
+    }
+
+    case 'triac': {
+      const [mt1 = '0', mt2 = '0', g = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${mt1} ${mt2} ${g} TRIAC`,
+        subckts: [SUBCKT_DEFINITIONS.TRIAC]
+      };
+    }
+    case 'diac': {
+      const [a1 = '0', a2 = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a1} ${a2} DIAC`,
+        subckts: [SUBCKT_DEFINITIONS.DIAC]
+      };
+    }
+    case 'igbt_n': {
+      const [g = '0', c = '0', e = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${g} ${c} ${e} IGBT_N`,
+        subckts: [SUBCKT_DEFINITIONS.IGBT_N]
+      };
+    }
+    case 'photo_resistor': {
+      const [p1 = '0', p2 = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${p1} ${p2} PHOTO_RESISTOR`,
+        subckts: [SUBCKT_DEFINITIONS.PHOTO_RESISTOR]
+      };
+    }
+    case 'ic_lm311': {
+      const [inp = '0', inn = '0', out = '0', vcc = '0', vee = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${inp} ${inn} ${out} ${vcc} ${vee} ${gnd} LM311`,
+        subckts: [SUBCKT_DEFINITIONS.LM311]
+      };
+    }
+    case 'ic_l298n': {
+      const [in1 = '0', in2 = '0', ena = '0', in3 = '0', in4 = '0', enb = '0', out1 = '0', out2 = '0', out3 = '0', out4 = '0', vcc = '0', vss = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${in1} ${in2} ${ena} ${in3} ${in4} ${enb} ${out1} ${out2} ${out3} ${out4} ${vcc} ${vss} ${gnd} L298N`,
+        subckts: [SUBCKT_DEFINITIONS.L298N]
+      };
+    }
+    case 'ic_74hc08': {
+      const [a = '0', b = '0', y = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${b} ${y} ${gnd} HC08`,
+        subckts: [SUBCKT_DEFINITIONS.HC08]
+      };
+    }
+    case 'ic_74hc00': {
+      const [a = '0', b = '0', y = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${b} ${y} ${gnd} HC00`,
+        subckts: [SUBCKT_DEFINITIONS.HC00]
+      };
+    }
+    case 'ic_ds18b20': {
+      const [gnd = '0', dq = '0', vdd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${gnd} ${dq} ${vdd} DS18B20`,
+        subckts: [SUBCKT_DEFINITIONS.DS18B20]
+      };
+    }
+    case 'ic_sg3525': {
+      const [inv = '0', ninv = '0', sync = '0', osc = '0', sd = '0', ss = '0', outa = '0', outb = '0', vcc = '0', gnd = '0', vref = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${inv} ${ninv} ${sync} ${osc} ${sd} ${ss} ${outa} ${outb} ${vcc} ${gnd} ${vref} SG3525`,
+        subckts: [SUBCKT_DEFINITIONS.SG3525]
       };
     }
 

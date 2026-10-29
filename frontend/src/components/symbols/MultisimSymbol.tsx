@@ -38,6 +38,9 @@ function formatRefDes(id: string, type: string): string {
     optocoupler_4n35: 'U', varistor: 'RV', ic_lm2596: 'U', ic_ir2110: 'U',
     ic_acs712: 'U', ic_lm567: 'U', ic_cd4051: 'U', ic_74hc32: 'U',
     ic_tca9548: 'U', ic_atmega328: 'U',
+    triac: 'T', diac: 'D', igbt_n: 'Q', photo_resistor: 'R',
+    ic_lm311: 'U', ic_l298n: 'U', ic_74hc08: 'U', ic_74hc00: 'U',
+    ic_ds18b20: 'U', ic_sg3525: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -2006,6 +2009,164 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       { x: 75,y:-30 }, { x: 75,y:-15 }, { x: 75,y:  0 }
     ];
     labelOffset = { x: 30, y: -72 }; valueOffset = { x: 30, y: 72 };
+  }
+  // ── BATCH 5 ──────────────────────────────────────────────────────────────
+  else if (type === 'triac') {
+    lines.push({ points: [20, -25, 20,  25] });
+    lines.push({ points: [ 0, -25, 20, -25] });
+    lines.push({ points: [ 0,  25, 20,  25] });
+    lines.push({ points: [20, -25, 40,   0] });
+    lines.push({ points: [20,  25, 40,   0] });
+    lines.push({ points: [40, -25, 20,   0] });
+    lines.push({ points: [40,  25, 20,   0] });
+    lines.push({ points: [40,   0, 60,   0] });
+    lines.push({ points: [20,  15,-25,  15] });
+    texts.push({ text: 'G', x: -30, y: 10, size: 9 });
+    pins = [{ x: 0, y: 25 }, { x: 0, y: -25 }, { x: -25, y: 15 }];
+    labelOffset = { x: 20, y: -40 }; valueOffset = { x: 20, y: 40 };
+  }
+  else if (type === 'diac') {
+    lines.push({ points: [15, -20, 15,  20] });
+    lines.push({ points: [ 0, -20, 15, -20] });
+    lines.push({ points: [ 0,  20, 15,  20] });
+    paths.push({ data: 'M 15 -20 L 35 0 L 15 0 Z', fill: '#333' });
+    paths.push({ data: 'M 15 20 L 35 0 L 15 0 Z', fill: '#333' });
+    lines.push({ points: [35, -5, 35, 5] });
+    lines.push({ points: [35,  0, 50, 0] });
+    pins = [{ x: 0, y: -20 }, { x: 0, y: 20 }];
+    labelOffset = { x: 30, y: -35 }; valueOffset = { x: 30, y: 35 };
+  }
+  else if (type === 'igbt_n') {
+    lines.push({ points: [ 0,  0, 12,  0] });
+    lines.push({ points: [12,-20, 12, 20] });
+    lines.push({ points: [16,-15, 16, 15] });
+    lines.push({ points: [16,-10, 30,-10] });
+    lines.push({ points: [16, 10, 30, 10] });
+    lines.push({ points: [30,-10, 40,-30] });
+    lines.push({ points: [30, 10, 40, 30] });
+    lines.push({ points: [40,-30, 60,-30] });
+    lines.push({ points: [40, 30, 60, 30] });
+    paths.push({ data: 'M 34 22 L 30 10 L 26 18 Z', fill: '#333' });
+    paths.push({ data: 'M 46 -24 L 54 -24 L 50 -18 Z', fill: '#333' });
+    lines.push({ points: [50,-30, 50,-18] });
+    lines.push({ points: [50,-18, 50,-10] });
+    lines.push({ points: [47,-24, 53,-24] });
+    texts.push({ text: 'G', x: -10, y: -5, size: 9 });
+    texts.push({ text: 'C', x:  62, y: -35, size: 9 });
+    texts.push({ text: 'E', x:  62, y:  25, size: 9 });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: -30 }, { x: 60, y: 30 }];
+    labelOffset = { x: 30, y: -50 }; valueOffset = { x: 30, y: 50 };
+  }
+  else if (type === 'photo_resistor') {
+    lines.push({ points: [ 0, 0, 15,  0] });
+    lines.push({ points: [35, 0, 50,  0] });
+    lines.push({ points: [18,-18, 22,-12] });
+    lines.push({ points: [22,-12, 26,-18] });
+    lines.push({ points: [26,-18, 30,-12] });
+    lines.push({ points: [28,-18, 28,-22] });
+    lines.push({ points: [30,-22, 28,-18] });
+    rects.push({ x: 15, y: -8, width: 20, height: 16, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'LDR', x: 16, y: -3, size: 8 });
+    pins = [{ x: 0, y: 0 }, { x: 50, y: 0 }];
+    labelOffset = { x: 25, y: -30 }; valueOffset = { x: 25, y: 20 };
+  }
+  else if (type === 'ic_lm311') {
+    paths.push({ data: 'M 5 -30 L 5 30 L 55 0 Z', fill: '#fff', stroke: '#333' });
+    lines.push({ points: [ 0,-10,  5,-10] });
+    lines.push({ points: [ 0, 10,  5, 10] });
+    lines.push({ points: [55,  0, 60,  0] });
+    lines.push({ points: [30,-30, 30,-35] });
+    lines.push({ points: [30, 30, 30, 35] });
+    texts.push({ text: '+', x:  8, y: -14, size: 11 });
+    texts.push({ text: '\u2212', x:  8, y:   6, size: 11 });
+    circles.push({ x: 62, y: 0, r: 3, fill: '#fff', stroke: '#333' });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 65, y: 0 }, { x: 30, y: -35 }, { x: 30, y: 35 }, { x: 50, y: 35 }];
+    labelOffset = { x: 30, y: -45 }; valueOffset = { x: 30, y: 45 };
+  }
+  else if (type === 'ic_l298n') {
+    rects.push({ x: 0, y: -65, width: 70, height: 130, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'L298N', x: 14, y: -6, size: 10 });
+    texts.push({ text: 'H-Bridge', x: 10, y: 8, size: 8 });
+    ([['IN1',-40],['IN2',-25],['ENA',-10],['IN3',5],['IN4',20],['ENB',35]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['OUT1',-35],['OUT2',-20],['OUT3',5],['OUT4',20]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 52, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [35,-65, 35,-75] });
+    lines.push({ points: [55, 65, 55, 75] });
+    lines.push({ points: [35, 65, 35, 75] });
+    texts.push({ text: 'VCC', x: 20, y: -77, size: 8 });
+    texts.push({ text: 'VSS', x: 20, y:  80, size: 8 });
+    texts.push({ text: 'GND', x: 42, y:  80, size: 8 });
+    pins = [
+      { x: -15, y: -40 }, { x: -15, y: -25 }, { x: -15, y: -10 },
+      { x: -15, y:   5 }, { x: -15, y:  20 }, { x: -15, y:  35 },
+      { x:  85, y: -35 }, { x:  85, y: -20 }, { x:  85, y:   5 }, { x:  85, y:  20 },
+      { x:  35, y: -75 }, { x:  35, y:  75 }, { x:  55, y:  75 },
+    ];
+    labelOffset = { x: 35, y: -90 }; valueOffset = { x: 35, y: 90 };
+  }
+  else if (type === 'ic_74hc08') {
+    paths.push({ data: 'M 5 -20 L 5 20 Q 40 20 40 0 Q 40 -20 5 -20 Z', fill: '#fff', stroke: '#333' });
+    lines.push({ points: [ 0,-10,  5,-10] });
+    lines.push({ points: [ 0, 10,  5, 10] });
+    lines.push({ points: [40,  0, 55,  0] });
+    lines.push({ points: [25, 20, 25, 28] });
+    texts.push({ text: 'GND', x: 12, y: 30, size: 8 });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }, { x: 25, y: 28 }];
+    labelOffset = { x: 25, y: -32 }; valueOffset = { x: 25, y: 35 };
+  }
+  else if (type === 'ic_74hc00') {
+    paths.push({ data: 'M 5 -20 L 5 20 Q 40 20 40 0 Q 40 -20 5 -20 Z', fill: '#fff', stroke: '#333' });
+    circles.push({ x: 43, y: 0, r: 3, fill: '#fff', stroke: '#333' });
+    lines.push({ points: [ 0,-10,  5,-10] });
+    lines.push({ points: [ 0, 10,  5, 10] });
+    lines.push({ points: [46,  0, 55,  0] });
+    lines.push({ points: [25, 20, 25, 28] });
+    texts.push({ text: 'GND', x: 12, y: 30, size: 8 });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }, { x: 25, y: 28 }];
+    labelOffset = { x: 25, y: -32 }; valueOffset = { x: 25, y: 35 };
+  }
+  else if (type === 'ic_ds18b20') {
+    paths.push({ data: 'M 10 -20 L 10 20 Q 45 20 45 0 Q 45 -20 10 -20 Z', fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'DS18B20', x: 11, y: -4, size: 7 });
+    texts.push({ text: '1-Wire',  x: 13, y:  6, size: 7 });
+    lines.push({ points: [ 0, 30, 22, 30] });
+    lines.push({ points: [45,  0, 60,  0] });
+    lines.push({ points: [ 0,-30, 22,-30] });
+    texts.push({ text: 'GND', x:  1, y:  35, size: 8 });
+    texts.push({ text: 'DQ',  x: 48, y:  -5, size: 8 });
+    texts.push({ text: 'VDD', x:  1, y: -40, size: 8 });
+    pins = [{ x: 0, y: 30 }, { x: 60, y: 0 }, { x: 0, y: -30 }];
+    labelOffset = { x: 28, y: -45 }; valueOffset = { x: 28, y: 48 };
+  }
+  else if (type === 'ic_sg3525') {
+    rects.push({ x: 0, y: -65, width: 70, height: 130, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'SG3525',   x: 14, y: -6, size: 10 });
+    texts.push({ text: 'PWM CTRL', x: 10, y:  8, size: 7 });
+    ([['INV',-40],['NINV',-25],['SYNC',-10],['OSC',5],['SD',20],['SS',35]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['OUT-A',-35],['OUT-B',-20],['VREF',20]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 48, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [35,-65, 35,-75] });
+    lines.push({ points: [35, 65, 35, 75] });
+    texts.push({ text: 'VCC', x: 20, y: -77, size: 8 });
+    texts.push({ text: 'GND', x: 20, y:  80, size: 8 });
+    pins = [
+      { x: -15, y: -40 }, { x: -15, y: -25 }, { x: -15, y: -10 },
+      { x: -15, y:   5 }, { x: -15, y:  20 }, { x: -15, y:  35 },
+      { x:  85, y: -35 }, { x:  85, y: -20 },
+      { x:  35, y: -75 }, { x:  35, y:  75 },
+      { x:  85, y:  20 },
+    ];
+    labelOffset = { x: 35, y: -90 }; valueOffset = { x: 35, y: 90 };
   }
   // --- FALLBACK ---
   else {
