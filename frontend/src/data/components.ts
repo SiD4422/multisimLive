@@ -204,5 +204,160 @@ export const standardICLibrary: ComponentDefinition[] = [
       { id: 'B', name: 'B', x: 20, y: 0 },     // bottom terminal
     ],
     symbol: 'potentiometer',
-  }
+  },
+
+  // Group E: Discrete Semiconductors (BJT & MOSFET)
+  {
+    id: 'bjt_npn',
+    name: 'NPN Transistor (2N2222)',
+    category: 'Passive Components',
+    description: 'NPN bipolar junction transistor (2N2222 / BC547). General-purpose switching and amplification. Pins: Base (B), Collector (C), Emitter (E).',
+    defaultProps: { value: '2N2222', is: 1e-14, bf: 200 },
+    symbol: 'bjt_npn',
+    pins: [
+      { id: 'B', name: 'B', x: 0,  y: 0  },   // Base - left
+      { id: 'C', name: 'C', x: 25, y: -20 },  // Collector - top right
+      { id: 'E', name: 'E', x: 25, y: 20  },  // Emitter - bottom right
+    ],
+  },
+  {
+    id: 'bjt_pnp',
+    name: 'PNP Transistor (2N2907)',
+    category: 'Passive Components',
+    description: 'PNP bipolar junction transistor (2N2907 / BC557). General-purpose switching. Pins: Base (B), Collector (C), Emitter (E).',
+    defaultProps: { value: '2N2907', is: 1e-14, bf: 150 },
+    symbol: 'bjt_pnp',
+    pins: [
+      { id: 'B', name: 'B', x: 0,  y: 0  },   // Base
+      { id: 'C', name: 'C', x: 25, y: -20 },  // Collector
+      { id: 'E', name: 'E', x: 25, y: 20  },  // Emitter
+    ],
+  },
+  {
+    id: 'mosfet_n',
+    name: 'N-Ch MOSFET (2N7000)',
+    category: 'Passive Components',
+    description: 'N-Channel enhancement-mode MOSFET (2N7000). Vth ≈ 2V, low on-resistance. Pins: Gate (G), Drain (D), Source (S).',
+    defaultProps: { value: '2N7000', vth: 2.0, kp: 0.5 },
+    symbol: 'mosfet_n',
+    pins: [
+      { id: 'G', name: 'G', x: 0,  y: 0  },   // Gate
+      { id: 'D', name: 'D', x: 25, y: -20 },  // Drain
+      { id: 'S', name: 'S', x: 25, y: 20  },  // Source
+    ],
+  },
+  {
+    id: 'mosfet_p',
+    name: 'P-Ch MOSFET (IRF9540)',
+    category: 'Passive Components',
+    description: 'P-Channel enhancement-mode MOSFET (IRF9540). Vth ≈ -4V. Pins: Gate (G), Drain (D), Source (S).',
+    defaultProps: { value: 'IRF9540', vth: -4.0, kp: 0.5 },
+    symbol: 'mosfet_p',
+    pins: [
+      { id: 'G', name: 'G', x: 0,  y: 0  },   // Gate
+      { id: 'D', name: 'D', x: 25, y: -20 },  // Drain
+      { id: 'S', name: 'S', x: 25, y: 20  },  // Source
+    ],
+  },
+  {
+    id: 'schottky_diode',
+    name: 'Schottky Diode (1N5819)',
+    category: 'Passive Components',
+    description: '1N5819 Schottky barrier diode. Low forward voltage drop (≈0.3V), fast switching. Ideal for rectifiers and protection circuits.',
+    defaultProps: { value: '1N5819', vf: 0.3 },
+    symbol: 'schottky_diode',
+    pins: [
+      { id: 'A', name: 'A', x: 0,  y: 0 },   // Anode
+      { id: 'K', name: 'K', x: 60, y: 0 },   // Cathode
+    ],
+  },
+
+  // Group F: Additional Linear ICs
+  {
+    id: 'ic_lm741',
+    name: 'LM741 Op-Amp',
+    category: 'Integrated Circuits',
+    description: 'UA741 / LM741 single general-purpose operational amplifier. Rail-to-rail output swing limited to ±(VCC-1.5V). 5 pins: IN+, IN-, VCC, VEE, OUT.',
+    defaultProps: { value: 'LM741' },
+    symbol: 'ic_lm741',
+    pins: [
+      { id: 'INP', name: 'IN+', x: -15, y: -15 },
+      { id: 'INM', name: 'IN-', x: -15, y:  15 },
+      { id: 'VCC', name: 'VCC', x:  30, y: -35 },
+      { id: 'VEE', name: 'VEE', x:  30, y:  35 },
+      { id: 'OUT', name: 'OUT', x:  60, y:   0 },
+    ],
+  },
+  {
+    id: 'ic_lm324',
+    name: 'LM324 Quad Op-Amp',
+    category: 'Integrated Circuits',
+    description: 'LM324 Quad Low-Power Op-Amp. Four independent op-amps in one 14-pin DIP package. Shown as a single-channel symbol; use multiple instances for more channels.',
+    defaultProps: { value: 'LM324' },
+    symbol: 'ic_lm324',
+    pins: [
+      { id: 'IN1P', name: 'IN1+', x: -15, y: -25 },
+      { id: 'IN1M', name: 'IN1-', x: -15, y: -10 },
+      { id: 'OUT1', name: 'OUT1', x:  75, y: -18 },
+      { id: 'IN2P', name: 'IN2+', x: -15, y:  10 },
+      { id: 'IN2M', name: 'IN2-', x: -15, y:  25 },
+      { id: 'OUT2', name: 'OUT2', x:  75, y:  18 },
+      { id: 'VCC',  name: 'VCC',  x:  30, y: -45 },
+      { id: 'GND',  name: 'GND',  x:  30, y:  45 },
+    ],
+  },
+  {
+    id: 'ic_ne5532',
+    name: 'NE5532 Dual Low-Noise Op-Amp',
+    category: 'Integrated Circuits',
+    description: 'NE5532 Dual Low-Noise High-Speed Op-Amp. Widely used in audio pre-amplifiers and active filters. Equivalent dual structure to LM358 with lower noise floor.',
+    defaultProps: { value: 'NE5532' },
+    symbol: 'ic_ne5532',
+    pins: [
+      { id: 'IN1P', name: 'IN1+', x: -15, y: -25 },
+      { id: 'IN1M', name: 'IN1-', x: -15, y: -10 },
+      { id: 'OUT1', name: 'OUT1', x:  75, y: -18 },
+      { id: 'IN2P', name: 'IN2+', x: -15, y:  10 },
+      { id: 'IN2M', name: 'IN2-', x: -15, y:  25 },
+      { id: 'OUT2', name: 'OUT2', x:  75, y:  18 },
+      { id: 'VCC',  name: 'VCC',  x:  30, y: -45 },
+      { id: 'GND',  name: 'GND',  x:  30, y:  45 },
+    ],
+  },
+  {
+    id: 'ic_7474',
+    name: 'D Flip-Flop (7474)',
+    category: 'Integrated Circuits',
+    description: '74LS74 / 74HC74 Dual D-Type Positive-Edge-Triggered Flip-Flop. Clocks data on rising edge. Includes active-low PRE and CLR asynchronous controls.',
+    defaultProps: { value: '7474' },
+    symbol: 'ic_7474',
+    pins: [
+      { id: 'D',    name: 'D',    x: -15, y: -20 },
+      { id: 'CLK',  name: 'CLK', x: -15, y:   0 },
+      { id: 'PRE',  name: '/PRE', x: -15, y:  20 },
+      { id: 'CLR',  name: '/CLR', x:  30, y:  35 },
+      { id: 'Q',    name: 'Q',   x:  75, y: -15 },
+      { id: 'QB',   name: '/Q',  x:  75, y:  15 },
+      { id: 'VCC',  name: 'VCC', x:  30, y: -45 },
+      { id: 'GND',  name: 'GND', x:  30, y:  45 },
+    ],
+  },
+  {
+    id: 'ic_l293d',
+    name: 'L293D Motor Driver',
+    category: 'Integrated Circuits',
+    description: 'L293D Push-Pull Four-Channel Motor Driver with internal flyback diodes. Drives up to 600mA per channel, 4.5V–36V motor supply. Ideal for DC and stepper motors.',
+    defaultProps: { value: 'L293D' },
+    symbol: 'ic_l293d',
+    pins: [
+      { id: 'EN1',  name: 'EN1',  x: -15, y: -35 },
+      { id: 'IN1',  name: 'IN1',  x: -15, y: -20 },
+      { id: 'OUT1', name: 'OUT1', x:  75, y: -20 },
+      { id: 'OUT2', name: 'OUT2', x:  75, y:   0 },
+      { id: 'IN2',  name: 'IN2',  x: -15, y:   0 },
+      { id: 'VCC1', name: 'VCC1', x:  30, y: -55 },
+      { id: 'VCC2', name: 'VCC2', x:  30, y: -45 },
+      { id: 'GND',  name: 'GND',  x:  30, y:  55 },
+    ],
+  },
 ];

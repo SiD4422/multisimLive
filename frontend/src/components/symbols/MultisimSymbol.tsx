@@ -27,6 +27,9 @@ function formatRefDes(id: string, type: string): string {
     switch_spst: 'S', potentiometer: 'R',
     logic_nand2: 'U', logic_nor2: 'U', logic_not: 'U', logic_and2: 'U', logic_or2: 'U', logic_xor2: 'U',
     ic_lm358: 'U', ic_lm555: 'U', ic_lm317: 'U', ic_zener_ref: 'U',
+    bjt_npn: 'Q', bjt_pnp: 'Q', mosfet_n: 'Q', mosfet_p: 'Q',
+    schottky_diode: 'D',
+    ic_lm741: 'U', ic_lm324: 'U', ic_ne5532: 'U', ic_7474: 'U', ic_l293d: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -1110,6 +1113,239 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     paths.push({ data: "M 60 5 L 56 5 L 58 8 Z", fill: strokeColor });
     pins = [{ x: 0, y: 0 }, { x: 30, y: -25 }, { x: 60, y: 0 }];
     labelOffset = { x: 15, y: -30 };
+  }
+  // --- NPN BJT ---
+  else if (type === 'bjt_npn') {
+    lines.push({ points: [15, -12, 15, 12] }); // Base vertical line
+    lines.push({ points: [15, -8,  25, -13] }); // Collector angle
+    lines.push({ points: [25, -13, 25, -20] }); // Collector lead up
+    lines.push({ points: [15,  8,  25,  13] }); // Emitter angle
+    lines.push({ points: [25,  13, 25,  20] }); // Emitter lead down
+    lines.push({ points: [0,   0,  15,   0] }); // Base lead left
+    paths.push({ data: "M 22 8 L 23 12 L 19 13 Z", fill: strokeColor }); // NPN arrow out on emitter
+    texts.push({ text: 'C', x: 27, y: -20, size: 8, fill: '#555' });
+    texts.push({ text: 'B', x: -8, y: -4, size: 8, fill: '#555' });
+    texts.push({ text: 'E', x: 27, y: 12, size: 8, fill: '#555' });
+    pins = [{ x: 0, y: 0 }, { x: 25, y: -20 }, { x: 25, y: 20 }];
+    labelOffset = { x: 40, y: -25 };
+    valueOffset = { x: 40, y: 20 };
+  }
+  // --- PNP BJT ---
+  else if (type === 'bjt_pnp') {
+    lines.push({ points: [15, -12, 15, 12] }); // Base vertical line
+    lines.push({ points: [15, -8,  25, -13] }); // Collector angle
+    lines.push({ points: [25, -13, 25, -20] }); // Collector lead
+    lines.push({ points: [15,  8,  25,  13] }); // Emitter angle
+    lines.push({ points: [25,  13, 25,  20] }); // Emitter lead
+    lines.push({ points: [0,   0,  15,   0] }); // Base lead
+    paths.push({ data: "M 18 2 L 15 3 L 20 6 Z", fill: strokeColor }); // PNP arrow in on emitter
+    texts.push({ text: 'C', x: 27, y: -20, size: 8, fill: '#555' });
+    texts.push({ text: 'B', x: -8, y: -4, size: 8, fill: '#555' });
+    texts.push({ text: 'E', x: 27, y: 12, size: 8, fill: '#555' });
+    pins = [{ x: 0, y: 0 }, { x: 25, y: -20 }, { x: 25, y: 20 }];
+    labelOffset = { x: 40, y: -25 };
+    valueOffset = { x: 40, y: 20 };
+  }
+  // --- N-CHANNEL MOSFET ---
+  else if (type === 'mosfet_n') {
+    // Gate, insulating gap, three-segment channel, bulk arrow inward
+    paths.push({ data: "M 0 0 L 12 0 M 12 -12 L 12 12", fill: "transparent" }); // Gate line + body contact
+    paths.push({ data: "M 16 -12 L 16 -6 M 16 -3 L 16 3 M 16 6 L 16 12", fill: "transparent" }); // Channel segments
+    paths.push({ data: "M 25 -20 L 25 -9 L 16 -9", fill: "transparent" }); // Drain lead
+    paths.push({ data: "M 25 20 L 25 9 L 16 9", fill: "transparent" }); // Source lead
+    paths.push({ data: "M 16 0 L 25 0 M 25 0 L 25 20", fill: "transparent" }); // Bulk + source tie
+    paths.push({ data: "M 22 -3 L 16 0 L 22 3 Z", fill: strokeColor }); // Arrow IN (N-ch)
+    texts.push({ text: 'D', x: 27, y: -20, size: 8, fill: '#555' });
+    texts.push({ text: 'G', x: -8, y: -4, size: 8, fill: '#555' });
+    texts.push({ text: 'S', x: 27, y: 12, size: 8, fill: '#555' });
+    pins = [{ x: 0, y: 0 }, { x: 25, y: -20 }, { x: 25, y: 20 }];
+    labelOffset = { x: 40, y: -25 };
+    valueOffset = { x: 40, y: 20 };
+  }
+  // --- P-CHANNEL MOSFET ---
+  else if (type === 'mosfet_p') {
+    paths.push({ data: "M 0 0 L 12 0 M 12 -12 L 12 12", fill: "transparent" });
+    paths.push({ data: "M 16 -12 L 16 -6 M 16 -3 L 16 3 M 16 6 L 16 12", fill: "transparent" });
+    paths.push({ data: "M 25 -20 L 25 -9 L 16 -9", fill: "transparent" });
+    paths.push({ data: "M 25 20 L 25 9 L 16 9", fill: "transparent" });
+    paths.push({ data: "M 16 0 L 25 0 M 25 0 L 25 20", fill: "transparent" });
+    paths.push({ data: "M 19 -3 L 25 0 L 19 3 Z", fill: strokeColor }); // Arrow OUT (P-ch)
+    texts.push({ text: 'D', x: 27, y: -20, size: 8, fill: '#555' });
+    texts.push({ text: 'G', x: -8, y: -4, size: 8, fill: '#555' });
+    texts.push({ text: 'S', x: 27, y: 12, size: 8, fill: '#555' });
+    pins = [{ x: 0, y: 0 }, { x: 25, y: -20 }, { x: 25, y: 20 }];
+    labelOffset = { x: 40, y: -25 };
+    valueOffset = { x: 40, y: 20 };
+  }
+  // --- SCHOTTKY DIODE ---
+  else if (type === 'schottky_diode') {
+    // Same triangle body as DiodeSchottky but self-contained
+    paths.push({ data: "M 23 8 L 36 0 L 23 -8 Z", fill: strokeColor }); // Triangle (anode→cathode)
+    lines.push({ points: [36, 8, 36, -8] }); // Cathode bar
+    // Schottky S-hooks on cathode bar
+    paths.push({ data: "M 32 -8 L 36 -8 L 36 8 L 32 8 M 32 -8 L 32 -4 M 32 8 L 32 4", fill: "transparent" });
+    lines.push({ points: [0, 0, 23, 0] });  // Anode lead
+    lines.push({ points: [36, 0, 60, 0] }); // Cathode lead
+    texts.push({ text: 'A', x: 2, y: -6, size: 8, fill: '#555' });
+    texts.push({ text: 'K', x: 50, y: -6, size: 8, fill: '#555' });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -25 };
+    valueOffset = { x: 15, y: 15 };
+  }
+  // --- LM741 SINGLE OP-AMP ---
+  else if (type === 'ic_lm741') {
+    // Triangle op-amp body with 5 pins (IN+, IN-, VCC, VEE, OUT)
+    paths.push({ data: "M 10 -25 L 50 0 L 10 25 Z", fill: "#fff" });
+    // IN+ lead
+    paths.push({ data: "M 0 -15 L 10 -15 M 13 -15 L 17 -15 M 15 -17 L 15 -13", fill: "transparent" });
+    // IN- lead
+    paths.push({ data: "M 0 15 L 10 15 M 13 15 L 17 15", fill: "transparent" });
+    // OUT lead
+    paths.push({ data: "M 50 0 L 60 0", fill: "transparent" });
+    // VCC stub (top) and VEE stub (bottom)
+    paths.push({ data: "M 40 -10 L 40 -35 M 40 10 L 40 35", fill: "transparent" });
+    texts.push({ text: 'LM741', x: 12, y: -2, size: 8, fill: '#333' });
+    pins = [
+      { x: 0, y: -15 }, // INP
+      { x: 0, y:  15 }, // INM
+      { x: 40, y: -35 }, // VCC
+      { x: 40, y:  35 }, // VEE
+      { x: 60, y:   0 }, // OUT
+    ];
+    labelOffset = { x: 25, y: -48 };
+    valueOffset = { x: 25, y: 42 };
+  }
+  // --- LM324 QUAD OP-AMP (shown as dual, same as LM358 body) ---
+  else if (type === 'ic_lm324') {
+    paths.push({ data: "M 0 -38 L 60 -38 L 60 38 L 0 38 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -38 A 5 5 0 0 0 35 -38", fill: "transparent" }); // Notch
+    lines.push({ points: [-15, -25, 0, -25] });
+    lines.push({ points: [-15, -10, 0, -10] });
+    lines.push({ points: [-15,  10, 0,  10] });
+    lines.push({ points: [-15,  25, 0,  25] });
+    texts.push({ text: '1+', x: 3, y: -29, size: 7 });
+    texts.push({ text: '1-', x: 3, y: -14, size: 7 });
+    texts.push({ text: '2+', x: 3, y:   6, size: 7 });
+    texts.push({ text: '2-', x: 3, y:  21, size: 7 });
+    lines.push({ points: [60, -18, 75, -18] });
+    lines.push({ points: [60,  18, 75,  18] });
+    texts.push({ text: 'OUT1', x: 35, y: -22, size: 7 });
+    texts.push({ text: 'OUT2', x: 35, y:  14, size: 7 });
+    lines.push({ points: [30, -38, 30, -45] });
+    lines.push({ points: [30,  38, 30,  45] });
+    texts.push({ text: 'VCC', x: 21, y: -34, size: 7 });
+    texts.push({ text: 'GND', x: 21, y:  28, size: 7 });
+    texts.push({ text: 'LM324', x: 16, y: -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y: -25 }, { x: -15, y: -10 }, { x: 75, y: -18 },
+      { x: -15, y:  10 }, { x: -15, y:  25 }, { x: 75, y:  18 },
+      { x: 30, y: -45 }, { x: 30, y: 45 }
+    ];
+    labelOffset = { x: 30, y: -58 };
+    valueOffset = { x: 30, y: 58 };
+  }
+  // --- NE5532 DUAL LOW-NOISE OP-AMP (same shape as LM358) ---
+  else if (type === 'ic_ne5532') {
+    paths.push({ data: "M 0 -38 L 60 -38 L 60 38 L 0 38 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -38 A 5 5 0 0 0 35 -38", fill: "transparent" });
+    lines.push({ points: [-15, -25, 0, -25] });
+    lines.push({ points: [-15, -10, 0, -10] });
+    lines.push({ points: [-15,  10, 0,  10] });
+    lines.push({ points: [-15,  25, 0,  25] });
+    texts.push({ text: '1+', x: 3, y: -29, size: 7 });
+    texts.push({ text: '1-', x: 3, y: -14, size: 7 });
+    texts.push({ text: '2+', x: 3, y:   6, size: 7 });
+    texts.push({ text: '2-', x: 3, y:  21, size: 7 });
+    lines.push({ points: [60, -18, 75, -18] });
+    lines.push({ points: [60,  18, 75,  18] });
+    texts.push({ text: 'OUT1', x: 35, y: -22, size: 7 });
+    texts.push({ text: 'OUT2', x: 35, y:  14, size: 7 });
+    lines.push({ points: [30, -38, 30, -45] });
+    lines.push({ points: [30,  38, 30,  45] });
+    texts.push({ text: 'VCC', x: 21, y: -34, size: 7 });
+    texts.push({ text: 'GND', x: 21, y:  28, size: 7 });
+    texts.push({ text: 'NE5532', x: 14, y: -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y: -25 }, { x: -15, y: -10 }, { x: 75, y: -18 },
+      { x: -15, y:  10 }, { x: -15, y:  25 }, { x: 75, y:  18 },
+      { x: 30, y: -45 }, { x: 30, y: 45 }
+    ];
+    labelOffset = { x: 30, y: -58 };
+    valueOffset = { x: 30, y: 58 };
+  }
+  // --- 7474 D FLIP-FLOP ---
+  else if (type === 'ic_7474') {
+    // IC rectangle body
+    paths.push({ data: "M 0 -40 L 60 -40 L 60 40 L 0 40 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -40 A 5 5 0 0 0 35 -40", fill: "transparent" }); // Notch
+    // Left pins: D (-20), CLK (0), /PRE (20)
+    lines.push({ points: [-15, -20, 0, -20] });
+    lines.push({ points: [-15,   0, 0,   0] });
+    lines.push({ points: [-15,  20, 0,  20] });
+    texts.push({ text: 'D',    x: 3, y: -24, size: 8 });
+    texts.push({ text: 'CLK',  x: 3, y:  -4, size: 7 });
+    texts.push({ text: '/PRE', x: 3, y:  16, size: 7 });
+    paths.push({ data: "M 0 -4 L 7 0 L 0 4", fill: "transparent" }); // Clock triangle
+    // Right pins: Q (-15), /Q (15)
+    lines.push({ points: [60, -15, 75, -15] });
+    lines.push({ points: [60,  15, 75,  15] });
+    texts.push({ text: 'Q',  x: 42, y: -19, size: 8 });
+    texts.push({ text: '/Q', x: 42, y:  11, size: 8 });
+    // Bottom /CLR
+    lines.push({ points: [30, 40, 30, 50] });
+    texts.push({ text: '/CLR', x: 18, y: 32, size: 7 });
+    // Supply stubs
+    lines.push({ points: [30, -40, 30, -50] });
+    texts.push({ text: 'VCC', x: 21, y: -36, size: 7 });
+    texts.push({ text: '7474', x: 18, y:  -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y: -20 }, // D
+      { x: -15, y:   0 }, // CLK
+      { x: -15, y:  20 }, // /PRE
+      { x:  30, y:  50 }, // /CLR
+      { x:  75, y: -15 }, // Q
+      { x:  75, y:  15 }, // /Q
+      { x:  30, y: -50 }, // VCC
+      { x:  30, y:  50 }, // GND (same as /CLR lead end — user connects GND here)
+    ];
+    labelOffset = { x: 30, y: -62 };
+    valueOffset = { x: 30, y: 62 };
+  }
+  // --- L293D MOTOR DRIVER ---
+  else if (type === 'ic_l293d') {
+    paths.push({ data: "M 0 -50 L 60 -50 L 60 50 L 0 50 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -50 A 5 5 0 0 0 35 -50", fill: "transparent" }); // Notch
+    // Left pins
+    lines.push({ points: [-15, -35, 0, -35] });
+    lines.push({ points: [-15, -20, 0, -20] });
+    lines.push({ points: [-15,   0, 0,   0] });
+    texts.push({ text: 'EN1', x: 2, y: -39, size: 7 });
+    texts.push({ text: 'IN1', x: 2, y: -24, size: 7 });
+    texts.push({ text: 'IN2', x: 2, y:  -4, size: 7 });
+    // Right pins
+    lines.push({ points: [60, -20, 75, -20] });
+    lines.push({ points: [60,   0, 75,   0] });
+    texts.push({ text: 'OUT1', x: 30, y: -24, size: 7 });
+    texts.push({ text: 'OUT2', x: 30, y:  -4, size: 7 });
+    // Supply stubs
+    lines.push({ points: [30, -50, 30, -60] });
+    lines.push({ points: [30,  50, 30,  60] });
+    texts.push({ text: 'VCC1', x: 18, y: -46, size: 7 });
+    texts.push({ text: 'VCC2', x: 18, y:  20, size: 7 });
+    texts.push({ text: 'GND',  x: 20, y:  38, size: 7 });
+    texts.push({ text: 'L293D', x: 14, y:  -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y: -35 }, // EN1
+      { x: -15, y: -20 }, // IN1
+      { x:  75, y: -20 }, // OUT1
+      { x:  75, y:   0 }, // OUT2
+      { x: -15, y:   0 }, // IN2
+      { x:  30, y: -60 }, // VCC1
+      { x:  30, y: -60 }, // VCC2 (tied together visually)
+      { x:  30, y:  60 }, // GND
+    ];
+    labelOffset = { x: 30, y: -72 };
+    valueOffset = { x: 30, y: 72 };
   }
   // --- FALLBACK ---
   else {
