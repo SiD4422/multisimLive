@@ -356,7 +356,99 @@ B_q2 Q2 VSS V = (int(V(cnt)*10)==2) ? V(VDD) : 0
 B_q3 Q3 VSS V = (int(V(cnt)*10)==3) ? V(VDD) : 0
 B_q4 Q4 VSS V = (int(V(cnt)*10)==4) ? V(VDD) : 0
 B_co CO VSS V = (V(cnt)>0.5) ? V(VDD) : 0
-.ends CD4017`
+.ends CD4017`,
+
+  // ── Isolation, Protection & Power ─────────────────────────────────────────
+
+  // 4N35 Optocoupler — LED + phototransistor behavioural
+  OC_4N35: `.subckt OC_4N35 A K C E
+* LED input: diode forward-biased above 1.2V
+D_led A K DLED4N35
+.model DLED4N35 D(IS=1e-15 N=1.8)
+* Phototransistor: collector current proportional to LED current (CTR≈100%)
+B_led i_led GND V = max(0, (V(A)-V(K)-1.2)/100)
+B_xtr C E I = V(i_led) * 1.0
+R_ce C E 100Meg
+.ends OC_4N35`,
+
+  // MOV Varistor — clamps above threshold (behavioural)
+  VARISTOR: `.subckt VARISTOR P1 P2
+* Conducts heavily above V_clamp ≈ 390V; essentially open below
+B_clamp P1 P2 I = max(0, (abs(V(P1,P2))-390)*0.1)
+R_bleed P1 P2 10Meg
+.ends VARISTOR`,
+
+  // LM2596 Buck Converter — behavioural step-down
+  LM2596: `.subckt LM2596 VIN VOUT FB ON_OFF GND
+* Output regulated by FB; default Vout = 5V (FB sets ratio via external divider)
+* Simplified: Vout = VIN * min(1, (Vtarget/VIN)) with efficiency ≈ 85%
+B_out VOUT GND V = min(V(VIN)*0.85, 5.0)
+R_fb FB GND 1Meg
+R_load VOUT GND 10Meg
+.ends LM2596`,
+
+  // IR2110 Gate Driver — behavioural high/low side driver
+  IR2110: `.subckt IR2110 HIN LIN SD VDD HO VS VB LO VCC COM
+* High-side output HO = VB when HIN=1, SD=0; else off
+B_ho HO VS V = (V(SD)<1 && V(HIN)>2.5) ? (V(VB)-V(VS)) : 0
+* Low-side output LO = VCC when LIN=1, SD=0; else off
+B_lo LO COM V = (V(SD)<1 && V(LIN)>2.5) ? V(VCC) : 0
+R_vdd VDD COM 100k
+.ends IR2110`,
+
+  // ACS712 Current Sensor — Hall effect, Vout = 2.5 + 0.185*I
+  ACS712: `.subckt ACS712 IP1 IP2 VOUT VCC GND
+* Current path: sense resistor, output proportional to current
+R_path IP1 IP2 0.005
+B_out VOUT GND V = V(VCC)/2 + 0.185*(V(IP1)-V(IP2))/0.005
+R_out VOUT GND 10Meg
+.ends ACS712`,
+
+  // LM567 Tone Decoder — output LOW when input freq ≈ centre freq (simplified)
+  LM567: `.subckt LM567 OUT VCC INP GND TC1 TC2 TIMR
+* Centre frequency set by external R/C on TIMR,TC1
+* Simplified: output goes LOW when input signal > 100mV threshold
+B_out OUT GND V = (abs(V(INP))>0.1) ? 0 : V(VCC)
+R_in INP GND 20k
+R_load OUT GND 1Meg
+.ends LM567`,
+
+  // CD4051 8-Ch Mux — channel selected by 3-bit ABC address
+  CD4051: `.subckt CD4051 A B C INH Z Y0 Y1 Y2 Y3 VDD VSS
+* Select channel N = C*4+B*2+A; connect Z to YN
+B_n ch_n VSS V = {(V(C)>2.5)*4+(V(B)>2.5)*2+(V(A)>2.5)}
+B_y0 Z VSS V = (V(INH)<1 && int(V(ch_n))==0) ? V(Y0) : V(Z)
+B_y1 Z VSS V = (V(INH)<1 && int(V(ch_n))==1) ? V(Y1) : V(Z)
+B_y2 Z VSS V = (V(INH)<1 && int(V(ch_n))==2) ? V(Y2) : V(Z)
+B_y3 Z VSS V = (V(INH)<1 && int(V(ch_n))==3) ? V(Y3) : V(Z)
+.ends CD4051`,
+
+  // 74HC32 Quad OR Gate — same topology as OR2 but packaged as IC
+  HC32: `.subckt HC32 A B Y GND
+E1 Y GND VALUE = { (V(A) > 1.5 || V(B) > 1.5) ? 5 : 0 }
+Rout Y GND 10Meg
+.ends HC32`,
+
+  // TCA9548A I2C Mux — pass-through switch (simplified behavioural)
+  TCA9548: `.subckt TCA9548 SDA SCL RST SD0 SC0 SD1 SC1 VCC GND
+* I2C bus switch: SD0/SC0 channel 0, SD1/SC1 channel 1 (simplified 2-ch)
+R_sda SDA GND 4.7k
+R_scl SCL GND 4.7k
+B_sd0 SD0 GND V = V(SDA)
+B_sc0 SC0 GND V = V(SCL)
+B_sd1 SD1 GND V = V(SDA)
+B_sc1 SC1 GND V = V(SCL)
+.ends TCA9548`,
+
+  // ATmega328P — simplified behavioural passthrough (power + UART only)
+  ATMEGA328: `.subckt ATMEGA328 VCC GND RESET RXD TXD MOSI MISO SCK SDA SCL
+* Minimal model: power rails only; UART/SPI/I2C pins are high-impedance stubs
+R_vcc VCC GND 10k
+R_rx RXD GND 100Meg
+R_tx TXD GND 100Meg
+R_sda SDA GND 100Meg
+R_scl SCL GND 100Meg
+.ends ATMEGA328`
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -740,6 +832,78 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       return {
         line: `X_${comp.id} ${clk} ${clkinh} ${rst} ${q0} ${q1} ${q2} ${q3} ${q4} ${co} ${vdd} ${vss} CD4017`,
         subckts: [SUBCKT_DEFINITIONS.CD4017]
+      };
+    }
+
+    // ── Isolation, Protection & Power ─────────────────────────────────────────
+    case 'optocoupler_4n35': {
+      const [a = '0', k = '0', c = '0', e = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${k} ${c} ${e} OC_4N35`,
+        subckts: [SUBCKT_DEFINITIONS.OC_4N35]
+      };
+    }
+    case 'varistor': {
+      const [p1 = '0', p2 = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${p1} ${p2} VARISTOR`,
+        subckts: [SUBCKT_DEFINITIONS.VARISTOR]
+      };
+    }
+    case 'ic_lm2596': {
+      const [vin = '0', vout = '0', fb = '0', on_off = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${vin} ${vout} ${fb} ${on_off} ${gnd} LM2596`,
+        subckts: [SUBCKT_DEFINITIONS.LM2596]
+      };
+    }
+    case 'ic_ir2110': {
+      const [hin = '0', lin = '0', sd = '0', vdd = '0', ho = '0', vs = '0', vb = '0', lo = '0', vcc = '0', com = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${hin} ${lin} ${sd} ${vdd} ${ho} ${vs} ${vb} ${lo} ${vcc} ${com} IR2110`,
+        subckts: [SUBCKT_DEFINITIONS.IR2110]
+      };
+    }
+    case 'ic_acs712': {
+      const [ip1 = '0', ip2 = '0', vout = '0', vcc = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${ip1} ${ip2} ${vout} ${vcc} ${gnd} ACS712`,
+        subckts: [SUBCKT_DEFINITIONS.ACS712]
+      };
+    }
+    case 'ic_lm567': {
+      const [out = '0', vcc = '0', inp = '0', gnd = '0', tc1 = '0', tc2 = '0', timr = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${out} ${vcc} ${inp} ${gnd} ${tc1} ${tc2} ${timr} LM567`,
+        subckts: [SUBCKT_DEFINITIONS.LM567]
+      };
+    }
+    case 'ic_cd4051': {
+      const [a = '0', b = '0', c = '0', inh = '0', z = '0', y0 = '0', y1 = '0', y2 = '0', y3 = '0', vdd = '0', vss = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${b} ${c} ${inh} ${z} ${y0} ${y1} ${y2} ${y3} ${vdd} ${vss} CD4051`,
+        subckts: [SUBCKT_DEFINITIONS.CD4051]
+      };
+    }
+    case 'ic_74hc32': {
+      const [a = '0', b = '0', y = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${b} ${y} ${gnd} HC32`,
+        subckts: [SUBCKT_DEFINITIONS.HC32]
+      };
+    }
+    case 'ic_tca9548': {
+      const [sda = '0', scl = '0', rst = '0', sd0 = '0', sc0 = '0', sd1 = '0', sc1 = '0', vcc = '0', gnd = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${sda} ${scl} ${rst} ${sd0} ${sc0} ${sd1} ${sc1} ${vcc} ${gnd} TCA9548`,
+        subckts: [SUBCKT_DEFINITIONS.TCA9548]
+      };
+    }
+    case 'ic_atmega328': {
+      const [vcc = '0', gnd = '0', reset = '0', rxd = '0', txd = '0', mosi = '0', miso = '0', sck = '0', sda = '0', scl = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${vcc} ${gnd} ${reset} ${rxd} ${txd} ${mosi} ${miso} ${sck} ${sda} ${scl} ATMEGA328`,
+        subckts: [SUBCKT_DEFINITIONS.ATMEGA328]
       };
     }
 

@@ -698,4 +698,179 @@ export const standardICLibrary: ComponentDefinition[] = [
       { id: 'VSS',   name: 'VSS',   x:  30, y:  50 },
     ],
   },
+
+  // Group L: Isolation, Protection & Power
+  {
+    id: 'optocoupler_4n35',
+    name: '4N35 Optocoupler',
+    category: 'Integrated Circuits',
+    description: '4N35 general-purpose phototransistor optocoupler. Electrically isolates input from output. LED input side (A/K) drives phototransistor output (C/E). CTR ≈ 100%. Use for logic-level isolation and noise-free signal crossing.',
+    defaultProps: { value: '4N35' },
+    symbol: 'optocoupler_4n35',
+    pins: [
+      { id: 'A',   name: 'A',  x: -20, y: -15 },   // LED Anode
+      { id: 'K',   name: 'K',  x: -20, y:  15 },   // LED Cathode
+      { id: 'C',   name: 'C',  x:  50, y: -15 },   // Transistor Collector
+      { id: 'E',   name: 'E',  x:  50, y:  15 },   // Transistor Emitter
+    ],
+  },
+  {
+    id: 'varistor',
+    name: 'MOV Varistor',
+    category: 'Passive Components',
+    description: 'Metal Oxide Varistor (MOV). Clamps voltage spikes above rated voltage (default 275VAC / 390V peak). Provides surge and transient protection for power supplies and AC lines.',
+    defaultProps: { value: '275V', v_clamp: 390 },
+    symbol: 'varistor',
+    pins: [
+      { id: 'P1', name: 'P1', x: 0,  y: 0 },
+      { id: 'P2', name: 'P2', x: 60, y: 0 },
+    ],
+  },
+
+  // Group M: Power Electronics & Motor Control
+  {
+    id: 'ic_lm2596',
+    name: 'LM2596 Buck Converter',
+    category: 'Integrated Circuits',
+    description: 'LM2596 3A Step-Down (Buck) Switching Regulator. Input 4.5V–40V. Output adjustable 1.23V–37V. 150kHz switching frequency. Requires external LC filter and feedback resistors for regulation.',
+    defaultProps: { value: 'LM2596', vout: 5.0 },
+    symbol: 'ic_lm2596',
+    pins: [
+      { id: 'VIN',    name: 'VIN',    x: -15, y: -20 },
+      { id: 'VOUT',   name: 'VOUT',   x:  75, y: -20 },
+      { id: 'FB',     name: 'FB',     x:  75, y:  20 },
+      { id: 'ON_OFF', name: 'ON/OFF', x: -15, y:  20 },
+      { id: 'GND',    name: 'GND',    x:  30, y:  45 },
+    ],
+  },
+  {
+    id: 'ic_ir2110',
+    name: 'IR2110 Gate Driver',
+    category: 'Integrated Circuits',
+    description: 'IR2110 High and Low Side Gate Driver. Drives power MOSFETs and IGBTs in half-bridge / full-bridge topologies. 10A output, 500V high-side bootstrap operation. Bootstrap capacitor on VB/VS pins.',
+    defaultProps: { value: 'IR2110' },
+    symbol: 'ic_ir2110',
+    pins: [
+      { id: 'HIN',  name: 'HIN',  x: -15, y: -30 },
+      { id: 'LIN',  name: 'LIN',  x: -15, y: -15 },
+      { id: 'SD',   name: 'SD',   x: -15, y:   0 },
+      { id: 'VDD',  name: 'VDD',  x: -15, y:  15 },
+      { id: 'HO',   name: 'HO',   x:  75, y: -30 },
+      { id: 'VS',   name: 'VS',   x:  75, y: -15 },
+      { id: 'VB',   name: 'VB',   x:  75, y:   0 },
+      { id: 'LO',   name: 'LO',   x:  75, y:  15 },
+      { id: 'VCC',  name: 'VCC',  x:  30, y: -50 },
+      { id: 'COM',  name: 'COM',  x:  30, y:  50 },
+    ],
+  },
+
+  // Group N: Sensors & Signal Processing
+  {
+    id: 'ic_acs712',
+    name: 'ACS712 Current Sensor',
+    category: 'Integrated Circuits',
+    description: 'ACS712 Fully Integrated Hall-Effect Current Sensor. Measures ±5A, ±20A or ±30A (model dependent). Sensitivity 185mV/A (5A version). 2.1kVRMS isolation. Output Vout = 2.5V + 185mV×I.',
+    defaultProps: { value: 'ACS712-05', sensitivity: 0.185 },
+    symbol: 'ic_acs712',
+    pins: [
+      { id: 'IP1',  name: 'IP+',  x: -15, y: -15 },  // Current IN+
+      { id: 'IP2',  name: 'IP-',  x: -15, y:  15 },  // Current IN-
+      { id: 'VOUT', name: 'VOUT', x:  75, y:   0 },  // Analog voltage output
+      { id: 'VCC',  name: 'VCC',  x:  30, y: -40 },
+      { id: 'GND',  name: 'GND',  x:  30, y:  40 },
+    ],
+  },
+  {
+    id: 'ic_lm567',
+    name: 'LM567 Tone Decoder',
+    category: 'Integrated Circuits',
+    description: 'LM567 Tone Decoder / Phase-Locked Loop. Output goes LOW when input frequency matches centre frequency set by R1 and C1 (f = 1/(1.1×R1×C1)). Used in tone detection, remote control, and DTMF decoding.',
+    defaultProps: { value: 'LM567' },
+    symbol: 'ic_lm567',
+    pins: [
+      { id: 'OUT',   name: 'OUT',   x:  75, y: -15 },
+      { id: 'VCC',   name: 'VCC',   x:  30, y: -45 },
+      { id: 'INP',   name: 'IN',    x: -15, y:   0 },
+      { id: 'GND',   name: 'GND',   x:  30, y:  45 },
+      { id: 'TC1',   name: 'C1',    x: -15, y: -20 },
+      { id: 'TC2',   name: 'C2',    x: -15, y:  20 },
+      { id: 'TIMR',  name: 'R',     x:  75, y:  15 },
+    ],
+  },
+
+  // Group O: Digital Routing & Connectivity
+  {
+    id: 'ic_cd4051',
+    name: 'CD4051 8-Ch Analog Mux',
+    category: 'Integrated Circuits',
+    description: 'CD4051B Single 8-Channel Analog Multiplexer/Demultiplexer. 3 address pins (A/B/C) select one of 8 channels (Y0–Y7) to connect to common (Z) pin. INH pin disables all channels. Bidirectional signal path.',
+    defaultProps: { value: 'CD4051' },
+    symbol: 'ic_cd4051',
+    pins: [
+      { id: 'A',   name: 'A',   x: -15, y: -35 },
+      { id: 'B',   name: 'B',   x: -15, y: -20 },
+      { id: 'C',   name: 'C',   x: -15, y:  -5 },
+      { id: 'INH', name: 'INH', x: -15, y:  10 },
+      { id: 'Z',   name: 'Z',   x:  75, y:   0 },
+      { id: 'Y0',  name: 'Y0',  x:  75, y: -35 },
+      { id: 'Y1',  name: 'Y1',  x:  75, y: -22 },
+      { id: 'Y2',  name: 'Y2',  x:  75, y:  -9 },
+      { id: 'Y3',  name: 'Y3',  x:  75, y:   4 },
+      { id: 'VDD', name: 'VDD', x:  30, y: -50 },
+      { id: 'VSS', name: 'VSS', x:  30, y:  50 },
+    ],
+  },
+  {
+    id: 'ic_74hc32',
+    name: 'Quad OR Gate (74HC32)',
+    category: 'Logic Gates',
+    description: '74HC32 Quad 2-Input OR Gate. Single-supply 2V–6V. Propagation delay 7ns (5V). High-speed CMOS. Shows one gate of four; connect VCC/GND to IC package supply rails.',
+    defaultProps: { value: '74HC32' },
+    symbol: 'ic_74hc32',
+    pins: [
+      { id: 'A',   name: 'A',   x:  0, y: -10 },
+      { id: 'B',   name: 'B',   x:  0, y:  10 },
+      { id: 'Y',   name: 'Y',   x: 55, y:   0 },
+      { id: 'GND', name: 'GND', x: 25, y:  25 },
+    ],
+  },
+  {
+    id: 'ic_tca9548',
+    name: 'TCA9548A I2C Multiplexer',
+    category: 'Integrated Circuits',
+    description: 'TCA9548A 8-Channel I2C Bus Switch/Multiplexer. Connects one master to up to 8 separate I2C buses. Channel selected by writing to device register via I2C (address 0x70–0x77). Solves address collision between identical sensors.',
+    defaultProps: { value: 'TCA9548A' },
+    symbol: 'ic_tca9548',
+    pins: [
+      { id: 'SDA',  name: 'SDA',  x: -15, y: -20 },
+      { id: 'SCL',  name: 'SCL',  x: -15, y:  -5 },
+      { id: 'RST',  name: '/RST', x: -15, y:  10 },
+      { id: 'SD0',  name: 'SD0',  x:  75, y: -35 },
+      { id: 'SC0',  name: 'SC0',  x:  75, y: -22 },
+      { id: 'SD1',  name: 'SD1',  x:  75, y:  -9 },
+      { id: 'SC1',  name: 'SC1',  x:  75, y:   4 },
+      { id: 'VCC',  name: 'VCC',  x:  30, y: -50 },
+      { id: 'GND',  name: 'GND',  x:  30, y:  50 },
+    ],
+  },
+  {
+    id: 'ic_atmega328',
+    name: 'ATmega328P MCU',
+    category: 'Integrated Circuits',
+    description: 'Atmel ATmega328P 8-bit AVR Microcontroller (Arduino Uno brain). 32KB Flash, 2KB SRAM. 23 GPIO pins. Hardware UART, SPI, I2C. This symbol exposes a simplified 8-pin interface: power, UART, SPI, and RESET.',
+    defaultProps: { value: 'ATmega328P' },
+    symbol: 'ic_atmega328',
+    pins: [
+      { id: 'VCC',   name: 'VCC',   x:  30, y: -55 },
+      { id: 'GND',   name: 'GND',   x:  30, y:  55 },
+      { id: 'RESET', name: 'RESET', x: -15, y: -30 },
+      { id: 'RXD',   name: 'RX',    x: -15, y: -15 },
+      { id: 'TXD',   name: 'TX',    x: -15, y:   0 },
+      { id: 'MOSI',  name: 'MOSI',  x:  75, y: -30 },
+      { id: 'MISO',  name: 'MISO',  x:  75, y: -15 },
+      { id: 'SCK',   name: 'SCK',   x:  75, y:   0 },
+      { id: 'SDA',   name: 'SDA',   x: -15, y:  15 },
+      { id: 'SCL',   name: 'SCL',   x: -15, y:  30 },
+    ],
+  },
 ];

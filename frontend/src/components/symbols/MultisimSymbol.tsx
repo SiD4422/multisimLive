@@ -35,6 +35,9 @@ function formatRefDes(id: string, type: string): string {
     ic_7805: 'U', ic_7812: 'U', thermistor: 'R',
     ic_7447: 'U', ic_74hc245: 'U', ic_max232: 'U', ic_tl074: 'U',
     ic_ad620: 'U', ic_ne566: 'U', ic_cd4017: 'U',
+    optocoupler_4n35: 'U', varistor: 'RV', ic_lm2596: 'U', ic_ir2110: 'U',
+    ic_acs712: 'U', ic_lm567: 'U', ic_cd4051: 'U', ic_74hc32: 'U',
+    ic_tca9548: 'U', ic_atmega328: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -1802,6 +1805,205 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       { x: 75, y: -35 }, { x: 75, y: -22 }, { x: 75, y: -9 },
       { x: 75, y:   4 }, { x: 75, y:  17 }, { x: 75, y:  30 },
       { x: 30, y: -60 }, { x: 30, y:  60 }
+    ];
+    labelOffset = { x: 30, y: -72 }; valueOffset = { x: 30, y: 72 };
+  }
+  // --- 4N35 OPTOCOUPLER ---
+  else if (type === 'optocoupler_4n35') {
+    // Outer box
+    paths.push({ data: "M -28 -25 L 38 -25 L 38 25 L -28 25 Z", fill: "#fff" });
+    // LED left side
+    paths.push({ data: "M -18 -15 L -10 -7 L -18 1 Z", fill: strokeColor });
+    lines.push({ points: [-10, -15, -10, 1] }); // Cathode bar
+    lines.push({ points: [-38, -15, -18, -15] }); // Anode lead (A)
+    lines.push({ points: [-38,   1, -10,   1] }); // Cathode lead (K)
+    // Light arrows right
+    paths.push({ data: "M -4 -13 L 4 -7 M 4 -7 L 1 -7 M 4 -7 L 4 -10", fill: "transparent" });
+    paths.push({ data: "M -4 -9  L 4 -3 M 4 -3 L 1 -3 M 4 -3 L 4 -6",  fill: "transparent" });
+    // Phototransistor right side
+    lines.push({ points: [16, -15, 16, 15] }); // Base
+    lines.push({ points: [16,  -10, 26, -14] }); // Collector angle
+    lines.push({ points: [26, -14, 26, -25] }); // Collector lead (C)
+    lines.push({ points: [16,  10, 26, 14] });  // Emitter angle
+    lines.push({ points: [26, 14, 26, 25] });   // Emitter lead (E)
+    paths.push({ data: "M 23 8 L 24 13 L 20 12 Z", fill: strokeColor }); // NPN arrow
+    texts.push({ text: 'A', x: -36, y: -20, size: 8, fill: '#555' });
+    texts.push({ text: 'K', x: -36, y:   4, size: 8, fill: '#555' });
+    texts.push({ text: 'C', x:  28, y: -22, size: 8, fill: '#555' });
+    texts.push({ text: 'E', x:  28, y:  16, size: 8, fill: '#555' });
+    pins = [{ x: -38, y: -15 }, { x: -38, y: 1 }, { x: 26, y: -25 }, { x: 26, y: 25 }];
+    labelOffset = { x: 40, y: -35 }; valueOffset = { x: 40, y: 35 };
+  }
+  // --- MOV VARISTOR ---
+  else if (type === 'varistor') {
+    // Resistor zigzag with diagonal bidirectional arrow
+    lines.push({ points: [0, 0, 16.5, 0] });
+    lines.push({ points: [16.5,0, 19.5,-5, 23.5,4, 28.5,-5, 32.5,4, 37.5,-5, 41.5,4, 43.5,0] });
+    lines.push({ points: [43.5, 0, 60, 0] });
+    paths.push({ data: "M 10 12 L 50 -12 M 47 -12 L 50 -12 L 50 -9 M 13 12 L 10 12 L 10 9", fill: "transparent" });
+    texts.push({ text: 'MOV', x: 16, y: -16, size: 8, fill: '#f97316' });
+    pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+    labelOffset = { x: 15, y: -28 }; valueOffset = { x: 15, y: 18 };
+  }
+  // --- LM2596 BUCK CONVERTER ---
+  else if (type === 'ic_lm2596') {
+    paths.push({ data: "M 0 -35 L 60 -35 L 60 35 L 0 35 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -35 A 5 5 0 0 0 35 -35", fill: "transparent" });
+    lines.push({ points: [-15,-20, 0,-20] }); texts.push({ text: 'VIN',    x: 2, y:-24, size: 7 });
+    lines.push({ points: [-15, 20, 0, 20] }); texts.push({ text: 'ON/OFF', x: 2, y: 16, size: 6 });
+    lines.push({ points: [ 60,-20,75,-20] }); texts.push({ text: 'VOUT',   x: 37, y:-24, size: 7 });
+    lines.push({ points: [ 60, 20,75, 20] }); texts.push({ text: 'FB',     x: 40, y: 16, size: 7 });
+    lines.push({ points: [ 30, 35,30, 45] }); texts.push({ text: 'GND',    x: 21, y: 28, size: 7 });
+    // Buck arrow inside
+    paths.push({ data: "M 15 0 L 45 0 M 40 -4 L 45 0 L 40 4", fill: "transparent" });
+    texts.push({ text: 'LM2596', x: 10, y:-14, size: 8, fill: '#333' });
+    texts.push({ text: 'BUCK', x: 16, y: -4, size: 9, fill: '#333' });
+    pins = [{ x: -15, y: -20 }, { x: 75, y: -20 }, { x: 75, y: 20 }, { x: -15, y: 20 }, { x: 30, y: 45 }];
+    labelOffset = { x: 30, y: -48 }; valueOffset = { x: 30, y: 58 };
+  }
+  // --- IR2110 GATE DRIVER ---
+  else if (type === 'ic_ir2110') {
+    paths.push({ data: "M 0 -45 L 60 -45 L 60 45 L 0 45 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -45 A 5 5 0 0 0 35 -45", fill: "transparent" });
+    [['HIN',-30],['LIN',-15],['SD',0],['VDD',15]].forEach(([lbl, y]) => {
+      lines.push({ points: [-15, y as number, 0, y as number] });
+      texts.push({ text: lbl as string, x: 2, y: (y as number)-4, size: 7 });
+    });
+    [['HO',-30],['VS',-15],['VB',0],['LO',15]].forEach(([lbl, y]) => {
+      lines.push({ points: [60, y as number, 75, y as number] });
+      texts.push({ text: lbl as string, x: 40, y: (y as number)-4, size: 7 });
+    });
+    lines.push({ points: [30,-45,30,-55] }); texts.push({ text: 'VCC', x: 21, y:-41, size: 7 });
+    lines.push({ points: [30, 45,30, 55] }); texts.push({ text: 'COM', x: 21, y: 33, size: 7 });
+    texts.push({ text: 'IR2110', x: 10, y: -4, size: 9, fill: '#333' });
+    pins = [
+      { x: -15, y:-30 }, { x:-15, y:-15 }, { x:-15, y:0 }, { x:-15, y:15 },
+      { x:  75, y:-30 }, { x: 75, y:-15 }, { x: 75, y:0 }, { x: 75, y:15 },
+      { x:  30, y:-55 }, { x: 30, y: 55 }
+    ];
+    labelOffset = { x: 30, y: -68 }; valueOffset = { x: 30, y: 68 };
+  }
+  // --- ACS712 CURRENT SENSOR ---
+  else if (type === 'ic_acs712') {
+    paths.push({ data: "M 0 -35 L 60 -35 L 60 35 L 0 35 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -35 A 5 5 0 0 0 35 -35", fill: "transparent" });
+    lines.push({ points: [-15,-15, 0,-15] }); texts.push({ text: 'IP+',  x: 2, y:-19, size: 7 });
+    lines.push({ points: [-15, 15, 0, 15] }); texts.push({ text: 'IP-',  x: 2, y: 11, size: 7 });
+    lines.push({ points: [ 60,  0,75,  0] }); texts.push({ text: 'VOUT', x: 38, y: -4, size: 7 });
+    lines.push({ points: [ 30,-35,30,-45] }); texts.push({ text: 'VCC',  x: 21, y:-31, size: 7 });
+    lines.push({ points: [ 30, 35,30, 45] }); texts.push({ text: 'GND',  x: 21, y: 24, size: 7 });
+    // Hall sensor symbol (H in a circle)
+    circles.push({ x: 30, y: 0, r: 10, fill: "#f0f9ff" });
+    texts.push({ text: 'H', x: 26, y: -4, size: 10, fill: '#0ea5e9' });
+    texts.push({ text: 'ACS712', x: 9, y:-24, size: 7, fill: '#333' });
+    pins = [{ x:-15,y:-15 }, { x:-15,y:15 }, { x:75,y:0 }, { x:30,y:-45 }, { x:30,y:45 }];
+    labelOffset = { x: 30, y: -58 }; valueOffset = { x: 30, y: 58 };
+  }
+  // --- LM567 TONE DECODER ---
+  else if (type === 'ic_lm567') {
+    paths.push({ data: "M 0 -38 L 60 -38 L 60 38 L 0 38 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -38 A 5 5 0 0 0 35 -38", fill: "transparent" });
+    lines.push({ points: [-15,-20, 0,-20] }); texts.push({ text: 'C1',  x: 2, y:-24, size: 7 });
+    lines.push({ points: [-15,  0, 0,  0] }); texts.push({ text: 'IN',  x: 2, y: -4, size: 7 });
+    lines.push({ points: [-15, 20, 0, 20] }); texts.push({ text: 'C2',  x: 2, y: 16, size: 7 });
+    lines.push({ points: [ 60,-15,75,-15] }); texts.push({ text: 'OUT', x: 38, y:-19, size: 7 });
+    lines.push({ points: [ 60, 15,75, 15] }); texts.push({ text: 'R',   x: 40, y: 11, size: 7 });
+    lines.push({ points: [ 30,-38,30,-48] }); texts.push({ text: 'VCC', x: 21, y:-34, size: 7 });
+    lines.push({ points: [ 30, 38,30, 48] }); texts.push({ text: 'GND', x: 21, y: 27, size: 7 });
+    // PLL symbol
+    texts.push({ text: 'PLL', x: 20, y: -8, size: 10, fill: '#7c3aed' });
+    texts.push({ text: 'LM567', x: 13, y: -28, size: 8, fill: '#333' });
+    pins = [{ x:75,y:-15 }, { x:30,y:-48 }, { x:-15,y:0 }, { x:30,y:48 }, { x:-15,y:-20 }, { x:-15,y:20 }, { x:75,y:15 }];
+    labelOffset = { x: 30, y: -60 }; valueOffset = { x: 30, y: 60 };
+  }
+  // --- CD4051 8-CHANNEL ANALOG MUX ---
+  else if (type === 'ic_cd4051') {
+    paths.push({ data: "M 0 -50 L 60 -50 L 60 50 L 0 50 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -50 A 5 5 0 0 0 35 -50", fill: "transparent" });
+    [['A',-35],['B',-20],['C',-5],['INH',10]].forEach(([lbl, y]) => {
+      lines.push({ points: [-15, y as number, 0, y as number] });
+      texts.push({ text: lbl as string, x: 2, y: (y as number)-4, size: 7 });
+    });
+    // Z common pin (right middle)
+    lines.push({ points: [60, 0,75, 0] }); texts.push({ text: 'Z', x: 40, y: -4, size: 8 });
+    // Y0-Y3 channel pins
+    [['Y0',-35],['Y1',-22],['Y2',-9],['Y3',4]].forEach(([lbl, y]) => {
+      lines.push({ points: [60, y as number, 75, y as number] });
+      texts.push({ text: lbl as string, x: 40, y: (y as number)-4, size: 7 });
+    });
+    lines.push({ points: [30,-50,30,-60] }); texts.push({ text: 'VDD', x: 21, y:-46, size: 7 });
+    lines.push({ points: [30, 50,30, 60] }); texts.push({ text: 'VSS', x: 21, y: 38, size: 7 });
+    texts.push({ text: 'CD4051', x: 8, y: -4, size: 9, fill: '#333' });
+    texts.push({ text: '8-MUX', x: 11, y: 7, size: 8, fill: '#666' });
+    pins = [
+      { x:-15,y:-35 }, { x:-15,y:-20 }, { x:-15,y:-5 }, { x:-15,y:10 },
+      { x: 75,y:  0 },
+      { x: 75,y:-35 }, { x:75,y:-22 }, { x:75,y:-9 }, { x:75,y:4 },
+      { x: 30,y:-60 }, { x:30,y: 60 }
+    ];
+    labelOffset = { x: 30, y: -72 }; valueOffset = { x: 30, y: 72 };
+  }
+  // --- 74HC32 QUAD OR GATE ---
+  else if (type === 'ic_74hc32') {
+    // OR gate body (same shape as logic_or2)
+    paths.push({ data: "M 5 -15 Q 15 -15 20 -15 Q 40 -15 45 0 Q 40 15 20 15 Q 15 15 5 15 Q 12 8 12 0 Q 12 -8 5 -15 Z", fill: "#fff" });
+    lines.push({ points: [0,-10, 9,-10] }); // A
+    lines.push({ points: [0, 10, 9, 10] }); // B
+    lines.push({ points: [45, 0,55,  0] }); // Y
+    lines.push({ points: [25, 15,25, 25] }); // GND stub
+    texts.push({ text: '≥1', x: 14, y: -6, size: 10, fill: '#333' });
+    texts.push({ text: 'GND', x: 28, y: 22, size: 7, fill: '#666' });
+    pins = [{ x:0,y:-10 }, { x:0,y:10 }, { x:55,y:0 }, { x:25,y:25 }];
+    labelOffset = { x: 5, y: -25 }; valueOffset = { x: 5, y: 35 };
+  }
+  // --- TCA9548A I2C MULTIPLEXER ---
+  else if (type === 'ic_tca9548') {
+    paths.push({ data: "M 0 -40 L 60 -40 L 60 40 L 0 40 Z", fill: "#fff" });
+    paths.push({ data: "M 25 -40 A 5 5 0 0 0 35 -40", fill: "transparent" });
+    [['SDA',-20],['SCL',-5],['/RST',10]].forEach(([lbl, y]) => {
+      lines.push({ points: [-15, y as number, 0, y as number] });
+      texts.push({ text: lbl as string, x: 2, y: (y as number)-4, size: 7 });
+    });
+    [['SD0',-35],['SC0',-22],['SD1',-9],['SC1',4]].forEach(([lbl, y]) => {
+      lines.push({ points: [60, y as number, 75, y as number] });
+      texts.push({ text: lbl as string, x: 40, y: (y as number)-4, size: 7 });
+    });
+    lines.push({ points: [30,-40,30,-50] }); texts.push({ text: 'VCC', x: 21, y:-36, size: 7 });
+    lines.push({ points: [30, 40,30, 50] }); texts.push({ text: 'GND', x: 21, y: 28, size: 7 });
+    texts.push({ text: 'I2C-MUX', x: 6, y: -14, size: 8, fill: '#333' });
+    texts.push({ text: 'TCA9548', x: 7, y: -4,  size: 8, fill: '#333' });
+    pins = [
+      { x:-15,y:-20 }, { x:-15,y:-5 }, { x:-15,y:10 },
+      { x:75,y:-35 }, { x:75,y:-22 }, { x:75,y:-9 }, { x:75,y:4 },
+      { x:30,y:-50 }, { x:30,y: 50 }
+    ];
+    labelOffset = { x: 30, y: -62 }; valueOffset = { x: 30, y: 62 };
+  }
+  // --- ATMEGA328P MCU ---
+  else if (type === 'ic_atmega328') {
+    paths.push({ data: "M 0 -50 L 60 -50 L 60 50 L 0 50 Z", fill: "#eef2ff" });
+    paths.push({ data: "M 25 -50 A 5 5 0 0 0 35 -50", fill: "transparent" });
+    // Left: RESET, RX, TX, SDA, SCL
+    [['RST',-30],['RX',-15],['TX',0],['SDA',15],['SCL',30]].forEach(([lbl, y]) => {
+      lines.push({ points: [-15, y as number, 0, y as number] });
+      texts.push({ text: lbl as string, x: 2, y: (y as number)-4, size: 7 });
+    });
+    // Right: MOSI, MISO, SCK
+    [['MOSI',-30],['MISO',-15],['SCK',0]].forEach(([lbl, y]) => {
+      lines.push({ points: [60, y as number, 75, y as number] });
+      texts.push({ text: lbl as string, x: 37, y: (y as number)-4, size: 7 });
+    });
+    // Supply
+    lines.push({ points: [30,-50,30,-60] }); texts.push({ text: 'VCC', x: 21, y:-46, size: 7 });
+    lines.push({ points: [30, 50,30, 60] }); texts.push({ text: 'GND', x: 21, y: 38, size: 7 });
+    texts.push({ text: 'ATmega', x: 12, y:-10, size: 9, fill: '#1d4ed8' });
+    texts.push({ text: '328P',   x: 17, y:  2, size: 9, fill: '#1d4ed8' });
+    // Arduino logo hint
+    texts.push({ text: '⚡AVR', x: 14, y: 13, size: 7, fill: '#64748b' });
+    pins = [
+      { x:30,y:-60 }, { x:30,y: 60 },
+      { x:-15,y:-30 }, { x:-15,y:-15 }, { x:-15,y:0 }, { x:-15,y:15 }, { x:-15,y:30 },
+      { x: 75,y:-30 }, { x: 75,y:-15 }, { x: 75,y:  0 }
     ];
     labelOffset = { x: 30, y: -72 }; valueOffset = { x: 30, y: 72 };
   }
