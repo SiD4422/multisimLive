@@ -912,6 +912,76 @@ B8 QH GND VALUE={0}
 B9 RCO GND VALUE={0}
 .ends HC590_SUB`,
 
+  ADS1115_SUB: `.subckt ADS1115_SUB VDD GND SCL SDA ADDR ALRT AIN0 AIN1
+* ADS1115 16-bit ADC stub with I2C interface
+R1 VDD GND 100k
+* Differential input model (simplified)
+B1 SDA GND VALUE={0}
+.ends ADS1115_SUB`,
+
+  MPU6050_SUB: `.subckt MPU6050_SUB VCC GND SCL SDA AD0 INT
+* MPU-6050 6-axis IMU stub
+R1 VCC GND 100k
+B1 INT GND VALUE={0}
+.ends MPU6050_SUB`,
+
+  HC05_SUB: `.subckt HC05_SUB VCC GND TXD RXD EN STATE
+* HC-05 Bluetooth module stub
+R1 VCC GND 1k
+B1 TXD GND VALUE={V(RXD,GND)}
+B2 STATE GND VALUE={IF(V(EN,GND)>1.8, V(VCC,GND), 0)}
+.ends HC05_SUB`,
+
+  HC21_SUB: `.subckt HC21_SUB A1 B1 C1 D1 Y1 VCC GND
+* 74HC21 dual 4-input AND gate (one gate modelled)
+B1 Y1 GND VALUE={IF(V(A1,GND)>2.0 & V(B1,GND)>2.0 & V(C1,GND)>2.0 & V(D1,GND)>2.0, V(VCC,GND), 0)}
+.ends HC21_SUB`,
+
+  LM2575_SUB: `.subckt LM2575_SUB VIN VOUT GND FB ONB
+* LM2575-5 simple switcher buck converter (behavioural 5V fixed)
+B1 VOUT GND VALUE={IF(V(ONB,GND)<0.8 & V(VIN,GND)>6.0, 5.0, 0)}
+R1 VOUT GND 100k
+.ends LM2575_SUB`,
+
+  TPS61023_SUB: `.subckt TPS61023_SUB VIN VOUT GND EN FB
+* TPS61023 boost converter stub (fixed 5V out)
+B1 VOUT GND VALUE={IF(V(EN,GND)>0.8 & V(VIN,GND)>0.5, 5.0, 0)}
+R1 VOUT GND 100k
+.ends TPS61023_SUB`,
+
+  PUT_SUB: `.subckt PUT_SUB A K G
+* 2N6027 PUT behavioural model
+* Fires when V(A,G) exceeds ~0.7V forward drop (emitter fires)
+B1 A K VALUE={IF(V(A,G) > 0.7, (V(A,G)-0.7)*100, 0)}
+R1 G K 100k
+.ends PUT_SUB`,
+
+  HC30_SUB: `.subckt HC30_SUB A B C D E F G H Y VCC GND
+* 74HC30 8-input NAND gate
+B1 Y GND VALUE={IF(V(A,GND)>2 & V(B,GND)>2 & V(C,GND)>2 & V(D,GND)>2 & V(E,GND)>2 & V(F,GND)>2 & V(G,GND)>2 & V(H,GND)>2, 0, V(VCC,GND))}
+.ends HC30_SUB`,
+
+  CD4040_SUB: `.subckt CD4040_SUB CLK RST VDD VSS Q1 Q2 Q3 Q4 Q5 Q6 Q7 Q8
+* CD4040 12-stage ripple counter stub
+R1 VDD VSS 100k
+B1 Q1 VSS VALUE={0}
+B2 Q2 VSS VALUE={0}
+B3 Q3 VSS VALUE={0}
+B4 Q4 VSS VALUE={0}
+B5 Q5 VSS VALUE={0}
+B6 Q6 VSS VALUE={0}
+B7 Q7 VSS VALUE={0}
+B8 Q8 VSS VALUE={0}
+.ends CD4040_SUB`,
+
+  OPA2134_SUB: `.subckt OPA2134_SUB IN1N IN1P OUT1 IN2P IN2N OUT2 VCC VEE
+* OPA2134 dual audio op-amp: two independent op-amp cores (high-fidelity)
+* Channel 1
+E1 OUT1 GND VALUE={LIMIT(100000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+0.1, V(VCC,GND)-0.1)}
+* Channel 2
+E2 OUT2 GND VALUE={LIMIT(100000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+0.1, V(VCC,GND)-0.1)}
+.ends OPA2134_SUB`,
+
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -1626,6 +1696,46 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'ic_74hc590': {
       const [qa='0', qb='0', qc='0', qd='0', qe='0', qf='0', qg='0', qh='0', rco='0', cclk='0', rclk='0', oe='0', mr='0', vcc='0', gnd='0'] = nodes;
       return { line: `X_${comp.id} ${qa} ${qb} ${qc} ${qd} ${qe} ${qf} ${qg} ${qh} ${rco} ${cclk} ${rclk} ${oe} ${mr} ${vcc} ${gnd} HC590_SUB`, subckts: [SUBCKT_DEFINITIONS.HC590_SUB] };
+    }
+    case 'ic_ads1115': {
+      const [vdd='0', gnd='0', scl='0', sda='0', addr='0', alrt='0', ain0='0', ain1='0'] = nodes;
+      return { line: `X_${comp.id} ${vdd} ${gnd} ${scl} ${sda} ${addr} ${alrt} ${ain0} ${ain1} ADS1115_SUB`, subckts: [SUBCKT_DEFINITIONS.ADS1115_SUB] };
+    }
+    case 'ic_mpu6050': {
+      const [vcc='0', gnd='0', scl='0', sda='0', ad0='0', intPin='0'] = nodes;
+      return { line: `X_${comp.id} ${vcc} ${gnd} ${scl} ${sda} ${ad0} ${intPin} MPU6050_SUB`, subckts: [SUBCKT_DEFINITIONS.MPU6050_SUB] };
+    }
+    case 'ic_hc05': {
+      const [vcc='0', gnd='0', txd='0', rxd='0', en='0', state='0'] = nodes;
+      return { line: `X_${comp.id} ${vcc} ${gnd} ${txd} ${rxd} ${en} ${state} HC05_SUB`, subckts: [SUBCKT_DEFINITIONS.HC05_SUB] };
+    }
+    case 'ic_74hc21': {
+      const [a1='0', b1='0', c1='0', d1='0', y1='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${b1} ${c1} ${d1} ${y1} ${vcc} ${gnd} HC21_SUB`, subckts: [SUBCKT_DEFINITIONS.HC21_SUB] };
+    }
+    case 'ic_lm2575': {
+      const [vin='0', vout='0', gnd='0', fb='0', onb='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${vout} ${gnd} ${fb} ${onb} LM2575_SUB`, subckts: [SUBCKT_DEFINITIONS.LM2575_SUB] };
+    }
+    case 'ic_tps61023': {
+      const [vin='0', vout='0', gnd='0', en='0', fb='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${vout} ${gnd} ${en} ${fb} TPS61023_SUB`, subckts: [SUBCKT_DEFINITIONS.TPS61023_SUB] };
+    }
+    case 'put': {
+      const [anode='0', cathode='0', gate='0'] = nodes;
+      return { line: `X_${comp.id} ${anode} ${cathode} ${gate} PUT_SUB`, subckts: [SUBCKT_DEFINITIONS.PUT_SUB] };
+    }
+    case 'ic_74hc30': {
+      const [a='0', b='0', c='0', d='0', e='0', f='0', g='0', h='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${d} ${e} ${f} ${g} ${h} ${y} ${vcc} ${gnd} HC30_SUB`, subckts: [SUBCKT_DEFINITIONS.HC30_SUB] };
+    }
+    case 'ic_cd4040': {
+      const [clk='0', rst='0', vdd='0', vss='0', q1='0', q2='0', q3='0', q4='0', q5='0', q6='0', q7='0', q8='0'] = nodes;
+      return { line: `X_${comp.id} ${clk} ${rst} ${vdd} ${vss} ${q1} ${q2} ${q3} ${q4} ${q5} ${q6} ${q7} ${q8} CD4040_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4040_SUB] };
+    }
+    case 'ic_opa2134': {
+      const [in1n='0', in1p='0', out1='0', in2p='0', in2n='0', out2='0', vcc='0', vee='0'] = nodes;
+      return { line: `X_${comp.id} ${in1n} ${in1p} ${out1} ${in2p} ${in2n} ${out2} ${vcc} ${vee} OPA2134_SUB`, subckts: [SUBCKT_DEFINITIONS.OPA2134_SUB] };
     }
     default:
       return null;

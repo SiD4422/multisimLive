@@ -59,6 +59,16 @@ function formatRefDes(id: string, type: string): string {
     varactor: 'D',
     ic_ne555_cmos: 'U',
     ic_74hc590: 'U',
+    ic_ads1115: 'U',
+    ic_mpu6050: 'U',
+    ic_hc05: 'U',
+    ic_74hc21: 'U',
+    ic_lm2575: 'U',
+    ic_tps61023: 'U',
+    put: 'Q',
+    ic_74hc30: 'U',
+    ic_cd4040: 'U',
+    ic_opa2134: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -3011,6 +3021,190 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     ];
     labelOffset = { x: 0, y: 118 };
     valueOffset = { x: 0, y: 130 };
+
+  } else if (type === 'ic_ads1115') {
+    // ADS1115 — ADC sensor IC box
+    rects.push({ x: -40, y: -45, width: 80, height: 90, fill: '#f0f8ff', stroke: '#004488', strokeWidth: 1.5, cornerRadius: 4 });
+    texts.push({ text: 'ADS1115', x: -26, y: -38, size: 8 });
+    texts.push({ text: '16-bit ADC', x: -28, y: -22, size: 7 });
+    // Left pins: VDD, AIN0, AIN1, GND
+    const lADS = [['VDD',-30],['AIN0',-10],['AIN1',10],['GND',30]] as [string,number][];
+    lADS.forEach(([n,py]) => { lines.push({ points: [-55,py,-40,py] }); texts.push({ text: n, x: -38, y: py-5, size: 7 }); });
+    // Right pins: SCL, SDA, ADDR, ALRT
+    const rADS = [['SCL',-30],['SDA',-10],['ADDR',10],['ALRT',30]] as [string,number][];
+    rADS.forEach(([n,py]) => { lines.push({ points: [40,py,55,py] }); texts.push({ text: n, x: 4, y: py-5, size: 7 }); });
+    pins = [{x:-55,y:-30},{x:-55,y:-10},{x:-55,y:10},{x:-55,y:30},{x:55,y:-30},{x:55,y:-10},{x:55,y:10},{x:55,y:30}];
+    labelOffset = { x: 0, y: 55 };
+    valueOffset = { x: 0, y: 67 };
+
+  } else if (type === 'ic_mpu6050') {
+    // MPU-6050 — IMU sensor box
+    rects.push({ x: -38, y: -50, width: 76, height: 100, fill: '#fff5e8', stroke: '#884400', strokeWidth: 1.5, cornerRadius: 4 });
+    texts.push({ text: 'MPU-6050', x: -28, y: -42, size: 8 });
+    texts.push({ text: 'IMU', x: -10, y: -26, size: 7 });
+    // Left: VCC, GND
+    lines.push({ points: [-55,-40,-38,-40] }); texts.push({ text: 'VCC', x: -36, y: -48, size: 7 });
+    lines.push({ points: [-55,40,-38,40] });   texts.push({ text: 'GND', x: -36, y:  32, size: 7 });
+    // Right: SCL, SDA, AD0, INT
+    const rMPU = [['SCL',-30],['SDA',-10],['AD0',10],['INT',30]] as [string,number][];
+    rMPU.forEach(([n,py]) => { lines.push({ points: [38,py,55,py] }); texts.push({ text: n, x: 4, y: py-5, size: 7 }); });
+    pins = [{x:-55,y:-40},{x:-55,y:40},{x:55,y:-30},{x:55,y:-10},{x:55,y:10},{x:55,y:30}];
+    labelOffset = { x: 0, y: 60 };
+    valueOffset = { x: 0, y: 72 };
+
+  } else if (type === 'ic_hc05') {
+    // HC-05 Bluetooth — module box with BT symbol
+    rects.push({ x: -42, y: -50, width: 84, height: 100, fill: '#e8f0ff', stroke: '#0022cc', strokeWidth: 1.5, cornerRadius: 5 });
+    texts.push({ text: 'HC-05', x: -18, y: -42, size: 9 });
+    texts.push({ text: 'BT', x: -8, y: -24, size: 8 });
+    // BT lightning bolt simplified
+    lines.push({ points: [4,-18,-2,-4] });
+    lines.push({ points: [-2,-4,4,4] });
+    // Left: VCC, GND
+    lines.push({ points: [-57,-40,-42,-40] }); texts.push({ text: 'VCC', x: -40, y: -48, size: 7 });
+    lines.push({ points: [-57, 40,-42, 40] }); texts.push({ text: 'GND', x: -40, y:  32, size: 7 });
+    // Right: TXD, RXD, EN, STATE
+    const rHC = [['TXD',-20],['RXD',0],['EN',20],['STATE',40]] as [string,number][];
+    rHC.forEach(([n,py]) => { lines.push({ points: [42,py,57,py] }); texts.push({ text: n, x: 5, y: py-5, size: 7 }); });
+    pins = [{x:-57,y:-40},{x:-57,y:40},{x:57,y:-20},{x:57,y:0},{x:57,y:20},{x:57,y:40}];
+    labelOffset = { x: 0, y: 60 };
+    valueOffset = { x: 0, y: 72 };
+
+  } else if (type === 'ic_74hc21') {
+    // 74HC21 — AND gate body with 4 inputs
+    // Gate body (D-shape)
+    paths.push({ data: 'M -20 -35 L -20 35 L 0 35 Q 35 35 35 0 Q 35 -35 0 -35 Z', fill: '#fff', stroke: '#333' });
+    // Input lines
+    [[-30],[-10],[10],[30]].forEach(([py]) => lines.push({ points: [-40,py,-20,py] }));
+    // Output
+    lines.push({ points: [35,0,50,0] });
+    texts.push({ text: '&', x: 2, y: -4, size: 12 });
+    texts.push({ text: '×4', x: 4, y: 12, size: 7 });
+    pins = [{x:-40,y:-30},{x:-40,y:-10},{x:-40,y:10},{x:-40,y:30},{x:50,y:0},{x:0,y:-50},{x:0,y:50}];
+    labelOffset = { x: 0, y: 50 };
+    valueOffset = { x: 0, y: 62 };
+
+  } else if (type === 'ic_lm2575') {
+    // LM2575 — buck converter box with arrow
+    rects.push({ x: -40, y: -35, width: 80, height: 70, fill: '#f5ffe8', stroke: '#336600', strokeWidth: 1.5 });
+    texts.push({ text: 'LM2575', x: -24, y: -28, size: 8 });
+    texts.push({ text: 'BUCK', x: -14, y: -10, size: 8 });
+    // Arrow body (step-down symbol)
+    lines.push({ points: [-10,8,10,8] });
+    lines.push({ points: [10,8,4,2] });
+    lines.push({ points: [10,8,4,14] });
+    // Left: VIN, /ON
+    lines.push({ points: [-55,-20,-40,-20] }); texts.push({ text: 'VIN', x: -38, y: -28, size: 7 });
+    lines.push({ points: [-55, 20,-40, 20] }); texts.push({ text: '/ON', x: -38, y:  12, size: 7 });
+    // Right: VOUT, FB
+    lines.push({ points: [40,-20,55,-20] }); texts.push({ text: 'VOUT', x: 4, y: -28, size: 7 });
+    lines.push({ points: [40, 20,55, 20] }); texts.push({ text: 'FB', x: 4, y:  12, size: 7 });
+    // Bottom: GND
+    lines.push({ points: [0,35,0,45] }); texts.push({ text: 'GND', x: -10, y: 48, size: 7 });
+    pins = [{x:-55,y:-20},{x:55,y:-20},{x:0,y:45},{x:55,y:20},{x:-55,y:20}];
+    labelOffset = { x: 0, y: 55 };
+    valueOffset = { x: 0, y: 67 };
+
+  } else if (type === 'ic_tps61023') {
+    // TPS61023 — boost converter box with up-arrow
+    rects.push({ x: -40, y: -35, width: 80, height: 70, fill: '#fff8e0', stroke: '#886600', strokeWidth: 1.5 });
+    texts.push({ text: 'TPS61023', x: -30, y: -28, size: 7 });
+    texts.push({ text: 'BOOST', x: -16, y: -10, size: 8 });
+    // Up arrow
+    lines.push({ points: [-10,8,10,8] });
+    lines.push({ points: [0,8,0,2] });
+    lines.push({ points: [-5,4,0,-2] });
+    lines.push({ points: [5,4,0,-2] });
+    // Left: VIN, EN
+    lines.push({ points: [-55,-20,-40,-20] }); texts.push({ text: 'VIN', x: -38, y: -28, size: 7 });
+    lines.push({ points: [-55, 20,-40, 20] }); texts.push({ text: 'EN',  x: -38, y:  12, size: 7 });
+    // Right: VOUT, FB
+    lines.push({ points: [40,-20,55,-20] }); texts.push({ text: 'VOUT', x: 4, y: -28, size: 7 });
+    lines.push({ points: [40, 20,55, 20] }); texts.push({ text: 'FB',   x: 4, y:  12, size: 7 });
+    // Bottom: GND
+    lines.push({ points: [0,35,0,45] }); texts.push({ text: 'GND', x: -10, y: 48, size: 7 });
+    pins = [{x:-55,y:-20},{x:55,y:-20},{x:0,y:45},{x:-55,y:20},{x:55,y:20}];
+    labelOffset = { x: 0, y: 55 };
+    valueOffset = { x: 0, y: 67 };
+
+  } else if (type === 'put') {
+    // PUT (2N6027) — resembles SCR/thyristor symbol with gate
+    // Vertical bar (anode to cathode)
+    lines.push({ points: [0,-40,0,-12] });
+    lines.push({ points: [0, 12,0, 40] });
+    // Triangle (anode at top)
+    paths.push({ data: 'M -12 -12 L 12 -12 L 0 12 Z', fill: '#fff', stroke: '#333' });
+    // Gate line from left to midpoint
+    lines.push({ points: [-40,0,-8,0] });
+    lines.push({ points: [-8,0,-8,-12] });
+    // Body circle
+    circles.push({ x: 0, y: 0, r: 20, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'PUT', x: 10, y: -4, size: 7 });
+    texts.push({ text: 'A', x: -6, y: -38, size: 7 });
+    texts.push({ text: 'K', x: -6, y:  36, size: 7 });
+    texts.push({ text: 'G', x: -48, y: -4, size: 7 });
+    pins = [{x:0,y:-40},{x:0,y:40},{x:-40,y:0}];
+    labelOffset = { x: 0, y: 52 };
+    valueOffset = { x: 0, y: 64 };
+
+  } else if (type === 'ic_74hc30') {
+    // 74HC30 — 8-input NAND gate with bubble
+    paths.push({ data: 'M -20 -50 L -20 50 L 5 50 Q 45 50 45 0 Q 45 -50 5 -50 Z', fill: '#fff', stroke: '#333' });
+    // Bubble
+    circles.push({ x: 52, y: 0, r: 5, fill: '#fff', stroke: '#333' });
+    // 6 left input lines + 2 top/bottom
+    [[-40,-25,-10,-25],[-40,-10,-20,-10],[-40,5,-20,5],[-40,20,-20,20],[-40,35,-20,35],[-40,-40,-20,-40]].forEach(([x1,y1,x2,y2]) => lines.push({ points: [x1,y1,x2,y2] }));
+    // G and H from top/bottom
+    lines.push({ points: [-10,-50,-10,-58] });
+    lines.push({ points: [10,-50,10,-58] });
+    // Output
+    lines.push({ points: [57,0,70,0] });
+    texts.push({ text: '&8', x: 0, y: -4, size: 10 });
+    pins = [{x:-40,y:-40},{x:-40,y:-25},{x:-40,y:-10},{x:-40,y:5},{x:-40,y:20},{x:-40,y:35},{x:-10,y:-58},{x:10,y:-58},{x:70,y:0},{x:0,y:-65},{x:10,y:65}];
+    labelOffset = { x: 0, y: 70 };
+    valueOffset = { x: 0, y: 82 };
+
+  } else if (type === 'ic_cd4040') {
+    // CD4040 — tall counter box
+    const bh4040 = 180;
+    rects.push({ x: -48, y: -bh4040/2, width: 96, height: bh4040, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: 'CD4040', x: -22, y: -bh4040/2+12, size: 8 });
+    texts.push({ text: '12-bit', x: -16, y: -bh4040/2+25, size: 7 });
+    // Left: CLK, RST, VDD, VSS
+    const lCD4040 = [['CLK',-70],['RST',-50],['VDD',60],['VSS',80]] as [string,number][];
+    lCD4040.forEach(([n,py]) => { lines.push({ points: [-63,py,-48,py] }); texts.push({ text: n, x: -46, y: py-5, size: 7 }); });
+    // Right: Q1-Q8
+    for (let i=0; i<8; i++) {
+      const py = -55 + i*17;
+      lines.push({ points: [48,py,63,py] });
+      texts.push({ text: `Q${i+1}`, x: 4, y: py-5, size: 7 });
+    }
+    pins = [
+      {x:-63,y:-70},{x:-63,y:-50},{x:-63,y:60},{x:-63,y:80},
+      {x:63,y:-55},{x:63,y:-38},{x:63,y:-21},{x:63,y:-4},{x:63,y:13},{x:63,y:30},{x:63,y:47},{x:63,y:64}
+    ];
+    labelOffset = { x: 0, y: 100 };
+    valueOffset = { x: 0, y: 112 };
+
+  } else if (type === 'ic_opa2134') {
+    // OPA2134 dual op-amp — two triangles stacked
+    // Channel 1 triangle
+    paths.push({ data: 'M -30 -40 L -30 -10 L 5 -25 Z', fill: '#fff', stroke: '#333' });
+    lines.push({ points: [-50,-35,-30,-35] }); texts.push({ text: 'IN1-', x: -48, y: -40, size: 6 });
+    lines.push({ points: [-50,-15,-30,-15] }); texts.push({ text: 'IN1+', x: -48, y: -20, size: 6 });
+    lines.push({ points: [5,-25,20,-25] });    texts.push({ text: 'OUT1', x: 4, y: -32, size: 6 });
+    // Channel 2 triangle
+    paths.push({ data: 'M -30 10 L -30 40 L 5 25 Z', fill: '#fff', stroke: '#333' });
+    lines.push({ points: [-50,15,-30,15] }); texts.push({ text: 'IN2+', x: -48, y: 10, size: 6 });
+    lines.push({ points: [-50,35,-30,35] }); texts.push({ text: 'IN2-', x: -48, y: 30, size: 6 });
+    lines.push({ points: [5,25,20,25] });    texts.push({ text: 'OUT2', x: 4, y: 20, size: 6 });
+    // Power supply rails
+    lines.push({ points: [-12,-50,-12,-42] }); texts.push({ text: 'V+', x: -10, y: -52, size: 7 });
+    lines.push({ points: [-12, 50,-12, 42] }); texts.push({ text: 'V-', x: -10, y:  58, size: 7 });
+    texts.push({ text: 'OPA2134', x: -24, y: -3, size: 7 });
+    pins = [{x:-50,y:-35},{x:-50,y:-15},{x:20,y:-25},{x:-50,y:15},{x:-50,y:35},{x:20,y:25},{x:-12,y:-50},{x:-12,y:50}];
+    labelOffset = { x: 0, y: 65 };
+    valueOffset = { x: 0, y: 77 };
 
   }
   // --- FALLBACK ---
