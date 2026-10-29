@@ -49,6 +49,16 @@ function formatRefDes(id: string, type: string): string {
     scr: 'Q', jfet_n: 'Q', jfet_p: 'Q',
     ic_74hc244: 'U', ic_74hc374: 'U', ic_74hc151: 'U', ic_74hc283: 'U',
     ic_mcp4725: 'U', ic_ina219: 'U', ic_nrf24l01: 'U',
+    ic_tl431: 'VR',
+    ic_max485: 'U',
+    ic_si7021: 'U',
+    ic_bmp280: 'U',
+    ic_pca9685: 'U',
+    ic_ws2812: 'D',
+    ujt: 'Q',
+    varactor: 'D',
+    ic_ne555_cmos: 'U',
+    ic_74hc590: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -2726,6 +2736,282 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     texts.push({ text: 'GND', x: 20, y:  80, size: 8 });
     pins = [{x:-15,y:-35},{x:-15,y:-20},{x:-15,y:-5},{x:-15,y:10},{x:-15,y:25},{x:-15,y:40},{x:35,y:-75},{x:35,y:75}];
     labelOffset = { x: 35, y: -90 }; valueOffset = { x: 35, y: 90 };
+  } else if (type === 'ic_tl431') {
+    // TL431 shunt reference — triangular body with ref pin on top
+    pins = [
+      { x: -40, y: 20 },
+      { x:  40, y: 20 },
+      { x:   0, y: -30 },
+    ];
+    // Triangle body
+    paths.push({ data: 'M -25 35 L 25 35 L 0 -10 Z', fill: '#fff', stroke: '#333' });
+    // Anode lead
+    lines.push({ points: [-40, 20, -25, 20] });
+    lines.push({ points: [-25, 20, -25, 35] });
+    // Cathode lead
+    lines.push({ points: [40, 20, 25, 20] });
+    lines.push({ points: [25, 20, 25, 35] });
+    // Reference lead
+    lines.push({ points: [0, -30, 0, -10] });
+    // Cathode bar
+    lines.push({ points: [15, 35, 35, 35] });
+    texts.push({ text: 'TL431', x: -5, y: -22, size: 7 });
+    labelOffset = { x: 0, y: 50 };
+    valueOffset = { x: 0, y: 62 };
+
+  } else if (type === 'ic_max485') {
+    // MAX485 RS-485 — standard 8-pin DIP box
+    const bx = -35, bw = 70, by = -45, bh = 90;
+    rects.push({ x: bx, y: by, width: bw, height: bh, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: 'MAX485', x: -18, y: -38, size: 7 });
+    // Left pins: RO, /RE, DE, DI
+    const lPins = ['RO', '/RE', 'DE', 'DI'];
+    lPins.forEach((n, i) => {
+      const py = -30 + i * 20;
+      lines.push({ points: [-55, py, -35, py] });
+      texts.push({ text: n, x: -33, y: py - 4, size: 7 });
+    });
+    pins = [
+      { x: -55, y: -30 },
+      { x: -55, y: -10 },
+      { x: -55, y:  10 },
+      { x: -55, y:  30 },
+      { x:  55, y:  30 },
+      { x:  55, y:  10 },
+      { x:  55, y: -10 },
+      { x:  55, y: -30 },
+    ];
+    // Right pins: GND, A, B, VCC (bottom to top order matches pin ids)
+    const rPins = ['VCC', 'B', 'A', 'GND'];
+    rPins.forEach((n, i) => {
+      const py = -30 + i * 20;
+      lines.push({ points: [35, py, 55, py] });
+      texts.push({ text: n, x: 4, y: py - 4, size: 7 });
+    });
+    labelOffset = { x: 0, y: 55 };
+    valueOffset = { x: 0, y: 67 };
+
+  } else if (type === 'ic_si7021') {
+    // SI7021 — compact sensor IC box
+    rects.push({ x: -35, y: -35, width: 70, height: 70, fill: '#e8f4ff', stroke: '#0055aa', strokeWidth: 1.5, cornerRadius: 4 });
+    texts.push({ text: 'SI7021', x: -18, y: -20, size: 8 });
+    texts.push({ text: 'RH+T', x: -12, y: -4, size: 7 });
+    lines.push({ points: [-50, -30, -35, -30] });
+    lines.push({ points: [-50,  30, -35,  30] });
+    lines.push({ points: [35, -10, 50, -10] });
+    lines.push({ points: [35,  10, 50,  10] });
+    texts.push({ text: 'VDD', x: -33, y: -38, size: 7 });
+    texts.push({ text: 'GND', x: -33, y:  22, size: 7 });
+    texts.push({ text: 'SDA', x:  2,  y: -18, size: 7 });
+    texts.push({ text: 'SCL', x:  2,  y:   2, size: 7 });
+    pins = [
+      { x: -50, y:  30 },
+      { x: -50, y: -30 },
+      { x:  50, y: -10 },
+      { x:  50, y:  10 },
+    ];
+    labelOffset = { x: 0, y: 45 };
+    valueOffset = { x: 0, y: 57 };
+
+  } else if (type === 'ic_bmp280') {
+    // BMP280 — small pressure sensor box
+    rects.push({ x: -35, y: -40, width: 70, height: 80, fill: '#f0fff0', stroke: '#006600', strokeWidth: 1.5, cornerRadius: 4 });
+    texts.push({ text: 'BMP280', x: -22, y: -30, size: 8 });
+    texts.push({ text: 'P+T', x: -10, y: -12, size: 7 });
+    lines.push({ points: [-50, -30, -35, -30] });
+    lines.push({ points: [-50,  30, -35,  30] });
+    lines.push({ points: [35, -20, 50, -20] });
+    lines.push({ points: [35,   0, 50,   0] });
+    lines.push({ points: [35,  20, 50,  20] });
+    texts.push({ text: 'VDD', x: -33, y: -38, size: 7 });
+    texts.push({ text: 'GND', x: -33, y:  22, size: 7 });
+    texts.push({ text: 'SDA', x:  2,  y: -28, size: 7 });
+    texts.push({ text: 'SCL', x:  2,  y:  -8, size: 7 });
+    texts.push({ text: 'CSB', x:  2,  y:  12, size: 7 });
+    pins = [
+      { x: -50, y:  30 },
+      { x: -50, y: -30 },
+      { x:  50, y: -20 },
+      { x:  50, y:   0 },
+      { x:  50, y:  20 },
+    ];
+    labelOffset = { x: 0, y: 50 };
+    valueOffset = { x: 0, y: 62 };
+
+  } else if (type === 'ic_pca9685') {
+    // PCA9685 — 16ch PWM driver, wider box
+    rects.push({ x: -50, y: -55, width: 100, height: 120, fill: '#fff8e8', stroke: '#885500', strokeWidth: 1.5 });
+    texts.push({ text: 'PCA9685', x: -28, y: -48, size: 8 });
+    texts.push({ text: '16ch PWM', x: -26, y: -32, size: 7 });
+    const lPinNames = ['VCC', 'SDA', 'SCL', '/OE', 'GND'];
+    lPinNames.forEach((n, i) => {
+      const py = -40 + i * 20;
+      lines.push({ points: [-65, py, -50, py] });
+      texts.push({ text: n, x: -48, y: py - 4, size: 6 });
+    });
+    const rPinNames = ['V+', 'PWM0', 'PWM1', 'PWM2', 'PWM3'];
+    rPinNames.forEach((n, i) => {
+      const py = -40 + i * 20;
+      lines.push({ points: [50, py, 65, py] });
+      texts.push({ text: n, x: 6, y: py - 4, size: 6 });
+    });
+    pins = [
+      { x: -65, y: -40 },
+      { x: -65, y: -20 },
+      { x: -65, y:   0 },
+      { x: -65, y:  20 },
+      { x: -65, y:  40 },
+      { x:  65, y: -40 },
+      { x:  65, y: -20 },
+      { x:  65, y:   0 },
+      { x:  65, y:  20 },
+      { x:  65, y:  40 },
+    ];
+    labelOffset = { x: 0, y: 72 };
+    valueOffset = { x: 0, y: 84 };
+
+  } else if (type === 'ic_ws2812') {
+    // WS2812B — RGB LED square with RGB indicator circles
+    rects.push({ x: -30, y: -30, width: 60, height: 60, fill: '#1a1a1a', stroke: '#666', strokeWidth: 1.5, cornerRadius: 3 });
+    // RGB dot
+    circles.push({ x: -8, y: 0, r: 6, fill: '#ff2020', stroke: '#ff2020' });
+    circles.push({ x:  0, y: 0, r: 6, fill: '#20ff20', stroke: '#20ff20' });
+    circles.push({ x:  8, y: 0, r: 6, fill: '#2040ff', stroke: '#2040ff' });
+    texts.push({ text: 'WS2812B', x: -22, y: -22, size: 6 });
+    lines.push({ points: [-50, -30, -30, -30] });
+    lines.push({ points: [-50,  30, -30,  30] });
+    lines.push({ points: [30, -10, 50, -10] });
+    lines.push({ points: [30,  10, 50,  10] });
+    texts.push({ text: 'VDD', x: -28, y: -38, size: 7 });
+    texts.push({ text: 'GND', x: -28, y:  22, size: 7 });
+    texts.push({ text: 'DIN',  x: 6, y: -18, size: 7 });
+    texts.push({ text: 'DOUT', x: 6, y:   2, size: 7 });
+    pins = [
+      { x: -50, y: -30 },
+      { x: -50, y:  30 },
+      { x:  50, y: -10 },
+      { x:  50, y:  10 },
+    ];
+    labelOffset = { x: 0, y: 40 };
+    valueOffset = { x: 0, y: 52 };
+
+  } else if (type === 'ujt') {
+    // UJT (2N2646) — body bar with emitter diode arrow
+    // Interbase bar (B1 to B2) vertical
+    lines.push({ points: [0, -35, 0, 35] });
+    // Emitter arrow from left
+    lines.push({ points: [-40, 0, -8, 0] });
+    // Arrow head pointing right-down to bar
+    lines.push({ points: [-8, 0, -2, 10] });
+    lines.push({ points: [-8, 0, -2, -10] });
+    // B1 bottom
+    lines.push({ points: [0, 35, 0, 40] });
+    // B2 top
+    lines.push({ points: [0, -35, 0, -40] });
+    // Body circle
+    circles.push({ x: 0, y: 0, r: 22, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'UJT', x: 12, y: -4, size: 7 });
+    texts.push({ text: 'E',  x: -48, y: -4, size: 7 });
+    texts.push({ text: 'B1', x:   4, y:  34, size: 7 });
+    texts.push({ text: 'B2', x:   4, y: -38, size: 7 });
+    pins = [
+      { x: -40, y: 0 },
+      { x:   0, y: 40 },
+      { x:   0, y: -40 },
+    ];
+    labelOffset = { x: 0, y: 55 };
+    valueOffset = { x: 0, y: 67 };
+
+  } else if (type === 'varactor') {
+    // Varactor diode — standard diode symbol + capacitor lines at cathode
+    // Anode line
+    lines.push({ points: [-30, 0, -12, 0] });
+    // Diode triangle
+    paths.push({ data: 'M -12 -12 L -12 12 L 10 0 Z', fill: '#fff', stroke: '#333' });
+    // Cathode bar
+    lines.push({ points: [10, -12, 10, 12] });
+    // Capacitor plates (parallel lines offset)
+    lines.push({ points: [14, -10, 14, 10] });
+    lines.push({ points: [19, -10, 19, 10] });
+    // Cathode line
+    lines.push({ points: [19, 0, 30, 0] });
+    texts.push({ text: 'C(V)', x: -8, y: 18, size: 7 });
+    pins = [
+      { x: -30, y: 0 },
+      { x:  30, y: 0 },
+    ];
+    labelOffset = { x: 0, y: 30 };
+    valueOffset = { x: 0, y: 42 };
+
+  } else if (type === 'ic_ne555_cmos') {
+    // TLC555 — same layout as NE555 but labelled CMOS
+    rects.push({ x: -45, y: -55, width: 90, height: 110, fill: '#f5f0ff', stroke: '#5500aa', strokeWidth: 1.5 });
+    texts.push({ text: 'TLC555', x: -24, y: -48, size: 8 });
+    texts.push({ text: 'CMOS', x: -16, y: -32, size: 7 });
+    const l555 = ['GND', 'TRIG', 'OUT', 'RST'];
+    l555.forEach((n, i) => {
+      const py = -40 + i * 20;
+      lines.push({ points: [-60, py, -45, py] });
+      texts.push({ text: n, x: -43, y: py - 4, size: 7 });
+    });
+    const r555 = ['VCC', 'DISCH', 'THR', 'CTRL'];
+    r555.forEach((n, i) => {
+      const py = -40 + i * 20;
+      lines.push({ points: [45, py, 60, py] });
+      texts.push({ text: n, x: 6, y: py - 4, size: 7 });
+    });
+    pins = [
+      { x: -60, y: -40 },
+      { x: -60, y: -20 },
+      { x: -60, y:   0 },
+      { x: -60, y:  20 },
+      { x:  60, y: -40 },
+      { x:  60, y: -20 },
+      { x:  60, y:   0 },
+      { x:  60, y:  20 },
+    ];
+    labelOffset = { x: 0, y: 65 };
+    valueOffset = { x: 0, y: 77 };
+
+  } else if (type === 'ic_74hc590') {
+    // 74HC590 — tall DIP box, 15 pins
+    const boxH = 220;
+    rects.push({ x: -50, y: -boxH/2, width: 100, height: boxH, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: '74HC590', x: -28, y: -boxH/2 + 12, size: 8 });
+    // Right pins: QA..QH, RCO (9 pins)
+    const rPins590 = ['QA','QB','QC','QD','QE','QF','QG','QH','RCO'];
+    rPins590.forEach((n, i) => {
+      const py = -90 + i * 22;
+      lines.push({ points: [50, py, 65, py] });
+      texts.push({ text: n, x: 4, y: py - 4, size: 7 });
+    });
+    // Left pins: CCLK, RCLK, /OE, MR, VCC, GND (6 pins)
+    const lPins590 = ['CCLK','RCLK','/OE','MR','VCC','GND'];
+    lPins590.forEach((n, i) => {
+      const py = -60 + i * 24;
+      lines.push({ points: [-65, py, -50, py] });
+      texts.push({ text: n, x: -48, y: py - 4, size: 7 });
+    });
+    pins = [
+      { x:  65, y: -90 },
+      { x:  65, y: -68 },
+      { x:  65, y: -46 },
+      { x:  65, y: -24 },
+      { x:  65, y:  -2 },
+      { x:  65, y:  20 },
+      { x:  65, y:  42 },
+      { x:  65, y:  64 },
+      { x:  65, y:  86 },
+      { x: -65, y: -60 },
+      { x: -65, y: -36 },
+      { x: -65, y: -12 },
+      { x: -65, y:  12 },
+      { x: -65, y:  36 },
+      { x: -65, y:  60 },
+    ];
+    labelOffset = { x: 0, y: 118 };
+    valueOffset = { x: 0, y: 130 };
+
   }
   // --- FALLBACK ---
   else {

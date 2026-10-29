@@ -835,6 +835,83 @@ Rce   CE   GND 10Meg
 Rcsn  CSN  GND 10Meg
 Rvcc  VCC  GND 100Meg
 .ends NRF24L01`,
+  TL431_SUB: `.subckt TL431_SUB A K R
+* TL431 behavioural shunt reference: conducts when V(R,K) >= 2.5V
+B1 K A VALUE = { IF(V(R,K)>=2.495, 1000*(V(R,K)-2.495), 0) }
+.ends TL431_SUB`,
+
+  MAX485_SUB: `.subckt MAX485_SUB RO RE DE DI GND A B VCC
+* MAX485 stub: pass differential signal A-B to RO when RE=0; drive A-B from DI when DE=1
+B1 RO GND VALUE = { IF(V(RE,GND)<0.8, V(A,B), 0) }
+B2 A GND VALUE = { IF(V(DE,GND)>2.0, V(DI,GND), 0) }
+B3 B GND VALUE = { IF(V(DE,GND)>2.0, 1-V(DI,GND), 0) }
+.ends MAX485_SUB`,
+
+  SI7021_SUB: `.subckt SI7021_SUB GND VDD SDA SCL
+* SI7021 stub passthrough (digital I2C sensor model)
+R1 VDD GND 100k
+.ends SI7021_SUB`,
+
+  BMP280_SUB: `.subckt BMP280_SUB GND VDD SDA SCL CSB
+* BMP280 stub passthrough (digital I2C/SPI pressure sensor)
+R1 VDD GND 100k
+.ends BMP280_SUB`,
+
+  PCA9685_SUB: `.subckt PCA9685_SUB VCC GND SDA SCL OE VDD PWM0 PWM1 PWM2 PWM3
+* PCA9685 stub: 16-ch PWM driver passthrough
+R1 VCC GND 10k
+.ends PCA9685_SUB`,
+
+  WS2812B_SUB: `.subckt WS2812B_SUB VDD GND DIN DOUT
+* WS2812B stub: intelligent RGB LED NZR protocol
+R1 VDD GND 50
+.ends WS2812B_SUB`,
+
+  UJT_SUB: `.subckt UJT_SUB E B1 B2
+* 2N2646 UJT behavioural model
+* Intrinsic standoff ratio eta = 0.65; Vp = eta*Vbb + 0.7
+* RBB (interbase resistance) ~ 5k-10k
+R_BB1 B1 B2 6800
+* Emitter junction: fires when V(E,B1) > eta*V(B2,B1)+0.7
+B1 E B1 VALUE = { IF(V(E,B1) > 0.65*V(B2,B1)+0.7, (V(E,B1)-0.65*V(B2,B1)-0.7)*50, 0) }
+.ends UJT_SUB`,
+
+  VARACTOR_SUB: `.subckt VARACTOR_SUB A K
+* BB910 varactor: voltage-variable capacitor, C = C0/(1+V(K,A)/Vj)^M
+* C0~8.5pF, Vj=0.5V, M=0.5 at V_R=1V
+* Approximate with voltage-dependent capacitor using B source current
+* i = C*dv/dt → use small-signal model: fixed diode + parameter note
+D1 A K DVARACT
+.model DVARACT D(Is=1e-15 N=1 Cjo=8.5p Vj=0.5 M=0.5 Rs=0.5)
+.ends VARACTOR_SUB`,
+
+  TLC555_SUB: `.subckt TLC555_SUB GND TRIG OUT RESET VCC DISCH THR CTRL
+* TLC555 CMOS 555 timer behavioural model (same topology as NE555)
+* Internal comparators
+B_COMP1 N001 GND VALUE = { IF(V(THR,GND) > 0.667*V(VCC,GND), 5, 0) }
+B_COMP2 N002 GND VALUE = { IF(V(TRIG,GND) < 0.333*V(VCC,GND), 5, 0) }
+* SR Latch
+B_SR OUTN GND VALUE = { IF(V(N001,GND)>2.5, 0, IF(V(N002,GND)>2.5, 5, V(OUTN,GND))) }
+B_OUT OUT GND VALUE = { IF(V(RESET,GND)<0.7, 0, IF(V(OUTN,GND)>2.5, 0, V(VCC,GND))) }
+* Discharge transistor
+B_DISC DISCH GND VALUE = { IF(V(RESET,GND)<0.7, 0, IF(V(OUTN,GND)>2.5, 0.01, 1e6)) }
+.ends TLC555_SUB`,
+
+  HC590_SUB: `.subckt HC590_SUB QA QB QC QD QE QF QG QH RCO CCLK RCLK OE MR VCC GND
+* 74HC590 stub: 8-bit counter with output register
+R1 VCC GND 10k
+* Outputs stub low
+B1 QA GND VALUE={0}
+B2 QB GND VALUE={0}
+B3 QC GND VALUE={0}
+B4 QD GND VALUE={0}
+B5 QE GND VALUE={0}
+B6 QF GND VALUE={0}
+B7 QG GND VALUE={0}
+B8 QH GND VALUE={0}
+B9 RCO GND VALUE={0}
+.ends HC590_SUB`,
+
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -1510,6 +1587,46 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       return { line: `X_${comp.id} ${ce} ${csn} ${sck} ${mosi} ${miso} ${irq} ${vcc} ${gnd} NRF24L01`, subckts: [SUBCKT_DEFINITIONS.NRF24L01] };
     }
 
+    case 'ic_tl431': {
+      const [a='0', k='0', r='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} ${r} TL431_SUB`, subckts: [SUBCKT_DEFINITIONS.TL431_SUB] };
+    }
+    case 'ic_max485': {
+      const [ro='0', re='0', de='0', di='0', gnd='0', a='0', b='0', vcc='0'] = nodes;
+      return { line: `X_${comp.id} ${ro} ${re} ${de} ${di} ${gnd} ${a} ${b} ${vcc} MAX485_SUB`, subckts: [SUBCKT_DEFINITIONS.MAX485_SUB] };
+    }
+    case 'ic_si7021': {
+      const [gnd='0', vdd='0', sda='0', scl='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${vdd} ${sda} ${scl} SI7021_SUB`, subckts: [SUBCKT_DEFINITIONS.SI7021_SUB] };
+    }
+    case 'ic_bmp280': {
+      const [gnd='0', vdd='0', sda='0', scl='0', csb='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${vdd} ${sda} ${scl} ${csb} BMP280_SUB`, subckts: [SUBCKT_DEFINITIONS.BMP280_SUB] };
+    }
+    case 'ic_pca9685': {
+      const [vcc='0', gnd='0', sda='0', scl='0', oe='0', vdd='0', p0='0', p1='0', p2='0', p3='0'] = nodes;
+      return { line: `X_${comp.id} ${vcc} ${gnd} ${sda} ${scl} ${oe} ${vdd} ${p0} ${p1} ${p2} ${p3} PCA9685_SUB`, subckts: [SUBCKT_DEFINITIONS.PCA9685_SUB] };
+    }
+    case 'ic_ws2812': {
+      const [vdd='0', gnd='0', din='0', dout='0'] = nodes;
+      return { line: `X_${comp.id} ${vdd} ${gnd} ${din} ${dout} WS2812B_SUB`, subckts: [SUBCKT_DEFINITIONS.WS2812B_SUB] };
+    }
+    case 'ujt': {
+      const [e='0', b1='0', b2='0'] = nodes;
+      return { line: `X_${comp.id} ${e} ${b1} ${b2} UJT_SUB`, subckts: [SUBCKT_DEFINITIONS.UJT_SUB] };
+    }
+    case 'varactor': {
+      const [anode='0', cathode='0'] = nodes;
+      return { line: `X_${comp.id} ${anode} ${cathode} VARACTOR_SUB`, subckts: [SUBCKT_DEFINITIONS.VARACTOR_SUB] };
+    }
+    case 'ic_ne555_cmos': {
+      const [gnd='0', trig='0', out='0', rst='0', vcc='0', disch='0', thr='0', ctrl='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${trig} ${out} ${rst} ${vcc} ${disch} ${thr} ${ctrl} TLC555_SUB`, subckts: [SUBCKT_DEFINITIONS.TLC555_SUB] };
+    }
+    case 'ic_74hc590': {
+      const [qa='0', qb='0', qc='0', qd='0', qe='0', qf='0', qg='0', qh='0', rco='0', cclk='0', rclk='0', oe='0', mr='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${qa} ${qb} ${qc} ${qd} ${qe} ${qf} ${qg} ${qh} ${rco} ${cclk} ${rclk} ${oe} ${mr} ${vcc} ${gnd} HC590_SUB`, subckts: [SUBCKT_DEFINITIONS.HC590_SUB] };
+    }
     default:
       return null;
   }
