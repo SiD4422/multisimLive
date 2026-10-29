@@ -43,6 +43,9 @@ function formatRefDes(id: string, type: string): string {
     ic_ds18b20: 'U', ic_sg3525: 'U',
     tunnel_diode: 'D', ic_74hc04: 'U', ic_74hc138: 'U', ic_74hc148: 'U',
     ic_ne5534: 'U', ic_lm337: 'U', ic_max7219: 'U', ic_cd4060: 'U', ic_mcp3208: 'U',
+    npn_darlington: 'Q', pnp_darlington: 'Q', ic_lm35: 'U', hall_sensor: 'U',
+    ic_74hc573: 'U', ic_74hc165: 'U', ic_pcf8574: 'U', ic_esp8266: 'U',
+    ic_74hc86: 'U', ic_uc3842: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -2345,6 +2348,189 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       { x:  85, y:  20 }, { x:  35, y: -85 }, { x:  35, y:  85 }, { x:  55, y:  85 },
     ];
     labelOffset = { x: 35, y: -100 }; valueOffset = { x: 35, y: 100 };
+  }
+  // -- BATCH 7 --
+  else if (type === 'npn_darlington') {
+    // NPN Darlington: double BJT arrow on emitter
+    lines.push({ points: [20,-20, 20, 20] });
+    lines.push({ points: [20,-15, 30,-20] });
+    lines.push({ points: [30,-20, 30,-30] });
+    lines.push({ points: [20, 15, 30, 20] });
+    lines.push({ points: [30, 20, 30, 30] });
+    lines.push({ points: [ 0,  0, 20,  0] });
+    paths.push({ data: 'M 26 16 L 30 20 L 22 20 Z', fill: '#333' });
+    paths.push({ data: 'M 23 11 L 27 15 L 19 15 Z', fill: '#333' });
+    lines.push({ points: [16,-12, 16, 12] });
+    texts.push({ text: 'B', x: -10, y: -5, size: 9 });
+    texts.push({ text: 'C', x:  32, y: -32, size: 9 });
+    texts.push({ text: 'E', x:  32, y:  25, size: 9 });
+    pins = [{ x: 0, y: 0 }, { x: 30, y: -30 }, { x: 30, y: 30 }];
+    labelOffset = { x: 15, y: -45 }; valueOffset = { x: 15, y: 45 };
+  }
+  else if (type === 'pnp_darlington') {
+    // PNP Darlington: arrows pointing into base
+    lines.push({ points: [20,-20, 20, 20] });
+    lines.push({ points: [20,-15, 30,-20] });
+    lines.push({ points: [30,-20, 30,-30] });
+    lines.push({ points: [20, 15, 30, 20] });
+    lines.push({ points: [30, 20, 30, 30] });
+    lines.push({ points: [ 0,  0, 20,  0] });
+    paths.push({ data: 'M 24 -16 L 20 -15 L 22 -10 Z', fill: '#333' });
+    paths.push({ data: 'M 21 -11 L 17 -10 L 19 -5 Z', fill: '#333' });
+    lines.push({ points: [16,-12, 16, 12] });
+    texts.push({ text: 'B', x: -10, y: -5, size: 9 });
+    texts.push({ text: 'E', x:  32, y: -32, size: 9 });
+    texts.push({ text: 'C', x:  32, y:  25, size: 9 });
+    pins = [{ x: 0, y: 0 }, { x: 30, y: 30 }, { x: 30, y: -30 }];
+    labelOffset = { x: 15, y: -45 }; valueOffset = { x: 15, y: 45 };
+  }
+  else if (type === 'ic_lm35') {
+    // LM35: TO-92 style half-circle + 3 pins
+    paths.push({ data: 'M 10 -18 L 10 18 Q 42 18 42 0 Q 42 -18 10 -18 Z', fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'LM35', x: 12, y: -4, size: 9 });
+    texts.push({ text: '10mV/C', x: 10, y:  6, size: 7 });
+    lines.push({ points: [ 0,-25, 18,-25] });
+    lines.push({ points: [42,  0, 60,  0] });
+    lines.push({ points: [ 0, 25, 18, 25] });
+    texts.push({ text: 'VCC', x:  1, y: -35, size: 8 });
+    texts.push({ text: 'OUT', x: 48, y:  -5, size: 8 });
+    texts.push({ text: 'GND', x:  1, y:  30, size: 8 });
+    pins = [{ x: 0, y: -25 }, { x: 60, y: 0 }, { x: 0, y: 25 }];
+    labelOffset = { x: 26, y: -40 }; valueOffset = { x: 26, y: 42 };
+  }
+  else if (type === 'hall_sensor') {
+    // Hall sensor: rectangle with H label
+    rects.push({ x: 5, y: -20, width: 40, height: 40, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'HALL', x: 8, y: -4, size: 9 });
+    texts.push({ text: 'A3144', x: 6, y:  6, size: 7 });
+    lines.push({ points: [ 0,-20, 5, -20] });
+    lines.push({ points: [ 0, 20, 5,  20] });
+    lines.push({ points: [45,  0, 60,  0] });
+    texts.push({ text: 'VCC', x: -20, y: -25, size: 8 });
+    texts.push({ text: 'GND', x: -20, y:  17, size: 8 });
+    texts.push({ text: 'OUT', x:  48, y:  -5, size: 8 });
+    pins = [{ x: 0, y: -20 }, { x: 0, y: 20 }, { x: 60, y: 0 }];
+    labelOffset = { x: 25, y: -35 }; valueOffset = { x: 25, y: 35 };
+  }
+  else if (type === 'ic_74hc573') {
+    rects.push({ x: 0, y: -80, width: 70, height: 190, fill: '#fff', stroke: '#333' });
+    texts.push({ text: '74HC573', x: 8, y: -5, size: 9 });
+    texts.push({ text: 'D LATCH', x: 10, y:  6, size: 7 });
+    ([['D0',-50],['D1',-35],['D2',-20],['D3',-5],['D4',10],['D5',25],['D6',40],['D7',55],['LE',70],['/OE',85]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['Q0',-50],['Q1',-35],['Q2',-20],['Q3',-5],['Q4',10],['Q5',25],['Q6',40],['Q7',55]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 52, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [35,-80, 35,-90] });
+    lines.push({ points: [35,110, 35,120] });
+    texts.push({ text: 'VCC', x: 20, y: -92, size: 8 });
+    texts.push({ text: 'GND', x: 20, y: 125, size: 8 });
+    pins = [
+      { x:-15,y:-50},{x:-15,y:-35},{x:-15,y:-20},{x:-15,y:-5},{x:-15,y:10},{x:-15,y:25},{x:-15,y:40},{x:-15,y:55},
+      {x:-15,y:70},{x:-15,y:85},
+      {x:85,y:-50},{x:85,y:-35},{x:85,y:-20},{x:85,y:-5},{x:85,y:10},{x:85,y:25},{x:85,y:40},{x:85,y:55},
+      {x:35,y:-90},{x:35,y:120},
+    ];
+    labelOffset = { x: 35, y: -105 }; valueOffset = { x: 35, y: 135 };
+  }
+  else if (type === 'ic_74hc165') {
+    rects.push({ x: 0, y: -75, width: 70, height: 155, fill: '#fff', stroke: '#333' });
+    texts.push({ text: '74HC165', x: 8, y: -5, size: 9 });
+    texts.push({ text: 'PISO', x: 14, y:  6, size: 8 });
+    ([['PL',-45],['CLK',-30],['CE',-15],['SER',0],['A',15],['B',30],['C',45],['D',60]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['E',60],['F',45],['G',30],['H',15],['QH',-30],['/QH',-45]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 52, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [35,-75, 35,-85] });
+    lines.push({ points: [35, 80, 35, 90] });
+    texts.push({ text: 'VCC', x: 20, y: -87, size: 8 });
+    texts.push({ text: 'GND', x: 20, y:  95, size: 8 });
+    pins = [
+      {x:-15,y:-45},{x:-15,y:-30},{x:-15,y:-15},{x:-15,y:0},{x:-15,y:15},{x:-15,y:30},{x:-15,y:45},{x:-15,y:60},
+      {x:85,y:60},{x:85,y:45},{x:85,y:30},{x:85,y:15},{x:85,y:-30},{x:85,y:-45},
+      {x:35,y:-85},{x:35,y:90},
+    ];
+    labelOffset = { x: 35, y: -100 }; valueOffset = { x: 35, y: 105 };
+  }
+  else if (type === 'ic_pcf8574') {
+    rects.push({ x: 0, y: -65, width: 70, height: 165, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'PCF8574', x: 8, y: -5, size: 9 });
+    texts.push({ text: 'I2C GPIO', x: 8, y:  6, size: 7 });
+    ([['SDA',-30],['SCL',-15],['A0',0],['A1',15],['A2',30],['/INT',45]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['P0',-30],['P1',-15],['P2',0],['P3',15],['P4',30],['P5',45],['P6',60],['P7',75]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 52, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [35,-65, 35,-75] });
+    lines.push({ points: [35,100, 35,110] });
+    texts.push({ text: 'VCC', x: 20, y: -77, size: 8 });
+    texts.push({ text: 'GND', x: 20, y: 115, size: 8 });
+    pins = [
+      {x:-15,y:-30},{x:-15,y:-15},{x:-15,y:0},{x:-15,y:15},{x:-15,y:30},{x:-15,y:45},
+      {x:85,y:-30},{x:85,y:-15},{x:85,y:0},{x:85,y:15},{x:85,y:30},{x:85,y:45},{x:85,y:60},{x:85,y:75},
+      {x:35,y:-75},{x:35,y:110},
+    ];
+    labelOffset = { x: 35, y: -90 }; valueOffset = { x: 35, y: 125 };
+  }
+  else if (type === 'ic_esp8266') {
+    rects.push({ x: 0, y: -65, width: 70, height: 130, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'ESP8266', x: 8, y: -5, size: 9 });
+    texts.push({ text: 'WiFi SoC', x: 8, y:  6, size: 7 });
+    ([['TX',-40],['RX',-25],['/RST',-10],['EN',5],['GPIO0',20],['GPIO2',35]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    lines.push({ points: [70, 20, 85, 20] });
+    texts.push({ text: 'ADC', x: 52, y: 13, size: 8 });
+    lines.push({ points: [35,-65, 35,-75] });
+    lines.push({ points: [35, 65, 35, 75] });
+    texts.push({ text: 'VCC', x: 20, y: -77, size: 8 });
+    texts.push({ text: 'GND', x: 20, y:  80, size: 8 });
+    pins = [
+      {x:-15,y:-40},{x:-15,y:-25},{x:-15,y:-10},{x:-15,y:5},{x:-15,y:20},{x:-15,y:35},
+      {x:85,y:20},{x:35,y:-75},{x:35,y:75},
+    ];
+    labelOffset = { x: 35, y: -90 }; valueOffset = { x: 35, y: 90 };
+  }
+  else if (type === 'ic_74hc86') {
+    // XOR gate symbol: curved input side + output
+    paths.push({ data: 'M 5 -20 L 5 20 Q 40 20 40 0 Q 40 -20 5 -20 Z', fill: '#fff', stroke: '#333' });
+    paths.push({ data: 'M 2 -20 Q 10 0 2 20', fill: 'none', stroke: '#333' });
+    lines.push({ points: [ 0,-10,  5,-10] });
+    lines.push({ points: [ 0, 10,  5, 10] });
+    lines.push({ points: [40,  0, 55,  0] });
+    lines.push({ points: [25, 20, 25, 28] });
+    texts.push({ text: 'GND', x: 12, y: 30, size: 8 });
+    pins = [{ x: 0, y: -10 }, { x: 0, y: 10 }, { x: 55, y: 0 }, { x: 25, y: 28 }];
+    labelOffset = { x: 25, y: -32 }; valueOffset = { x: 25, y: 35 };
+  }
+  else if (type === 'ic_uc3842') {
+    rects.push({ x: 0, y: -50, width: 70, height: 100, fill: '#fff', stroke: '#333' });
+    texts.push({ text: 'UC3842', x: 10, y: -5, size: 9 });
+    texts.push({ text: 'PWM', x: 18, y:  6, size: 8 });
+    ([['COMP',-30],['FB',-15],['ISNS',0],['RT/CT',15],['GND',30]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [-15, yy, 0, yy] });
+      texts.push({ text: lbl, x: 2, y: yy - 7, size: 8 });
+    });
+    ([['VCC',-30],['OUT',-15],['VREF',15]] as [string,number][]).forEach(([lbl, yy]) => {
+      lines.push({ points: [70, yy, 85, yy] });
+      texts.push({ text: lbl, x: 52, y: yy - 7, size: 8 });
+    });
+    pins = [
+      {x:-15,y:-30},{x:-15,y:-15},{x:-15,y:0},{x:-15,y:15},{x:-15,y:30},
+      {x:85,y:-15},{x:85,y:-30},{x:85,y:15},
+    ];
+    labelOffset = { x: 35, y: -65 }; valueOffset = { x: 35, y: 65 };
   }
   // --- FALLBACK ---
   else {

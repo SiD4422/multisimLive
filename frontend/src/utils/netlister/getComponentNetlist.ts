@@ -640,6 +640,96 @@ Bdout DOUT DGND VALUE = { V(CS,DGND)>1.5 ? 0 : V(CH0,AGND)/V(VREF,AGND)*3.3 }
 Rvdd VDD AGND 100Meg
 Rcs  CS  DGND 10Meg
 .ends MCP3208`,
+  NPN_DARL: `.subckt NPN_DARL B C E
+* NPN Darlington pair (TIP122) -- two BJTs in series, hFE>1000
+Q1 C B1 E NPN_D
+Q2 B1 B E NPN_D
+R_be B E 10k
+.model NPN_D NPN (Is=1e-14 Bf=100 Vaf=100 Cje=100p Cjc=20p)
+.ends NPN_DARL`,
+
+  PNP_DARL: `.subckt PNP_DARL B C E
+* PNP Darlington pair (TIP127) -- complementary to TIP122
+Q1 C B1 E PNP_D
+Q2 B1 B E PNP_D
+R_be B E 10k
+.model PNP_D PNP (Is=1e-14 Bf=100 Vaf=100 Cje=100p Cjc=20p)
+.ends PNP_DARL`,
+
+  LM35: `.subckt LM35 VCC OUTP GND
+* LM35: 10mV/degC, baseline 25degC -> 250mV output
+Bout OUTP GND VALUE = { 0.25 }
+Rvcc VCC GND 100Meg
+.ends LM35`,
+
+  HALL_A3144: `.subckt HALL_A3144 VCC GND OUTP
+* A3144 Hall sensor: open-collector, active LOW when B-field present
+* Default: output pulled high through external resistor (modelled here)
+Rpull VCC OUTP 10k
+Bout OUTP GND VALUE = { 0 }
+Rvcc VCC GND 100Meg
+.ends HALL_A3144`,
+
+  HC573: `.subckt HC573 D0 D1 D2 D3 D4 D5 D6 D7 LE OE Q0 Q1 Q2 Q3 Q4 Q5 Q6 Q7 VCC GND
+* 74HC573 Octal Transparent Latch -- when LE high outputs follow inputs; when LOW latched
+* OE active low enables outputs
+E0 Q0 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D0) : (V(OE)<1.5) ? V(Q0) : 0 }
+E1 Q1 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D1) : (V(OE)<1.5) ? V(Q1) : 0 }
+E2 Q2 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D2) : (V(OE)<1.5) ? V(Q2) : 0 }
+E3 Q3 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D3) : (V(OE)<1.5) ? V(Q3) : 0 }
+E4 Q4 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D4) : (V(OE)<1.5) ? V(Q4) : 0 }
+E5 Q5 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D5) : (V(OE)<1.5) ? V(Q5) : 0 }
+E6 Q6 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D6) : (V(OE)<1.5) ? V(Q6) : 0 }
+E7 Q7 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D7) : (V(OE)<1.5) ? V(Q7) : 0 }
+Rvcc VCC GND 100Meg
+.ends HC573`,
+
+  HC165: `.subckt HC165 PL CLK CE SER A B C D E F G H QH QHN VCC GND
+* 74HC165 PISO shift register -- simplified: loads D7=H on PL low, shifts on CLK
+* Behavioural: QH outputs parallel input H when loaded (simplified single-stage)
+Bqh  QH  GND VALUE = { (V(PL)<1.5) ? V(H) : (V(CE)<1.5 && V(CLK)>1.5) ? V(SER) : V(H) }
+Bqhn QHN GND VALUE = { 5 - V(QH,GND) }
+Rvcc VCC GND 100Meg
+.ends HC165`,
+
+  PCF8574: `.subckt PCF8574 SDA SCL A0 A1 A2 INT P0 P1 P2 P3 P4 P5 P6 P7 VCC GND
+* PCF8574 I2C GPIO expander -- passthrough model (pins float high via weak pull-ups)
+Rp0 P0 VCC 100k
+Rp1 P1 VCC 100k
+Rp2 P2 VCC 100k
+Rp3 P3 VCC 100k
+Rp4 P4 VCC 100k
+Rp5 P5 VCC 100k
+Rp6 P6 VCC 100k
+Rp7 P7 VCC 100k
+Rsda SDA GND 10Meg
+Rscl SCL GND 10Meg
+Rvcc VCC GND 100Meg
+.ends PCF8574`,
+
+  ESP8266: `.subckt ESP8266 TX RX RST EN GPIO0 GPIO2 ADC VCC GND
+* ESP8266 WiFi SoC -- passthrough UART model
+Btx TX GND VALUE = { 3.3 }
+Rrx RX GND 10Meg
+Rvcc VCC GND 100Meg
+Radc ADC GND 10Meg
+.ends ESP8266`,
+
+  HC86: `.subckt HC86 A B Y GND
+E1 Y GND VALUE = { ((V(A)>1.5) != (V(B)>1.5)) ? 5 : 0 }
+Rout Y GND 10Meg
+.ends HC86`,
+
+  UC3842: `.subckt UC3842 COMP FB ISNS RT GND OUTP VCC VREF
+* UC3842 current-mode PWM controller
+Eref VREF GND VALUE = { 5.0 }
+Rref VREF GND 100
+Berr err_n GND VALUE = { LIMIT(V(VREF)*0.5 - V(FB), -5, 5) }
+Rerr err_n GND 10k
+Bosc osc_n GND VALUE = { (sin(2*3.14159*50000*time)>0 ? 1 : 0) }
+Bout OUTP GND VALUE = { (V(VCC,GND)<10) ? 0 : (V(ISNS)>1) ? 0 : (V(osc_n)>0.5 && V(err_n,GND)>0) ? V(VCC,GND)*0.9 : 0 }
+Rvcc VCC GND 100Meg
+.ends UC3842`,
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -1231,6 +1321,47 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
         line: `X_${comp.id} ${ch0} ${ch1} ${ch2} ${ch3} ${ch4} ${ch5} ${ch6} ${ch7} ${cs} ${din} ${dout} ${clk} ${vref} ${vdd} ${agnd} ${dgnd} MCP3208`,
         subckts: [SUBCKT_DEFINITIONS.MCP3208]
       };
+    }
+
+    case 'npn_darlington': {
+      const [b = '0', c = '0', e = '0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} NPN_DARL`, subckts: [SUBCKT_DEFINITIONS.NPN_DARL] };
+    }
+    case 'pnp_darlington': {
+      const [b = '0', c = '0', e = '0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} PNP_DARL`, subckts: [SUBCKT_DEFINITIONS.PNP_DARL] };
+    }
+    case 'ic_lm35': {
+      const [vcc = '0', outp = '0', gnd = '0'] = nodes;
+      return { line: `X_${comp.id} ${vcc} ${outp} ${gnd} LM35`, subckts: [SUBCKT_DEFINITIONS.LM35] };
+    }
+    case 'hall_sensor': {
+      const [vcc = '0', gnd = '0', outp = '0'] = nodes;
+      return { line: `X_${comp.id} ${vcc} ${gnd} ${outp} HALL_A3144`, subckts: [SUBCKT_DEFINITIONS.HALL_A3144] };
+    }
+    case 'ic_74hc573': {
+      const [d0='0',d1='0',d2='0',d3='0',d4='0',d5='0',d6='0',d7='0',le='0',oe='0',q0='0',q1='0',q2='0',q3='0',q4='0',q5='0',q6='0',q7='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${d0} ${d1} ${d2} ${d3} ${d4} ${d5} ${d6} ${d7} ${le} ${oe} ${q0} ${q1} ${q2} ${q3} ${q4} ${q5} ${q6} ${q7} ${vcc} ${gnd} HC573`, subckts: [SUBCKT_DEFINITIONS.HC573] };
+    }
+    case 'ic_74hc165': {
+      const [pl='0',clkp='0',ce='0',ser='0',ap='0',bp='0',cp='0',dp='0',ep='0',fp='0',gp='0',hp='0',qh='0',qhn='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${pl} ${clkp} ${ce} ${ser} ${ap} ${bp} ${cp} ${dp} ${ep} ${fp} ${gp} ${hp} ${qh} ${qhn} ${vcc} ${gnd} HC165`, subckts: [SUBCKT_DEFINITIONS.HC165] };
+    }
+    case 'ic_pcf8574': {
+      const [sda='0',scl='0',a0='0',a1='0',a2='0',intn='0',p0='0',p1='0',p2='0',p3='0',p4='0',p5='0',p6='0',p7='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${sda} ${scl} ${a0} ${a1} ${a2} ${intn} ${p0} ${p1} ${p2} ${p3} ${p4} ${p5} ${p6} ${p7} ${vcc} ${gnd} PCF8574`, subckts: [SUBCKT_DEFINITIONS.PCF8574] };
+    }
+    case 'ic_esp8266': {
+      const [tx='0',rx='0',rst='0',en='0',gpio0='0',gpio2='0',adc='0',vcc='0',gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${tx} ${rx} ${rst} ${en} ${gpio0} ${gpio2} ${adc} ${vcc} ${gnd} ESP8266`, subckts: [SUBCKT_DEFINITIONS.ESP8266] };
+    }
+    case 'ic_74hc86': {
+      const [a = '0', b = '0', y = '0', gnd = '0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${y} ${gnd} HC86`, subckts: [SUBCKT_DEFINITIONS.HC86] };
+    }
+    case 'ic_uc3842': {
+      const [comp2='0',fb='0',isns='0',rt='0',gnd='0',outp='0',vcc='0',vref='0'] = nodes;
+      return { line: `X_${comp.id} ${comp2} ${fb} ${isns} ${rt} ${gnd} ${outp} ${vcc} ${vref} UC3842`, subckts: [SUBCKT_DEFINITIONS.UC3842] };
     }
 
     default:
