@@ -259,7 +259,104 @@ C_sr sr_node GND 1p
 R_sr sr_node GND 1G
 B_sr sr_node GND V = (V(SRCLR)<1) ? 0 : V(SER)
 B_q7s Q7S GND V = (V(OE)<1) ? V(sr_node) : 0
-.ends SR_74HC595`
+.ends SR_74HC595`,
+
+  // ── Fixed Voltage Regulators (78xx) ───────────────────────────────────────
+
+  // 7805 — behavioural fixed +5V regulator
+  REG_7805: `.subckt REG_7805 IN GND OUT
+B_reg OUT GND V = min(V(IN)-2, 5)
+R_load OUT GND 10Meg
+.ends REG_7805`,
+
+  // 7812 — behavioural fixed +12V regulator
+  REG_7812: `.subckt REG_7812 IN GND OUT
+B_reg OUT GND V = min(V(IN)-2, 12)
+R_load OUT GND 10Meg
+.ends REG_7812`,
+
+  // ── Sensors ───────────────────────────────────────────────────────────────
+
+  // NTC Thermistor — Steinhart-Hart B-constant model at user temperature
+  THERMISTOR: `.subckt THERMISTOR P1 P2
+* R = R25 * exp(B*(1/T - 1/T25)), default R25=10k, B=3950, T=298.15K
+R_ntc P1 P2 10k
+.ends THERMISTOR`,
+
+  // ── Additional ICs ─────────────────────────────────────────────────────────
+
+  // 7447 BCD-to-7-Segment Decoder — behavioural active-low outputs
+  DEC_7447: `.subckt DEC_7447 A B C D oa ob oc od oe of og VCC GND
+* BCD input → segment outputs (active LOW, common-anode display)
+* Decode integer value N = D*8 + C*4 + B*2 + A
+B_n n GND V = {(V(D)>2.5)*8 + (V(C)>2.5)*4 + (V(B)>2.5)*2 + (V(A)>2.5)}
+B_a oa GND V = {(int(V(n))==1||int(V(n))==4) ? 5 : 0}
+B_b ob GND V = {(int(V(n))==5||int(V(n))==6) ? 5 : 0}
+B_c oc GND V = {(int(V(n))==2) ? 5 : 0}
+B_d od GND V = {(int(V(n))==1||int(V(n))==4||int(V(n))==7) ? 5 : 0}
+B_e oe GND V = {(int(V(n))==1||int(V(n))==3||int(V(n))==4||int(V(n))==5||int(V(n))==7||int(V(n))==9) ? 5 : 0}
+B_f of GND V = {(int(V(n))==1||int(V(n))==2||int(V(n))==3||int(V(n))==7) ? 5 : 0}
+B_g og GND V = {(int(V(n))==0) ? 5 : 0}
+.ends DEC_7447`,
+
+  // 74HC245 Octal Bus Transceiver — DIR-controlled bidirectional buffer
+  BUF_74HC245: `.subckt BUF_74HC245 DIR OE A1 A2 B1 B2 VCC GND
+* A→B when DIR=1, B→A when DIR=0; disabled when /OE=1
+B_b1 B1 GND V = (V(OE)<1 && V(DIR)>2.5) ? V(A1) : 0
+B_b2 B2 GND V = (V(OE)<1 && V(DIR)>2.5) ? V(A2) : 0
+B_a1 A1 GND V = (V(OE)<1 && V(DIR)<2.5) ? V(B1) : V(A1)
+B_a2 A2 GND V = (V(OE)<1 && V(DIR)<2.5) ? V(B2) : V(A2)
+.ends BUF_74HC245`,
+
+  // MAX232 — behavioural RS-232 level shifter (TTL→±12V and ±12V→TTL)
+  MAX232: `.subckt MAX232 T1IN T2IN R1OUT R2OUT T1OUT T2OUT R1IN R2IN VCC GND
+* T-side: TTL 0/5V → RS-232 -10V/+10V (inverted)
+B_t1 T1OUT GND V = (V(T1IN)>2.5) ? -10 : 10
+B_t2 T2OUT GND V = (V(T2IN)>2.5) ? -10 : 10
+* R-side: RS-232 ±10V → TTL 0/5V (inverted)
+B_r1 R1OUT GND V = (V(R1IN)>0.5) ? 0 : 5
+B_r2 R2OUT GND V = (V(R2IN)>0.5) ? 0 : 5
+.ends MAX232`,
+
+  // TL074 Quad JFET Op-Amp — dual channel (same core as LM358)
+  TL074: `.subckt TL074 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC VEE
+* JFET input: higher Rin, same behavioural gain core
+XOP1 IN1P IN1M VCC VEE OUT1 UA741_SUB
+XOP2 IN2P IN2M VCC VEE OUT2 UA741_SUB
+.ends TL074`,
+
+  // AD620 Instrumentation Amplifier — single Rg sets gain: G = 1 + 49.4k/Rg
+  AD620: `.subckt AD620 INP INM RG1 RG2 REF OUT VCC VEE
+* Gain determined by Rg between RG1-RG2: G = 1 + 49400/Rg
+R_gain RG1 RG2 4940
+* Difference amp with gain G≈10 default (Rg=4940Ω)
+B_out OUT REF V = 10*(V(INP)-V(INM))
+Rin INP INM 1Meg
+.ends AD620`,
+
+  // NE566 VCO — square + triangle outputs, freq proportional to control voltage
+  NE566: `.subckt NE566 GND MODV SQOUT TRIOUT RTIM CTIM VCC
+* f ≈ 2*(VCC-Vc)/(R*C*VCC), simplified behavioural
+B_freq f_node GND V = max(100, 2*(V(VCC)-V(MODV))/(10k*100n*V(VCC)+1e-9))
+C_int tri_node GND 1p
+R_int tri_node GND 1Meg
+B_tri TRIOUT GND V = sin(2*3.14159*V(f_node)*TIME)*V(VCC)/2 + V(VCC)/2
+B_sq  SQOUT  GND V = (V(TRIOUT)>V(VCC)/2) ? V(VCC)-1 : 1
+.ends NE566`,
+
+  // CD4017 Johnson Decade Counter — 10 decoded outputs Q0–Q4 + carry-out
+  CD4017: `.subckt CD4017 CLK CLKINH RST Q0 Q1 Q2 Q3 Q4 CO VDD VSS
+* Simplified: counts 0-9, exposes Q0-Q4 and carry-out CO
+C_cnt cnt VSS 1p
+R_cnt cnt VSS 1G
+B_cnt cnt VSS V = (V(RST)>2.5) ? 0 : V(cnt)
+B_q0 Q0 VSS V = (int(V(cnt)*10)==0) ? V(VDD) : 0
+B_q1 Q1 VSS V = (int(V(cnt)*10)==1) ? V(VDD) : 0
+B_q2 Q2 VSS V = (int(V(cnt)*10)==2) ? V(VDD) : 0
+B_q3 Q3 VSS V = (int(V(cnt)*10)==3) ? V(VDD) : 0
+B_q4 Q4 VSS V = (int(V(cnt)*10)==4) ? V(VDD) : 0
+B_co CO VSS V = (V(cnt)>0.5) ? V(VDD) : 0
+.ends CD4017`
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -550,6 +647,99 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
       return {
         line: `X_${comp.id} ${ser} ${srclk} ${rclk} ${srclr} ${oe} ${q7s} ${vcc} ${gnd} SR_74HC595`,
         subckts: [SUBCKT_DEFINITIONS.SR_74HC595]
+      };
+    }
+
+    // ── Fixed Voltage Regulators (78xx) ───────────────────────────────────────
+    case 'ic_7805': {
+      const [inN = '0', gnd = '0', out = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${inN} ${gnd} ${out} REG_7805`,
+        subckts: [SUBCKT_DEFINITIONS.REG_7805]
+      };
+    }
+    case 'ic_7812': {
+      const [inN = '0', gnd = '0', out = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${inN} ${gnd} ${out} REG_7812`,
+        subckts: [SUBCKT_DEFINITIONS.REG_7812]
+      };
+    }
+
+    // ── Sensors ───────────────────────────────────────────────────────────────
+    case 'thermistor': {
+      const resistance = comp.props?.resistance ?? 10000;
+      const safeId = comp.id.replace(/[^a-zA-Z0-9]/g, '');
+      const [p1 = '0', p2 = '0'] = nodes;
+      return {
+        line: `R${safeId} ${p1} ${p2} ${resistance}`,
+        subckts: []
+      };
+    }
+
+    // ── Additional ICs ─────────────────────────────────────────────────────────
+    case 'ic_7447': {
+      const [
+        a = '0', b = '0', c = '0', d = '0',
+        oa = '0', ob = '0', oc = '0', od = '0', oe = '0', of2 = '0', og = '0',
+        vcc = '0', gnd = '0'
+      ] = nodes;
+      return {
+        line: `X_${comp.id} ${a} ${b} ${c} ${d} ${oa} ${ob} ${oc} ${od} ${oe} ${of2} ${og} ${vcc} ${gnd} DEC_7447`,
+        subckts: [SUBCKT_DEFINITIONS.DEC_7447]
+      };
+    }
+    case 'ic_74hc245': {
+      const [
+        dir = '0', oe = '0', a1 = '0', a2 = '0',
+        b1 = '0', b2 = '0', vcc = '0', gnd = '0'
+      ] = nodes;
+      return {
+        line: `X_${comp.id} ${dir} ${oe} ${a1} ${a2} ${b1} ${b2} ${vcc} ${gnd} BUF_74HC245`,
+        subckts: [SUBCKT_DEFINITIONS.BUF_74HC245]
+      };
+    }
+    case 'ic_max232': {
+      const [
+        t1in = '0', t2in = '0', r1out = '0', r2out = '0',
+        t1out = '0', t2out = '0', r1in = '0', r2in = '0',
+        vcc = '0', gnd = '0'
+      ] = nodes;
+      return {
+        line: `X_${comp.id} ${t1in} ${t2in} ${r1out} ${r2out} ${t1out} ${t2out} ${r1in} ${r2in} ${vcc} ${gnd} MAX232`,
+        subckts: [SUBCKT_DEFINITIONS.MAX232]
+      };
+    }
+    case 'ic_tl074': {
+      const [
+        in1p = '0', in1m = '0', out1 = '0',
+        in2p = '0', in2m = '0', out2 = '0',
+        vcc = '0', vee = '0'
+      ] = nodes;
+      return {
+        line: `X_${comp.id} ${in1p} ${in1m} ${out1} ${in2p} ${in2m} ${out2} ${vcc} ${vee} TL074`,
+        subckts: [SUBCKT_DEFINITIONS.UA741_SUB, SUBCKT_DEFINITIONS.TL074]
+      };
+    }
+    case 'ic_ad620': {
+      const [inp = '0', inm = '0', rg1 = '0', rg2 = '0', ref = '0', out = '0', vcc = '0', vee = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${inp} ${inm} ${rg1} ${rg2} ${ref} ${out} ${vcc} ${vee} AD620`,
+        subckts: [SUBCKT_DEFINITIONS.AD620]
+      };
+    }
+    case 'ic_ne566': {
+      const [gnd = '0', modv = '0', sqout = '0', triout = '0', rtim = '0', ctim = '0', vcc = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${gnd} ${modv} ${sqout} ${triout} ${rtim} ${ctim} ${vcc} NE566`,
+        subckts: [SUBCKT_DEFINITIONS.NE566]
+      };
+    }
+    case 'ic_cd4017': {
+      const [clk = '0', clkinh = '0', rst = '0', q0 = '0', q1 = '0', q2 = '0', q3 = '0', q4 = '0', co = '0', vdd = '0', vss = '0'] = nodes;
+      return {
+        line: `X_${comp.id} ${clk} ${clkinh} ${rst} ${q0} ${q1} ${q2} ${q3} ${q4} ${co} ${vdd} ${vss} CD4017`,
+        subckts: [SUBCKT_DEFINITIONS.CD4017]
       };
     }
 
