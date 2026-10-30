@@ -149,6 +149,36 @@ function formatRefDes(id: string, type: string): string {
     ic_cd4023: 'U',
     ic_cd4027: 'U',
     ic_cd4028: 'U',
+    ic_adc0804: 'U',
+    ic_adc0808: 'U',
+    ic_ads1015: 'U',
+    ic_mcp3204: 'U',
+    ic_max127: 'U',
+    ic_ltc1864: 'U',
+    ic_mcp4822: 'U',
+    ic_mcp4921: 'U',
+    ic_dac0800: 'U',
+    ic_pcf8591: 'U',
+    ic_max1487: 'U',
+    ic_sn75176: 'U',
+    ic_max3232: 'U',
+    ic_mcp2515: 'U',
+    ic_tja1050: 'U',
+    ic_ch340g: 'U',
+    ic_ft232rl: 'U',
+    ic_cp2102: 'U',
+    ic_txb0108: 'U',
+    ic_pca9306: 'U',
+    ic_tm1637: 'U',
+    ic_ht16k33: 'U',
+    ic_pcf8575: 'U',
+    ic_mcp23017: 'U',
+    ic_mcp23008: 'U',
+    ic_lm336: 'D',
+    ic_ad584: 'VR',
+    ic_ref192: 'VR',
+    ic_max6126: 'VR',
+    ic_ad736: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -4209,6 +4239,425 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{x:-40,y:-15},{x:-40,y:0},{x:-40,y:15},{x:45,y:0},{x:0,y:-35},{x:0,y:35}];
     labelOffset = { x: 0, y: 45 };
     valueOffset = { x: 0, y: 57 };
+  } else if (type === 'ic_adc0804') {
+    // ADC0804 8-Bit A/D Converter
+    rects.push({ x: -40, y: -55, width: 80, height: 110, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-50, -45, -40, -45] }, { points: [-50, -30, -40, -30] }, { points: [-50, -15, -40, -15] }, { points: [-50, 0, -40, 0] }, { points: [-50, 15, -40, 15] }, { points: [-50, 30, -40, 30] }, { points: [-50, 45, -40, 45] });
+    lines.push({ points: [40, -45, 50, -45] }, { points: [40, -30, 50, -30] }, { points: [40, -15, 50, -15] }, { points: [40, 0, 50, 0] }, { points: [40, 15, 50, 15] }, { points: [40, 30, 50, 30] }, { points: [40, 45, 50, 45] }, { points: [40, 60, 50, 60] });
+    lines.push({ points: [0, -65, 0, -55] }, { points: [0, 55, 0, 65] });
+    texts.push({ text: 'ADC0804', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -50, y: -45 }, { x: -50, y: -30 }, { x: -50, y: -15 }, { x: -50, y: 0 }, { x: -50, y: 15 }, { x: -50, y: 30 }, { x: -50, y: 45 },
+      { x: 50, y: -45 }, { x: 50, y: -30 }, { x: 50, y: -15 }, { x: 50, y: 0 }, { x: 50, y: 15 }, { x: 50, y: 30 }, { x: 50, y: 45 }, { x: 50, y: 60 },
+      { x: 0, y: -65 }, { x: 0, y: 65 }
+    ];
+    labelOffset = { x: 0, y: -72 };
+    valueOffset = { x: 0, y: 75 };
+  } else if (type === 'ic_adc0808') {
+    // ADC0808 8-Channel 8-Bit ADC
+    rects.push({ x: -40, y: -55, width: 80, height: 120, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-50, -45, -40, -45] }, { points: [-50, -30, -40, -30] }, { points: [-50, -15, -40, -15] }, { points: [-50, 0, -40, 0] }, { points: [-50, 15, -40, 15] }, { points: [-50, 30, -40, 30] }, { points: [-50, 45, -40, 45] });
+    lines.push({ points: [40, -50, 50, -50] }, { points: [40, -35, 50, -35] }, { points: [40, -20, 50, -20] }, { points: [40, -5, 50, -5] }, { points: [40, 10, 50, 10] }, { points: [40, 25, 50, 25] }, { points: [40, 40, 50, 40] }, { points: [40, 55, 50, 55] }, { points: [40, 70, 50, 70] });
+    lines.push({ points: [0, -65, 0, -55] }, { points: [0, 65, 0, 75] });
+    texts.push({ text: 'ADC0808', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -50, y: -45 }, { x: -50, y: -30 }, { x: -50, y: -15 }, { x: -50, y: 0 }, { x: -50, y: 15 }, { x: -50, y: 30 }, { x: -50, y: 45 },
+      { x: 50, y: -50 }, { x: 50, y: -35 }, { x: 50, y: -20 }, { x: 50, y: -5 }, { x: 50, y: 10 }, { x: 50, y: 25 }, { x: 50, y: 40 }, { x: 50, y: 55 }, { x: 50, y: 70 },
+      { x: 0, y: -65 }, { x: 0, y: 75 }
+    ];
+    labelOffset = { x: 0, y: -72 };
+    valueOffset = { x: 0, y: 85 };
+  } else if (type === 'ic_ads1015') {
+    // ADS1015 12-Bit 4-Channel I2C ADC
+    rects.push({ x: -35, y: -35, width: 70, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -30, -35, -30] }, { points: [-45, -15, -35, -15] }, { points: [-45, 0, -35, 0] }, { points: [-45, 15, -35, 15] }, { points: [-45, 30, -35, 30] });
+    lines.push({ points: [35, -20, 45, -20] }, { points: [35, 0, 45, 0] }, { points: [35, 20, 45, 20] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'ADS1015', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -30 }, { x: -45, y: -15 }, { x: -45, y: 0 }, { x: -45, y: 15 }, { x: -45, y: 30 },
+      { x: 45, y: -20 }, { x: 45, y: 0 }, { x: 45, y: 20 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_mcp3204') {
+    // MCP3204 4-Channel 12-Bit SPI ADC
+    rects.push({ x: -35, y: -35, width: 70, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -30, -35, -30] }, { points: [-45, -15, -35, -15] }, { points: [-45, 0, -35, 0] }, { points: [-45, 15, -35, 15] }, { points: [-45, 30, -35, 30] });
+    lines.push({ points: [35, -30, 45, -30] }, { points: [35, -10, 45, -10] }, { points: [35, 10, 45, 10] }, { points: [35, 30, 45, 30] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'MCP3204', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -30 }, { x: -45, y: -15 }, { x: -45, y: 0 }, { x: -45, y: 15 }, { x: -45, y: 30 },
+      { x: 45, y: -30 }, { x: 45, y: -10 }, { x: 45, y: 10 }, { x: 45, y: 30 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_max127') {
+    // MAX127 12-Bit I2C ADC
+    rects.push({ x: -35, y: -35, width: 70, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -30, -35, -30] }, { points: [-45, -15, -35, -15] }, { points: [-45, 0, -35, 0] }, { points: [-45, 15, -35, 15] }, { points: [-45, 30, -35, 30] });
+    lines.push({ points: [35, -15, 45, -15] }, { points: [35, 15, 45, 15] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'MAX127', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -30 }, { x: -45, y: -15 }, { x: -45, y: 0 }, { x: -45, y: 15 }, { x: -45, y: 30 },
+      { x: 45, y: -15 }, { x: 45, y: 15 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_ltc1864') {
+    // LTC1864 16-Bit SPI ADC
+    rects.push({ x: -30, y: -25, width: 60, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -20, -30, -20] }, { points: [-40, 0, -30, 0] }, { points: [-40, 20, -30, 20] });
+    lines.push({ points: [30, -20, 40, -20] }, { points: [30, 0, 40, 0] }, { points: [30, 20, 40, 20] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'LTC1864', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -20 }, { x: -40, y: 0 }, { x: -40, y: 20 },
+      { x: 40, y: -20 }, { x: 40, y: 0 }, { x: 40, y: 20 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_mcp4822') {
+    // MCP4822 Dual 12-Bit SPI DAC
+    rects.push({ x: -30, y: -35, width: 60, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -30, -30, -30] }, { points: [-40, -10, -30, -10] }, { points: [-40, 10, -30, 10] }, { points: [-40, 30, -30, 30] });
+    lines.push({ points: [30, -15, 40, -15] }, { points: [30, 15, 40, 15] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'MCP4822', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -30 }, { x: -40, y: -10 }, { x: -40, y: 10 }, { x: -40, y: 30 },
+      { x: 40, y: -15 }, { x: 40, y: 15 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_mcp4921') {
+    // MCP4921 12-Bit SPI DAC
+    rects.push({ x: -30, y: -35, width: 60, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -30, -30, -30] }, { points: [-40, -10, -30, -10] }, { points: [-40, 10, -30, 10] }, { points: [-40, 30, -30, 30] });
+    lines.push({ points: [30, -20, 40, -20] }, { points: [30, 20, 40, 20] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'MCP4921', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -30 }, { x: -40, y: -10 }, { x: -40, y: 10 }, { x: -40, y: 30 },
+      { x: 40, y: -20 }, { x: 40, y: 20 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_dac0800') {
+    // DAC0800 8-Bit DAC
+    rects.push({ x: -35, y: -50, width: 70, height: 100, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -45, -35, -45] }, { points: [-45, -32, -35, -32] }, { points: [-45, -19, -35, -19] }, { points: [-45, -6, -35, -6] }, { points: [-45, 7, -35, 7] }, { points: [-45, 20, -35, 20] }, { points: [-45, 33, -35, 33] }, { points: [-45, 46, -35, 46] });
+    lines.push({ points: [35, -30, 45, -30] }, { points: [35, -10, 45, -10] }, { points: [35, 10, 45, 10] }, { points: [35, 30, 45, 30] });
+    lines.push({ points: [0, -55, 0, -50] }, { points: [0, 50, 0, 55] });
+    texts.push({ text: 'DAC0800', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -45 }, { x: -45, y: -32 }, { x: -45, y: -19 }, { x: -45, y: -6 }, { x: -45, y: 7 }, { x: -45, y: 20 }, { x: -45, y: 33 }, { x: -45, y: 46 },
+      { x: 45, y: -30 }, { x: 45, y: -10 }, { x: 45, y: 10 }, { x: 45, y: 30 },
+      { x: 0, y: -55 }, { x: 0, y: 55 }
+    ];
+    labelOffset = { x: 0, y: -62 };
+    valueOffset = { x: 0, y: 65 };
+  } else if (type === 'ic_pcf8591') {
+    // PCF8591 ADC/DAC I2C
+    rects.push({ x: -35, y: -35, width: 70, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -30, -35, -30] }, { points: [-45, -10, -35, -10] }, { points: [-45, 10, -35, 10] }, { points: [-45, 30, -35, 30] });
+    lines.push({ points: [35, -30, 45, -30] }, { points: [35, -10, 45, -10] }, { points: [35, 10, 45, 10] }, { points: [35, 30, 45, 30] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'PCF8591', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -30 }, { x: -45, y: -10 }, { x: -45, y: 10 }, { x: -45, y: 30 },
+      { x: 45, y: -30 }, { x: 45, y: -10 }, { x: 45, y: 10 }, { x: 45, y: 30 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_max1487') {
+    // MAX1487 Half-Duplex RS-485
+    rects.push({ x: -30, y: -35, width: 60, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -30, -30, -30] }, { points: [-40, -10, -30, -10] }, { points: [-40, 10, -30, 10] }, { points: [-40, 30, -30, 30] });
+    lines.push({ points: [30, -15, 40, -15] }, { points: [30, 15, 40, 15] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'MAX1487', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -30 }, { x: -40, y: -10 }, { x: -40, y: 10 }, { x: -40, y: 30 },
+      { x: 40, y: -15 }, { x: 40, y: 15 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_sn75176') {
+    // SN75176 RS-485 Transceiver
+    rects.push({ x: -30, y: -35, width: 60, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -30, -30, -30] }, { points: [-40, -10, -30, -10] }, { points: [-40, 10, -30, 10] }, { points: [-40, 30, -30, 30] });
+    lines.push({ points: [30, -15, 40, -15] }, { points: [30, 15, 40, 15] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'SN75176', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -30 }, { x: -40, y: -10 }, { x: -40, y: 10 }, { x: -40, y: 30 },
+      { x: 40, y: -15 }, { x: 40, y: 15 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_max3232') {
+    // MAX3232 RS-232 Transceiver
+    rects.push({ x: -35, y: -50, width: 70, height: 100, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -45, -35, -45] }, { points: [-45, -30, -35, -30] }, { points: [-45, -15, -35, -15] }, { points: [-45, 0, -35, 0] }, { points: [-45, 15, -35, 15] }, { points: [-45, 30, -35, 30] }, { points: [-45, 45, -35, 45] });
+    lines.push({ points: [35, -45, 45, -45] }, { points: [35, -30, 45, -30] }, { points: [35, -15, 45, -15] }, { points: [35, 0, 45, 0] }, { points: [35, 15, 45, 15] }, { points: [35, 30, 45, 30] }, { points: [35, 45, 45, 45] });
+    lines.push({ points: [0, -55, 0, -50] }, { points: [0, 50, 0, 55] });
+    texts.push({ text: 'MAX3232', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -45 }, { x: -45, y: -30 }, { x: -45, y: -15 }, { x: -45, y: 0 }, { x: -45, y: 15 }, { x: -45, y: 30 },
+      { x: 45, y: -45 }, { x: 45, y: -30 }, { x: 45, y: -15 }, { x: 45, y: 0 }, { x: 45, y: 15 }, { x: 45, y: 30 },
+      { x: 45, y: 45 }, { x: -45, y: 45 },
+      { x: 0, y: -55 }, { x: 0, y: 55 }
+    ];
+    labelOffset = { x: 0, y: -62 };
+    valueOffset = { x: 0, y: 65 };
+  } else if (type === 'ic_mcp2515') {
+    // MCP2515 CAN Controller SPI
+    rects.push({ x: -35, y: -45, width: 70, height: 90, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -40, -35, -40] }, { points: [-45, -20, -35, -20] }, { points: [-45, 0, -35, 0] }, { points: [-45, 20, -35, 20] }, { points: [-45, 40, -35, 40] });
+    lines.push({ points: [35, -40, 45, -40] }, { points: [35, -20, 45, -20] }, { points: [35, 10, 45, 10] }, { points: [35, 30, 45, 30] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 45, 0, 50] });
+    texts.push({ text: 'MCP2515', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -40 }, { x: -45, y: -20 }, { x: -45, y: 0 }, { x: -45, y: 20 }, { x: -45, y: 40 },
+      { x: 45, y: -40 }, { x: 45, y: -20 }, { x: 45, y: 10 }, { x: 45, y: 30 },
+      { x: 0, y: -50 }, { x: 0, y: 50 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 60 };
+  } else if (type === 'ic_tja1050') {
+    // TJA1050 High-Speed CAN Transceiver
+    rects.push({ x: -30, y: -30, width: 60, height: 60, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -25, -30, -25] }, { points: [-40, 0, -30, 0] }, { points: [-40, 25, -30, 25] });
+    lines.push({ points: [30, -20, 40, -20] }, { points: [30, 0, 40, 0] }, { points: [30, 20, 40, 20] });
+    lines.push({ points: [0, -40, 0, -30] }, { points: [0, 30, 0, 40] });
+    texts.push({ text: 'TJA1050', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -25 }, { x: -40, y: 0 }, { x: -40, y: 25 },
+      { x: 40, y: -20 }, { x: 40, y: 0 }, { x: 40, y: 20 },
+      { x: 0, y: -40 }, { x: 0, y: 40 }
+    ];
+    labelOffset = { x: 0, y: -47 };
+    valueOffset = { x: 0, y: 50 };
+  } else if (type === 'ic_ch340g') {
+    // CH340G USB to UART Bridge
+    rects.push({ x: -35, y: -45, width: 70, height: 90, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -30, -35, -30] }, { points: [-45, -10, -35, -10] }, { points: [-45, 10, -35, 10] }, { points: [-45, 30, -35, 30] });
+    lines.push({ points: [35, -40, 45, -40] }, { points: [35, -20, 45, -20] }, { points: [35, 0, 45, 0] }, { points: [35, 20, 45, 20] }, { points: [35, 40, 45, 40] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 45, 0, 50] });
+    texts.push({ text: 'CH340G', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -30 }, { x: -45, y: -10 }, { x: -45, y: 10 }, { x: -45, y: 30 },
+      { x: 45, y: -40 }, { x: 45, y: -20 }, { x: 45, y: 0 }, { x: 45, y: 20 }, { x: 45, y: 40 },
+      { x: 0, y: -50 }, { x: 0, y: 50 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 60 };
+  } else if (type === 'ic_ft232rl') {
+    // FT232RL USB to Serial UART
+    rects.push({ x: -35, y: -50, width: 70, height: 100, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -30, -35, -30] }, { points: [-45, -10, -35, -10] }, { points: [-45, 10, -35, 10] }, { points: [-45, 30, -35, 30] });
+    lines.push({ points: [35, -45, 45, -45] }, { points: [35, -30, 45, -30] }, { points: [35, -15, 45, -15] }, { points: [35, 0, 45, 0] }, { points: [35, 15, 45, 15] }, { points: [35, 30, 45, 30] });
+    lines.push({ points: [0, -55, 0, -50] }, { points: [0, 50, 0, 55] });
+    texts.push({ text: 'FT232RL', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -30 }, { x: -45, y: -10 }, { x: -45, y: 10 }, { x: -45, y: 30 },
+      { x: 45, y: -45 }, { x: 45, y: -30 }, { x: 45, y: -15 }, { x: 45, y: 0 }, { x: 45, y: 15 }, { x: 45, y: 30 },
+      { x: 0, y: -55 }, { x: 0, y: 55 }
+    ];
+    labelOffset = { x: 0, y: -62 };
+    valueOffset = { x: 0, y: 65 };
+  } else if (type === 'ic_cp2102') {
+    // CP2102 USB to UART Bridge
+    rects.push({ x: -35, y: -45, width: 70, height: 90, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -20, -35, -20] }, { points: [-45, 0, -35, 0] }, { points: [-45, 20, -35, 20] });
+    lines.push({ points: [35, -40, 45, -40] }, { points: [35, -20, 45, -20] }, { points: [35, 0, 45, 0] }, { points: [35, 20, 45, 20] }, { points: [35, 40, 45, 40] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 45, 0, 50] });
+    texts.push({ text: 'CP2102', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -20 }, { x: -45, y: 0 }, { x: -45, y: 20 },
+      { x: 45, y: -40 }, { x: 45, y: -20 }, { x: 45, y: 0 }, { x: 45, y: 20 }, { x: 45, y: 40 },
+      { x: 0, y: -50 }, { x: 0, y: 50 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 60 };
+  } else if (type === 'ic_txb0108') {
+    // TXB0108 8-Bit Level Translator
+    rects.push({ x: -35, y: -60, width: 70, height: 120, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -50, -35, -50] }, { points: [-45, -35, -35, -35] }, { points: [-45, -22, -35, -22] }, { points: [-45, -9, -35, -9] }, { points: [-45, 4, -35, 4] }, { points: [-45, 17, -35, 17] }, { points: [-45, 30, -35, 30] }, { points: [-45, 43, -35, 43] }, { points: [-45, 56, -35, 56] });
+    lines.push({ points: [35, -35, 45, -35] }, { points: [35, -22, 45, -22] }, { points: [35, -9, 45, -9] }, { points: [35, 4, 45, 4] }, { points: [35, 17, 45, 17] }, { points: [35, 30, 45, 30] }, { points: [35, 43, 45, 43] }, { points: [35, 56, 45, 56] });
+    lines.push({ points: [-20, -65, -20, -60] }, { points: [20, -65, 20, -60] }, { points: [0, 60, 0, 65] });
+    texts.push({ text: 'TXB0108', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -50 }, { x: -45, y: -35 }, { x: -45, y: -22 }, { x: -45, y: -9 }, { x: -45, y: 4 }, { x: -45, y: 17 }, { x: -45, y: 30 }, { x: -45, y: 43 }, { x: -45, y: 56 },
+      { x: 45, y: -35 }, { x: 45, y: -22 }, { x: 45, y: -9 }, { x: 45, y: 4 }, { x: 45, y: 17 }, { x: 45, y: 30 }, { x: 45, y: 43 }, { x: 45, y: 56 },
+      { x: -20, y: -65 }, { x: 20, y: -65 }, { x: 0, y: 65 }
+    ];
+    labelOffset = { x: 0, y: -72 };
+    valueOffset = { x: 0, y: 75 };
+  } else if (type === 'ic_pca9306') {
+    // PCA9306 Dual I2C Level Translator
+    rects.push({ x: -30, y: -25, width: 60, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -20, -30, -20] }, { points: [-40, 0, -30, 0] }, { points: [-40, 20, -30, 20] });
+    lines.push({ points: [30, -20, 40, -20] }, { points: [30, 0, 40, 0] }, { points: [30, 20, 40, 20] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'PCA9306', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -20 }, { x: -40, y: 0 }, { x: -40, y: 20 },
+      { x: 40, y: -20 }, { x: 40, y: 0 }, { x: 40, y: 20 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_tm1637') {
+    // TM1637 LED Display Driver
+    rects.push({ x: -35, y: -55, width: 70, height: 140, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -20, -35, -20] }, { points: [-45, 20, -35, 20] });
+    lines.push({ points: [35, -50, 45, -50] }, { points: [35, -38, 45, -38] }, { points: [35, -26, 45, -26] }, { points: [35, -14, 45, -14] }, { points: [35, -2, 45, -2] }, { points: [35, 10, 45, 10] }, { points: [35, 22, 45, 22] }, { points: [35, 34, 45, 34] }, { points: [35, 46, 45, 46] }, { points: [35, 58, 45, 58] }, { points: [35, 70, 45, 70] }, { points: [35, 82, 45, 82] });
+    lines.push({ points: [0, -60, 0, -55] }, { points: [0, 85, 0, 90] });
+    texts.push({ text: 'TM1637', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -20 }, { x: -45, y: 20 },
+      { x: 45, y: -50 }, { x: 45, y: -38 }, { x: 45, y: -26 }, { x: 45, y: -14 }, { x: 45, y: -2 }, { x: 45, y: 10 }, { x: 45, y: 22 }, { x: 45, y: 34 }, { x: 45, y: 46 }, { x: 45, y: 58 }, { x: 45, y: 70 }, { x: 45, y: 82 },
+      { x: 0, y: -60 }, { x: 0, y: 90 }
+    ];
+    labelOffset = { x: 0, y: -67 };
+    valueOffset = { x: 0, y: 100 };
+  } else if (type === 'ic_ht16k33') {
+    // HT16K33 LED Driver
+    rects.push({ x: -35, y: -50, width: 70, height: 110, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -30, -35, -30] }, { points: [-45, -10, -35, -10] }, { points: [-45, 10, -35, 10] }, { points: [-45, 25, -35, 25] }, { points: [-45, 40, -35, 40] });
+    lines.push({ points: [35, -45, 45, -45] }, { points: [35, -30, 45, -30] }, { points: [35, -15, 45, -15] }, { points: [35, 0, 45, 0] }, { points: [35, 15, 45, 15] }, { points: [35, 30, 45, 30] }, { points: [35, 45, 45, 45] }, { points: [35, 60, 45, 60] });
+    lines.push({ points: [0, -55, 0, -50] }, { points: [0, 60, 0, 65] });
+    texts.push({ text: 'HT16K33', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -30 }, { x: -45, y: -10 }, { x: -45, y: 10 }, { x: -45, y: 25 }, { x: -45, y: 40 },
+      { x: 45, y: -45 }, { x: 45, y: -30 }, { x: 45, y: -15 }, { x: 45, y: 0 }, { x: 45, y: 15 }, { x: 45, y: 30 }, { x: 45, y: 45 }, { x: 45, y: 60 },
+      { x: 0, y: -55 }, { x: 0, y: 65 }
+    ];
+    labelOffset = { x: 0, y: -62 };
+    valueOffset = { x: 0, y: 75 };
+  } else if (type === 'ic_pcf8575') {
+    // PCF8575 16-Bit I2C Expander
+    rects.push({ x: -35, y: -55, width: 70, height: 120, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -45, -35, -45] }, { points: [-45, -30, -35, -30] }, { points: [-45, -15, -35, -15] }, { points: [-45, 0, -35, 0] }, { points: [-45, 15, -35, 15] }, { points: [-45, 30, -35, 30] });
+    lines.push({ points: [35, -50, 45, -50] }, { points: [35, -38, 45, -38] }, { points: [35, -26, 45, -26] }, { points: [35, -14, 45, -14] }, { points: [35, -2, 45, -2] }, { points: [35, 10, 45, 10] }, { points: [35, 22, 45, 22] }, { points: [35, 34, 45, 34] }, { points: [35, 46, 45, 46] }, { points: [35, 58, 45, 58] });
+    lines.push({ points: [0, -60, 0, -55] }, { points: [0, 65, 0, 70] });
+    texts.push({ text: 'PCF8575', x: -24, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -45 }, { x: -45, y: -30 }, { x: -45, y: -15 }, { x: -45, y: 0 }, { x: -45, y: 15 }, { x: -45, y: 30 },
+      { x: 45, y: -50 }, { x: 45, y: -38 }, { x: 45, y: -26 }, { x: 45, y: -14 }, { x: 45, y: -2 }, { x: 45, y: 10 }, { x: 45, y: 22 }, { x: 45, y: 34 }, { x: 45, y: 46 }, { x: 45, y: 58 },
+      { x: 0, y: -60 }, { x: 0, y: 70 }
+    ];
+    labelOffset = { x: 0, y: -67 };
+    valueOffset = { x: 0, y: 80 };
+  } else if (type === 'ic_mcp23017') {
+    // MCP23017 16-Bit I2C Expander
+    rects.push({ x: -35, y: -60, width: 70, height: 125, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -45, -35, -45] }, { points: [-45, -30, -35, -30] }, { points: [-45, -15, -35, -15] }, { points: [-45, 0, -35, 0] }, { points: [-45, 15, -35, 15] }, { points: [-45, 30, -35, 30] }, { points: [-45, 45, -35, 45] }, { points: [-45, 60, -35, 60] });
+    lines.push({ points: [35, -45, 45, -45] }, { points: [35, -30, 45, -30] }, { points: [35, -15, 45, -15] }, { points: [35, 0, 45, 0] }, { points: [35, 15, 45, 15] }, { points: [35, 30, 45, 30] }, { points: [35, 45, 45, 45] }, { points: [35, 60, 45, 60] });
+    lines.push({ points: [0, -65, 0, -60] }, { points: [0, 65, 0, 70] });
+    texts.push({ text: 'MCP23017', x: -26, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -45 }, { x: -45, y: -30 }, { x: -45, y: -15 }, { x: -45, y: 0 }, { x: -45, y: 15 }, { x: -45, y: 30 }, { x: -45, y: 45 }, { x: -45, y: 60 },
+      { x: 45, y: -45 }, { x: 45, y: -30 }, { x: 45, y: -15 }, { x: 45, y: 0 }, { x: 45, y: 15 }, { x: 45, y: 30 }, { x: 45, y: 45 }, { x: 45, y: 60 },
+      { x: 0, y: -65 }, { x: 0, y: 70 }
+    ];
+    labelOffset = { x: 0, y: -72 };
+    valueOffset = { x: 0, y: 80 };
+  } else if (type === 'ic_mcp23008') {
+    // MCP23008 8-Bit I2C Expander
+    rects.push({ x: -35, y: -45, width: 70, height: 90, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -40, -35, -40] }, { points: [-45, -20, -35, -20] }, { points: [-45, 0, -35, 0] }, { points: [-45, 20, -35, 20] }, { points: [-45, 40, -35, 40] });
+    lines.push({ points: [35, -40, 45, -40] }, { points: [35, -20, 45, -20] }, { points: [35, 0, 45, 0] }, { points: [35, 20, 45, 20] }, { points: [35, 40, 45, 40] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 45, 0, 50] });
+    texts.push({ text: 'MCP23008', x: -26, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -40 }, { x: -45, y: -20 }, { x: -45, y: 0 }, { x: -45, y: 20 }, { x: -45, y: 40 },
+      { x: 45, y: -40 }, { x: 45, y: -20 }, { x: 45, y: 0 }, { x: 45, y: 20 }, { x: 45, y: 40 },
+      { x: 0, y: -50 }, { x: 0, y: 50 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 60 };
+  } else if (type === 'ic_lm336') {
+    // LM336 2.5V Voltage Reference Diode
+    lines.push({ points: [0, -30, 0, -8] });
+    lines.push({ points: [-12, -8, 12, -8] });
+    lines.push({ points: [-12, -8, -12, -14] }, { points: [12, -8, 12, -2] });
+    lines.push({ points: [-12, 8, 12, 8, 0, -8, -12, 8] });
+    lines.push({ points: [0, 8, 0, 30] });
+    lines.push({ points: [0, 0, 30, 0] });
+    texts.push({ text: 'LM336', x: 8, y: -16, size: 7 });
+    pins = [{ x: 0, y: -30 }, { x: 0, y: 30 }, { x: 30, y: 0 }];
+    labelOffset = { x: -28, y: 0 };
+    valueOffset = { x: -28, y: 12 };
+  } else if (type === 'ic_ad584') {
+    // AD584 Precision Multi-Voltage Reference
+    rects.push({ x: -25, y: -30, width: 50, height: 60, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-35, -20, -25, -20] }, { points: [-35, 20, -25, 20] });
+    lines.push({ points: [25, -20, 35, -20] }, { points: [25, 20, 35, 20] });
+    lines.push({ points: [0, 30, 0, 35] });
+    texts.push({ text: 'AD584', x: -16, y: -4, size: 8 });
+    pins = [
+      { x: -35, y: -20 }, { x: -35, y: 20 },
+      { x: 35, y: -20 }, { x: 35, y: 20 },
+      { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -38 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_ref192') {
+    // REF192 Precision 2.5V Reference
+    rects.push({ x: -25, y: -25, width: 50, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-35, -15, -25, -15] }, { points: [-35, 15, -25, 15] });
+    lines.push({ points: [25, -15, 35, -15] }, { points: [25, 15, 35, 15] });
+    lines.push({ points: [0, 25, 0, 35] });
+    texts.push({ text: 'REF192', x: -18, y: -4, size: 8 });
+    pins = [
+      { x: -35, y: -15 }, { x: -35, y: 15 },
+      { x: 35, y: -15 }, { x: 35, y: 15 },
+      { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -35 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_max6126') {
+    // MAX6126 Ultra-High-Precision Reference
+    rects.push({ x: -25, y: -25, width: 50, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-35, -15, -25, -15] }, { points: [-35, 15, -25, 15] });
+    lines.push({ points: [25, -15, 35, -15] }, { points: [25, 15, 35, 15] });
+    lines.push({ points: [0, 25, 0, 35] });
+    texts.push({ text: 'MAX6126', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -35, y: -15 }, { x: -35, y: 15 },
+      { x: 35, y: -15 }, { x: 35, y: 15 },
+      { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -35 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_ad736') {
+    // AD736 True RMS-to-DC Converter
+    rects.push({ x: -30, y: -30, width: 60, height: 60, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -20, -30, -20] }, { points: [-40, 0, -30, 0] }, { points: [-40, 20, -30, 20] });
+    lines.push({ points: [30, -15, 40, -15] }, { points: [30, 15, 40, 15] });
+    lines.push({ points: [0, -35, 0, -30] }, { points: [0, 30, 0, 35] });
+    texts.push({ text: 'AD736', x: -16, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -20 }, { x: -40, y: 0 }, { x: -40, y: 20 },
+      { x: 40, y: -15 }, { x: 40, y: 15 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
 
   }
   // --- FALLBACK ---

@@ -1605,6 +1605,405 @@ B8 Y8 VSS VALUE={0}
 B9 Y9 VSS VALUE={0}
 .ends CD4028_SUB`,
 
+  ADC0804_SUB: `* ADC0804 8-Bit SAR ADC Model
+.subckt ADC0804_SUB cs rd wr clk vinp vinm vref db7 db6 db5 db4 db3 db2 db1 db0 vcc gnd
+R_in vinp vinm 10Meg
+E_diff diff 0 vinp vinm 1.0
+B_d7 db7 gnd V = (V(diff) >= 2.5) ? 5 : 0
+B_d6 db6 gnd V = (mod(V(diff), 2.5) >= 1.25) ? 5 : 0
+B_d5 db5 gnd V = (mod(V(diff), 1.25) >= 0.625) ? 5 : 0
+B_d4 db4 gnd V = (mod(V(diff), 0.625) >= 0.312) ? 5 : 0
+B_d3 db3 gnd V = (mod(V(diff), 0.312) >= 0.156) ? 5 : 0
+B_d2 db2 gnd V = (mod(V(diff), 0.156) >= 0.078) ? 5 : 0
+B_d1 db1 gnd V = (mod(V(diff), 0.078) >= 0.039) ? 5 : 0
+B_d0 db0 gnd V = (mod(V(diff), 0.039) >= 0.019) ? 5 : 0
+R_cs cs gnd 1Meg
+R_rd rd gnd 1Meg
+R_wr wr gnd 1Meg
+R_clk clk gnd 1Meg
+R_ref vref gnd 100k
+R_pwr vcc gnd 10Meg
+.ends ADC0804_SUB`,
+
+  ADC0808_SUB: `* ADC0808 8-Channel 8-Bit ADC Model
+.subckt ADC0808_SUB in0 in1 in2 in3 ale start oe eoc db7 db6 db5 db4 db3 db2 db1 db0 vcc gnd
+R_in0 in0 gnd 10Meg
+R_in1 in1 gnd 10Meg
+R_in2 in2 gnd 10Meg
+R_in3 in3 gnd 10Meg
+B_eoc eoc gnd V = 5.0
+B_d7 db7 gnd V = (V(in0) >= 2.5) ? 5 : 0
+B_d6 db6 gnd V = (mod(V(in0), 2.5) >= 1.25) ? 5 : 0
+B_d5 db5 gnd V = (mod(V(in0), 1.25) >= 0.625) ? 5 : 0
+B_d4 db4 gnd V = (mod(V(in0), 0.625) >= 0.312) ? 5 : 0
+B_d3 db3 gnd V = (mod(V(in0), 0.312) >= 0.156) ? 5 : 0
+B_d2 db2 gnd V = (mod(V(in0), 0.156) >= 0.078) ? 5 : 0
+B_d1 db1 gnd V = (mod(V(in0), 0.078) >= 0.039) ? 5 : 0
+B_d0 db0 gnd V = (mod(V(in0), 0.039) >= 0.019) ? 5 : 0
+R_ale ale gnd 1Meg
+R_start start gnd 1Meg
+R_oe oe gnd 1Meg
+R_pwr vcc gnd 10Meg
+.ends ADC0808_SUB`,
+
+  ADS1015_SUB: `* ADS1015 12-Bit I2C ADC Model
+.subckt ADS1015_SUB a0 a1 a2 a3 addr sda scl alrt vdd gnd
+R_a0 a0 gnd 10Meg
+R_a1 a1 gnd 10Meg
+R_a2 a2 gnd 10Meg
+R_a3 a3 gnd 10Meg
+R_addr addr gnd 1Meg
+R_sda sda gnd 100k
+R_scl scl gnd 100k
+B_alrt alrt gnd V = 5.0
+R_pwr vdd gnd 10Meg
+.ends ADS1015_SUB`,
+
+  MCP3204_SUB: `* MCP3204 4-Channel 12-Bit SPI ADC Model
+.subckt MCP3204_SUB ch0 ch1 ch2 ch3 vref cs din dout clk vdd vss
+R_ch0 ch0 vss 10Meg
+R_ch1 ch1 vss 10Meg
+R_ch2 ch2 vss 10Meg
+R_ch3 ch3 vss 10Meg
+R_ref vref vss 100k
+R_cs cs vss 1Meg
+R_din din vss 1Meg
+R_clk clk vss 1Meg
+B_dout dout vss V = (V(cs) < 1.0) ? ((V(ch0) > 1.0) ? 5.0 : 0.0) : 0.0
+R_pwr vdd vss 10Meg
+.ends MCP3204_SUB`,
+
+  MAX127_SUB: `* MAX127 12-Bit I2C ADC Model
+.subckt MAX127_SUB ch0 ch1 ch2 ch3 vref sda scl vdd gnd
+R_ch0 ch0 gnd 10Meg
+R_ch1 ch1 gnd 10Meg
+R_ch2 ch2 gnd 10Meg
+R_ch3 ch3 gnd 10Meg
+R_ref vref gnd 100k
+R_sda sda gnd 100k
+R_scl scl gnd 100k
+R_pwr vdd gnd 10Meg
+.ends MAX127_SUB`,
+
+  LTC1864_SUB: `* LTC1864 16-Bit SPI ADC Model
+.subckt LTC1864_SUB vinp vinm vref conv sck sdo vcc gnd
+R_in vinp vinm 10Meg
+R_ref vref gnd 100k
+R_conv conv gnd 1Meg
+R_sck sck gnd 1Meg
+B_sdo sdo gnd V = (V(vinp) > V(vinm)) ? 5.0 : 0.0
+R_pwr vcc gnd 10Meg
+.ends LTC1864_SUB`,
+
+  MCP4822_SUB: `* MCP4822 Dual 12-Bit SPI DAC Model
+.subckt MCP4822_SUB cs sck sdi ldac vouta voutb vdd vss
+R_cs cs vss 1Meg
+R_sck sck vss 1Meg
+R_sdi sdi vss 1Meg
+R_ldac ldac vss 1Meg
+B_outa vouta vss V = 2.048
+B_outb voutb vss V = 2.048
+R_pwr vdd vss 10Meg
+.ends MCP4822_SUB`,
+
+  MCP4921_SUB: `* MCP4921 12-Bit SPI DAC Model
+.subckt MCP4921_SUB cs sck sdi ldac vref vout vdd vss
+R_cs cs vss 1Meg
+R_sck sck vss 1Meg
+R_sdi sdi vss 1Meg
+R_ldac ldac vss 1Meg
+R_ref vref vss 100k
+B_out vout vss V = 0.5 * V(vref)
+R_pwr vdd vss 10Meg
+.ends MCP4921_SUB`,
+
+  DAC0800_SUB: `* DAC0800 8-Bit DAC Model
+.subckt DAC0800_SUB d7 d6 d5 d4 d3 d2 d1 d0 iout ioutb vrefp vrefm vcc vee
+R_d7 d7 0 1Meg
+R_d6 d6 0 1Meg
+R_d5 d5 0 1Meg
+R_d4 d4 0 1Meg
+R_d3 d3 0 1Meg
+R_d2 d2 0 1Meg
+R_d1 d1 0 1Meg
+R_d0 d0 0 1Meg
+R_ref vrefp vrefm 10k
+B_iout iout 0 I = 0.002 * (V(d7)/5.0 * 0.5 + V(d6)/5.0 * 0.25 + 0.1)
+B_ioutb ioutb 0 I = 0.002 * (1.0 - (V(d7)/5.0 * 0.5 + V(d6)/5.0 * 0.25 + 0.1))
+R_pwr vcc vee 10Meg
+.ends DAC0800_SUB`,
+
+  PCF8591_SUB: `* PCF8591 ADC/DAC I2C Model
+.subckt PCF8591_SUB ain0 ain1 ain2 ain3 aout sda scl osc vdd vss
+R_ain0 ain0 vss 10Meg
+R_ain1 ain1 vss 10Meg
+R_ain2 ain2 vss 10Meg
+R_ain3 ain3 vss 10Meg
+B_aout aout vss V = 2.5
+R_sda sda vss 100k
+R_scl scl vss 100k
+R_osc osc vss 1Meg
+R_pwr vdd vss 10Meg
+.ends PCF8591_SUB`,
+
+  MAX1487_SUB: `* MAX1487 Half-Duplex RS-485 Model
+.subckt MAX1487_SUB ro re de di a b vcc gnd
+R_re re gnd 1Meg
+R_de de gnd 1Meg
+R_di di gnd 1Meg
+B_diff a b V = (V(de) > 2.0) ? ((V(di) > 2.0) ? 3.3 : -3.3) : 0.0
+B_ro ro gnd V = (V(re) < 0.8) ? ((V(a) > V(b)) ? 5.0 : 0.0) : 0.0
+R_pwr vcc gnd 10Meg
+.ends MAX1487_SUB`,
+
+  SN75176_SUB: `* SN75176 RS-485 Transceiver Model
+.subckt SN75176_SUB r re de d a b vcc gnd
+R_re re gnd 1Meg
+R_de de gnd 1Meg
+R_d d gnd 1Meg
+B_diff a b V = (V(de) > 2.0) ? ((V(d) > 2.0) ? 3.3 : -3.3) : 0.0
+B_r r gnd V = (V(re) < 0.8) ? ((V(a) > V(b)) ? 5.0 : 0.0) : 0.0
+R_pwr vcc gnd 10Meg
+.ends SN75176_SUB`,
+
+  MAX3232_SUB: `* MAX3232 Dual RS-232 Transceiver Model
+.subckt MAX3232_SUB t1in r1out t2in r2out c1p c1m t1out r1in t2out r2in c2p c2m vp vm vcc gnd
+R_t1in t1in gnd 1Meg
+R_t2in t2in gnd 1Meg
+B_t1out t1out gnd V = (V(t1in) > 2.0) ? -6.0 : 6.0
+B_t2out t2out gnd V = (V(t2in) > 2.0) ? -6.0 : 6.0
+B_r1out r1out gnd V = (V(r1in) < 0.0) ? 5.0 : 0.0
+B_r2out r2out gnd V = (V(r2in) < 0.0) ? 5.0 : 0.0
+R_c1 c1p c1m 1Meg
+R_c2 c2p c2m 1Meg
+B_vp vp gnd V = 6.0
+B_vm vm gnd V = -6.0
+R_pwr vcc gnd 10Meg
+.ends MAX3232_SUB`,
+
+  MCP2515_SUB: `* MCP2515 CAN Controller SPI Model
+.subckt MCP2515_SUB cs si sck osc1 osc2 so int txcan rxcan vdd vss
+R_cs cs vss 1Meg
+R_si si vss 1Meg
+R_sck sck vss 1Meg
+R_osc osc1 osc2 1Meg
+B_so so vss V = (V(cs) < 1.0) ? ((V(si) > 2.0) ? 5.0 : 0.0) : 0.0
+B_int int vss V = 5.0
+B_txcan txcan vss V = (V(si) > 2.0) ? 5.0 : 0.0
+R_rxcan rxcan vss 1Meg
+R_pwr vdd vss 10Meg
+.ends MCP2515_SUB`,
+
+  TJA1050_SUB: `* TJA1050 High-Speed CAN Transceiver Model
+.subckt TJA1050_SUB txd rxd s canh canl vref vcc gnd
+R_txd txd gnd 1Meg
+R_s s gnd 1Meg
+B_canh canh gnd V = (V(txd) < 0.8) ? 3.5 : 2.5
+B_canl canl gnd V = (V(txd) < 0.8) ? 1.5 : 2.5
+B_rxd rxd gnd V = (V(canh) - V(canl) > 0.9) ? 0.0 : 5.0
+B_vref vref gnd V = 2.5
+R_pwr vcc gnd 10Meg
+.ends TJA1050_SUB`,
+
+  CH340G_SUB: `* CH340G USB to Serial Bridge Model
+.subckt CH340G_SUB udp udm xi xo txd rxd dtr rts cts vcc gnd
+R_udp udp gnd 1Meg
+R_udm udm gnd 1Meg
+R_xi xi xo 1Meg
+B_txd txd gnd V = 5.0
+R_rxd rxd gnd 1Meg
+B_dtr dtr gnd V = 5.0
+B_rts rts gnd V = 5.0
+R_cts cts gnd 1Meg
+R_pwr vcc gnd 10Meg
+.ends CH340G_SUB`,
+
+  FT232RL_SUB: `* FT232RL USB to Serial UART Model
+.subckt FT232RL_SUB usbdm usbdp cbus0 cbus1 txd rxd rts cts dtr dsr vcc gnd
+R_dm usbdm gnd 1Meg
+R_dp usbdp gnd 1Meg
+B_cb0 cbus0 gnd V = 0.0
+B_cb1 cbus1 gnd V = 0.0
+B_txd txd gnd V = 5.0
+R_rxd rxd gnd 1Meg
+B_rts rts gnd V = 5.0
+R_cts cts gnd 1Meg
+B_dtr dtr gnd V = 5.0
+R_dsr dsr gnd 1Meg
+R_pwr vcc gnd 10Meg
+.ends FT232RL_SUB`,
+
+  CP2102_SUB: `* CP2102 USB to UART Bridge Model
+.subckt CP2102_SUB dp dm susp txd rxd rts cts dtr vdd gnd
+R_dp dp gnd 1Meg
+R_dm dm gnd 1Meg
+B_susp susp gnd V = 0.0
+B_txd txd gnd V = 3.3
+R_rxd rxd gnd 1Meg
+B_rts rts gnd V = 3.3
+R_cts cts gnd 1Meg
+B_dtr dtr gnd V = 3.3
+R_pwr vdd gnd 10Meg
+.ends CP2102_SUB`,
+
+  TXB0108_SUB: `* TXB0108 8-Bit Level Translator Model
+.subckt TXB0108_SUB oe a1 a2 a3 a4 a5 a6 a7 a8 b1 b2 b3 b4 b5 b6 b7 b8 vcca vccb gnd
+R_oe oe gnd 1Meg
+B_b1 b1 gnd V = (V(oe) > 1.0) ? (V(a1)/3.3 * 5.0) : 0.0
+B_b2 b2 gnd V = (V(oe) > 1.0) ? (V(a2)/3.3 * 5.0) : 0.0
+B_b3 b3 gnd V = (V(oe) > 1.0) ? (V(a3)/3.3 * 5.0) : 0.0
+B_b4 b4 gnd V = (V(oe) > 1.0) ? (V(a4)/3.3 * 5.0) : 0.0
+B_b5 b5 gnd V = (V(oe) > 1.0) ? (V(a5)/3.3 * 5.0) : 0.0
+B_b6 b6 gnd V = (V(oe) > 1.0) ? (V(a6)/3.3 * 5.0) : 0.0
+B_b7 b7 gnd V = (V(oe) > 1.0) ? (V(a7)/3.3 * 5.0) : 0.0
+B_b8 b8 gnd V = (V(oe) > 1.0) ? (V(a8)/3.3 * 5.0) : 0.0
+R_pa vcca gnd 10Meg
+R_pb vccb gnd 10Meg
+.ends TXB0108_SUB`,
+
+  PCA9306_SUB: `* PCA9306 Dual I2C Level Translator Model
+.subckt PCA9306_SUB scl1 sda1 vref1 scl2 sda2 vref2 en gnd
+R_en en gnd 1Meg
+R_scl1 scl1 scl2 10
+R_sda1 sda1 sda2 10
+R_vr1 vref1 gnd 100k
+R_vr2 vref2 gnd 100k
+.ends PCA9306_SUB`,
+
+  TM1637_SUB: `* TM1637 LED Display Driver Model
+.subckt TM1637_SUB clk dio s1 s2 s3 s4 s5 s6 s7 s8 g1 g2 g3 g4 vcc gnd
+R_clk clk gnd 1Meg
+R_dio dio gnd 1Meg
+B_g1 g1 gnd V = 0.0
+B_g2 g2 gnd V = 0.0
+B_g3 g3 gnd V = 0.0
+B_g4 g4 gnd V = 0.0
+B_s1 s1 gnd V = 5.0
+B_s2 s2 gnd V = 5.0
+B_s3 s3 gnd V = 5.0
+B_s4 s4 gnd V = 5.0
+B_s5 s5 gnd V = 5.0
+B_s6 s6 gnd V = 5.0
+B_s7 s7 gnd V = 5.0
+B_s8 s8 gnd V = 5.0
+R_pwr vcc gnd 10Meg
+.ends TM1637_SUB`,
+
+  HT16K33_SUB: `* HT16K33 LED Driver Model
+.subckt HT16K33_SUB scl sda a0 a1 a2 r0 r1 r2 r3 c0 c1 c2 c3 vdd vss
+R_scl scl vss 100k
+R_sda sda vss 100k
+R_a0 a0 vss 1Meg
+R_a1 a1 vss 1Meg
+R_a2 a2 vss 1Meg
+B_c0 c0 vss V = 5.0
+B_c1 c1 vss V = 5.0
+B_c2 c2 vss V = 5.0
+B_c3 c3 vss V = 5.0
+B_r0 r0 vss V = 0.0
+B_r1 r1 vss V = 0.0
+B_r2 r2 vss V = 0.0
+B_r3 r3 vss V = 0.0
+R_pwr vdd vss 10Meg
+.ends HT16K33_SUB`,
+
+  PCF8575_SUB: `* PCF8575 16-Bit I2C Expander Model
+.subckt PCF8575_SUB sda scl int a0 a1 a2 p0 p1 p2 p3 p4 p5 p6 p7 p10 p11 vdd vss
+R_sda sda vss 100k
+R_scl scl vss 100k
+B_int int vss V = 5.0
+R_a0 a0 vss 1Meg
+R_a1 a1 vss 1Meg
+R_a2 a2 vss 1Meg
+B_p0 p0 vss V = 5.0
+B_p1 p1 vss V = 5.0
+B_p2 p2 vss V = 5.0
+B_p3 p3 vss V = 5.0
+B_p4 p4 vss V = 5.0
+B_p5 p5 vss V = 5.0
+B_p6 p6 vss V = 5.0
+B_p7 p7 vss V = 5.0
+B_p10 p10 vss V = 5.0
+B_p11 p11 vss V = 5.0
+R_pwr vdd vss 10Meg
+.ends PCF8575_SUB`,
+
+  MCP23017_SUB: `* MCP23017 16-Bit I2C Expander Model
+.subckt MCP23017_SUB sda scl inta intb reset a0 a1 a2 gpa0 gpa1 gpa2 gpa3 gpb0 gpb1 gpb2 gpb3 vdd vss
+R_sda sda vss 100k
+R_scl scl vss 100k
+B_inta inta vss V = 5.0
+B_intb intb vss V = 5.0
+R_rst reset vss 1Meg
+R_a0 a0 vss 1Meg
+R_a1 a1 vss 1Meg
+R_a2 a2 vss 1Meg
+B_a0 gpa0 vss V = 5.0
+B_a1 gpa1 vss V = 5.0
+B_a2 gpa2 vss V = 5.0
+B_a3 gpa3 vss V = 5.0
+B_b0 gpb0 vss V = 5.0
+B_b1 gpb1 vss V = 5.0
+B_b2 gpb2 vss V = 5.0
+B_b3 gpb3 vss V = 5.0
+R_pwr vdd vss 10Meg
+.ends MCP23017_SUB`,
+
+  MCP23008_SUB: `* MCP23008 8-Bit I2C Expander Model
+.subckt MCP23008_SUB scl sda a0 a1 a2 gp0 gp1 gp2 gp3 int vdd vss
+R_scl scl vss 100k
+R_sda sda vss 100k
+R_a0 a0 vss 1Meg
+R_a1 a1 vss 1Meg
+R_a2 a2 vss 1Meg
+B_g0 gp0 vss V = 5.0
+B_g1 gp1 vss V = 5.0
+B_g2 gp2 vss V = 5.0
+B_g3 gp3 vss V = 5.0
+B_int int vss V = 5.0
+R_pwr vdd vss 10Meg
+.ends MCP23008_SUB`,
+
+  LM336_SUB: `* LM336 2.5V Precision Reference Diode Model
+.subckt LM336_SUB cathode anode adj
+D1 anode cathode D_REF_2V5
+.model D_REF_2V5 D(Is=1e-14 Bv=2.49 Ibv=1m Rs=0.5)
+R_adj adj cathode 100k
+.ends LM336_SUB`,
+
+  AD584_SUB: `* AD584 Precision Multi-Voltage Reference Model
+.subckt AD584_SUB vin strobe vout bg gnd
+R_in vin gnd 1Meg
+R_st strobe gnd 1Meg
+B_out vout gnd V = 10.0
+B_bg bg gnd V = 1.215
+.ends AD584_SUB`,
+
+  REF192_SUB: `* REF192 Precision 2.5V Voltage Reference Model
+.subckt REF192_SUB vin sleep vout temp gnd
+R_in vin gnd 1Meg
+R_sl sleep gnd 1Meg
+B_out vout gnd V = 2.5
+B_tmp temp gnd V = 0.6
+.ends REF192_SUB`,
+
+  MAX6126_SUB: `* MAX6126 Ultra-High Precision 2.048V Reference Model
+.subckt MAX6126_SUB in trim out nr gnd
+R_in in gnd 1Meg
+R_tr trim gnd 1Meg
+R_nr nr gnd 1Meg
+B_out out gnd V = 2.048
+.ends MAX6126_SUB`,
+
+  AD736_SUB: `* AD736 True RMS-to-DC Converter Model
+.subckt AD736_SUB vin cav fb vout com vp vn
+R_in vin com 1Meg
+R_cav cav com 1Meg
+R_fb fb vout 1k
+B_rms vout com V = sqrt((V(vin,com))*(V(vin,com)))
+R_pwr vp vn 10Meg
+.ends AD736_SUB`,
+
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -2679,6 +3078,126 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'ic_cd4028': {
       const [a='0', b='0', c='0', d='0', y0='0', y1='0', y2='0', y3='0', y4='0', y5='0', y6='0', y7='0', y8='0', y9='0', vdd='0', vss='0'] = nodes;
       return { line: `X_${comp.id} ${a} ${b} ${c} ${d} ${y0} ${y1} ${y2} ${y3} ${y4} ${y5} ${y6} ${y7} ${y8} ${y9} ${vdd} ${vss} CD4028_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4028_SUB] };
+    }
+    case 'ic_adc0804': {
+      const [cs='0', rd='0', wr='0', clk='0', vinp='0', vinm='0', vref='0', db7='0', db6='0', db5='0', db4='0', db3='0', db2='0', db1='0', db0='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cs} ${rd} ${wr} ${clk} ${vinp} ${vinm} ${vref} ${db7} ${db6} ${db5} ${db4} ${db3} ${db2} ${db1} ${db0} ${vcc} ${gnd} ADC0804_SUB`, subckts: [SUBCKT_DEFINITIONS.ADC0804_SUB] };
+    }
+    case 'ic_adc0808': {
+      const [in0='0', in1='0', in2='0', in3='0', ale='0', start='0', oe='0', eoc='0', db7='0', db6='0', db5='0', db4='0', db3='0', db2='0', db1='0', db0='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${in0} ${in1} ${in2} ${in3} ${ale} ${start} ${oe} ${eoc} ${db7} ${db6} ${db5} ${db4} ${db3} ${db2} ${db1} ${db0} ${vcc} ${gnd} ADC0808_SUB`, subckts: [SUBCKT_DEFINITIONS.ADC0808_SUB] };
+    }
+    case 'ic_ads1015': {
+      const [a0='0', a1='0', a2='0', a3='0', addr='0', sda='0', scl='0', alrt='0', vdd='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a0} ${a1} ${a2} ${a3} ${addr} ${sda} ${scl} ${alrt} ${vdd} ${gnd} ADS1015_SUB`, subckts: [SUBCKT_DEFINITIONS.ADS1015_SUB] };
+    }
+    case 'ic_mcp3204': {
+      const [ch0='0', ch1='0', ch2='0', ch3='0', vref='0', cs='0', din='0', dout='0', clk='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${ch0} ${ch1} ${ch2} ${ch3} ${vref} ${cs} ${din} ${dout} ${clk} ${vdd} ${vss} MCP3204_SUB`, subckts: [SUBCKT_DEFINITIONS.MCP3204_SUB] };
+    }
+    case 'ic_max127': {
+      const [ch0='0', ch1='0', ch2='0', ch3='0', vref='0', sda='0', scl='0', vdd='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${ch0} ${ch1} ${ch2} ${ch3} ${vref} ${sda} ${scl} ${vdd} ${gnd} MAX127_SUB`, subckts: [SUBCKT_DEFINITIONS.MAX127_SUB] };
+    }
+    case 'ic_ltc1864': {
+      const [vinp='0', vinm='0', vref='0', conv='0', sck='0', sdo='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${vinp} ${vinm} ${vref} ${conv} ${sck} ${sdo} ${vcc} ${gnd} LTC1864_SUB`, subckts: [SUBCKT_DEFINITIONS.LTC1864_SUB] };
+    }
+    case 'ic_mcp4822': {
+      const [cs='0', sck='0', sdi='0', ldac='0', vouta='0', voutb='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${cs} ${sck} ${sdi} ${ldac} ${vouta} ${voutb} ${vdd} ${vss} MCP4822_SUB`, subckts: [SUBCKT_DEFINITIONS.MCP4822_SUB] };
+    }
+    case 'ic_mcp4921': {
+      const [cs='0', sck='0', sdi='0', ldac='0', vref='0', vout='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${cs} ${sck} ${sdi} ${ldac} ${vref} ${vout} ${vdd} ${vss} MCP4921_SUB`, subckts: [SUBCKT_DEFINITIONS.MCP4921_SUB] };
+    }
+    case 'ic_dac0800': {
+      const [d7='0', d6='0', d5='0', d4='0', d3='0', d2='0', d1='0', d0='0', iout='0', ioutb='0', vrefp='0', vrefm='0', vcc='0', vee='0'] = nodes;
+      return { line: `X_${comp.id} ${d7} ${d6} ${d5} ${d4} ${d3} ${d2} ${d1} ${d0} ${iout} ${ioutb} ${vrefp} ${vrefm} ${vcc} ${vee} DAC0800_SUB`, subckts: [SUBCKT_DEFINITIONS.DAC0800_SUB] };
+    }
+    case 'ic_pcf8591': {
+      const [ain0='0', ain1='0', ain2='0', ain3='0', aout='0', sda='0', scl='0', osc='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${ain0} ${ain1} ${ain2} ${ain3} ${aout} ${sda} ${scl} ${osc} ${vdd} ${vss} PCF8591_SUB`, subckts: [SUBCKT_DEFINITIONS.PCF8591_SUB] };
+    }
+    case 'ic_max1487': {
+      const [ro='0', re='0', de='0', di='0', a='0', b='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${ro} ${re} ${de} ${di} ${a} ${b} ${vcc} ${gnd} MAX1487_SUB`, subckts: [SUBCKT_DEFINITIONS.MAX1487_SUB] };
+    }
+    case 'ic_sn75176': {
+      const [r='0', re='0', de='0', d='0', a='0', b='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${r} ${re} ${de} ${d} ${a} ${b} ${vcc} ${gnd} SN75176_SUB`, subckts: [SUBCKT_DEFINITIONS.SN75176_SUB] };
+    }
+    case 'ic_max3232': {
+      const [t1in='0', r1out='0', t2in='0', r2out='0', c1p='0', c1m='0', t1out='0', r1in='0', t2out='0', r2in='0', c2p='0', c2m='0', vp='0', vm='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${t1in} ${r1out} ${t2in} ${r2out} ${c1p} ${c1m} ${t1out} ${r1in} ${t2out} ${r2in} ${c2p} ${c2m} ${vp} ${vm} ${vcc} ${gnd} MAX3232_SUB`, subckts: [SUBCKT_DEFINITIONS.MAX3232_SUB] };
+    }
+    case 'ic_mcp2515': {
+      const [cs='0', si='0', sck='0', osc1='0', osc2='0', so='0', int='0', txcan='0', rxcan='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${cs} ${si} ${sck} ${osc1} ${osc2} ${so} ${int} ${txcan} ${rxcan} ${vdd} ${vss} MCP2515_SUB`, subckts: [SUBCKT_DEFINITIONS.MCP2515_SUB] };
+    }
+    case 'ic_tja1050': {
+      const [txd='0', rxd='0', s='0', canh='0', canl='0', vref='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${txd} ${rxd} ${s} ${canh} ${canl} ${vref} ${vcc} ${gnd} TJA1050_SUB`, subckts: [SUBCKT_DEFINITIONS.TJA1050_SUB] };
+    }
+    case 'ic_ch340g': {
+      const [udp='0', udm='0', xi='0', xo='0', txd='0', rxd='0', dtr='0', rts='0', cts='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${udp} ${udm} ${xi} ${xo} ${txd} ${rxd} ${dtr} ${rts} ${cts} ${vcc} ${gnd} CH340G_SUB`, subckts: [SUBCKT_DEFINITIONS.CH340G_SUB] };
+    }
+    case 'ic_ft232rl': {
+      const [usbdm='0', usbdp='0', cbus0='0', cbus1='0', txd='0', rxd='0', rts='0', cts='0', dtr='0', dsr='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${usbdm} ${usbdp} ${cbus0} ${cbus1} ${txd} ${rxd} ${rts} ${cts} ${dtr} ${dsr} ${vcc} ${gnd} FT232RL_SUB`, subckts: [SUBCKT_DEFINITIONS.FT232RL_SUB] };
+    }
+    case 'ic_cp2102': {
+      const [dp='0', dm='0', susp='0', txd='0', rxd='0', rts='0', cts='0', dtr='0', vdd='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${dp} ${dm} ${susp} ${txd} ${rxd} ${rts} ${cts} ${dtr} ${vdd} ${gnd} CP2102_SUB`, subckts: [SUBCKT_DEFINITIONS.CP2102_SUB] };
+    }
+    case 'ic_txb0108': {
+      const [oe='0', a1='0', a2='0', a3='0', a4='0', a5='0', a6='0', a7='0', a8='0', b1='0', b2='0', b3='0', b4='0', b5='0', b6='0', b7='0', b8='0', vcca='0', vccb='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${oe} ${a1} ${a2} ${a3} ${a4} ${a5} ${a6} ${a7} ${a8} ${b1} ${b2} ${b3} ${b4} ${b5} ${b6} ${b7} ${b8} ${vcca} ${vccb} ${gnd} TXB0108_SUB`, subckts: [SUBCKT_DEFINITIONS.TXB0108_SUB] };
+    }
+    case 'ic_pca9306': {
+      const [scl1='0', sda1='0', vref1='0', scl2='0', sda2='0', vref2='0', en='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${scl1} ${sda1} ${vref1} ${scl2} ${sda2} ${vref2} ${en} ${gnd} PCA9306_SUB`, subckts: [SUBCKT_DEFINITIONS.PCA9306_SUB] };
+    }
+    case 'ic_tm1637': {
+      const [clk='0', dio='0', s1='0', s2='0', s3='0', s4='0', s5='0', s6='0', s7='0', s8='0', g1='0', g2='0', g3='0', g4='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${clk} ${dio} ${s1} ${s2} ${s3} ${s4} ${s5} ${s6} ${s7} ${s8} ${g1} ${g2} ${g3} ${g4} ${vcc} ${gnd} TM1637_SUB`, subckts: [SUBCKT_DEFINITIONS.TM1637_SUB] };
+    }
+    case 'ic_ht16k33': {
+      const [scl='0', sda='0', a0='0', a1='0', a2='0', r0='0', r1='0', r2='0', r3='0', c0='0', c1='0', c2='0', c3='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${scl} ${sda} ${a0} ${a1} ${a2} ${r0} ${r1} ${r2} ${r3} ${c0} ${c1} ${c2} ${c3} ${vdd} ${vss} HT16K33_SUB`, subckts: [SUBCKT_DEFINITIONS.HT16K33_SUB] };
+    }
+    case 'ic_pcf8575': {
+      const [sda='0', scl='0', int='0', a0='0', a1='0', a2='0', p0='0', p1='0', p2='0', p3='0', p4='0', p5='0', p6='0', p7='0', p10='0', p11='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${sda} ${scl} ${int} ${a0} ${a1} ${a2} ${p0} ${p1} ${p2} ${p3} ${p4} ${p5} ${p6} ${p7} ${p10} ${p11} ${vdd} ${vss} PCF8575_SUB`, subckts: [SUBCKT_DEFINITIONS.PCF8575_SUB] };
+    }
+    case 'ic_mcp23017': {
+      const [sda='0', scl='0', inta='0', intb='0', reset='0', a0='0', a1='0', a2='0', gpa0='0', gpa1='0', gpa2='0', gpa3='0', gpb0='0', gpb1='0', gpb2='0', gpb3='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${sda} ${scl} ${inta} ${intb} ${reset} ${a0} ${a1} ${a2} ${gpa0} ${gpa1} ${gpa2} ${gpa3} ${gpb0} ${gpb1} ${gpb2} ${gpb3} ${vdd} ${vss} MCP23017_SUB`, subckts: [SUBCKT_DEFINITIONS.MCP23017_SUB] };
+    }
+    case 'ic_mcp23008': {
+      const [scl='0', sda='0', a0='0', a1='0', a2='0', gp0='0', gp1='0', gp2='0', gp3='0', int='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${scl} ${sda} ${a0} ${a1} ${a2} ${gp0} ${gp1} ${gp2} ${gp3} ${int} ${vdd} ${vss} MCP23008_SUB`, subckts: [SUBCKT_DEFINITIONS.MCP23008_SUB] };
+    }
+    case 'ic_lm336': {
+      const [cathode='0', anode='0', adj='0'] = nodes;
+      return { line: `X_${comp.id} ${cathode} ${anode} ${adj} LM336_SUB`, subckts: [SUBCKT_DEFINITIONS.LM336_SUB] };
+    }
+    case 'ic_ad584': {
+      const [vin='0', strobe='0', vout='0', bg='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${strobe} ${vout} ${bg} ${gnd} AD584_SUB`, subckts: [SUBCKT_DEFINITIONS.AD584_SUB] };
+    }
+    case 'ic_ref192': {
+      const [vin='0', sleep='0', vout='0', temp='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${sleep} ${vout} ${temp} ${gnd} REF192_SUB`, subckts: [SUBCKT_DEFINITIONS.REF192_SUB] };
+    }
+    case 'ic_max6126': {
+      const [inPin='0', trim='0', out='0', nr='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${inPin} ${trim} ${out} ${nr} ${gnd} MAX6126_SUB`, subckts: [SUBCKT_DEFINITIONS.MAX6126_SUB] };
+    }
+    case 'ic_ad736': {
+      const [vin='0', cav='0', fb='0', vout='0', com='0', vp='0', vn='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${cav} ${fb} ${vout} ${com} ${vp} ${vn} AD736_SUB`, subckts: [SUBCKT_DEFINITIONS.AD736_SUB] };
     }
     default:
       return null;
