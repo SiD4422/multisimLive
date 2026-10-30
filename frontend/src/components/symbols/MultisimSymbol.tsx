@@ -179,6 +179,36 @@ function formatRefDes(id: string, type: string): string {
     ic_ref192: 'VR',
     ic_max6126: 'VR',
     ic_ad736: 'U',
+    ic_l6203: 'U',
+    ic_uln2803: 'U',
+    ic_bts7960: 'U',
+    ic_a4988: 'U',
+    ic_drv8825: 'U',
+    ic_drv8833: 'U',
+    ic_tb6612fng: 'U',
+    ic_max31855: 'U',
+    ic_dht11: 'SEN',
+    ic_dht22: 'SEN',
+    ic_bme280: 'SEN',
+    ic_bme680: 'SEN',
+    sensor_hcsr04: 'SEN',
+    sensor_pir_hc_sr501: 'SEN',
+    sensor_mq2: 'SEN',
+    sensor_mq3: 'SEN',
+    sensor_mq7: 'SEN',
+    sensor_tsl2561: 'SEN',
+    sensor_max30102: 'SEN',
+    sensor_adxl345: 'SEN',
+    sensor_tcs34725: 'SEN',
+    sensor_mlx90614: 'SEN',
+    sensor_vl53l0x: 'SEN',
+    sensor_soil_moisture: 'SEN',
+    sensor_ky038: 'SEN',
+    sensor_reed_switch: 'S',
+    sensor_piezo_buzzer: 'LS',
+    sensor_rotary_encoder: 'SW',
+    ic_tc4420: 'U',
+    ic_tc4427: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -4658,6 +4688,360 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     ];
     labelOffset = { x: 0, y: -42 };
     valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_l6203') {
+    // L6203 Full Bridge Driver
+    rects.push({ x: -30, y: -35, width: 60, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -25, -30, -25] }, { points: [-40, 0, -30, 0] }, { points: [-40, 25, -30, 25] });
+    lines.push({ points: [30, -20, 40, -20] }, { points: [30, 0, 40, 0] }, { points: [30, 20, 40, 20] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'L6203', x: -16, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -25 }, { x: -40, y: 0 }, { x: -40, y: 25 },
+      { x: 40, y: -20 }, { x: 40, y: 0 }, { x: 40, y: 20 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_uln2803') {
+    // ULN2803 Darlington Driver
+    rects.push({ x: -35, y: -50, width: 70, height: 100, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -45, -35, -45] }, { points: [-45, -32, -35, -32] }, { points: [-45, -19, -35, -19] }, { points: [-45, -6, -35, -6] }, { points: [-45, 7, -35, 7] }, { points: [-45, 20, -35, 20] }, { points: [-45, 33, -35, 33] }, { points: [-45, 46, -35, 46] });
+    lines.push({ points: [35, -45, 45, -45] }, { points: [35, -32, 45, -32] }, { points: [35, -19, 45, -19] }, { points: [35, -6, 45, -6] }, { points: [35, 7, 45, 7] }, { points: [35, 20, 45, 20] }, { points: [35, 33, 45, 33] }, { points: [35, 46, 45, 46] });
+    lines.push({ points: [0, -55, 0, -50] }, { points: [0, 50, 0, 55] });
+    texts.push({ text: 'ULN2803', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -45 }, { x: -45, y: -32 }, { x: -45, y: -19 }, { x: -45, y: -6 }, { x: -45, y: 7 }, { x: -45, y: 20 }, { x: -45, y: 33 }, { x: -45, y: 46 },
+      { x: 45, y: -45 }, { x: 45, y: -32 }, { x: 45, y: -19 }, { x: 45, y: -6 }, { x: 45, y: 7 }, { x: 45, y: 20 }, { x: 45, y: 33 }, { x: 45, y: 46 },
+      { x: 0, y: -55 }, { x: 0, y: 55 }
+    ];
+    labelOffset = { x: 0, y: -62 };
+    valueOffset = { x: 0, y: 65 };
+  } else if (type === 'ic_bts7960') {
+    // BTS7960 Motor Driver
+    rects.push({ x: -30, y: -35, width: 60, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -25, -30, -25] }, { points: [-40, 0, -30, 0] }, { points: [-40, 25, -30, 25] });
+    lines.push({ points: [30, 0, 40, 0] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'BTS7960', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -25 }, { x: -40, y: 0 }, { x: -40, y: 25 },
+      { x: 40, y: 0 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_a4988') {
+    // A4988 Stepper Driver
+    rects.push({ x: -35, y: -45, width: 70, height: 90, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -40, -35, -40] }, { points: [-45, -20, -35, -20] }, { points: [-45, 0, -35, 0] }, { points: [-45, 20, -35, 20] }, { points: [-45, 40, -35, 40] });
+    lines.push({ points: [35, -40, 45, -40] }, { points: [35, -20, 45, -20] }, { points: [35, 10, 45, 10] }, { points: [35, 30, 45, 30] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 45, 0, 50] });
+    texts.push({ text: 'A4988', x: -16, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -40 }, { x: -45, y: -20 }, { x: -45, y: 0 }, { x: -45, y: 20 }, { x: -45, y: 40 },
+      { x: 45, y: -40 }, { x: 45, y: -20 }, { x: 45, y: 10 }, { x: 45, y: 30 },
+      { x: 0, y: -50 }, { x: 0, y: 50 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 60 };
+  } else if (type === 'ic_drv8825') {
+    // DRV8825 Stepper Driver
+    rects.push({ x: -35, y: -45, width: 70, height: 90, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -40, -35, -40] }, { points: [-45, -20, -35, -20] }, { points: [-45, 0, -35, 0] }, { points: [-45, 20, -35, 20] }, { points: [-45, 40, -35, 40] });
+    lines.push({ points: [35, -40, 45, -40] }, { points: [35, -20, 45, -20] }, { points: [35, 10, 45, 10] }, { points: [35, 30, 45, 30] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 45, 0, 50] });
+    texts.push({ text: 'DRV8825', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -40 }, { x: -45, y: -20 }, { x: -45, y: 0 }, { x: -45, y: 20 }, { x: -45, y: 40 },
+      { x: 45, y: -40 }, { x: 45, y: -20 }, { x: 45, y: 10 }, { x: 45, y: 30 },
+      { x: 0, y: -50 }, { x: 0, y: 50 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 60 };
+  } else if (type === 'ic_drv8833') {
+    // DRV8833 Dual H-Bridge
+    rects.push({ x: -35, y: -45, width: 70, height: 95, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -35, -35, -35] }, { points: [-45, -15, -35, -15] }, { points: [-45, 10, -35, 10] }, { points: [-45, 30, -35, 30] }, { points: [-45, 50, -35, 50] });
+    lines.push({ points: [35, -35, 45, -35] }, { points: [35, -15, 45, -15] }, { points: [35, 10, 45, 10] }, { points: [35, 30, 45, 30] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 50, 0, 55] });
+    texts.push({ text: 'DRV8833', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -35 }, { x: -45, y: -15 }, { x: -45, y: 10 }, { x: -45, y: 30 },
+      { x: 45, y: -35 }, { x: 45, y: -15 }, { x: 45, y: 10 }, { x: 45, y: 30 },
+      { x: -45, y: 50 },
+      { x: 0, y: -50 }, { x: 0, y: 55 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 65 };
+  } else if (type === 'ic_tb6612fng') {
+    // TB6612FNG Dual DC Motor Driver
+    rects.push({ x: -35, y: -55, width: 70, height: 110, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -45, -35, -45] }, { points: [-45, -30, -35, -30] }, { points: [-45, -15, -35, -15] }, { points: [-45, 5, -35, 5] }, { points: [-45, 20, -35, 20] }, { points: [-45, 35, -35, 35] }, { points: [-45, 50, -35, 50] });
+    lines.push({ points: [35, -40, 45, -40] }, { points: [35, -20, 45, -20] }, { points: [35, 15, 45, 15] }, { points: [35, 35, 45, 35] });
+    lines.push({ points: [-20, -60, -20, -55] }, { points: [20, -60, 20, -55] }, { points: [0, 55, 0, 60] });
+    texts.push({ text: 'TB6612', x: -20, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -45 }, { x: -45, y: -30 }, { x: -45, y: -15 }, { x: -45, y: 5 }, { x: -45, y: 20 }, { x: -45, y: 35 }, { x: -45, y: 50 },
+      { x: 45, y: -40 }, { x: 45, y: -20 }, { x: 45, y: 15 }, { x: 45, y: 35 },
+      { x: -20, y: -60 }, { x: 20, y: -60 }, { x: 0, y: 60 }
+    ];
+    labelOffset = { x: 0, y: -67 };
+    valueOffset = { x: 0, y: 70 };
+  } else if (type === 'ic_max31855') {
+    // MAX31855 Thermocouple Converter
+    rects.push({ x: -30, y: -25, width: 60, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -15, -30, -15] }, { points: [-40, 15, -30, 15] });
+    lines.push({ points: [30, -20, 40, -20] }, { points: [30, 0, 40, 0] }, { points: [30, 20, 40, 20] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'MAX31855', x: -24, y: -4, size: 7 });
+    pins = [
+      { x: -40, y: -15 }, { x: -40, y: 15 },
+      { x: 40, y: -20 }, { x: 40, y: 0 }, { x: 40, y: 20 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_dht11') {
+    // DHT11 Humidity/Temp Sensor
+    rects.push({ x: -25, y: -25, width: 50, height: 50, fill: '#1f6feb', stroke: strokeColor });
+    lines.push({ points: [25, 0, 35, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'DHT11', x: -16, y: -4, size: 8 });
+    pins = [{ x: 35, y: 0 }, { x: 0, y: -35 }, { x: 0, y: 35 }];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_dht22') {
+    // DHT22 Humidity/Temp Sensor
+    rects.push({ x: -25, y: -25, width: 50, height: 50, fill: '#238636', stroke: strokeColor });
+    lines.push({ points: [25, 0, 35, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'DHT22', x: -16, y: -4, size: 8 });
+    pins = [{ x: 35, y: 0 }, { x: 0, y: -35 }, { x: 0, y: 35 }];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_bme280') {
+    // BME280 Environmental Sensor
+    rects.push({ x: -30, y: -25, width: 60, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -20, -30, -20] }, { points: [-40, 0, -30, 0] }, { points: [-40, 20, -30, 20] });
+    lines.push({ points: [30, 0, 40, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'BME280', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -20 }, { x: -40, y: 0 }, { x: -40, y: 20 },
+      { x: 40, y: 0 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_bme680') {
+    // BME680 Environmental Sensor
+    rects.push({ x: -30, y: -25, width: 60, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -20, -30, -20] }, { points: [-40, 0, -30, 0] }, { points: [-40, 20, -30, 20] });
+    lines.push({ points: [30, 0, 40, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'BME680', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -20 }, { x: -40, y: 0 }, { x: -40, y: 20 },
+      { x: 40, y: 0 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_hcsr04') {
+    // HC-SR04 Ultrasonic Sensor
+    rects.push({ x: -35, y: -25, width: 70, height: 50, fill: '#161b22', stroke: strokeColor });
+    circles.push({ x: -16, y: 0, r: 10, fill: '#21262d', stroke: strokeColor });
+    circles.push({ x: 16, y: 0, r: 10, fill: '#21262d', stroke: strokeColor });
+    lines.push({ points: [-25, -35, -25, -25] }, { points: [-25, 25, -25, 35] }, { points: [25, 25, 25, 35] }, { points: [25, -35, 25, -25] });
+    texts.push({ text: 'HC-SR04', x: -18, y: -20, size: 6 });
+    pins = [{ x: -25, y: -35 }, { x: -25, y: 35 }, { x: 25, y: 35 }, { x: 25, y: -35 }];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_pir_hc_sr501') {
+    // PIR Motion Sensor
+    circles.push({ x: 0, y: 0, r: 22, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [22, 0, 30, 0] });
+    lines.push({ points: [0, -30, 0, -22] }, { points: [0, 22, 0, 30] });
+    texts.push({ text: 'PIR', x: -8, y: -4, size: 8 });
+    pins = [{ x: 30, y: 0 }, { x: 0, y: -30 }, { x: 0, y: 30 }];
+    labelOffset = { x: 0, y: -37 };
+    valueOffset = { x: 0, y: 40 };
+  } else if (type === 'sensor_mq2') {
+    // MQ-2 Gas Sensor
+    circles.push({ x: 0, y: 0, r: 24, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [24, -15, 35, -15] }, { points: [24, 15, 35, 15] });
+    lines.push({ points: [0, -35, 0, -24] }, { points: [0, 24, 0, 35] });
+    texts.push({ text: 'MQ-2', x: -12, y: -4, size: 8 });
+    pins = [{ x: 35, y: -15 }, { x: 35, y: 15 }, { x: 0, y: -35 }, { x: 0, y: 35 }];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_mq3') {
+    // MQ-3 Gas Sensor
+    circles.push({ x: 0, y: 0, r: 24, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [24, -15, 35, -15] }, { points: [24, 15, 35, 15] });
+    lines.push({ points: [0, -35, 0, -24] }, { points: [0, 24, 0, 35] });
+    texts.push({ text: 'MQ-3', x: -12, y: -4, size: 8 });
+    pins = [{ x: 35, y: -15 }, { x: 35, y: 15 }, { x: 0, y: -35 }, { x: 0, y: 35 }];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_mq7') {
+    // MQ-7 Gas Sensor
+    circles.push({ x: 0, y: 0, r: 24, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [24, -15, 35, -15] }, { points: [24, 15, 35, 15] });
+    lines.push({ points: [0, -35, 0, -24] }, { points: [0, 24, 0, 35] });
+    texts.push({ text: 'MQ-7', x: -12, y: -4, size: 8 });
+    pins = [{ x: 35, y: -15 }, { x: 35, y: 15 }, { x: 0, y: -35 }, { x: 0, y: 35 }];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_tsl2561') {
+    // TSL2561 Light Sensor
+    rects.push({ x: -30, y: -25, width: 60, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -20, -30, -20] }, { points: [-40, 0, -30, 0] }, { points: [-40, 20, -30, 20] });
+    lines.push({ points: [30, 0, 40, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'TSL2561', x: -22, y: -4, size: 7 });
+    pins = [
+      { x: -40, y: -20 }, { x: -40, y: 0 }, { x: -40, y: 20 },
+      { x: 40, y: 0 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_max30102') {
+    // MAX30102 Pulse Oximeter
+    rects.push({ x: -30, y: -25, width: 60, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -15, -30, -15] }, { points: [-40, 15, -30, 15] });
+    lines.push({ points: [30, 0, 40, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'MAX30102', x: -24, y: -4, size: 7 });
+    pins = [
+      { x: -40, y: -15 }, { x: -40, y: 15 },
+      { x: 40, y: 0 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_adxl345') {
+    // ADXL345 Accelerometer
+    rects.push({ x: -30, y: -35, width: 60, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -30, -30, -30] }, { points: [-40, -10, -30, -10] }, { points: [-40, 10, -30, 10] }, { points: [-40, 30, -30, 30] });
+    lines.push({ points: [30, -15, 40, -15] }, { points: [30, 15, 40, 15] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'ADXL345', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -30 }, { x: -40, y: -10 }, { x: -40, y: 10 }, { x: -40, y: 30 },
+      { x: 40, y: -15 }, { x: 40, y: 15 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'sensor_tcs34725') {
+    // TCS34725 Color Sensor
+    rects.push({ x: -30, y: -25, width: 60, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -20, -30, -20] }, { points: [-40, 0, -30, 0] }, { points: [-40, 20, -30, 20] });
+    lines.push({ points: [30, 0, 40, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'TCS34725', x: -24, y: -4, size: 7 });
+    pins = [
+      { x: -40, y: -20 }, { x: -40, y: 0 }, { x: -40, y: 20 },
+      { x: 40, y: 0 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_mlx90614') {
+    // MLX90614 IR Thermometer
+    rects.push({ x: -25, y: -25, width: 50, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-35, 0, -25, 0] }, { points: [25, 0, 35, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'MLX90614', x: -24, y: -4, size: 7 });
+    pins = [{ x: -35, y: 0 }, { x: 35, y: 0 }, { x: 0, y: -35 }, { x: 0, y: 35 }];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_vl53l0x') {
+    // VL53L0X Laser ToF
+    rects.push({ x: -30, y: -25, width: 60, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -20, -30, -20] }, { points: [-40, 0, -30, 0] }, { points: [-40, 20, -30, 20] });
+    lines.push({ points: [30, 0, 40, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'VL53L0X', x: -22, y: -4, size: 7 });
+    pins = [
+      { x: -40, y: -20 }, { x: -40, y: 0 }, { x: -40, y: 20 },
+      { x: 40, y: 0 },
+      { x: 0, y: -35 }, { x: 0, y: 35 }
+    ];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_soil_moisture') {
+    // Soil Moisture Sensor
+    rects.push({ x: -20, y: -20, width: 40, height: 40, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [20, 0, 30, 0] });
+    lines.push({ points: [0, -30, 0, -20] }, { points: [0, 20, 0, 30] });
+    texts.push({ text: 'SOIL', x: -12, y: -4, size: 8 });
+    pins = [{ x: 30, y: 0 }, { x: 0, y: -30 }, { x: 0, y: 30 }];
+    labelOffset = { x: 0, y: -37 };
+    valueOffset = { x: 0, y: 40 };
+  } else if (type === 'sensor_ky038') {
+    // KY-038 Sound Sensor
+    rects.push({ x: -25, y: -25, width: 50, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [25, -15, 35, -15] }, { points: [25, 15, 35, 15] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'KY-038', x: -16, y: -4, size: 8 });
+    pins = [{ x: 35, y: -15 }, { x: 35, y: 15 }, { x: 0, y: -35 }, { x: 0, y: 35 }];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'sensor_reed_switch') {
+    // Reed Magnetic Switch
+    lines.push({ points: [-30, 0, -10, 0] }, { points: [10, 0, 30, 0] });
+    lines.push({ points: [-10, 0, 6, -8] });
+    rects.push({ x: -18, y: -12, width: 36, height: 24, stroke: strokeColor });
+    texts.push({ text: 'REED', x: -12, y: 14, size: 7 });
+    pins = [{ x: -30, y: 0 }, { x: 30, y: 0 }];
+    labelOffset = { x: 0, y: -18 };
+    valueOffset = { x: 0, y: 22 };
+  } else if (type === 'sensor_piezo_buzzer') {
+    // Piezoelectric Buzzer
+    circles.push({ x: 0, y: 0, r: 20, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [0, -30, 0, -20] }, { points: [0, 20, 0, 30] });
+    texts.push({ text: 'BUZZ', x: -12, y: -4, size: 8 });
+    pins = [{ x: 0, y: -30 }, { x: 0, y: 30 }];
+    labelOffset = { x: 26, y: 0 };
+    valueOffset = { x: 26, y: 12 };
+  } else if (type === 'sensor_rotary_encoder') {
+    // Rotary Quadrature Encoder
+    rects.push({ x: -25, y: -35, width: 50, height: 70, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [25, -30, 35, -30] }, { points: [25, -10, 35, -10] }, { points: [25, 10, 35, 10] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: 'ENCODER', x: -22, y: -4, size: 7 });
+    pins = [
+      { x: 35, y: -30 }, { x: 35, y: -10 }, { x: 35, y: 10 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_tc4420') {
+    // TC4420 6A Driver
+    rects.push({ x: -25, y: -25, width: 50, height: 50, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-35, 0, -25, 0] }, { points: [25, 0, 35, 0] });
+    lines.push({ points: [0, -35, 0, -25] }, { points: [0, 25, 0, 35] });
+    texts.push({ text: 'TC4420', x: -18, y: -4, size: 8 });
+    pins = [{ x: -35, y: 0 }, { x: 35, y: 0 }, { x: 0, y: -35 }, { x: 0, y: 35 }];
+    labelOffset = { x: 0, y: -42 };
+    valueOffset = { x: 0, y: 45 };
+  } else if (type === 'ic_tc4427') {
+    // TC4427 Dual 1.5A Driver
+    rects.push({ x: -25, y: -30, width: 50, height: 60, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-35, -15, -25, -15] }, { points: [-35, 15, -25, 15] });
+    lines.push({ points: [25, -15, 35, -15] }, { points: [25, 15, 35, 15] });
+    lines.push({ points: [0, -40, 0, -30] }, { points: [0, 30, 0, 40] });
+    texts.push({ text: 'TC4427', x: -18, y: -4, size: 8 });
+    pins = [
+      { x: -35, y: -15 }, { x: -35, y: 15 },
+      { x: 35, y: -15 }, { x: 35, y: 15 },
+      { x: 0, y: -40 }, { x: 0, y: 40 }
+    ];
+    labelOffset = { x: 0, y: -47 };
+    valueOffset = { x: 0, y: 50 };
 
   }
   // --- FALLBACK ---

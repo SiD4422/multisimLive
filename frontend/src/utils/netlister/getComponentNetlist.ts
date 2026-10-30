@@ -2004,6 +2004,282 @@ B_rms vout com V = sqrt((V(vin,com))*(V(vin,com)))
 R_pwr vp vn 10Meg
 .ends AD736_SUB`,
 
+  L6203_SUB: `* L6203 DMOS Full Bridge Driver Model
+.subckt L6203_SUB en in1 in2 out1 out2 sense vs gnd
+R_in1 in1 gnd 1Meg
+R_in2 in2 gnd 1Meg
+R_en en gnd 1Meg
+B_out1 out1 sense V = (V(en) > 2.0) ? ((V(in1) > 2.0) ? V(vs,sense) : 0.0) : 0.0
+B_out2 out2 sense V = (V(en) > 2.0) ? ((V(in2) > 2.0) ? V(vs,sense) : 0.0) : 0.0
+R_sns sense gnd 0.1
+R_pwr vs gnd 10Meg
+.ends L6203_SUB`,
+
+  ULN2803_SUB: `* ULN2803 8-Channel Darlington Driver Model
+.subckt ULN2803_SUB in1 in2 in3 in4 in5 in6 in7 in8 out1 out2 out3 out4 out5 out6 out7 out8 com gnd
+B_o1 out1 gnd I = (V(in1) > 1.4) ? 0.2 : 0.0
+B_o2 out2 gnd I = (V(in2) > 1.4) ? 0.2 : 0.0
+B_o3 out3 gnd I = (V(in3) > 1.4) ? 0.2 : 0.0
+B_o4 out4 gnd I = (V(in4) > 1.4) ? 0.2 : 0.0
+B_o5 out5 gnd I = (V(in5) > 1.4) ? 0.2 : 0.0
+B_o6 out6 gnd I = (V(in6) > 1.4) ? 0.2 : 0.0
+B_o7 out7 gnd I = (V(in7) > 1.4) ? 0.2 : 0.0
+B_o8 out8 gnd I = (V(in8) > 1.4) ? 0.2 : 0.0
+R_i1 in1 gnd 2.7k
+R_i2 in2 gnd 2.7k
+R_i3 in3 gnd 2.7k
+R_i4 in4 gnd 2.7k
+R_i5 in5 gnd 2.7k
+R_i6 in6 gnd 2.7k
+R_i7 in7 gnd 2.7k
+R_i8 in8 gnd 2.7k
+R_com com gnd 10Meg
+.ends ULN2803_SUB`,
+
+  BTS7960_SUB: `* BTS7960 43A Motor Driver Model
+.subckt BTS7960_SUB inPin inh isPin outPin vs gnd
+R_in inPin gnd 1Meg
+R_inh inh gnd 1Meg
+B_out outPin gnd V = (V(inh) > 2.0) ? ((V(inPin) > 2.0) ? V(vs) : 0.0) : 0.0
+B_is isPin gnd V = 0.005 * V(vs)
+R_pwr vs gnd 10Meg
+.ends BTS7960_SUB`,
+
+  A4988_SUB: `* A4988 Stepper Motor Driver Model
+.subckt A4988_SUB step dir en ms1 ms2 o1a o1b o2a o2b vmot gnd
+R_step step gnd 1Meg
+R_dir dir gnd 1Meg
+R_en en gnd 1Meg
+R_ms1 ms1 gnd 1Meg
+R_ms2 ms2 gnd 1Meg
+B_o1a o1a gnd V = (V(en) < 0.8) ? (0.5 * V(vmot)) : 0.0
+B_o1b o1b gnd V = (V(en) < 0.8) ? (0.2 * V(vmot)) : 0.0
+B_o2a o2a gnd V = (V(en) < 0.8) ? (0.5 * V(vmot)) : 0.0
+B_o2b o2b gnd V = (V(en) < 0.8) ? (0.2 * V(vmot)) : 0.0
+R_pwr vmot gnd 10Meg
+.ends A4988_SUB`,
+
+  DRV8825_SUB: `* DRV8825 Stepper Motor Driver Model
+.subckt DRV8825_SUB step dir en m0 m1 a1 a2 b1 b2 vmot gnd
+R_step step gnd 1Meg
+R_dir dir gnd 1Meg
+R_en en gnd 1Meg
+R_m0 m0 gnd 1Meg
+R_m1 m1 gnd 1Meg
+B_a1 a1 gnd V = (V(en) < 0.8) ? (0.5 * V(vmot)) : 0.0
+B_a2 a2 gnd V = (V(en) < 0.8) ? (0.2 * V(vmot)) : 0.0
+B_b1 b1 gnd V = (V(en) < 0.8) ? (0.5 * V(vmot)) : 0.0
+B_b2 b2 gnd V = (V(en) < 0.8) ? (0.2 * V(vmot)) : 0.0
+R_pwr vmot gnd 10Meg
+.ends DRV8825_SUB`,
+
+  DRV8833_SUB: `* DRV8833 Dual H-Bridge Driver Model
+.subckt DRV8833_SUB in1 in2 in3 in4 out1 out2 out3 out4 slp vm gnd
+R_in1 in1 gnd 1Meg
+R_in2 in2 gnd 1Meg
+R_in3 in3 gnd 1Meg
+R_in4 in4 gnd 1Meg
+R_slp slp gnd 1Meg
+B_out1 out1 gnd V = (V(slp) > 1.5) ? ((V(in1) > 1.5) ? V(vm) : 0.0) : 0.0
+B_out2 out2 gnd V = (V(slp) > 1.5) ? ((V(in2) > 1.5) ? V(vm) : 0.0) : 0.0
+B_out3 out3 gnd V = (V(slp) > 1.5) ? ((V(in3) > 1.5) ? V(vm) : 0.0) : 0.0
+B_out4 out4 gnd V = (V(slp) > 1.5) ? ((V(in4) > 1.5) ? V(vm) : 0.0) : 0.0
+R_pwr vm gnd 10Meg
+.ends DRV8833_SUB`,
+
+  TB6612FNG_SUB: `* TB6612FNG Dual DC Motor Driver Model
+.subckt TB6612FNG_SUB pwma ain1 ain2 pwmb bin1 bin2 stby ao1 ao2 bo1 bo2 vm vcc gnd
+R_pa pwma gnd 1Meg
+R_a1 ain1 gnd 1Meg
+R_a2 ain2 gnd 1Meg
+R_pb pwmb gnd 1Meg
+R_b1 bin1 gnd 1Meg
+R_b2 bin2 gnd 1Meg
+R_stby stby gnd 1Meg
+B_ao1 ao1 gnd V = (V(stby) > 1.5) ? ((V(ain1) > 1.5) ? (V(pwma)/5.0 * V(vm)) : 0.0) : 0.0
+B_ao2 ao2 gnd V = (V(stby) > 1.5) ? ((V(ain2) > 1.5) ? (V(pwma)/5.0 * V(vm)) : 0.0) : 0.0
+B_bo1 bo1 gnd V = (V(stby) > 1.5) ? ((V(bin1) > 1.5) ? (V(pwmb)/5.0 * V(vm)) : 0.0) : 0.0
+B_bo2 bo2 gnd V = (V(stby) > 1.5) ? ((V(bin2) > 1.5) ? (V(pwmb)/5.0 * V(vm)) : 0.0) : 0.0
+R_vm vm gnd 10Meg
+R_vcc vcc gnd 10Meg
+.ends TB6612FNG_SUB`,
+
+  MAX31855_SUB: `* MAX31855 Thermocouple Converter Model
+.subckt MAX31855_SUB tp tn sck cs so vcc gnd
+R_tc tp tn 10Meg
+R_sck sck gnd 1Meg
+R_cs cs gnd 1Meg
+B_so so gnd V = (V(cs) < 0.8) ? 3.3 : 0.0
+R_pwr vcc gnd 10Meg
+.ends MAX31855_SUB`,
+
+  DHT11_SUB: `* DHT11 Temperature & Humidity Sensor Model
+.subckt DHT11_SUB data vcc gnd
+R_pull data vcc 10k
+B_data data gnd I = 0.0001
+R_pwr vcc gnd 10Meg
+.ends DHT11_SUB`,
+
+  DHT22_SUB: `* DHT22 Temperature & Humidity Sensor Model
+.subckt DHT22_SUB data vcc gnd
+R_pull data vcc 10k
+B_data data gnd I = 0.0001
+R_pwr vcc gnd 10Meg
+.ends DHT22_SUB`,
+
+  BME280_SUB: `* BME280 Sensor Model
+.subckt BME280_SUB scl sda csb sdo vin gnd
+R_scl scl gnd 100k
+R_sda sda gnd 100k
+R_csb csb gnd 100k
+B_sdo sdo gnd V = 3.3
+R_pwr vin gnd 10Meg
+.ends BME280_SUB`,
+
+  BME680_SUB: `* BME680 Environmental Sensor Model
+.subckt BME680_SUB scl sda cs sdo vin gnd
+R_scl scl gnd 100k
+R_sda sda gnd 100k
+R_cs cs gnd 100k
+B_sdo sdo gnd V = 3.3
+R_pwr vin gnd 10Meg
+.ends BME680_SUB`,
+
+  HCSR04_SUB: `* HC-SR04 Ultrasonic Distance Sensor Model
+.subckt HCSR04_SUB vcc trig echo gnd
+R_trig trig gnd 1Meg
+B_echo echo gnd V = (V(trig) > 2.0) ? 5.0 : 0.0
+R_pwr vcc gnd 10Meg
+.ends HCSR04_SUB`,
+
+  PIR_SUB: `* HC-SR501 PIR Sensor Model
+.subckt PIR_SUB outPin vcc gnd
+B_out outPin gnd V = 3.3
+R_pwr vcc gnd 10Meg
+.ends PIR_SUB`,
+
+  MQ2_SUB: `* MQ-2 Gas Sensor Model
+.subckt MQ2_SUB aout dout vcc gnd
+B_ao aout gnd V = 0.3 * V(vcc)
+B_do dout gnd V = (V(aout) > 1.5) ? 5.0 : 0.0
+R_pwr vcc gnd 10Meg
+.ends MQ2_SUB`,
+
+  MQ3_SUB: `* MQ-3 Alcohol Sensor Model
+.subckt MQ3_SUB aout dout vcc gnd
+B_ao aout gnd V = 0.25 * V(vcc)
+B_do dout gnd V = (V(aout) > 1.5) ? 5.0 : 0.0
+R_pwr vcc gnd 10Meg
+.ends MQ3_SUB`,
+
+  MQ7_SUB: `* MQ-7 CO Sensor Model
+.subckt MQ7_SUB aout dout vcc gnd
+B_ao aout gnd V = 0.2 * V(vcc)
+B_do dout gnd V = (V(aout) > 1.5) ? 5.0 : 0.0
+R_pwr vcc gnd 10Meg
+.ends MQ7_SUB`,
+
+  TSL2561_SUB: `* TSL2561 Ambient Light Sensor Model
+.subckt TSL2561_SUB scl sda addr intPin vcc gnd
+R_scl scl gnd 100k
+R_sda sda gnd 100k
+R_addr addr gnd 100k
+B_int intPin gnd V = 3.3
+R_pwr vcc gnd 10Meg
+.ends TSL2561_SUB`,
+
+  MAX30102_SUB: `* MAX30102 Pulse Oximeter Model
+.subckt MAX30102_SUB scl sda intPin vin gnd
+R_scl scl gnd 100k
+R_sda sda gnd 100k
+B_int intPin gnd V = 3.3
+R_pwr vin gnd 10Meg
+.ends MAX30102_SUB`,
+
+  ADXL345_SUB: `* ADXL345 3-Axis Accelerometer Model
+.subckt ADXL345_SUB cs int1 int2 sdo sda scl vcc gnd
+R_cs cs gnd 100k
+B_int1 int1 gnd V = 0.0
+B_int2 int2 gnd V = 0.0
+B_sdo sdo gnd V = 3.3
+R_sda sda gnd 100k
+R_scl scl gnd 100k
+R_pwr vcc gnd 10Meg
+.ends ADXL345_SUB`,
+
+  TCS34725_SUB: `* TCS34725 RGB Color Sensor Model
+.subckt TCS34725_SUB scl sda led intPin vin gnd
+R_scl scl gnd 100k
+R_sda sda gnd 100k
+R_led led gnd 100k
+B_int intPin gnd V = 3.3
+R_pwr vin gnd 10Meg
+.ends TCS34725_SUB`,
+
+  MLX90614_SUB: `* MLX90614 IR Thermometer Model
+.subckt MLX90614_SUB scl sda vin gnd
+R_scl scl gnd 100k
+R_sda sda gnd 100k
+R_pwr vin gnd 10Meg
+.ends MLX90614_SUB`,
+
+  VL53L0X_SUB: `* VL53L0X Time of Flight Sensor Model
+.subckt VL53L0X_SUB scl sda xshut gpio1 vin gnd
+R_scl scl gnd 100k
+R_sda sda gnd 100k
+R_xsh xshut gnd 100k
+B_gp gpio1 gnd V = 2.8
+R_pwr vin gnd 10Meg
+.ends VL53L0X_SUB`,
+
+  SOIL_SUB: `* Soil Moisture Sensor Model
+.subckt SOIL_SUB aout vcc gnd
+B_ao aout gnd V = 0.45 * V(vcc)
+R_pwr vcc gnd 10Meg
+.ends SOIL_SUB`,
+
+  KY038_SUB: `* KY-038 Sound Sensor Model
+.subckt KY038_SUB aout dout vcc gnd
+B_ao aout gnd V = 0.5 * V(vcc)
+B_do dout gnd V = 0.0
+R_pwr vcc gnd 10Meg
+.ends KY038_SUB`,
+
+  REED_SUB: `* Reed Switch Model
+.subckt REED_SUB a b
+R_contact a b 0.05
+.ends REED_SUB`,
+
+  PIEZO_SUB: `* Piezo Transducer Model
+.subckt PIEZO_SUB pos neg
+C_piezo pos neg 15n
+R_piezo pos neg 10Meg
+.ends PIEZO_SUB`,
+
+  ENCODER_SUB: `* Rotary Encoder Model
+.subckt ENCODER_SUB clk dt sw vcc gnd
+R_clk clk vcc 10k
+R_dt dt vcc 10k
+R_sw sw vcc 10k
+R_pwr vcc gnd 10Meg
+.ends ENCODER_SUB`,
+
+  TC4420_SUB: `* TC4420 6A MOSFET Driver Model
+.subckt TC4420_SUB inPin outPin vdd gnd
+R_in inPin gnd 1Meg
+B_out outPin gnd V = (V(inPin) > 2.0) ? V(vdd) : 0.0
+R_pwr vdd gnd 10Meg
+.ends TC4420_SUB`,
+
+  TC4427_SUB: `* TC4427 Dual 1.5A Driver Model
+.subckt TC4427_SUB ina inb outa outb vdd gnd
+R_ina ina gnd 1Meg
+R_inb inb gnd 1Meg
+B_oa outa gnd V = (V(ina) > 2.0) ? V(vdd) : 0.0
+B_ob outb gnd V = (V(inb) > 2.0) ? V(vdd) : 0.0
+R_pwr vdd gnd 10Meg
+.ends TC4427_SUB`,
+
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -3198,6 +3474,126 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'ic_ad736': {
       const [vin='0', cav='0', fb='0', vout='0', com='0', vp='0', vn='0'] = nodes;
       return { line: `X_${comp.id} ${vin} ${cav} ${fb} ${vout} ${com} ${vp} ${vn} AD736_SUB`, subckts: [SUBCKT_DEFINITIONS.AD736_SUB] };
+    }
+    case 'ic_l6203': {
+      const [en='0', in1='0', in2='0', out1='0', out2='0', sense='0', vs='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${en} ${in1} ${in2} ${out1} ${out2} ${sense} ${vs} ${gnd} L6203_SUB`, subckts: [SUBCKT_DEFINITIONS.L6203_SUB] };
+    }
+    case 'ic_uln2803': {
+      const [in1='0', in2='0', in3='0', in4='0', in5='0', in6='0', in7='0', in8='0', out1='0', out2='0', out3='0', out4='0', out5='0', out6='0', out7='0', out8='0', com='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${in1} ${in2} ${in3} ${in4} ${in5} ${in6} ${in7} ${in8} ${out1} ${out2} ${out3} ${out4} ${out5} ${out6} ${out7} ${out8} ${com} ${gnd} ULN2803_SUB`, subckts: [SUBCKT_DEFINITIONS.ULN2803_SUB] };
+    }
+    case 'ic_bts7960': {
+      const [inPin='0', inh='0', isPin='0', outPin='0', vs='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${inPin} ${inh} ${isPin} ${outPin} ${vs} ${gnd} BTS7960_SUB`, subckts: [SUBCKT_DEFINITIONS.BTS7960_SUB] };
+    }
+    case 'ic_a4988': {
+      const [step='0', dir='0', en='0', ms1='0', ms2='0', o1a='0', o1b='0', o2a='0', o2b='0', vmot='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${step} ${dir} ${en} ${ms1} ${ms2} ${o1a} ${o1b} ${o2a} ${o2b} ${vmot} ${gnd} A4988_SUB`, subckts: [SUBCKT_DEFINITIONS.A4988_SUB] };
+    }
+    case 'ic_drv8825': {
+      const [step='0', dir='0', en='0', m0='0', m1='0', a1='0', a2='0', b1='0', b2='0', vmot='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${step} ${dir} ${en} ${m0} ${m1} ${a1} ${a2} ${b1} ${b2} ${vmot} ${gnd} DRV8825_SUB`, subckts: [SUBCKT_DEFINITIONS.DRV8825_SUB] };
+    }
+    case 'ic_drv8833': {
+      const [in1='0', in2='0', in3='0', in4='0', out1='0', out2='0', out3='0', out4='0', slp='0', vm='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${in1} ${in2} ${in3} ${in4} ${out1} ${out2} ${out3} ${out4} ${slp} ${vm} ${gnd} DRV8833_SUB`, subckts: [SUBCKT_DEFINITIONS.DRV8833_SUB] };
+    }
+    case 'ic_tb6612fng': {
+      const [pwma='0', ain1='0', ain2='0', pwmb='0', bin1='0', bin2='0', stby='0', ao1='0', ao2='0', bo1='0', bo2='0', vm='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${pwma} ${ain1} ${ain2} ${pwmb} ${bin1} ${bin2} ${stby} ${ao1} ${ao2} ${bo1} ${bo2} ${vm} ${vcc} ${gnd} TB6612FNG_SUB`, subckts: [SUBCKT_DEFINITIONS.TB6612FNG_SUB] };
+    }
+    case 'ic_max31855': {
+      const [tp='0', tn='0', sck='0', cs='0', so='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${tp} ${tn} ${sck} ${cs} ${so} ${vcc} ${gnd} MAX31855_SUB`, subckts: [SUBCKT_DEFINITIONS.MAX31855_SUB] };
+    }
+    case 'ic_dht11': {
+      const [data='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${data} ${vcc} ${gnd} DHT11_SUB`, subckts: [SUBCKT_DEFINITIONS.DHT11_SUB] };
+    }
+    case 'ic_dht22': {
+      const [data='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${data} ${vcc} ${gnd} DHT22_SUB`, subckts: [SUBCKT_DEFINITIONS.DHT22_SUB] };
+    }
+    case 'ic_bme280': {
+      const [scl='0', sda='0', csb='0', sdo='0', vin='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${scl} ${sda} ${csb} ${sdo} ${vin} ${gnd} BME280_SUB`, subckts: [SUBCKT_DEFINITIONS.BME280_SUB] };
+    }
+    case 'ic_bme680': {
+      const [scl='0', sda='0', cs='0', sdo='0', vin='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${scl} ${sda} ${cs} ${sdo} ${vin} ${gnd} BME680_SUB`, subckts: [SUBCKT_DEFINITIONS.BME680_SUB] };
+    }
+    case 'sensor_hcsr04': {
+      const [vcc='0', trig='0', echo='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${vcc} ${trig} ${echo} ${gnd} HCSR04_SUB`, subckts: [SUBCKT_DEFINITIONS.HCSR04_SUB] };
+    }
+    case 'sensor_pir_hc_sr501': {
+      const [outPin='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${outPin} ${vcc} ${gnd} PIR_SUB`, subckts: [SUBCKT_DEFINITIONS.PIR_SUB] };
+    }
+    case 'sensor_mq2': {
+      const [aout='0', dout='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${aout} ${dout} ${vcc} ${gnd} MQ2_SUB`, subckts: [SUBCKT_DEFINITIONS.MQ2_SUB] };
+    }
+    case 'sensor_mq3': {
+      const [aout='0', dout='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${aout} ${dout} ${vcc} ${gnd} MQ3_SUB`, subckts: [SUBCKT_DEFINITIONS.MQ3_SUB] };
+    }
+    case 'sensor_mq7': {
+      const [aout='0', dout='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${aout} ${dout} ${vcc} ${gnd} MQ7_SUB`, subckts: [SUBCKT_DEFINITIONS.MQ7_SUB] };
+    }
+    case 'sensor_tsl2561': {
+      const [scl='0', sda='0', addr='0', intPin='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${scl} ${sda} ${addr} ${intPin} ${vcc} ${gnd} TSL2561_SUB`, subckts: [SUBCKT_DEFINITIONS.TSL2561_SUB] };
+    }
+    case 'sensor_max30102': {
+      const [scl='0', sda='0', intPin='0', vin='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${scl} ${sda} ${intPin} ${vin} ${gnd} MAX30102_SUB`, subckts: [SUBCKT_DEFINITIONS.MAX30102_SUB] };
+    }
+    case 'sensor_adxl345': {
+      const [cs='0', int1='0', int2='0', sdo='0', sda='0', scl='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cs} ${int1} ${int2} ${sdo} ${sda} ${scl} ${vcc} ${gnd} ADXL345_SUB`, subckts: [SUBCKT_DEFINITIONS.ADXL345_SUB] };
+    }
+    case 'sensor_tcs34725': {
+      const [scl='0', sda='0', led='0', intPin='0', vin='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${scl} ${sda} ${led} ${intPin} ${vin} ${gnd} TCS34725_SUB`, subckts: [SUBCKT_DEFINITIONS.TCS34725_SUB] };
+    }
+    case 'sensor_mlx90614': {
+      const [scl='0', sda='0', vin='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${scl} ${sda} ${vin} ${gnd} MLX90614_SUB`, subckts: [SUBCKT_DEFINITIONS.MLX90614_SUB] };
+    }
+    case 'sensor_vl53l0x': {
+      const [scl='0', sda='0', xshut='0', gpio1='0', vin='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${scl} ${sda} ${xshut} ${gpio1} ${vin} ${gnd} VL53L0X_SUB`, subckts: [SUBCKT_DEFINITIONS.VL53L0X_SUB] };
+    }
+    case 'sensor_soil_moisture': {
+      const [aout='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${aout} ${vcc} ${gnd} SOIL_SUB`, subckts: [SUBCKT_DEFINITIONS.SOIL_SUB] };
+    }
+    case 'sensor_ky038': {
+      const [aout='0', dout='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${aout} ${dout} ${vcc} ${gnd} KY038_SUB`, subckts: [SUBCKT_DEFINITIONS.KY038_SUB] };
+    }
+    case 'sensor_reed_switch': {
+      const [a='0', b='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} REED_SUB`, subckts: [SUBCKT_DEFINITIONS.REED_SUB] };
+    }
+    case 'sensor_piezo_buzzer': {
+      const [pos='0', neg='0'] = nodes;
+      return { line: `X_${comp.id} ${pos} ${neg} PIEZO_SUB`, subckts: [SUBCKT_DEFINITIONS.PIEZO_SUB] };
+    }
+    case 'sensor_rotary_encoder': {
+      const [clk='0', dt='0', sw='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${clk} ${dt} ${sw} ${vcc} ${gnd} ENCODER_SUB`, subckts: [SUBCKT_DEFINITIONS.ENCODER_SUB] };
+    }
+    case 'ic_tc4420': {
+      const [inPin='0', outPin='0', vdd='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${inPin} ${outPin} ${vdd} ${gnd} TC4420_SUB`, subckts: [SUBCKT_DEFINITIONS.TC4420_SUB] };
+    }
+    case 'ic_tc4427': {
+      const [ina='0', inb='0', outa='0', outb='0', vdd='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${ina} ${inb} ${outa} ${outb} ${vdd} ${gnd} TC4427_SUB`, subckts: [SUBCKT_DEFINITIONS.TC4427_SUB] };
     }
     default:
       return null;
