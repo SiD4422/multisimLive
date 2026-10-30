@@ -1,6 +1,7 @@
 import type { SchematicComponent, Point } from '../../store/useSchematicStore';
 import symbolsData from '../kicad_symbols.json';
 import { toGridNode } from './utils';
+import { standardICLibrary } from '../../data/components';
 export function getComponentPins(comp: SchematicComponent): { id: string, name?: string, gridNode: string, p?: Point }[] {
   if (comp.type === 'Ammeter') {
     if (comp.value && comp.value.startsWith('{')) {
@@ -917,6 +918,28 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
       const sx = pin.x * 1.5; const sy = pin.y * 1.5;
       const rx = sx * cos - sy * sin; const ry = sx * sin + sy * cos;
       return { id: pin.id, gridNode: toGridNode({ x: comp.position.x + rx, y: comp.position.y + ry }), p: { x: comp.position.x + rx, y: comp.position.y + ry } };
+    });
+  }
+
+  // Fallback to standardICLibrary for all integrated circuits and modular components
+  const libComp = standardICLibrary.find(c => c.id === comp.type);
+  if (libComp && libComp.pins && libComp.pins.length > 0) {
+    const rad = (comp.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    return libComp.pins.map((pin, i) => {
+      const sx = pin.x * 1.5;
+      const sy = pin.y * 1.5;
+      const rx = sx * cos - sy * sin;
+      const ry = sx * sin + sy * cos;
+      const absX = comp.position.x + rx;
+      const absY = comp.position.y + ry;
+      return {
+        id: pin.id || pin.name || `${i + 1}`,
+        name: pin.name,
+        gridNode: toGridNode({ x: absX, y: absY }),
+        p: { x: absX, y: absY }
+      };
     });
   }
 

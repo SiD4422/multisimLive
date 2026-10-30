@@ -2,6 +2,7 @@ import { Group, Path, Circle, Line, Text, Rect } from 'react-konva';
 import type { SchematicComponent } from '../../store/useSchematicStore';
 import { useSchematicStore } from '../../store/useSchematicStore';
 import { InteractiveSlider } from './InteractiveSlider';
+import { standardICLibrary } from '../../data/components';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -4102,233 +4103,47 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     labelOffset = { x: 0, y: 60 };
     valueOffset = { x: 0, y: 72 };
 
-  } else if (type === 'ic_74hc154' || type === 'ic_74hc42' || type === 'ic_cd4028') {
-    // Decoders (74HC154, 74HC42, CD4028)
-    rects.push({ x: -45, y: -65, width: 90, height: 130, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
-    texts.push({ text: type.replace('ic_', '').toUpperCase(), x: -24, y: -56, size: 8 });
-    texts.push({ text: 'Decoder', x: -20, y: -42, size: 6 });
-    lines.push({ points: [-55,-30,-45,-30] }); texts.push({ text: 'A', x: -42, y: -34, size: 6 });
-    lines.push({ points: [-55,-10,-45,-10] }); texts.push({ text: 'B', x: -42, y: -14, size: 6 });
-    lines.push({ points: [-55, 10,-45, 10] }); texts.push({ text: 'C', x: -42, y:   6, size: 6 });
-    lines.push({ points: [-55, 30,-45, 30] }); texts.push({ text: 'D', x: -42, y:  26, size: 6 });
-    for (let i = 0; i < 8; i++) {
-      const py = -50 + i * 15;
-      lines.push({ points: [45,py,55,py] });
-      texts.push({ text: `Y${i}`, x: 22, y: py-4, size: 6 });
+  } else if ([
+    'ic_74hc154', 'ic_74hc42', 'ic_cd4028',
+    'ic_74hc73', 'ic_74hc76', 'ic_cd4027',
+    'ic_74hc174', 'ic_74hc175', 'ic_74hc273', 'ic_74hc373', 'ic_74hc574',
+    'ic_74hc93', 'ic_74hc160', 'ic_74hc161', 'ic_74hc163', 'ic_74hc191', 'ic_74hc192',
+    'ic_74hc166', 'ic_74hc299',
+    'ic_74hc181',
+    'ic_74hc280', 'ic_74hc688',
+    'ic_cd4012', 'ic_cd4023'
+  ].includes(type)) {
+    // Logic ICs & Decoders / Registers / Counters
+    const libDef = standardICLibrary.find(c => c.id === type);
+    if (libDef && libDef.pins) {
+      const xs = libDef.pins.map(p => p.x);
+      const ys = libDef.pins.map(p => p.y);
+      const maxX = Math.max(...xs.filter(x => x !== 0).map(Math.abs), 50);
+      const maxY = Math.max(...ys.map(Math.abs), 40);
+      const halfW = maxX - 10;
+      const halfH = maxY + 10;
+      const chipTitle = type.replace('ic_', '').toUpperCase();
+
+      rects.push({ x: -halfW, y: -halfH, width: halfW * 2, height: halfH * 2, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+      texts.push({ text: chipTitle, x: -chipTitle.length * 3.5, y: -halfH + 10, size: 8 });
+
+      libDef.pins.forEach(pin => {
+        if (pin.x < 0) {
+          lines.push({ points: [pin.x, pin.y, -halfW, pin.y] });
+          texts.push({ text: pin.name, x: -halfW + 4, y: pin.y - 3, size: 6 });
+        } else if (pin.x > 0) {
+          lines.push({ points: [halfW, pin.y, pin.x, pin.y] });
+          texts.push({ text: pin.name, x: halfW - (pin.name.length * 5 + 4), y: pin.y - 3, size: 6 });
+        } else {
+          const top = pin.y < 0;
+          lines.push({ points: [0, top ? -halfH : halfH, 0, pin.y] });
+          texts.push({ text: pin.name, x: -8, y: top ? -halfH + 4 : halfH - 10, size: 6 });
+        }
+      });
+      pins = libDef.pins.map(p => ({ x: p.x, y: p.y }));
+      labelOffset = { x: 0, y: halfH + 12 };
+      valueOffset = { x: 0, y: halfH + 24 };
     }
-    lines.push({ points: [0,-65,0,-70] }); texts.push({ text: 'VCC', x: -8, y: -58, size: 6 });
-    lines.push({ points: [0,65,0,70] });   texts.push({ text: 'GND', x: -8, y: 56, size: 6 });
-    pins = [{x:-55,y:-30},{x:-55,y:-10},{x:-55,y:10},{x:-55,y:30},{x:55,y:-50},{x:55,y:-35},{x:55,y:-20},{x:55,y:-5},{x:55,y:10},{x:55,y:25},{x:55,y:40},{x:55,y:55},{x:0,y:-70},{x:0,y:70}];
-    labelOffset = { x: 0, y: 75 };
-    valueOffset = { x: 0, y: 87 };
-
-  } else if (type === 'ic_74hc238') {
-    // 74HC238 3-to-8 Decoder
-    rects.push({ x: -40, y: -55, width: 80, height: 110, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
-    texts.push({ text: '74HC238', x: -24, y: -48, size: 8 });
-    texts.push({ text: '3:8 Dec', x: -20, y: -34, size: 6 });
-    lines.push({ points: [-50,-40,-40,-40] }); texts.push({ text: 'A0', x: -38, y: -44, size: 6 });
-    lines.push({ points: [-50,-20,-40,-20] }); texts.push({ text: 'A1', x: -38, y: -24, size: 6 });
-    lines.push({ points: [-50,  0,-40,  0] }); texts.push({ text: 'A2', x: -38, y:  -4, size: 6 });
-    lines.push({ points: [-50, 20,-40, 20] }); texts.push({ text: 'E1', x: -38, y:  16, size: 6 });
-    lines.push({ points: [-50, 35,-40, 35] }); texts.push({ text: '/E2',x: -38, y:  31, size: 6 });
-    for (let i = 0; i < 8; i++) {
-      const py = -45 + i * 14;
-      lines.push({ points: [40,py,50,py] });
-      texts.push({ text: `Y${i}`, x: 18, y: py-4, size: 6 });
-    }
-    lines.push({ points: [0,-55,0,-60] }); texts.push({ text: 'VCC', x: -8, y: -50, size: 6 });
-    lines.push({ points: [0,55,0,60] });   texts.push({ text: 'GND', x: -8, y: 46, size: 6 });
-    pins = [{x:-50,y:-40},{x:-50,y:-20},{x:-50,y:0},{x:-50,y:20},{x:-50,y:35},{x:50,y:-45},{x:50,y:-31},{x:50,y:-17},{x:50,y:-3},{x:50,y:11},{x:50,y:25},{x:50,y:39},{x:50,y:53},{x:0,y:-60},{x:0,y:60}];
-    labelOffset = { x: 0, y: 65 };
-    valueOffset = { x: 0, y: 77 };
-
-  } else if (type === 'ic_74hc73' || type === 'ic_74hc76' || type === 'ic_cd4027') {
-    // Dual JK Flip-Flop (74HC73, 74HC76, CD4027)
-    rects.push({ x: -40, y: -45, width: 80, height: 90, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
-    texts.push({ text: type.replace('ic_', '').toUpperCase(), x: -24, y: -38, size: 8 });
-    texts.push({ text: 'JK-FF', x: -16, y: -24, size: 6 });
-    lines.push({ points: [-50,-30,-40,-30] }); texts.push({ text: 'CLK', x: -38, y: -34, size: 6 });
-    lines.push({ points: [-50,-15,-40,-15] }); texts.push({ text: 'J',   x: -38, y: -19, size: 6 });
-    lines.push({ points: [-50,  0,-40,  0] }); texts.push({ text: 'K',   x: -38, y:  -4, size: 6 });
-    lines.push({ points: [-50, 15,-40, 15] }); texts.push({ text: 'SET', x: -38, y:  11, size: 6 });
-    lines.push({ points: [-50, 30,-40, 30] }); texts.push({ text: 'RST', x: -38, y:  26, size: 6 });
-    lines.push({ points: [40,-15,50,-15] });   texts.push({ text: 'Q',   x: 18, y: -19, size: 6 });
-    lines.push({ points: [40, 15,50, 15] });   texts.push({ text: '/Q',  x: 14, y:  11, size: 6 });
-    lines.push({ points: [0,-45,0,-50] });     texts.push({ text: 'VCC', x: -8, y: -42, size: 6 });
-    lines.push({ points: [0,45,0,50] });       texts.push({ text: 'GND', x: -8, y: 38, size: 6 });
-    pins = [{x:-50,y:-30},{x:-50,y:-15},{x:-50,y:0},{x:-50,y:15},{x:-50,y:30},{x:50,y:-15},{x:50,y:15},{x:0,y:-50},{x:0,y:50}];
-    labelOffset = { x: 0, y: 55 };
-    valueOffset = { x: 0, y: 67 };
-
-  } else if (type === 'ic_74hc174' || type === 'ic_74hc175' || type === 'ic_74hc273' || type === 'ic_74hc373' || type === 'ic_74hc574') {
-    // Multi-bit D-Type Latches / Flip-Flops
-    rects.push({ x: -45, y: -60, width: 90, height: 120, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
-    texts.push({ text: type.replace('ic_', '').toUpperCase(), x: -24, y: -52, size: 8 });
-    texts.push({ text: 'D-Register', x: -26, y: -38, size: 6 });
-    lines.push({ points: [-55,-40,-45,-40] }); texts.push({ text: 'CP', x: -42, y: -44, size: 6 });
-    lines.push({ points: [-55,-25,-45,-25] }); texts.push({ text: 'MR', x: -42, y: -29, size: 6 });
-    for (let i = 0; i < 4; i++) {
-      const py = -10 + i * 16;
-      lines.push({ points: [-55,py,-45,py] });
-      texts.push({ text: `D${i}`, x: -42, y: py-4, size: 6 });
-      lines.push({ points: [45,py,55,py] });
-      texts.push({ text: `Q${i}`, x: 22, y: py-4, size: 6 });
-    }
-    lines.push({ points: [0,-60,0,-65] }); texts.push({ text: 'VCC', x: -8, y: -54, size: 6 });
-    lines.push({ points: [0,60,0,65] });   texts.push({ text: 'GND', x: -8, y: 52, size: 6 });
-    pins = [{x:-55,y:-40},{x:-55,y:-25},{x:-55,y:-10},{x:-55,y:6},{x:-55,y:22},{x:-55,y:38},{x:55,y:-10},{x:55,y:6},{x:55,y:22},{x:55,y:38},{x:0,y:-65},{x:0,y:65}];
-    labelOffset = { x: 0, y: 70 };
-    valueOffset = { x: 0, y: 82 };
-
-  } else if (type === 'ic_74hc93' || type === 'ic_74hc160' || type === 'ic_74hc161' || type === 'ic_74hc163' || type === 'ic_74hc191' || type === 'ic_74hc192') {
-    // 4-Bit Counters (74HC93, 160, 161, 163, 191, 192)
-    rects.push({ x: -45, y: -55, width: 90, height: 110, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
-    texts.push({ text: type.replace('ic_', '').toUpperCase(), x: -24, y: -48, size: 8 });
-    texts.push({ text: '4-Bit Counter', x: -30, y: -34, size: 6 });
-    lines.push({ points: [-55,-30,-45,-30] }); texts.push({ text: 'CP', x: -42, y: -34, size: 6 });
-    lines.push({ points: [-55,-15,-45,-15] }); texts.push({ text: 'MR', x: -42, y: -19, size: 6 });
-    lines.push({ points: [-55,  0,-45,  0] }); texts.push({ text: 'PE', x: -42, y:  -4, size: 6 });
-    lines.push({ points: [-55, 15,-45, 15] }); texts.push({ text: 'D0', x: -42, y:  11, size: 6 });
-    lines.push({ points: [45,-30,55,-30] });   texts.push({ text: 'Q0', x: 22, y: -34, size: 6 });
-    lines.push({ points: [45,-15,55,-15] });   texts.push({ text: 'Q1', x: 22, y: -19, size: 6 });
-    lines.push({ points: [45,  0,55,  0] });   texts.push({ text: 'Q2', x: 22, y:  -4, size: 6 });
-    lines.push({ points: [45, 15,55, 15] });   texts.push({ text: 'Q3', x: 22, y:  11, size: 6 });
-    lines.push({ points: [45, 30,55, 30] });   texts.push({ text: 'TC', x: 22, y:  26, size: 6 });
-    lines.push({ points: [0,-55,0,-60] });     texts.push({ text: 'VCC', x: -8, y: -49, size: 6 });
-    lines.push({ points: [0,55,0,60] });       texts.push({ text: 'GND', x: -8, y: 47, size: 6 });
-    pins = [{x:-55,y:-30},{x:-55,y:-15},{x:-55,y:0},{x:-55,y:15},{x:55,y:-30},{x:55,y:-15},{x:55,y:0},{x:55,y:15},{x:55,y:30},{x:0,y:-60},{x:0,y:60}];
-    labelOffset = { x: 0, y: 65 };
-    valueOffset = { x: 0, y: 77 };
-
-  } else if (type === 'ic_74hc166' || type === 'ic_74hc299') {
-    // Shift Registers (74HC166, 74HC299)
-    rects.push({ x: -45, y: -50, width: 90, height: 100, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
-    texts.push({ text: type.replace('ic_', '').toUpperCase(), x: -24, y: -42, size: 8 });
-    texts.push({ text: 'Shift Reg', x: -22, y: -28, size: 6 });
-    lines.push({ points: [-55,-30,-45,-30] }); texts.push({ text: 'CP', x: -42, y: -34, size: 6 });
-    lines.push({ points: [-55,-15,-45,-15] }); texts.push({ text: 'PE', x: -42, y: -19, size: 6 });
-    lines.push({ points: [-55,  0,-45,  0] }); texts.push({ text: 'MR', x: -42, y:  -4, size: 6 });
-    lines.push({ points: [-55, 15,-45, 15] }); texts.push({ text: 'DS', x: -42, y:  11, size: 6 });
-    lines.push({ points: [45,-15,55,-15] });   texts.push({ text: 'Q0', x: 22, y: -19, size: 6 });
-    lines.push({ points: [45, 15,55, 15] });   texts.push({ text: 'Q7', x: 22, y:  11, size: 6 });
-    lines.push({ points: [0,-50,0,-55] });     texts.push({ text: 'VCC', x: -8, y: -44, size: 6 });
-    lines.push({ points: [0,50,0,55] });       texts.push({ text: 'GND', x: -8, y: 42, size: 6 });
-    pins = [{x:-55,y:-30},{x:-55,y:-15},{x:-55,y:0},{x:-55,y:15},{x:55,y:-15},{x:55,y:15},{x:0,y:-55},{x:0,y:55}];
-    labelOffset = { x: 0, y: 60 };
-    valueOffset = { x: 0, y: 72 };
-
-  } else if (type === 'ic_74hc181') {
-    // 74HC181 4-Bit ALU
-    rects.push({ x: -48, y: -65, width: 96, height: 130, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
-    texts.push({ text: '74HC181', x: -24, y: -58, size: 8 });
-    texts.push({ text: '4-Bit ALU', x: -24, y: -44, size: 6 });
-    for (let i = 0; i < 4; i++) {
-      const py = -30 + i * 14;
-      lines.push({ points: [-60,py,-48,py] });
-      texts.push({ text: `A${i}`, x: -44, y: py-4, size: 6 });
-      lines.push({ points: [48,py,60,py] });
-      texts.push({ text: `F${i}`, x: 24, y: py-4, size: 6 });
-    }
-    lines.push({ points: [-60,35,-48,35] }); texts.push({ text: 'M', x: -44, y: 31, size: 6 });
-    lines.push({ points: [48,35,60,35] });   texts.push({ text: 'A=B', x: 18, y: 31, size: 6 });
-    lines.push({ points: [0,-65,0,-70] });   texts.push({ text: 'VCC', x: -8, y: -58, size: 6 });
-    lines.push({ points: [0,65,0,70] });     texts.push({ text: 'GND', x: -8, y: 56, size: 6 });
-    pins = [{x:-60,y:-30},{x:-60,y:-16},{x:-60,y:-2},{x:-60,y:12},{x:-60,y:35},{x:60,y:-30},{x:60,y:-16},{x:60,y:-2},{x:60,y:12},{x:60,y:35},{x:0,y:-70},{x:0,y:70}];
-    labelOffset = { x: 0, y: 75 };
-    valueOffset = { x: 0, y: 87 };
-
-  } else if (type === 'ic_74hc280' || type === 'ic_74hc688') {
-    // Parity / Comparator (74HC280, 74HC688)
-    rects.push({ x: -40, y: -50, width: 80, height: 100, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
-    texts.push({ text: type.replace('ic_', '').toUpperCase(), x: -24, y: -42, size: 8 });
-    texts.push({ text: 'Logic', x: -14, y: -28, size: 6 });
-    lines.push({ points: [-50,-20,-40,-20] }); texts.push({ text: 'IN0', x: -38, y: -24, size: 6 });
-    lines.push({ points: [-50,  0,-40,  0] }); texts.push({ text: 'IN1', x: -38, y:  -4, size: 6 });
-    lines.push({ points: [-50, 20,-40, 20] }); texts.push({ text: 'IN2', x: -38, y:  16, size: 6 });
-    lines.push({ points: [40,-15,50,-15] });   texts.push({ text: 'OUT1', x: 8, y: -19, size: 6 });
-    lines.push({ points: [40, 15,50, 15] });   texts.push({ text: 'OUT2', x: 8, y:  11, size: 6 });
-    lines.push({ points: [0,-50,0,-55] });     texts.push({ text: 'VCC', x: -8, y: -44, size: 6 });
-    lines.push({ points: [0,50,0,55] });       texts.push({ text: 'GND', x: -8, y: 42, size: 6 });
-    pins = [{x:-50,y:-20},{x:-50,y:0},{x:-50,y:20},{x:50,y:-15},{x:50,y:15},{x:0,y:-55},{x:0,y:55}];
-    labelOffset = { x: 0, y: 60 };
-    valueOffset = { x: 0, y: 72 };
-
-  } else if (type === 'ic_74hc126') {
-    // 74HC126 Quad 3-State Buffer (Active-High OE)
-    paths.push({ data: 'M -18 -18 L 14 0 L -18 18 Z', fill: '#fff', stroke: '#333' });
-    lines.push({ points: [-40,0,-18,0] });
-    lines.push({ points: [14,0,40,0] });
-    lines.push({ points: [0,-18,0,-30] }); texts.push({ text: 'OE', x: -6, y: -34, size: 6 });
-    lines.push({ points: [-20,-30,-20,-10] }); texts.push({ text: 'VCC', x: -28, y: -34, size: 6 });
-    lines.push({ points: [0,18,0,30] });   texts.push({ text: 'GND', x: -6, y: 32, size: 6 });
-    texts.push({ text: '74HC126', x: -18, y: 6, size: 6 });
-    pins = [{x:-40,y:0},{x:0,y:-30},{x:40,y:0},{x:-20,y:-30},{x:0,y:30}];
-    labelOffset = { x: 0, y: 40 };
-    valueOffset = { x: 0, y: 52 };
-
-  } else if (type === 'ic_74hc541') {
-    // 74HC541 Octal Buffer
-    rects.push({ x: -40, y: -55, width: 80, height: 110, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
-    texts.push({ text: '74HC541', x: -24, y: -48, size: 8 });
-    texts.push({ text: 'Octal Buf', x: -22, y: -34, size: 6 });
-    lines.push({ points: [-50,-40,-40,-40] }); texts.push({ text: '/OE1', x: -38, y: -44, size: 6 });
-    lines.push({ points: [-50,-25,-40,-25] }); texts.push({ text: '/OE2', x: -38, y: -29, size: 6 });
-    for (let i = 0; i < 4; i++) {
-      const py = -10 + i * 16;
-      lines.push({ points: [-50,py,-40,py] });
-      texts.push({ text: `A${i}`, x: -38, y: py-4, size: 6 });
-      lines.push({ points: [40,py,50,py] });
-      texts.push({ text: `Y${i}`, x: 18, y: py-4, size: 6 });
-    }
-    lines.push({ points: [0,-55,0,-60] }); texts.push({ text: 'VCC', x: -8, y: -49, size: 6 });
-    lines.push({ points: [0,55,0,60] });   texts.push({ text: 'GND', x: -8, y: 47, size: 6 });
-    pins = [{x:-50,y:-40},{x:-50,y:-25},{x:-50,y:-10},{x:-50,y:6},{x:-50,y:22},{x:-50,y:38},{x:50,y:-10},{x:50,y:6},{x:50,y:22},{x:50,y:38},{x:0,y:-60},{x:0,y:60}];
-    labelOffset = { x: 0, y: 65 };
-    valueOffset = { x: 0, y: 77 };
-
-  } else if (type === 'ic_cd4001') {
-    // CD4001 Quad 2-Input NOR Gate
-    paths.push({ data: 'M -20 -25 Q -10 0 -20 25 Q 10 25 25 0 Q 10 -25 -20 -25 Z', fill: '#fff', stroke: '#333' });
-    circles.push({ x: 29, y: 0, r: 4, fill: '#fff', stroke: '#333' });
-    lines.push({ points: [-40, -15, -16, -15] });
-    lines.push({ points: [-40,  15, -16,  15] });
-    lines.push({ points: [33, 0, 45, 0] });
-    lines.push({ points: [0, -22, 0, -30] });
-    lines.push({ points: [0,  22, 0,  30] });
-    texts.push({ text: 'CD4001', x: -16, y: -4, size: 6 });
-    pins = [{x:-40,y:-15},{x:-40,y:15},{x:45,y:0},{x:0,y:-30},{x:0,y:30}];
-    labelOffset = { x: 0, y: 40 };
-    valueOffset = { x: 0, y: 52 };
-
-  } else if (type === 'ic_cd4011') {
-    // CD4011 Quad 2-Input NAND Gate
-    paths.push({ data: 'M -20 -20 L 0 -20 Q 20 -20 20 0 Q 20 20 0 20 L -20 20 Z', fill: '#fff', stroke: '#333' });
-    circles.push({ x: 24, y: 0, r: 4, fill: '#fff', stroke: '#333' });
-    lines.push({ points: [-40, -15, -20, -15] });
-    lines.push({ points: [-40,  15, -20,  15] });
-    lines.push({ points: [28, 0, 40, 0] });
-    lines.push({ points: [0, -20, 0, -30] });
-    lines.push({ points: [0,  20, 0,  30] });
-    texts.push({ text: 'CD4011', x: -16, y: -4, size: 6 });
-    pins = [{x:-40,y:-15},{x:-40,y:15},{x:40,y:0},{x:0,y:-30},{x:0,y:30}];
-    labelOffset = { x: 0, y: 40 };
-    valueOffset = { x: 0, y: 52 };
-
-  } else if (type === 'ic_cd4012' || type === 'ic_cd4023') {
-    // CD4012 (Dual 4-NAND) / CD4023 (Triple 3-NAND)
-    paths.push({ data: 'M -20 -25 L 0 -25 Q 25 -25 25 0 Q 25 25 0 25 L -20 25 Z', fill: '#fff', stroke: '#333' });
-    circles.push({ x: 29, y: 0, r: 4, fill: '#fff', stroke: '#333' });
-    lines.push({ points: [33, 0, 45, 0] });
-    lines.push({ points: [-40, -15, -20, -15] });
-    lines.push({ points: [-40,   0, -20,   0] });
-    lines.push({ points: [-40,  15, -20,  15] });
-    lines.push({ points: [0, -25, 0, -35] });
-    lines.push({ points: [0,  25, 0,  35] });
-    texts.push({ text: type.replace('ic_', '').toUpperCase(), x: -16, y: -4, size: 6 });
-    pins = [{x:-40,y:-15},{x:-40,y:0},{x:-40,y:15},{x:45,y:0},{x:0,y:-35},{x:0,y:35}];
-    labelOffset = { x: 0, y: 45 };
-    valueOffset = { x: 0, y: 57 };
   } else if (type === 'ic_adc0804') {
     // ADC0804 8-Bit A/D Converter
     rects.push({ x: -40, y: -55, width: 80, height: 110, fill: '#161b22', stroke: strokeColor });
@@ -5448,6 +5263,14 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
   else {
     paths.push({ data: "M 0 0 L 15 0 M 15 -10 L 45 -10 L 45 10 L 15 10 Z M 45 0 L 60 0", fill: "#fff" });
     pins = [{ x: 0, y: 0 }, { x: 60, y: 0 }];
+  }
+
+  // Fallback: If pins is empty or has mismatched length compared to library definition, use library pins!
+  const libDef = standardICLibrary.find(c => c.id === type);
+  if (libDef && libDef.pins && libDef.pins.length > 0) {
+    if (pins.length === 0 || pins.length !== libDef.pins.length) {
+      pins = libDef.pins.map(p => ({ x: p.x, y: p.y }));
+    }
   }
 
   return (

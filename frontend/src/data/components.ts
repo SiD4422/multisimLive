@@ -199,9 +199,9 @@ export const standardICLibrary: ComponentDefinition[] = [
       wiper_position: 50,       // percentage 0-100
     },
     pins: [
-      { id: 'A', name: 'A', x: -20, y: 0 },    // top terminal
-      { id: 'W', name: 'W', x: 0, y: 20 },     // wiper
-      { id: 'B', name: 'B', x: 20, y: 0 },     // bottom terminal
+      { id: 'A', name: 'A', x: -20, y: 0 },    // terminal A
+      { id: 'B', name: 'B', x: 20, y: 0 },     // terminal B
+      { id: 'W', name: 'W', x: 0, y: 20 },     // wiper terminal
     ],
     symbol: 'potentiometer',
   },
