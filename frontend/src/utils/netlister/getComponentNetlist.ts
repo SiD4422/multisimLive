@@ -1152,6 +1152,187 @@ I_PH K A 25u
 .model DBPW34 D(Is=1e-13 Rs=10 Cjo=70p Bv=60 Ibv=10u)
 .ends BPW34_SUB`,
 
+  TL082_SUB: `.subckt TL082_SUB IN1N IN1P OUT1 IN2P IN2N OUT2 VCC VEE
+* TL082 dual JFET op-amp
+E1 OUT1 GND VALUE={LIMIT(100000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+E2 OUT2 GND VALUE={LIMIT(100000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+.ends TL082_SUB`,
+
+  TL084_SUB: `.subckt TL084_SUB OUT1 IN1N IN1P VCC IN2P IN2N OUT2 OUT3 IN3N IN3P VEE IN4P IN4N OUT4
+* TL084 quad JFET op-amp
+E1 OUT1 GND VALUE={LIMIT(100000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+E2 OUT2 GND VALUE={LIMIT(100000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+E3 OUT3 GND VALUE={LIMIT(100000*(V(IN3P,GND)-V(IN3N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+E4 OUT4 GND VALUE={LIMIT(100000*(V(IN4P,GND)-V(IN4N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+.ends TL084_SUB`,
+
+  LM833_SUB: `.subckt LM833_SUB IN1N IN1P OUT1 IN2P IN2N OUT2 VCC VEE
+* LM833 dual audio op-amp
+E1 OUT1 GND VALUE={LIMIT(120000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+1.0, V(VCC,GND)-1.0)}
+E2 OUT2 GND VALUE={LIMIT(120000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+1.0, V(VCC,GND)-1.0)}
+.ends LM833_SUB`,
+
+  OP07_SUB: `.subckt OP07_SUB INN INP OUT VCC VEE
+* OP07 ultralow offset op-amp
+E1 OUT GND VALUE={LIMIT(300000*(V(INP,GND)-V(INN,GND)), V(VEE,GND)+1.0, V(VCC,GND)-1.0)}
+.ends OP07_SUB`,
+
+  CA3140_SUB: `.subckt CA3140_SUB INN INP OUT VCC VEE
+* CA3140 BiMOS op-amp
+E1 OUT GND VALUE={LIMIT(100000*(V(INP,GND)-V(INN,GND)), V(VEE,GND)+0.2, V(VCC,GND)-1.2)}
+.ends CA3140_SUB`,
+
+  LF353_SUB: `.subckt LF353_SUB IN1N IN1P OUT1 IN2P IN2N OUT2 VCC VEE
+* LF353 dual JFET op-amp
+E1 OUT1 GND VALUE={LIMIT(100000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+E2 OUT2 GND VALUE={LIMIT(100000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+.ends LF353_SUB`,
+
+  INA128_SUB: `.subckt INA128_SUB RG1 VINM VINP RG2 VEE REF VOUT VCC
+* INA128 precision instrumentation amp: G = 1 + 50k/R_G (default G=10 if RG open)
+E1 VOUT GND VALUE={LIMIT(10*(V(VINP,GND)-V(VINM,GND)) + V(REF,GND), V(VEE,GND)+1.4, V(VCC,GND)-1.4)}
+R_IN VINP VINM 100Meg
+.ends INA128_SUB`,
+
+  AD623_SUB: `.subckt AD623_SUB RG1 VINM VINP RG2 VEE REF VOUT VCC
+* AD623 rail-to-rail in-amp
+E1 VOUT GND VALUE={LIMIT(10*(V(VINP,GND)-V(VINM,GND)) + V(REF,GND), V(VEE,GND)+0.1, V(VCC,GND)-0.1)}
+R_IN VINP VINM 100Meg
+.ends AD623_SUB`,
+
+  LM385_SUB: `.subckt LM385_SUB A K
+* LM385 2.5V precision voltage reference diode
+D1 A K DLM385
+B1 K A VALUE={IF(V(K,A)>=2.5, (V(K,A)-2.5)*100, 0)}
+.model DLM385 D(Is=1e-14 Bv=2.5 Ibv=1m)
+.ends LM385_SUB`,
+
+  REF02_SUB: `.subckt REF02_SUB VIN GND VOUT TRIM
+* REF02 precision +5V voltage reference
+B1 VOUT GND VALUE={IF(V(VIN,GND)>=7.0, 5.0, V(VIN,GND)-2.0)}
+R_IN VIN GND 1Meg
+.ends REF02_SUB`,
+
+  REG78L05_SUB: `.subckt REG78L05_SUB VIN VOUT GND
+* 78L05 5V 100mA regulator
+B1 VOUT GND VALUE={IF(V(VIN,GND)>=7.0, 5.0, MAX(0, V(VIN,GND)-2.0))}
+R_L VOUT GND 100k
+.ends REG78L05_SUB`,
+
+  REG7809_SUB: `.subckt REG7809_SUB VIN VOUT GND
+* 7809 9V 1A regulator
+B1 VOUT GND VALUE={IF(V(VIN,GND)>=11.5, 9.0, MAX(0, V(VIN,GND)-2.5))}
+R_L VOUT GND 100k
+.ends REG7809_SUB`,
+
+  REG7815_SUB: `.subckt REG7815_SUB VIN VOUT GND
+* 7815 15V 1A regulator
+B1 VOUT GND VALUE={IF(V(VIN,GND)>=17.5, 15.0, MAX(0, V(VIN,GND)-2.5))}
+R_L VOUT GND 100k
+.ends REG7815_SUB`,
+
+  REG7824_SUB: `.subckt REG7824_SUB VIN VOUT GND
+* 7824 24V 1A regulator
+B1 VOUT GND VALUE={IF(V(VIN,GND)>=27.0, 24.0, MAX(0, V(VIN,GND)-3.0))}
+R_L VOUT GND 100k
+.ends REG7824_SUB`,
+
+  REG7905_SUB: `.subckt REG7905_SUB GND VIN VOUT
+* 7905 -5V 1A negative regulator
+B1 VOUT GND VALUE={IF(V(VIN,GND)<=-7.0, -5.0, MIN(0, V(VIN,GND)+2.0))}
+R_L VOUT GND 100k
+.ends REG7905_SUB`,
+
+  REG7912_SUB: `.subckt REG7912_SUB GND VIN VOUT
+* 7912 -12V 1A negative regulator
+B1 VOUT GND VALUE={IF(V(VIN,GND)<=-14.5, -12.0, MIN(0, V(VIN,GND)+2.5))}
+R_L VOUT GND 100k
+.ends REG7912_SUB`,
+
+  REG7915_SUB: `.subckt REG7915_SUB GND VIN VOUT
+* 7915 -15V 1A negative regulator
+B1 VOUT GND VALUE={IF(V(VIN,GND)<=-17.5, -15.0, MIN(0, V(VIN,GND)+2.5))}
+R_L VOUT GND 100k
+.ends REG7915_SUB`,
+
+  AMS1117_ADJ_SUB: `.subckt AMS1117_ADJ_SUB ADJ VIN VOUT
+* AMS1117 adjustable LDO: VOUT = V(ADJ) + 1.25V
+B1 VOUT ADJ VALUE={IF(V(VIN,ADJ)>=2.5, 1.25, MAX(0, V(VIN,ADJ)-1.25))}
+R_L VOUT ADJ 100k
+.ends AMS1117_ADJ_SUB`,
+
+  LP2950_SUB: `.subckt LP2950_SUB VIN VOUT GND
+* LP2950 5V 100mA micropower LDO (dropout 0.38V)
+B1 VOUT GND VALUE={IF(V(VIN,GND)>=5.38, 5.0, MAX(0, V(VIN,GND)-0.38))}
+R_L VOUT GND 100k
+.ends LP2950_SUB`,
+
+  ICL8038_SUB: `.subckt ICL8038_SUB VCC RA RB CAP FM VEE SINE TRI SQR
+* ICL8038 waveform generator behavioural model (1kHz nominal)
+B_SQR SQR GND VALUE={IF(SIN(6.28318*1000*TIME)>0, V(VCC,GND), V(VEE,GND))}
+B_SIN SINE GND VALUE={2.0*SIN(6.28318*1000*TIME)}
+B_TRI TRI GND VALUE={2.0*ASIN(SIN(6.28318*1000*TIME))/(1.570796)}
+R_PWR VCC VEE 100k
+.ends ICL8038_SUB`,
+
+  XR2206_SUB: `.subckt XR2206_SUB VCC TC1 TC2 TR1 GND OUT SYNC BYP
+* XR2206 function generator model (1kHz sine + square)
+B_OUT OUT GND VALUE={2.0*SIN(6.28318*1000*TIME) + 2.5}
+B_SYNC SYNC GND VALUE={IF(SIN(6.28318*1000*TIME)>0, V(VCC,GND), 0)}
+R_PWR VCC GND 100k
+.ends XR2206_SUB`,
+
+  CD4046_SUB: `.subckt CD4046_SUB SIG COMP VCO INH VSS VDD PC1 PC2 VCO_O DEM
+* CD4046 PLL model
+R_PWR VDD VSS 100k
+B_VCO VCO_O VSS VALUE={IF(SIN(6.28318*(10000*V(VCO,VSS)+100)*TIME)>0, V(VDD,VSS), 0)}
+B_PC1 PC1 VSS VALUE={IF( (V(SIG,VSS)>2.5 & V(COMP,VSS)<2.5) | (V(SIG,VSS)<2.5 & V(COMP,VSS)>2.5), V(VDD,VSS), 0)}
+.ends CD4046_SUB`,
+
+  CD4047_SUB: `.subckt CD4047_SUB C R RC AST VSS VDD Q QBAR OSC RST
+* CD4047 multivibrator model (astable 1kHz default)
+R_PWR VDD VSS 100k
+B_Q Q VSS VALUE={IF(SIN(6.28318*1000*TIME)>0, V(VDD,VSS), 0)}
+B_QB QBAR VSS VALUE={IF(SIN(6.28318*1000*TIME)>0, 0, V(VDD,VSS))}
+B_OSC OSC VSS VALUE={IF(SIN(6.28318*2000*TIME)>0, V(VDD,VSS), 0)}
+.ends CD4047_SUB`,
+
+  CD4069_SUB: `.subckt CD4069_SUB A Y VDD VSS
+* CD4069 CMOS hex inverter
+B_OUT Y VSS VALUE={IF(V(A,VSS)>0.5*V(VDD,VSS), 0, V(VDD,VSS))}
+R_PWR VDD VSS 100k
+.ends CD4069_SUB`,
+
+  HC02_SUB: `.subckt HC02_SUB A B Y VCC GND
+* 74HC02 2-input NOR gate
+B_OUT Y GND VALUE={IF(V(A,GND)<1.5 & V(B,GND)<1.5, V(VCC,GND), 0)}
+.ends HC02_SUB`,
+
+  HC10_SUB: `.subckt HC10_SUB A B C Y VCC GND
+* 74HC10 3-input NAND gate
+B_OUT Y GND VALUE={IF(V(A,GND)>2.0 & V(B,GND)>2.0 & V(C,GND)>2.0, 0, V(VCC,GND))}
+.ends HC10_SUB`,
+
+  HC11_SUB: `.subckt HC11_SUB A B C Y VCC GND
+* 74HC11 3-input AND gate
+B_OUT Y GND VALUE={IF(V(A,GND)>2.0 & V(B,GND)>2.0 & V(C,GND)>2.0, V(VCC,GND), 0)}
+.ends HC11_SUB`,
+
+  HC20_SUB: `.subckt HC20_SUB A B C D Y VCC GND
+* 74HC20 4-input NAND gate
+B_OUT Y GND VALUE={IF(V(A,GND)>2.0 & V(B,GND)>2.0 & V(C,GND)>2.0 & V(D,GND)>2.0, 0, V(VCC,GND))}
+.ends HC20_SUB`,
+
+  HC27_SUB: `.subckt HC27_SUB A B C Y VCC GND
+* 74HC27 3-input NOR gate
+B_OUT Y GND VALUE={IF(V(A,GND)<1.5 & V(B,GND)<1.5 & V(C,GND)<1.5, V(VCC,GND), 0)}
+.ends HC27_SUB`,
+
+  HC132_SUB: `.subckt HC132_SUB A B Y VCC GND
+* 74HC132 2-input Schmitt trigger NAND gate
+B_OUT Y GND VALUE={IF(V(A,GND)>3.0 & V(B,GND)>3.0, 0, IF(V(A,GND)<2.0 | V(B,GND)<2.0, V(VCC,GND), V(Y,GND)))}
+.ends HC132_SUB`,
+
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -1986,6 +2167,126 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'photodiode_bpw34': {
       const [anode='0', cathode='0'] = nodes;
       return { line: `X_${comp.id} ${anode} ${cathode} BPW34_SUB`, subckts: [SUBCKT_DEFINITIONS.BPW34_SUB] };
+    }
+    case 'ic_tl082': {
+      const [in1n='0', in1p='0', out1='0', in2p='0', in2n='0', out2='0', vcc='0', vee='0'] = nodes;
+      return { line: `X_${comp.id} ${in1n} ${in1p} ${out1} ${in2p} ${in2n} ${out2} ${vcc} ${vee} TL082_SUB`, subckts: [SUBCKT_DEFINITIONS.TL082_SUB] };
+    }
+    case 'ic_tl084': {
+      const [o1='0', i1n='0', i1p='0', vcc='0', i2p='0', i2n='0', o2='0', o3='0', i3n='0', i3p='0', vee='0', i4p='0', i4n='0', o4='0'] = nodes;
+      return { line: `X_${comp.id} ${o1} ${i1n} ${i1p} ${vcc} ${i2p} ${i2n} ${o2} ${o3} ${i3n} ${i3p} ${vee} ${i4p} ${i4n} ${o4} TL084_SUB`, subckts: [SUBCKT_DEFINITIONS.TL084_SUB] };
+    }
+    case 'ic_lm833': {
+      const [in1n='0', in1p='0', out1='0', in2p='0', in2n='0', out2='0', vcc='0', vee='0'] = nodes;
+      return { line: `X_${comp.id} ${in1n} ${in1p} ${out1} ${in2p} ${in2n} ${out2} ${vcc} ${vee} LM833_SUB`, subckts: [SUBCKT_DEFINITIONS.LM833_SUB] };
+    }
+    case 'ic_op07': {
+      const [inn='0', inp='0', outp='0', vcc='0', vee='0'] = nodes;
+      return { line: `X_${comp.id} ${inn} ${inp} ${outp} ${vcc} ${vee} OP07_SUB`, subckts: [SUBCKT_DEFINITIONS.OP07_SUB] };
+    }
+    case 'ic_ca3140': {
+      const [inn='0', inp='0', outp='0', vcc='0', vee='0'] = nodes;
+      return { line: `X_${comp.id} ${inn} ${inp} ${outp} ${vcc} ${vee} CA3140_SUB`, subckts: [SUBCKT_DEFINITIONS.CA3140_SUB] };
+    }
+    case 'ic_lf353': {
+      const [in1n='0', in1p='0', out1='0', in2p='0', in2n='0', out2='0', vcc='0', vee='0'] = nodes;
+      return { line: `X_${comp.id} ${in1n} ${in1p} ${out1} ${in2p} ${in2n} ${out2} ${vcc} ${vee} LF353_SUB`, subckts: [SUBCKT_DEFINITIONS.LF353_SUB] };
+    }
+    case 'ic_ina128': {
+      const [rg1='0', vinm='0', vinp='0', rg2='0', vee='0', ref='0', vout='0', vcc='0'] = nodes;
+      return { line: `X_${comp.id} ${rg1} ${vinm} ${vinp} ${rg2} ${vee} ${ref} ${vout} ${vcc} INA128_SUB`, subckts: [SUBCKT_DEFINITIONS.INA128_SUB] };
+    }
+    case 'ic_ad623': {
+      const [rg1='0', vinm='0', vinp='0', rg2='0', vee='0', ref='0', vout='0', vcc='0'] = nodes;
+      return { line: `X_${comp.id} ${rg1} ${vinm} ${vinp} ${rg2} ${vee} ${ref} ${vout} ${vcc} AD623_SUB`, subckts: [SUBCKT_DEFINITIONS.AD623_SUB] };
+    }
+    case 'ic_lm385': {
+      const [anode='0', cathode='0'] = nodes;
+      return { line: `X_${comp.id} ${anode} ${cathode} LM385_SUB`, subckts: [SUBCKT_DEFINITIONS.LM385_SUB] };
+    }
+    case 'ic_ref02': {
+      const [vin='0', gnd='0', vout='0', trim='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${gnd} ${vout} ${trim} REF02_SUB`, subckts: [SUBCKT_DEFINITIONS.REF02_SUB] };
+    }
+    case 'ic_78l05': {
+      const [vin='0', vout='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${vout} ${gnd} REG78L05_SUB`, subckts: [SUBCKT_DEFINITIONS.REG78L05_SUB] };
+    }
+    case 'ic_7809': {
+      const [vin='0', vout='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${vout} ${gnd} REG7809_SUB`, subckts: [SUBCKT_DEFINITIONS.REG7809_SUB] };
+    }
+    case 'ic_7815': {
+      const [vin='0', vout='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${vout} ${gnd} REG7815_SUB`, subckts: [SUBCKT_DEFINITIONS.REG7815_SUB] };
+    }
+    case 'ic_7824': {
+      const [vin='0', vout='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${vout} ${gnd} REG7824_SUB`, subckts: [SUBCKT_DEFINITIONS.REG7824_SUB] };
+    }
+    case 'ic_7905': {
+      const [gnd='0', vin='0', vout='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${vin} ${vout} REG7905_SUB`, subckts: [SUBCKT_DEFINITIONS.REG7905_SUB] };
+    }
+    case 'ic_7912': {
+      const [gnd='0', vin='0', vout='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${vin} ${vout} REG7912_SUB`, subckts: [SUBCKT_DEFINITIONS.REG7912_SUB] };
+    }
+    case 'ic_7915': {
+      const [gnd='0', vin='0', vout='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${vin} ${vout} REG7915_SUB`, subckts: [SUBCKT_DEFINITIONS.REG7915_SUB] };
+    }
+    case 'ic_ams1117_adj': {
+      const [adj='0', vin='0', vout='0'] = nodes;
+      return { line: `X_${comp.id} ${adj} ${vin} ${vout} AMS1117_ADJ_SUB`, subckts: [SUBCKT_DEFINITIONS.AMS1117_ADJ_SUB] };
+    }
+    case 'ic_lp2950': {
+      const [vin='0', vout='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${vin} ${vout} ${gnd} LP2950_SUB`, subckts: [SUBCKT_DEFINITIONS.LP2950_SUB] };
+    }
+    case 'ic_icl8038': {
+      const [vcc='0', ra='0', rb='0', cap='0', fm='0', vee='0', sine='0', tri='0', sqr='0'] = nodes;
+      return { line: `X_${comp.id} ${vcc} ${ra} ${rb} ${cap} ${fm} ${vee} ${sine} ${tri} ${sqr} ICL8038_SUB`, subckts: [SUBCKT_DEFINITIONS.ICL8038_SUB] };
+    }
+    case 'ic_xr2206': {
+      const [vcc='0', tc1='0', tc2='0', tr1='0', gnd='0', outp='0', sync='0', byp='0'] = nodes;
+      return { line: `X_${comp.id} ${vcc} ${tc1} ${tc2} ${tr1} ${gnd} ${outp} ${sync} ${byp} XR2206_SUB`, subckts: [SUBCKT_DEFINITIONS.XR2206_SUB] };
+    }
+    case 'ic_cd4046': {
+      const [sig='0', compPin='0', vco='0', inh='0', vss='0', vdd='0', pc1='0', pc2='0', vco_o='0', dem='0'] = nodes;
+      return { line: `X_${comp.id} ${sig} ${compPin} ${vco} ${inh} ${vss} ${vdd} ${pc1} ${pc2} ${vco_o} ${dem} CD4046_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4046_SUB] };
+    }
+    case 'ic_cd4047': {
+      const [c='0', r='0', rc='0', ast='0', vss='0', vdd='0', q='0', qbar='0', osc='0', rst='0'] = nodes;
+      return { line: `X_${comp.id} ${c} ${r} ${rc} ${ast} ${vss} ${vdd} ${q} ${qbar} ${osc} ${rst} CD4047_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4047_SUB] };
+    }
+    case 'ic_cd4069': {
+      const [a='0', y='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${y} ${vdd} ${vss} CD4069_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4069_SUB] };
+    }
+    case 'ic_74hc02': {
+      const [a='0', b='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${y} ${vcc} ${gnd} HC02_SUB`, subckts: [SUBCKT_DEFINITIONS.HC02_SUB] };
+    }
+    case 'ic_74hc10': {
+      const [a='0', b='0', c='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${y} ${vcc} ${gnd} HC10_SUB`, subckts: [SUBCKT_DEFINITIONS.HC10_SUB] };
+    }
+    case 'ic_74hc11': {
+      const [a='0', b='0', c='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${y} ${vcc} ${gnd} HC11_SUB`, subckts: [SUBCKT_DEFINITIONS.HC11_SUB] };
+    }
+    case 'ic_74hc20': {
+      const [a='0', b='0', c='0', d='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${d} ${y} ${vcc} ${gnd} HC20_SUB`, subckts: [SUBCKT_DEFINITIONS.HC20_SUB] };
+    }
+    case 'ic_74hc27': {
+      const [a='0', b='0', c='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${y} ${vcc} ${gnd} HC27_SUB`, subckts: [SUBCKT_DEFINITIONS.HC27_SUB] };
+    }
+    case 'ic_74hc132': {
+      const [a='0', b='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${y} ${vcc} ${gnd} HC132_SUB`, subckts: [SUBCKT_DEFINITIONS.HC132_SUB] };
     }
     default:
       return null;
