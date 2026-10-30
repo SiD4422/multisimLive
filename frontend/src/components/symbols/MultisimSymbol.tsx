@@ -209,6 +209,36 @@ function formatRefDes(id: string, type: string): string {
     sensor_rotary_encoder: 'SW',
     ic_tc4420: 'U',
     ic_tc4427: 'U',
+    ic_cd4049: 'U',
+    ic_cd4050: 'U',
+    ic_cd4052: 'U',
+    ic_cd4053: 'U',
+    ic_cd4070: 'U',
+    ic_cd4071: 'U',
+    ic_cd4073: 'U',
+    ic_cd4077: 'U',
+    ic_cd4081: 'U',
+    ic_cd4093: 'U',
+    diode_1n4007: 'D',
+    diode_1n5819: 'D',
+    diode_1n5822: 'D',
+    diode_1n5408: 'D',
+    diode_zener_1n4733a: 'D',
+    diode_zener_1n4742a: 'D',
+    diode_bzx55c5v1: 'D',
+    transistor_2n2222a: 'Q',
+    transistor_2n2907a: 'Q',
+    transistor_2n3904: 'Q',
+    transistor_2n3906: 'Q',
+    transistor_bc547: 'Q',
+    transistor_bc557: 'Q',
+    transistor_bd139: 'Q',
+    transistor_bd140: 'Q',
+    transistor_2n3055: 'Q',
+    transistor_tip31c: 'Q',
+    transistor_tip32c: 'Q',
+    transistor_tip122: 'Q',
+    transistor_tip127: 'Q',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -5042,6 +5072,134 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     ];
     labelOffset = { x: 0, y: -47 };
     valueOffset = { x: 0, y: 50 };
+  } else if (type === 'ic_cd4049' || type === 'ic_cd4050') {
+    // Hex Inverter / Buffer
+    rects.push({ x: -30, y: -45, width: 60, height: 95, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -35, -30, -35] }, { points: [-40, -20, -30, -20] }, { points: [-40, -5, -30, -5] }, { points: [-40, 10, -30, 10] }, { points: [-40, 25, -30, 25] }, { points: [-40, 40, -30, 40] });
+    lines.push({ points: [30, -35, 40, -35] }, { points: [30, -20, 40, -20] }, { points: [30, -5, 40, -5] }, { points: [30, 10, 40, 10] }, { points: [30, 25, 40, 25] }, { points: [30, 40, 40, 40] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 45, 0, 50] });
+    texts.push({ text: type.replace('ic_', '').toUpperCase(), x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -35 }, { x: 40, y: -35 },
+      { x: -40, y: -20 }, { x: 40, y: -20 },
+      { x: -40, y: -5 }, { x: 40, y: -5 },
+      { x: -40, y: 10 }, { x: 40, y: 10 },
+      { x: -40, y: 25 }, { x: 40, y: 25 },
+      { x: -40, y: 40 }, { x: 40, y: 40 },
+      { x: 0, y: -50 }, { x: 0, y: 50 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 60 };
+  } else if (type === 'ic_cd4052') {
+    // CD4052 Dual 4:1 Analog Mux
+    rects.push({ x: -35, y: -50, width: 70, height: 115, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -40, -35, -40] }, { points: [-45, -20, -35, -20] }, { points: [-45, 0, -35, 0] }, { points: [-45, 20, -35, 20] }, { points: [-45, 40, -35, 40] });
+    lines.push({ points: [35, -45, 45, -45] }, { points: [35, -30, 45, -30] }, { points: [35, -15, 45, -15] }, { points: [35, 0, 45, 0] }, { points: [35, 15, 45, 15] }, { points: [35, 30, 45, 30] }, { points: [35, 45, 45, 45] }, { points: [35, 60, 45, 60] });
+    lines.push({ points: [0, -55, 0, -50] }, { points: [0, 60, 0, 65] });
+    texts.push({ text: 'CD4052', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -40 }, { x: -45, y: -20 }, { x: -45, y: 0 }, { x: -45, y: 20 }, { x: -45, y: 40 },
+      { x: 45, y: -45 }, { x: 45, y: -30 }, { x: 45, y: -15 }, { x: 45, y: 0 }, { x: 45, y: 15 }, { x: 45, y: 30 }, { x: 45, y: 45 }, { x: 45, y: 60 },
+      { x: 0, y: -55 }, { x: 0, y: 65 }
+    ];
+    labelOffset = { x: 0, y: -62 };
+    valueOffset = { x: 0, y: 75 };
+  } else if (type === 'ic_cd4053') {
+    // CD4053 Triple 2:1 Analog Mux
+    rects.push({ x: -35, y: -45, width: 70, height: 95, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-45, -40, -35, -40] }, { points: [-45, -20, -35, -20] }, { points: [-45, 0, -35, 0] }, { points: [-45, 20, -35, 20] });
+    lines.push({ points: [35, -40, 45, -40] }, { points: [35, -25, 45, -25] }, { points: [35, -10, 45, -10] }, { points: [35, 10, 45, 10] }, { points: [35, 25, 45, 25] }, { points: [35, 40, 45, 40] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 45, 0, 50] });
+    texts.push({ text: 'CD4053', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -45, y: -40 }, { x: -45, y: -20 }, { x: -45, y: 0 }, { x: -45, y: 20 },
+      { x: 45, y: -40 }, { x: 45, y: -25 }, { x: 45, y: -10 }, { x: 45, y: 10 }, { x: 45, y: 25 }, { x: 45, y: 40 },
+      { x: 0, y: -50 }, { x: 0, y: 50 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 60 };
+  } else if (type === 'ic_cd4070' || type === 'ic_cd4071' || type === 'ic_cd4077' || type === 'ic_cd4081' || type === 'ic_cd4093') {
+    // Dual/Quad 2-Input CMOS Gates
+    rects.push({ x: -30, y: -35, width: 60, height: 75, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -30, -30, -30] }, { points: [-40, -10, -30, -10] }, { points: [30, -20, 40, -20] });
+    lines.push({ points: [-40, 10, -30, 10] }, { points: [-40, 30, -30, 30] }, { points: [30, 20, 40, 20] });
+    lines.push({ points: [0, -45, 0, -35] }, { points: [0, 35, 0, 45] });
+    texts.push({ text: type.replace('ic_', '').toUpperCase(), x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -30 }, { x: -40, y: -10 }, { x: 40, y: -20 },
+      { x: -40, y: 10 }, { x: -40, y: 30 }, { x: 40, y: 20 },
+      { x: 0, y: -45 }, { x: 0, y: 45 }
+    ];
+    labelOffset = { x: 0, y: -52 };
+    valueOffset = { x: 0, y: 55 };
+  } else if (type === 'ic_cd4073') {
+    // Triple 3-Input AND Gate
+    rects.push({ x: -30, y: -45, width: 60, height: 95, fill: '#161b22', stroke: strokeColor });
+    lines.push({ points: [-40, -35, -30, -35] }, { points: [-40, -20, -30, -20] }, { points: [-40, -5, -30, -5] }, { points: [30, -20, 40, -20] });
+    lines.push({ points: [-40, 10, -30, 10] }, { points: [-40, 25, -30, 25] }, { points: [-40, 40, -30, 40] }, { points: [30, 25, 40, 25] });
+    lines.push({ points: [0, -50, 0, -45] }, { points: [0, 45, 0, 50] });
+    texts.push({ text: 'CD4073', x: -22, y: -4, size: 8 });
+    pins = [
+      { x: -40, y: -35 }, { x: -40, y: -20 }, { x: -40, y: -5 }, { x: 40, y: -20 },
+      { x: -40, y: 10 }, { x: -40, y: 25 }, { x: -40, y: 40 }, { x: 40, y: 25 },
+      { x: 0, y: -50 }, { x: 0, y: 50 }
+    ];
+    labelOffset = { x: 0, y: -57 };
+    valueOffset = { x: 0, y: 60 };
+  } else if (type === 'diode_1n4007' || type === 'diode_1n5408') {
+    // Power Rectifier Diode
+    lines.push({ points: [-30, 0, -10, 0] });
+    lines.push({ points: [-10, -10, -10, 10, 10, 0, -10, -10] });
+    lines.push({ points: [10, -10, 10, 10] });
+    lines.push({ points: [10, 0, 30, 0] });
+    texts.push({ text: type.replace('diode_', '').toUpperCase(), x: -16, y: -16, size: 7 });
+    pins = [{ x: -30, y: 0 }, { x: 30, y: 0 }];
+    labelOffset = { x: 0, y: -18 };
+    valueOffset = { x: 0, y: 20 };
+  } else if (type === 'diode_1n5819' || type === 'diode_1n5822') {
+    // Schottky Barrier Diode
+    lines.push({ points: [-30, 0, -10, 0] });
+    lines.push({ points: [-10, -10, -10, 10, 10, 0, -10, -10] });
+    lines.push({ points: [10, -10, 10, 10] });
+    lines.push({ points: [10, -10, 6, -10] }, { points: [10, 10, 14, 10] });
+    lines.push({ points: [10, 0, 30, 0] });
+    texts.push({ text: type.replace('diode_', '').toUpperCase(), x: -16, y: -16, size: 7 });
+    pins = [{ x: -30, y: 0 }, { x: 30, y: 0 }];
+    labelOffset = { x: 0, y: -18 };
+    valueOffset = { x: 0, y: 20 };
+  } else if (type === 'diode_zener_1n4733a' || type === 'diode_zener_1n4742a' || type === 'diode_bzx55c5v1') {
+    // Zener Diodes
+    lines.push({ points: [-30, 0, -10, 0] });
+    lines.push({ points: [-10, -10, -10, 10, 10, 0, -10, -10] });
+    lines.push({ points: [10, -10, 10, 10] });
+    lines.push({ points: [10, -10, 6, -14] }, { points: [10, 10, 14, 6] });
+    lines.push({ points: [10, 0, 30, 0] });
+    texts.push({ text: type.replace('diode_zener_', '').replace('diode_', '').toUpperCase(), x: -18, y: -18, size: 6 });
+    pins = [{ x: -30, y: 0 }, { x: 30, y: 0 }];
+    labelOffset = { x: 0, y: -20 };
+    valueOffset = { x: 0, y: 20 };
+  } else if (type === 'transistor_2n2222a' || type === 'transistor_2n3904' || type === 'transistor_bc547' || type === 'transistor_bd139' || type === 'transistor_2n3055' || type === 'transistor_tip31c' || type === 'transistor_tip122') {
+    // NPN BJTs & Darlington
+    lines.push({ points: [10, -15, 10, 15] }); // Base bar
+    lines.push({ points: [-30, 0, 10, 0] }); // Base lead
+    lines.push({ points: [10, -10, 20, -18] }, { points: [20, -18, 20, -30] }); // Collector
+    lines.push({ points: [10, 10, 20, 18] }, { points: [20, 18, 20, 30] }); // Emitter
+    lines.push({ points: [16, 14, 20, 18, 17, 20] }); // NPN Arrow
+    texts.push({ text: type.replace('transistor_', '').toUpperCase(), x: -15, y: -22, size: 7 });
+    pins = [{ x: -30, y: 0 }, { x: 20, y: -30 }, { x: 20, y: 30 }];
+    labelOffset = { x: 32, y: 0 };
+    valueOffset = { x: 32, y: 12 };
+  } else if (type === 'transistor_2n2907a' || type === 'transistor_2n3906' || type === 'transistor_bc557' || type === 'transistor_bd140' || type === 'transistor_tip32c' || type === 'transistor_tip127') {
+    // PNP BJTs & Darlington
+    lines.push({ points: [10, -15, 10, 15] }); // Base bar
+    lines.push({ points: [-30, 0, 10, 0] }); // Base lead
+    lines.push({ points: [10, -10, 20, -18] }, { points: [20, -18, 20, -30] }); // Collector
+    lines.push({ points: [10, 10, 20, 18] }, { points: [20, 18, 20, 30] }); // Emitter
+    lines.push({ points: [14, 13, 10, 10, 11, 16] }); // PNP Arrow (inward)
+    texts.push({ text: type.replace('transistor_', '').toUpperCase(), x: -15, y: -22, size: 7 });
+    pins = [{ x: -30, y: 0 }, { x: 20, y: -30 }, { x: 20, y: 30 }];
+    labelOffset = { x: 32, y: 0 };
+    valueOffset = { x: 32, y: 12 };
 
   }
   // --- FALLBACK ---

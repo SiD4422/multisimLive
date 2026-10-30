@@ -2280,6 +2280,262 @@ B_ob outb gnd V = (V(inb) > 2.0) ? V(vdd) : 0.0
 R_pwr vdd gnd 10Meg
 .ends TC4427_SUB`,
 
+  CD4049_SUB: `* CD4049 Hex Inverter Model
+.subckt CD4049_SUB a1 y1 a2 y2 a3 y3 a4 y4 a5 y5 a6 y6 vdd vss
+R_a1 a1 vss 1Meg
+R_a2 a2 vss 1Meg
+R_a3 a3 vss 1Meg
+R_a4 a4 vss 1Meg
+R_a5 a5 vss 1Meg
+R_a6 a6 vss 1Meg
+B_y1 y1 vss V = (V(a1) > 2.5) ? 0.0 : V(vdd)
+B_y2 y2 vss V = (V(a2) > 2.5) ? 0.0 : V(vdd)
+B_y3 y3 vss V = (V(a3) > 2.5) ? 0.0 : V(vdd)
+B_y4 y4 vss V = (V(a4) > 2.5) ? 0.0 : V(vdd)
+B_y5 y5 vss V = (V(a5) > 2.5) ? 0.0 : V(vdd)
+B_y6 y6 vss V = (V(a6) > 2.5) ? 0.0 : V(vdd)
+R_pwr vdd vss 10Meg
+.ends CD4049_SUB`,
+
+  CD4050_SUB: `* CD4050 Hex Buffer Model
+.subckt CD4050_SUB a1 y1 a2 y2 a3 y3 a4 y4 a5 y5 a6 y6 vdd vss
+R_a1 a1 vss 1Meg
+R_a2 a2 vss 1Meg
+R_a3 a3 vss 1Meg
+R_a4 a4 vss 1Meg
+R_a5 a5 vss 1Meg
+R_a6 a6 vss 1Meg
+B_y1 y1 vss V = (V(a1) > 2.5) ? V(vdd) : 0.0
+B_y2 y2 vss V = (V(a2) > 2.5) ? V(vdd) : 0.0
+B_y3 y3 vss V = (V(a3) > 2.5) ? V(vdd) : 0.0
+B_y4 y4 vss V = (V(a4) > 2.5) ? V(vdd) : 0.0
+B_y5 y5 vss V = (V(a5) > 2.5) ? V(vdd) : 0.0
+B_y6 y6 vss V = (V(a6) > 2.5) ? V(vdd) : 0.0
+R_pwr vdd vss 10Meg
+.ends CD4050_SUB`,
+
+  CD4052_SUB: `* CD4052 Dual 4:1 Analog Mux Model
+.subckt CD4052_SUB a b inh comx comy x0 x1 x2 x3 y0 y1 y2 y3 vdd vss
+R_a a vss 1Meg
+R_b b vss 1Meg
+R_inh inh vss 1Meg
+B_x comx x0 I = (V(inh) < 0.8 && V(a) < 0.8 && V(b) < 0.8) ? (V(comx,x0)/100) : 0.0
+B_y comy y0 I = (V(inh) < 0.8 && V(a) < 0.8 && V(b) < 0.8) ? (V(comy,y0)/100) : 0.0
+R_pwr vdd vss 10Meg
+.ends CD4052_SUB`,
+
+  CD4053_SUB: `* CD4053 Triple 2:1 Analog Mux Model
+.subckt CD4053_SUB a b c inh x x0 x1 y y0 y1 vdd vss
+R_a a vss 1Meg
+R_b b vss 1Meg
+R_c c vss 1Meg
+R_inh inh vss 1Meg
+B_x x x0 I = (V(inh) < 0.8 && V(a) < 0.8) ? (V(x,x0)/100) : 0.0
+B_y y y0 I = (V(inh) < 0.8 && V(b) < 0.8) ? (V(y,y0)/100) : 0.0
+R_pwr vdd vss 10Meg
+.ends CD4053_SUB`,
+
+  CD4070_SUB: `* CD4070 Quad XOR Model
+.subckt CD4070_SUB a1 b1 y1 a2 b2 y2 vdd vss
+R_a1 a1 vss 1Meg
+R_b1 b1 vss 1Meg
+R_a2 a2 vss 1Meg
+R_b2 b2 vss 1Meg
+B_y1 y1 vss V = ((V(a1) > 2.5) ^ (V(b1) > 2.5)) ? V(vdd) : 0.0
+B_y2 y2 vss V = ((V(a2) > 2.5) ^ (V(b2) > 2.5)) ? V(vdd) : 0.0
+R_pwr vdd vss 10Meg
+.ends CD4070_SUB`,
+
+  CD4071_SUB: `* CD4071 Quad OR Model
+.subckt CD4071_SUB a1 b1 y1 a2 b2 y2 vdd vss
+R_a1 a1 vss 1Meg
+R_b1 b1 vss 1Meg
+R_a2 a2 vss 1Meg
+R_b2 b2 vss 1Meg
+B_y1 y1 vss V = ((V(a1) > 2.5) || (V(b1) > 2.5)) ? V(vdd) : 0.0
+B_y2 y2 vss V = ((V(a2) > 2.5) || (V(b2) > 2.5)) ? V(vdd) : 0.0
+R_pwr vdd vss 10Meg
+.ends CD4071_SUB`,
+
+  CD4073_SUB: `* CD4073 Triple 3-Input AND Model
+.subckt CD4073_SUB a1 b1 c1 y1 a2 b2 c2 y2 vdd vss
+R_a1 a1 vss 1Meg
+R_b1 b1 vss 1Meg
+R_c1 c1 vss 1Meg
+R_a2 a2 vss 1Meg
+R_b2 b2 vss 1Meg
+R_c2 c2 vss 1Meg
+B_y1 y1 vss V = ((V(a1) > 2.5) && (V(b1) > 2.5) && (V(c1) > 2.5)) ? V(vdd) : 0.0
+B_y2 y2 vss V = ((V(a2) > 2.5) && (V(b2) > 2.5) && (V(c2) > 2.5)) ? V(vdd) : 0.0
+R_pwr vdd vss 10Meg
+.ends CD4073_SUB`,
+
+  CD4077_SUB: `* CD4077 Quad XNOR Model
+.subckt CD4077_SUB a1 b1 y1 a2 b2 y2 vdd vss
+R_a1 a1 vss 1Meg
+R_b1 b1 vss 1Meg
+R_a2 a2 vss 1Meg
+R_b2 b2 vss 1Meg
+B_y1 y1 vss V = (!((V(a1) > 2.5) ^ (V(b1) > 2.5))) ? V(vdd) : 0.0
+B_y2 y2 vss V = (!((V(a2) > 2.5) ^ (V(b2) > 2.5))) ? V(vdd) : 0.0
+R_pwr vdd vss 10Meg
+.ends CD4077_SUB`,
+
+  CD4081_SUB: `* CD4081 Quad AND Model
+.subckt CD4081_SUB a1 b1 y1 a2 b2 y2 vdd vss
+R_a1 a1 vss 1Meg
+R_b1 b1 vss 1Meg
+R_a2 a2 vss 1Meg
+R_b2 b2 vss 1Meg
+B_y1 y1 vss V = ((V(a1) > 2.5) && (V(b1) > 2.5)) ? V(vdd) : 0.0
+B_y2 y2 vss V = ((V(a2) > 2.5) && (V(b2) > 2.5)) ? V(vdd) : 0.0
+R_pwr vdd vss 10Meg
+.ends CD4081_SUB`,
+
+  CD4093_SUB: `* CD4093 Quad NAND Schmitt Trigger Model
+.subckt CD4093_SUB a1 b1 y1 a2 b2 y2 vdd vss
+R_a1 a1 vss 1Meg
+R_b1 b1 vss 1Meg
+R_a2 a2 vss 1Meg
+R_b2 b2 vss 1Meg
+B_y1 y1 vss V = (!((V(a1) > 2.7) && (V(b1) > 2.7))) ? V(vdd) : 0.0
+B_y2 y2 vss V = (!((V(a2) > 2.7) && (V(b2) > 2.7))) ? V(vdd) : 0.0
+R_pwr vdd vss 10Meg
+.ends CD4093_SUB`,
+
+  D1N4007_SUB: `* 1N4007 Diode Model
+.subckt D1N4007_SUB a k
+D1 a k D1N4007_MOD
+.model D1N4007_MOD D(Is=7.027n Rs=0.034 N=1.8 Bv=1000 Ibv=0.1m)
+.ends D1N4007_SUB`,
+
+  D1N5819_SUB: `* 1N5819 Schottky Diode Model
+.subckt D1N5819_SUB a k
+D1 a k D1N5819_MOD
+.model D1N5819_MOD D(Is=31.7u Rs=0.051 N=1.05 Bv=40 Ibv=1m)
+.ends D1N5819_SUB`,
+
+  D1N5822_SUB: `* 1N5822 3A Schottky Diode Model
+.subckt D1N5822_SUB a k
+D1 a k D1N5822_MOD
+.model D1N5822_MOD D(Is=50u Rs=0.02 N=1.05 Bv=40 Ibv=2m)
+.ends D1N5822_SUB`,
+
+  D1N5408_SUB: `* 1N5408 3A Power Diode Model
+.subckt D1N5408_SUB a k
+D1 a k D1N5408_MOD
+.model D1N5408_MOD D(Is=12n Rs=0.015 N=1.7 Bv=1000 Ibv=0.1m)
+.ends D1N5408_SUB`,
+
+  D1N4733A_SUB: `* 1N4733A 5.1V Zener Model
+.subckt D1N4733A_SUB a k
+D1 a k D1N4733A_MOD
+.model D1N4733A_MOD D(Is=1e-14 Bv=5.1 Ibv=1m Rs=1.5)
+.ends D1N4733A_SUB`,
+
+  D1N4742A_SUB: `* 1N4742A 12V Zener Model
+.subckt D1N4742A_SUB a k
+D1 a k D1N4742A_MOD
+.model D1N4742A_MOD D(Is=1e-14 Bv=12.0 Ibv=1m Rs=2.5)
+.ends D1N4742A_SUB`,
+
+  DBZX55C5V1_SUB: `* BZX55C5V1 5.1V Zener Model
+.subckt DBZX55C5V1_SUB a k
+D1 a k DBZX55C5V1_MOD
+.model DBZX55C5V1_MOD D(Is=1e-14 Bv=5.1 Ibv=1m Rs=2.0)
+.ends DBZX55C5V1_SUB`,
+
+  BJT_2N2222A_SUB: `* 2N2222A NPN BJT Model
+.subckt BJT_2N2222A_SUB b c e
+B_be ic_be b e I = 14.34f*(exp(V(b,e)/0.02585)-1)
+B_ice c e I = 250*I(B_be)
+Rb b e 1G
+.ends BJT_2N2222A_SUB`,
+
+  BJT_2N2907A_SUB: `* 2N2907A PNP BJT Model
+.subckt BJT_2N2907A_SUB b c e
+B_eb ic_eb e b I = 14.34f*(exp(V(e,b)/0.02585)-1)
+B_iec e c I = 200*I(B_eb)
+Rb e b 1G
+.ends BJT_2N2907A_SUB`,
+
+  BJT_2N3904_SUB: `* 2N3904 NPN BJT Model
+.subckt BJT_2N3904_SUB b c e
+B_be ic_be b e I = 1e-14*(exp(V(b,e)/0.02585)-1)
+B_ice c e I = 300*I(B_be)
+Rb b e 1G
+.ends BJT_2N3904_SUB`,
+
+  BJT_2N3906_SUB: `* 2N3906 PNP BJT Model
+.subckt BJT_2N3906_SUB b c e
+B_eb ic_eb e b I = 1e-14*(exp(V(e,b)/0.02585)-1)
+B_iec e c I = 200*I(B_eb)
+Rb e b 1G
+.ends BJT_2N3906_SUB`,
+
+  BJT_BC547_SUB: `* BC547 NPN BJT Model
+.subckt BJT_BC547_SUB b c e
+B_be ic_be b e I = 1e-14*(exp(V(b,e)/0.02585)-1)
+B_ice c e I = 350*I(B_be)
+Rb b e 1G
+.ends BJT_BC547_SUB`,
+
+  BJT_BC557_SUB: `* BC557 PNP BJT Model
+.subckt BJT_BC557_SUB b c e
+B_eb ic_eb e b I = 1e-14*(exp(V(e,b)/0.02585)-1)
+B_iec e c I = 250*I(B_eb)
+Rb e b 1G
+.ends BJT_BC557_SUB`,
+
+  BJT_BD139_SUB: `* BD139 NPN Power BJT Model
+.subckt BJT_BD139_SUB b c e
+B_be ic_be b e I = 1e-13*(exp(V(b,e)/0.02585)-1)
+B_ice c e I = 160*I(B_be)
+Rb b e 1G
+.ends BJT_BD139_SUB`,
+
+  BJT_BD140_SUB: `* BD140 PNP Power BJT Model
+.subckt BJT_BD140_SUB b c e
+B_eb ic_eb e b I = 1e-13*(exp(V(e,b)/0.02585)-1)
+B_iec e c I = 160*I(B_eb)
+Rb e b 1G
+.ends BJT_BD140_SUB`,
+
+  BJT_2N3055_SUB: `* 2N3055 15A Power NPN Model
+.subckt BJT_2N3055_SUB b c e
+B_be ic_be b e I = 1e-11*(exp(V(b,e)/0.02585)-1)
+B_ice c e I = 70*I(B_be)
+Rb b e 1G
+.ends BJT_2N3055_SUB`,
+
+  BJT_TIP31C_SUB: `* TIP31C 3A NPN BJT Model
+.subckt BJT_TIP31C_SUB b c e
+B_be ic_be b e I = 1e-12*(exp(V(b,e)/0.02585)-1)
+B_ice c e I = 50*I(B_be)
+Rb b e 1G
+.ends BJT_TIP31C_SUB`,
+
+  BJT_TIP32C_SUB: `* TIP32C 3A PNP BJT Model
+.subckt BJT_TIP32C_SUB b c e
+B_eb ic_eb e b I = 1e-12*(exp(V(e,b)/0.02585)-1)
+B_iec e c I = 50*I(B_eb)
+Rb e b 1G
+.ends BJT_TIP32C_SUB`,
+
+  BJT_TIP122_SUB: `* TIP122 NPN Darlington Model
+.subckt BJT_TIP122_SUB b c e
+B_be ic_be b e I = 1e-14*(exp(V(b,e)/0.0517)-1)
+B_ice c e I = 1000*I(B_be)
+Rb b e 1G
+.ends BJT_TIP122_SUB`,
+
+  BJT_TIP127_SUB: `* TIP127 PNP Darlington Model
+.subckt BJT_TIP127_SUB b c e
+B_eb ic_eb e b I = 1e-14*(exp(V(e,b)/0.0517)-1)
+B_iec e c I = 1000*I(B_eb)
+Rb e b 1G
+.ends BJT_TIP127_SUB`,
+
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -3594,6 +3850,126 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'ic_tc4427': {
       const [ina='0', inb='0', outa='0', outb='0', vdd='0', gnd='0'] = nodes;
       return { line: `X_${comp.id} ${ina} ${inb} ${outa} ${outb} ${vdd} ${gnd} TC4427_SUB`, subckts: [SUBCKT_DEFINITIONS.TC4427_SUB] };
+    }
+    case 'ic_cd4049': {
+      const [a1='0', y1='0', a2='0', y2='0', a3='0', y3='0', a4='0', y4='0', a5='0', y5='0', a6='0', y6='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${y1} ${a2} ${y2} ${a3} ${y3} ${a4} ${y4} ${a5} ${y5} ${a6} ${y6} ${vdd} ${vss} CD4049_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4049_SUB] };
+    }
+    case 'ic_cd4050': {
+      const [a1='0', y1='0', a2='0', y2='0', a3='0', y3='0', a4='0', y4='0', a5='0', y5='0', a6='0', y6='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${y1} ${a2} ${y2} ${a3} ${y3} ${a4} ${y4} ${a5} ${y5} ${a6} ${y6} ${vdd} ${vss} CD4050_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4050_SUB] };
+    }
+    case 'ic_cd4052': {
+      const [a='0', b='0', inh='0', comx='0', comy='0', x0='0', x1='0', x2='0', x3='0', y0='0', y1='0', y2='0', y3='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${inh} ${comx} ${comy} ${x0} ${x1} ${x2} ${x3} ${y0} ${y1} ${y2} ${y3} ${vdd} ${vss} CD4052_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4052_SUB] };
+    }
+    case 'ic_cd4053': {
+      const [a='0', b='0', c='0', inh='0', x='0', x0='0', x1='0', y='0', y0='0', y1='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${inh} ${x} ${x0} ${x1} ${y} ${y0} ${y1} ${vdd} ${vss} CD4053_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4053_SUB] };
+    }
+    case 'ic_cd4070': {
+      const [a1='0', b1='0', y1='0', a2='0', b2='0', y2='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${b1} ${y1} ${a2} ${b2} ${y2} ${vdd} ${vss} CD4070_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4070_SUB] };
+    }
+    case 'ic_cd4071': {
+      const [a1='0', b1='0', y1='0', a2='0', b2='0', y2='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${b1} ${y1} ${a2} ${b2} ${y2} ${vdd} ${vss} CD4071_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4071_SUB] };
+    }
+    case 'ic_cd4073': {
+      const [a1='0', b1='0', c1='0', y1='0', a2='0', b2='0', c2='0', y2='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${b1} ${c1} ${y1} ${a2} ${b2} ${c2} ${y2} ${vdd} ${vss} CD4073_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4073_SUB] };
+    }
+    case 'ic_cd4077': {
+      const [a1='0', b1='0', y1='0', a2='0', b2='0', y2='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${b1} ${y1} ${a2} ${b2} ${y2} ${vdd} ${vss} CD4077_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4077_SUB] };
+    }
+    case 'ic_cd4081': {
+      const [a1='0', b1='0', y1='0', a2='0', b2='0', y2='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${b1} ${y1} ${a2} ${b2} ${y2} ${vdd} ${vss} CD4081_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4081_SUB] };
+    }
+    case 'ic_cd4093': {
+      const [a1='0', b1='0', y1='0', a2='0', b2='0', y2='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${b1} ${y1} ${a2} ${b2} ${y2} ${vdd} ${vss} CD4093_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4093_SUB] };
+    }
+    case 'diode_1n4007': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} D1N4007_SUB`, subckts: [SUBCKT_DEFINITIONS.D1N4007_SUB] };
+    }
+    case 'diode_1n5819': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} D1N5819_SUB`, subckts: [SUBCKT_DEFINITIONS.D1N5819_SUB] };
+    }
+    case 'diode_1n5822': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} D1N5822_SUB`, subckts: [SUBCKT_DEFINITIONS.D1N5822_SUB] };
+    }
+    case 'diode_1n5408': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} D1N5408_SUB`, subckts: [SUBCKT_DEFINITIONS.D1N5408_SUB] };
+    }
+    case 'diode_zener_1n4733a': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} D1N4733A_SUB`, subckts: [SUBCKT_DEFINITIONS.D1N4733A_SUB] };
+    }
+    case 'diode_zener_1n4742a': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} D1N4742A_SUB`, subckts: [SUBCKT_DEFINITIONS.D1N4742A_SUB] };
+    }
+    case 'diode_bzx55c5v1': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} DBZX55C5V1_SUB`, subckts: [SUBCKT_DEFINITIONS.DBZX55C5V1_SUB] };
+    }
+    case 'transistor_2n2222a': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_2N2222A_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_2N2222A_SUB] };
+    }
+    case 'transistor_2n2907a': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_2N2907A_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_2N2907A_SUB] };
+    }
+    case 'transistor_2n3904': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_2N3904_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_2N3904_SUB] };
+    }
+    case 'transistor_2n3906': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_2N3906_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_2N3906_SUB] };
+    }
+    case 'transistor_bc547': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_BC547_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_BC547_SUB] };
+    }
+    case 'transistor_bc557': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_BC557_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_BC557_SUB] };
+    }
+    case 'transistor_bd139': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_BD139_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_BD139_SUB] };
+    }
+    case 'transistor_bd140': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_BD140_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_BD140_SUB] };
+    }
+    case 'transistor_2n3055': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_2N3055_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_2N3055_SUB] };
+    }
+    case 'transistor_tip31c': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_TIP31C_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_TIP31C_SUB] };
+    }
+    case 'transistor_tip32c': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_TIP32C_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_TIP32C_SUB] };
+    }
+    case 'transistor_tip122': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_TIP122_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_TIP122_SUB] };
+    }
+    case 'transistor_tip127': {
+      const [b='0', c='0', e='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${e} BJT_TIP127_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_TIP127_SUB] };
     }
     default:
       return null;
