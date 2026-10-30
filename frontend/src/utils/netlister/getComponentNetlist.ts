@@ -982,6 +982,89 @@ E1 OUT1 GND VALUE={LIMIT(100000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+0.1, V(VCC
 E2 OUT2 GND VALUE={LIMIT(100000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+0.1, V(VCC,GND)-0.1)}
 .ends OPA2134_SUB`,
 
+  CD4066_SUB: `.subckt CD4066_SUB IN1 OUT1 CTL1 IN2 OUT2 CTL2 VDD VSS
+* CD4066 quad bilateral switch (channels 1 & 2 modeled)
+* Conductance is high (R_on=80) when CTL > 2.5V, else 10Meg
+B1 IN1 OUT1 VALUE = { (V(IN1,OUT1) / IF(V(CTL1,VSS) > 2.5, 80, 1e7)) }
+B2 IN2 OUT2 VALUE = { (V(IN2,OUT2) / IF(V(CTL2,VSS) > 2.5, 80, 1e7)) }
+R_LEAK VDD VSS 10Meg
+.ends CD4066_SUB`,
+
+  HC14_SUB: `.subckt HC14_SUB A Y VCC GND
+* 74HC14 hex Schmitt trigger inverter: VT+ = 0.6*VCC, VT- = 0.4*VCC
+B_SCHMITT Y_INT GND VALUE = { IF(V(A,GND) > 0.6*V(VCC,GND), 0, IF(V(A,GND) < 0.4*V(VCC,GND), V(VCC,GND), V(Y_INT,GND))) }
+B_OUT Y GND VALUE = { V(Y_INT,GND) }
+R_OUT Y GND 1k
+.ends HC14_SUB`,
+
+  HC153_SUB: `.subckt HC153_SUB I0 I1 I2 I3 S0 S1 E Y VCC GND
+* 74HC153 4-to-1 multiplexer: S1,S0 binary select, active-low enable E
+B_OUT Y GND VALUE = { IF(V(E,GND) > 1.5, 0, IF(V(S1,GND)<1.5 & V(S0,GND)<1.5, V(I0,GND), IF(V(S1,GND)<1.5 & V(S0,GND)>1.5, V(I1,GND), IF(V(S1,GND)>1.5 & V(S0,GND)<1.5, V(I2,GND), V(I3,GND))))) }
+R_PWR VCC GND 100k
+.ends HC153_SUB`,
+
+  DS1307_SUB: `.subckt DS1307_SUB X1 X2 VBAT GND SDA SCL SQW VCC
+* DS1307 I2C RTC stub with 1Hz square wave output model
+R_PWR VCC GND 100k
+R_BAT VBAT GND 1Meg
+B_SQW SQW GND VALUE = { IF(V(VCC,GND)>4.0, 2.5 + 2.5*SGN(SIN(6.28318*1*TIME)), 0) }
+.ends DS1307_SUB`,
+
+  MCP3008_SUB: `.subckt MCP3008_SUB CH0 CH1 CH2 CH3 CH4 CH5 VDD VREF CLK DOUT DIN CS GND
+* MCP3008 10-bit SPI ADC behavioral stub
+R_IN CH0 GND 10Meg
+R_PWR VDD GND 100k
+B_DOUT DOUT GND VALUE = { IF(V(CS,GND)<0.8, V(DIN,GND), 0) }
+.ends MCP3008_SUB`,
+
+  HC164_SUB: `.subckt HC164_SUB DSA DSB CP CLR Q0 Q1 Q2 Q3 Q4 Q5 Q6 Q7 VCC GND
+* 74HC164 8-bit shift register stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE = { IF(V(CLR,GND)<0.8, 0, V(DSA,GND)*V(DSB,GND)/V(VCC,GND)) }
+B1 Q1 GND VALUE = { 0 }
+B2 Q2 GND VALUE = { 0 }
+B3 Q3 GND VALUE = { 0 }
+B4 Q4 GND VALUE = { 0 }
+B5 Q5 GND VALUE = { 0 }
+B6 Q6 GND VALUE = { 0 }
+B7 Q7 GND VALUE = { 0 }
+.ends HC164_SUB`,
+
+  LM3914_SUB: `.subckt LM3914_SUB SIG RLO RHI MODE L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 VCC GND
+* LM3914 10-step comparator ladder (step = (RHI-RLO)/10)
+B1 L1 GND VALUE = { IF(V(SIG,RLO) > 0.1*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B2 L2 GND VALUE = { IF(V(SIG,RLO) > 0.2*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B3 L3 GND VALUE = { IF(V(SIG,RLO) > 0.3*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B4 L4 GND VALUE = { IF(V(SIG,RLO) > 0.4*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B5 L5 GND VALUE = { IF(V(SIG,RLO) > 0.5*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B6 L6 GND VALUE = { IF(V(SIG,RLO) > 0.6*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B7 L7 GND VALUE = { IF(V(SIG,RLO) > 0.7*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B8 L8 GND VALUE = { IF(V(SIG,RLO) > 0.8*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B9 L9 GND VALUE = { IF(V(SIG,RLO) > 0.9*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B10 L10 GND VALUE = { IF(V(SIG,RLO) > 1.0*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+.ends LM3914_SUB`,
+
+  TDA2030_SUB: `.subckt TDA2030_SUB INP INN OUT VSP VSN
+* TDA2030 class-AB audio amplifier
+R_IN INP INN 5Meg
+E_AMP OUT_INT GND VALUE = { LIMIT(80000*(V(INP,GND)-V(INN,GND)), V(VSN,GND)+1.5, V(VSP,GND)-1.5) }
+R_OUT OUT_INT OUT 0.2
+.ends TDA2030_SUB`,
+
+  DAC0808_SUB: `.subckt DAC0808_SUB A1 A2 A3 A4 A5 A6 A7 A8 IOUT VREFP VREFN VCC VEE GND
+* DAC0808 8-bit multiplying DAC behavioral model
+B_DAC IOUT GND VALUE = { ((V(VREFP,VREFN)/2000) * ( (V(A1,GND)>2?128:0) + (V(A2,GND)>2?64:0) + (V(A3,GND)>2?32:0) + (V(A4,GND)>2?16:0) + (V(A5,GND)>2?8:0) + (V(A6,GND)>2?4:0) + (V(A7,GND)>2?2:0) + (V(A8,GND)>2?1:0) ) / 256) * 1000 }
+R_PWR VCC GND 100k
+R_NEG VEE GND 100k
+.ends DAC0808_SUB`,
+
+  PHOTOTRANS_SUB: `.subckt PHOTOTRANS_SUB C E B
+* NPN phototransistor model
+Q1 C B E QPHOTO
+I_PHOTO C B 50u
+.model QPHOTO NPN(Is=1e-14 Bf=200 Vaf=80 Cjc=5p Cje=10p)
+.ends PHOTOTRANS_SUB`,
+
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -1736,6 +1819,46 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'ic_opa2134': {
       const [in1n='0', in1p='0', out1='0', in2p='0', in2n='0', out2='0', vcc='0', vee='0'] = nodes;
       return { line: `X_${comp.id} ${in1n} ${in1p} ${out1} ${in2p} ${in2n} ${out2} ${vcc} ${vee} OPA2134_SUB`, subckts: [SUBCKT_DEFINITIONS.OPA2134_SUB] };
+    }
+    case 'ic_cd4066': {
+      const [in1='0', out1='0', ctl1='0', in2='0', out2='0', ctl2='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${in1} ${out1} ${ctl1} ${in2} ${out2} ${ctl2} ${vdd} ${vss} CD4066_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4066_SUB] };
+    }
+    case 'ic_74hc14': {
+      const [a='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${y} ${vcc} ${gnd} HC14_SUB`, subckts: [SUBCKT_DEFINITIONS.HC14_SUB] };
+    }
+    case 'ic_74hc153': {
+      const [i0='0', i1='0', i2='0', i3='0', s0='0', s1='0', e='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${i0} ${i1} ${i2} ${i3} ${s0} ${s1} ${e} ${y} ${vcc} ${gnd} HC153_SUB`, subckts: [SUBCKT_DEFINITIONS.HC153_SUB] };
+    }
+    case 'ic_ds1307': {
+      const [x1='0', x2='0', vbat='0', gnd='0', sda='0', scl='0', sqw='0', vcc='0'] = nodes;
+      return { line: `X_${comp.id} ${x1} ${x2} ${vbat} ${gnd} ${sda} ${scl} ${sqw} ${vcc} DS1307_SUB`, subckts: [SUBCKT_DEFINITIONS.DS1307_SUB] };
+    }
+    case 'ic_mcp3008': {
+      const [ch0='0', ch1='0', ch2='0', ch3='0', ch4='0', ch5='0', vdd='0', vref='0', clk='0', dout='0', din='0', cs='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${ch0} ${ch1} ${ch2} ${ch3} ${ch4} ${ch5} ${vdd} ${vref} ${clk} ${dout} ${din} ${cs} ${gnd} MCP3008_SUB`, subckts: [SUBCKT_DEFINITIONS.MCP3008_SUB] };
+    }
+    case 'ic_74hc164': {
+      const [dsa='0', dsb='0', cp='0', clr='0', q0='0', q1='0', q2='0', q3='0', q4='0', q5='0', q6='0', q7='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${dsa} ${dsb} ${cp} ${clr} ${q0} ${q1} ${q2} ${q3} ${q4} ${q5} ${q6} ${q7} ${vcc} ${gnd} HC164_SUB`, subckts: [SUBCKT_DEFINITIONS.HC164_SUB] };
+    }
+    case 'ic_lm3914': {
+      const [sig='0', rlo='0', rhi='0', mode='0', l1='0', l2='0', l3='0', l4='0', l5='0', l6='0', l7='0', l8='0', l9='0', l10='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${sig} ${rlo} ${rhi} ${mode} ${l1} ${l2} ${l3} ${l4} ${l5} ${l6} ${l7} ${l8} ${l9} ${l10} ${vcc} ${gnd} LM3914_SUB`, subckts: [SUBCKT_DEFINITIONS.LM3914_SUB] };
+    }
+    case 'ic_tda2030': {
+      const [inp='0', inn='0', outp='0', vsp='0', vsn='0'] = nodes;
+      return { line: `X_${comp.id} ${inp} ${inn} ${outp} ${vsp} ${vsn} TDA2030_SUB`, subckts: [SUBCKT_DEFINITIONS.TDA2030_SUB] };
+    }
+    case 'ic_dac0808': {
+      const [a1='0', a2='0', a3='0', a4='0', a5='0', a6='0', a7='0', a8='0', iout='0', vrefp='0', vrefn='0', vcc='0', vee='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a1} ${a2} ${a3} ${a4} ${a5} ${a6} ${a7} ${a8} ${iout} ${vrefp} ${vrefn} ${vcc} ${vee} ${gnd} DAC0808_SUB`, subckts: [SUBCKT_DEFINITIONS.DAC0808_SUB] };
+    }
+    case 'phototransistor_npn': {
+      const [c='0', e='0', b='0'] = nodes;
+      return { line: `X_${comp.id} ${c} ${e} ${b} PHOTOTRANS_SUB`, subckts: [SUBCKT_DEFINITIONS.PHOTOTRANS_SUB] };
     }
     default:
       return null;

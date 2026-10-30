@@ -69,6 +69,16 @@ function formatRefDes(id: string, type: string): string {
     ic_74hc30: 'U',
     ic_cd4040: 'U',
     ic_opa2134: 'U',
+    ic_cd4066: 'U',
+    ic_74hc14: 'U',
+    ic_74hc153: 'U',
+    ic_ds1307: 'U',
+    ic_mcp3008: 'U',
+    ic_74hc164: 'U',
+    ic_lm3914: 'U',
+    ic_tda2030: 'U',
+    ic_dac0808: 'U',
+    phototransistor_npn: 'Q',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -3205,6 +3215,202 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{x:-50,y:-35},{x:-50,y:-15},{x:20,y:-25},{x:-50,y:15},{x:-50,y:35},{x:20,y:25},{x:-12,y:-50},{x:-12,y:50}];
     labelOffset = { x: 0, y: 65 };
     valueOffset = { x: 0, y: 77 };
+  } else if (type === 'ic_cd4066') {
+    // CD4066 Quad Bilateral Switch box
+    rects.push({ x: -40, y: -55, width: 80, height: 110, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: 'CD4066', x: -25, y: -48, size: 8 });
+    texts.push({ text: '4x Switch', x: -24, y: -34, size: 7 });
+    // Left pins: IN1, CTL1, IN2, CTL2
+    const lPins66 = [['IN1',-30],['CTL1',-10],['IN2',10],['CTL2',30]] as [string,number][];
+    lPins66.forEach(([n,py]) => {
+      lines.push({ points: [-50,py,-40,py] });
+      texts.push({ text: n, x: -38, y: py-4, size: 6 });
+    });
+    // Right pins: VDD, OUT1, OUT2, VSS
+    const rPins66 = [['VDD',-50],['OUT1',-30],['OUT2',10],['VSS',50]] as [string,number][];
+    rPins66.forEach(([n,py]) => {
+      lines.push({ points: [40,py,50,py] });
+      texts.push({ text: n, x: 10, y: py-4, size: 6 });
+    });
+    pins = [{x:-50,y:-30},{x:50,y:-30},{x:-50,y:-10},{x:-50,y:10},{x:50,y:10},{x:-50,y:30},{x:50,y:-50},{x:50,y:50}];
+    labelOffset = { x: 0, y: 65 };
+    valueOffset = { x: 0, y: 77 };
+
+  } else if (type === 'ic_74hc14') {
+    // 74HC14 Hex Inverting Schmitt Trigger
+    paths.push({ data: 'M -20 -18 L 10 0 L -20 18 Z', fill: '#fff', stroke: '#333' });
+    circles.push({ x: 14, y: 0, r: 4, fill: '#fff', stroke: '#333' });
+    // Schmitt hysteresis symbol inside
+    lines.push({ points: [-10, 4, -4, 4, -4, -4, 2, -4] });
+    lines.push({ points: [-40, 0, -20, 0] });
+    lines.push({ points: [18, 0, 40, 0] });
+    lines.push({ points: [0, -18, 0, -30] });
+    lines.push({ points: [0, 18, 0, 30] });
+    texts.push({ text: '74HC14', x: -16, y: -26, size: 7 });
+    texts.push({ text: 'VCC', x: -8, y: -34, size: 6 });
+    texts.push({ text: 'GND', x: -8, y: 34, size: 6 });
+    pins = [{x:-40,y:0},{x:40,y:0},{x:0,y:-30},{x:0,y:30}];
+    labelOffset = { x: 0, y: 40 };
+    valueOffset = { x: 0, y: 52 };
+
+  } else if (type === 'ic_74hc153') {
+    // 74HC153 Dual 4-to-1 MUX
+    rects.push({ x: -45, y: -50, width: 90, height: 100, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: '74HC153', x: -26, y: -42, size: 8 });
+    texts.push({ text: 'MUX 4:1', x: -22, y: -28, size: 7 });
+    const lPins153 = [['1C0',-40],['1C1',-20],['1C2',0],['1C3',20],['/1E',40]] as [string,number][];
+    lPins153.forEach(([n,py]) => {
+      lines.push({ points: [-60,py,-45,py] });
+      texts.push({ text: n, x: -42, y: py-4, size: 6 });
+    });
+    // Select pins on bottom
+    lines.push({ points: [-30,50,-30,55] }); texts.push({ text: 'S0', x: -34, y: 38, size: 6 });
+    lines.push({ points: [-10,50,-10,55] }); texts.push({ text: 'S1', x: -14, y: 38, size: 6 });
+    lines.push({ points: [20,50,20,55] });   texts.push({ text: 'GND', x: 10, y: 38, size: 6 });
+    // VCC on top
+    lines.push({ points: [0,-50,0,-55] });   texts.push({ text: 'VCC', x: -8, y: -48, size: 6 });
+    // Y on right
+    lines.push({ points: [45,0,60,0] });     texts.push({ text: '1Y', x: 26, y: -4, size: 7 });
+    pins = [{x:-60,y:-40},{x:-60,y:-20},{x:-60,y:0},{x:-60,y:20},{x:-30,y:55},{x:-10,y:55},{x:-60,y:40},{x:60,y:0},{x:0,y:-55},{x:20,y:55}];
+    labelOffset = { x: 0, y: 70 };
+    valueOffset = { x: 0, y: 82 };
+
+  } else if (type === 'ic_ds1307') {
+    // DS1307 I2C Real-Time Clock
+    rects.push({ x: -38, y: -45, width: 76, height: 90, fill: '#f4f6fb', stroke: '#2b4c7e', strokeWidth: 1.5, cornerRadius: 4 });
+    texts.push({ text: 'DS1307', x: -22, y: -38, size: 8 });
+    texts.push({ text: 'RTC I2C', x: -18, y: -22, size: 7 });
+    const lPins1307 = [['X1',-30],['X2',-10],['VBAT',10],['GND',30]] as [string,number][];
+    lPins1307.forEach(([n,py]) => {
+      lines.push({ points: [-50,py,-38,py] });
+      texts.push({ text: n, x: -35, y: py-4, size: 6 });
+    });
+    const rPins1307 = [['SDA',-30],['SCL',-10],['SQW',10],['VCC',30]] as [string,number][];
+    rPins1307.forEach(([n,py]) => {
+      lines.push({ points: [38,py,50,py] });
+      texts.push({ text: n, x: 8, y: py-4, size: 6 });
+    });
+    pins = [{x:-50,y:-30},{x:-50,y:-10},{x:-50,y:10},{x:-50,y:30},{x:50,y:-30},{x:50,y:-10},{x:50,y:10},{x:50,y:30}];
+    labelOffset = { x: 0, y: 55 };
+    valueOffset = { x: 0, y: 67 };
+
+  } else if (type === 'ic_mcp3008') {
+    // MCP3008 8-Channel 10-Bit ADC
+    rects.push({ x: -45, y: -65, width: 90, height: 130, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: 'MCP3008', x: -28, y: -58, size: 8 });
+    texts.push({ text: '10-Bit ADC', x: -26, y: -44, size: 6 });
+    const lPins3008 = [['CH0',-50],['CH1',-30],['CH2',-10],['CH3',10],['CH4',30],['CH5',50]] as [string,number][];
+    lPins3008.forEach(([n,py]) => {
+      lines.push({ points: [-60,py,-45,py] });
+      texts.push({ text: n, x: -42, y: py-4, size: 6 });
+    });
+    const rPins3008 = [['VDD',-50],['VREF',-30],['CLK',-10],['DOUT',10],['DIN',30],['/CS',50]] as [string,number][];
+    rPins3008.forEach(([n,py]) => {
+      lines.push({ points: [45,py,60,py] });
+      texts.push({ text: n, x: 10, y: py-4, size: 6 });
+    });
+    lines.push({ points: [0,65,0,70] }); texts.push({ text: 'GND', x: -8, y: 56, size: 6 });
+    pins = [{x:-60,y:-50},{x:-60,y:-30},{x:-60,y:-10},{x:-60,y:10},{x:-60,y:30},{x:-60,y:50},{x:60,y:-50},{x:60,y:-30},{x:60,y:-10},{x:60,y:10},{x:60,y:30},{x:60,y:50},{x:0,y:70}];
+    labelOffset = { x: 0, y: 75 };
+    valueOffset = { x: 0, y: 87 };
+
+  } else if (type === 'ic_74hc164') {
+    // 74HC164 8-Bit Shift Register
+    rects.push({ x: -45, y: -65, width: 90, height: 130, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: '74HC164', x: -26, y: -58, size: 8 });
+    texts.push({ text: '8-Bit Shift', x: -24, y: -44, size: 6 });
+    const lPins164 = [['A',-30],['B',-10],['CP',10],['/MR',30]] as [string,number][];
+    lPins164.forEach(([n,py]) => {
+      lines.push({ points: [-50,py,-45,py] });
+      texts.push({ text: n, x: -42, y: py-4, size: 6 });
+    });
+    const rPins164 = [['Q0',-50],['Q1',-35],['Q2',-20],['Q3',-5],['Q4',10],['Q5',25],['Q6',40],['Q7',55]] as [string,number][];
+    rPins164.forEach(([n,py]) => {
+      lines.push({ points: [45,py,50,py] });
+      texts.push({ text: n, x: 22, y: py-4, size: 6 });
+    });
+    lines.push({ points: [0,-65,0,-70] }); texts.push({ text: 'VCC', x: -8, y: -58, size: 6 });
+    lines.push({ points: [0,65,0,70] });   texts.push({ text: 'GND', x: -8, y: 56, size: 6 });
+    pins = [{x:-50,y:-30},{x:-50,y:-10},{x:-50,y:10},{x:-50,y:30},{x:50,y:-50},{x:50,y:-35},{x:50,y:-20},{x:50,y:-5},{x:50,y:10},{x:50,y:25},{x:50,y:40},{x:50,y:55},{x:0,y:-70},{x:0,y:70}];
+    labelOffset = { x: 0, y: 75 };
+    valueOffset = { x: 0, y: 87 };
+
+  } else if (type === 'ic_lm3914') {
+    // LM3914 Dot/Bar Display Driver
+    rects.push({ x: -45, y: -60, width: 90, height: 120, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: 'LM3914', x: -24, y: -52, size: 8 });
+    texts.push({ text: 'Dot/Bar', x: -20, y: -38, size: 7 });
+    const lPins3914 = [['SIG',-30],['RLO',-10],['RHI',10],['MODE',30]] as [string,number][];
+    lPins3914.forEach(([n,py]) => {
+      lines.push({ points: [-50,py,-45,py] });
+      texts.push({ text: n, x: -42, y: py-4, size: 6 });
+    });
+    const rPins3914 = [['L1',-45],['L2',-35],['L3',-25],['L4',-15],['L5',-5],['L6',5],['L7',15],['L8',25],['L9',35],['L10',45]] as [string,number][];
+    rPins3914.forEach(([n,py]) => {
+      lines.push({ points: [45,py,50,py] });
+      texts.push({ text: n, x: 22, y: py-4, size: 6 });
+    });
+    lines.push({ points: [0,-60,0,-65] }); texts.push({ text: 'V+', x: -6, y: -54, size: 6 });
+    lines.push({ points: [0,60,0,65] });   texts.push({ text: 'V-', x: -6, y: 52, size: 6 });
+    pins = [{x:-50,y:-30},{x:-50,y:-10},{x:-50,y:10},{x:-50,y:30},{x:50,y:-45},{x:50,y:-35},{x:50,y:-25},{x:50,y:-15},{x:50,y:-5},{x:50,y:5},{x:50,y:15},{x:50,y:25},{x:50,y:35},{x:50,y:45},{x:0,y:-65},{x:0,y:65}];
+    labelOffset = { x: 0, y: 70 };
+    valueOffset = { x: 0, y: 82 };
+
+  } else if (type === 'ic_tda2030') {
+    // TDA2030 Audio Amplifier
+    paths.push({ data: 'M -25 -25 L 25 0 L -25 25 Z', fill: '#fff', stroke: '#333' });
+    lines.push({ points: [-40,-15,-25,-15] }); texts.push({ text: '+', x: -22, y: -20, size: 9 });
+    lines.push({ points: [-40, 15,-25, 15] }); texts.push({ text: '-', x: -22, y:  10, size: 9 });
+    lines.push({ points: [25,0,40,0] });       texts.push({ text: 'OUT', x: 8, y: -4, size: 6 });
+    lines.push({ points: [0,-12,0,-35] });     texts.push({ text: 'Vs+', x: -6, y: -38, size: 6 });
+    lines.push({ points: [0, 12,0, 35] });     texts.push({ text: 'Vs-', x: -6, y:  38, size: 6 });
+    texts.push({ text: 'TDA2030', x: -18, y: -4, size: 7 });
+    pins = [{x:-40,y:-15},{x:-40,y:15},{x:40,y:0},{x:0,y:-35},{x:0,y:35}];
+    labelOffset = { x: 0, y: 45 };
+    valueOffset = { x: 0, y: 57 };
+
+  } else if (type === 'ic_dac0808') {
+    // DAC0808 8-Bit D/A Converter
+    rects.push({ x: -48, y: -65, width: 96, height: 135, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: 'DAC0808', x: -28, y: -58, size: 8 });
+    texts.push({ text: '8-Bit DAC', x: -26, y: -44, size: 6 });
+    const lPinsDAC = [['A1',-45],['A2',-30],['A3',-15],['A4',0],['A5',15],['A6',30],['A7',45],['A8',60]] as [string,number][];
+    lPinsDAC.forEach(([n,py]) => {
+      lines.push({ points: [-60,py,-48,py] });
+      texts.push({ text: n, x: -44, y: py-4, size: 6 });
+    });
+    const rPinsDAC = [['IOUT',0],['VREF+',-30],['VREF-创新',-15],['VCC',-45],['VEE',45],['GND',60]] as [string,number][];
+    // Fix label for VREF-
+    lines.push({ points: [48,-45,60,-45] }); texts.push({ text: 'VCC', x: 18, y: -49, size: 6 });
+    lines.push({ points: [48,-30,60,-30] }); texts.push({ text: 'VREF+', x: 8, y: -34, size: 6 });
+    lines.push({ points: [48,-15,60,-15] }); texts.push({ text: 'VREF-', x: 8, y: -19, size: 6 });
+    lines.push({ points: [48,0,60,0] });     texts.push({ text: 'IOUT', x: 14, y: -4, size: 6 });
+    lines.push({ points: [48,45,60,45] });   texts.push({ text: 'VEE', x: 18, y: 41, size: 6 });
+    lines.push({ points: [48,60,60,60] });   texts.push({ text: 'GND', x: 18, y: 56, size: 6 });
+    pins = [{x:-60,y:-45},{x:-60,y:-30},{x:-60,y:-15},{x:-60,y:0},{x:-60,y:15},{x:-60,y:30},{x:-60,y:45},{x:-60,y:60},{x:60,y:0},{x:60,y:-30},{x:60,y:-15},{x:60,y:-45},{x:60,y:45},{x:60,y:60}];
+    labelOffset = { x: 0, y: 75 };
+    valueOffset = { x: 0, y: 87 };
+
+  } else if (type === 'phototransistor_npn') {
+    // Phototransistor NPN (BPW77)
+    circles.push({ x: 0, y: 0, r: 18, fill: '#fff', stroke: '#333' });
+    lines.push({ points: [-10, -12, -10, 12] }); // base bar
+    lines.push({ points: [-30, 0, -10, 0] });    // base lead
+    lines.push({ points: [-10, -6, 0, -15, 0, -30] }); // collector lead
+    lines.push({ points: [-10, 6, 0, 15, 0, 30] });   // emitter lead
+    // Emitter arrow
+    lines.push({ points: [-4, 11, 0, 15, -6, 16] });
+    // Incoming light arrows (top-left)
+    lines.push({ points: [-25, -25, -15, -15] });
+    lines.push({ points: [-20, -15, -15, -15, -15, -20] });
+    lines.push({ points: [-20, -30, -10, -20] });
+    lines.push({ points: [-15, -20, -10, -20, -10, -25] });
+    texts.push({ text: 'C', x: 2, y: -26, size: 7 });
+    texts.push({ text: 'E', x: 2, y: 22, size: 7 });
+    texts.push({ text: 'B', x: -28, y: -8, size: 7 });
+    pins = [{x:0,y:-30},{x:0,y:30},{x:-30,y:0}];
+    labelOffset = { x: 22, y: -25 };
+    valueOffset = { x: 22, y: 25 };
 
   }
   // --- FALLBACK ---
