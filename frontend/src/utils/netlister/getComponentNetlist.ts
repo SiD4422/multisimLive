@@ -1065,6 +1065,93 @@ I_PHOTO C B 50u
 .model QPHOTO NPN(Is=1e-14 Bf=200 Vaf=80 Cjc=5p Cje=10p)
 .ends PHOTOTRANS_SUB`,
 
+  NE556_SUB: `.subckt NE556_SUB DIS1 THR1 CV1 RST1 TRG1 OUT1 OUT2 TRG2 RST2 CV2 THR2 DIS2 VCC GND
+* Dual 555 timer subcircuit
+* Timer 1
+B_C11 N11 GND VALUE = { IF(V(THR1,GND) > 0.667*V(VCC,GND), 5, 0) }
+B_C12 N12 GND VALUE = { IF(V(TRG1,GND) < 0.333*V(VCC,GND), 5, 0) }
+B_SR1 Q1N GND VALUE = { IF(V(N11,GND)>2.5, 0, IF(V(N12,GND)>2.5, 5, V(Q1N,GND))) }
+B_O1 OUT1 GND VALUE = { IF(V(RST1,GND)<0.7, 0, IF(V(Q1N,GND)>2.5, 0, V(VCC,GND))) }
+B_D1 DIS1 GND VALUE = { IF(V(RST1,GND)<0.7, 0, IF(V(Q1N,GND)>2.5, 0.01, 1e6)) }
+* Timer 2
+B_C21 N21 GND VALUE = { IF(V(THR2,GND) > 0.667*V(VCC,GND), 5, 0) }
+B_C22 N22 GND VALUE = { IF(V(TRG2,GND) < 0.333*V(VCC,GND), 5, 0) }
+B_SR2 Q2N GND VALUE = { IF(V(N21,GND)>2.5, 0, IF(V(N22,GND)>2.5, 5, V(Q2N,GND))) }
+B_O2 OUT2 GND VALUE = { IF(V(RST2,GND)<0.7, 0, IF(V(Q2N,GND)>2.5, 0, V(VCC,GND))) }
+B_D2 DIS2 GND VALUE = { IF(V(RST2,GND)<0.7, 0, IF(V(Q2N,GND)>2.5, 0.01, 1e6)) }
+.ends NE556_SUB`,
+
+  LM339_SUB: `.subckt LM339_SUB IN1P IN1N OUT1 IN2P IN2N OUT2 VCC GND
+* LM339 quad comparator with open-collector outputs (channels 1 & 2 modeled)
+* When IN- > IN+, sink current through low resistance
+B1 OUT1 GND VALUE = { IF(V(IN1P,IN1N) < 0, V(OUT1,GND)/15, 0) }
+B2 OUT2 GND VALUE = { IF(V(IN2P,IN2N) < 0, V(OUT2,GND)/15, 0) }
+R_PWR VCC GND 100k
+.ends LM339_SUB`,
+
+  HC85_SUB: `.subckt HC85_SUB A0 A1 A2 A3 B0 B1 B2 B3 AGT AEQ ALT VCC GND
+* 74HC85 4-bit magnitude comparator
+* Word A = A0 + 2*A1 + 4*A2 + 8*A3
+* Word B = B0 + 2*B1 + 4*B2 + 8*B3
+B_AGT AGT GND VALUE = { IF( ( (V(A0,GND)>2?1:0) + (V(A1,GND)>2?2:0) + (V(A2,GND)>2?4:0) + (V(A3,GND)>2?8:0) ) > ( (V(B0,GND)>2?1:0) + (V(B1,GND)>2?2:0) + (V(B2,GND)>2?4:0) + (V(B3,GND)>2?8:0) ), V(VCC,GND), 0) }
+B_AEQ AEQ GND VALUE = { IF( ( (V(A0,GND)>2?1:0) + (V(A1,GND)>2?2:0) + (V(A2,GND)>2?4:0) + (V(A3,GND)>2?8:0) ) == ( (V(B0,GND)>2?1:0) + (V(B1,GND)>2?2:0) + (V(B2,GND)>2?4:0) + (V(B3,GND)>2?8:0) ), V(VCC,GND), 0) }
+B_ALT ALT GND VALUE = { IF( ( (V(A0,GND)>2?1:0) + (V(A1,GND)>2?2:0) + (V(A2,GND)>2?4:0) + (V(A3,GND)>2?8:0) ) < ( (V(B0,GND)>2?1:0) + (V(B1,GND)>2?2:0) + (V(B2,GND)>2?4:0) + (V(B3,GND)>2?8:0) ), V(VCC,GND), 0) }
+R_PWR VCC GND 100k
+.ends HC85_SUB`,
+
+  HC193_SUB: `.subckt HC193_SUB CPU CPD MR PL P0 P1 P2 P3 Q0 Q1 Q2 Q3 TCU TCD VCC GND
+* 74HC193 4-bit synchronous up/down counter stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE = { IF(V(MR,GND)>2, 0, IF(V(PL,GND)<0.8, V(P0,GND), 0)) }
+B1 Q1 GND VALUE = { IF(V(MR,GND)>2, 0, IF(V(PL,GND)<0.8, V(P1,GND), 0)) }
+B2 Q2 GND VALUE = { IF(V(MR,GND)>2, 0, IF(V(PL,GND)<0.8, V(P2,GND), 0)) }
+B3 Q3 GND VALUE = { IF(V(MR,GND)>2, 0, IF(V(PL,GND)<0.8, V(P3,GND), 0)) }
+B_TCU TCU GND VALUE = { V(VCC,GND) }
+B_TCD TCD GND VALUE = { V(VCC,GND) }
+.ends HC193_SUB`,
+
+  MAX6675_SUB: `.subckt MAX6675_SUB GND T_NEG T_POS VCC SCK CS SO
+* MAX6675 thermocouple ADC stub with SPI serial output
+R_TC T_POS T_NEG 100
+R_PWR VCC GND 100k
+B_SO SO GND VALUE = { IF(V(CS,GND)<0.8, V(T_POS,T_NEG)*100, 0) }
+.ends MAX6675_SUB`,
+
+  HX711_SUB: `.subckt HX711_SUB AVDD INAP INAN INBP INBN AGND VCC DOUT SCK DGND
+* HX711 24-bit load cell ADC stub
+R_INA INAP INAN 10Meg
+R_PWR VCC DGND 100k
+B_DOUT DOUT DGND VALUE = { IF(V(SCK,DGND)<0.8, V(INAP,INAN)*1000, 0) }
+.ends HX711_SUB`,
+
+  TDA7294_SUB: `.subckt TDA7294_SUB INP INN MUTE OUT VSP VSN GND
+* TDA7294 100W audio power amplifier
+R_IN INP INN 10Meg
+E_AMP OUT_INT GND VALUE = { IF(V(MUTE,GND)>1.5, LIMIT(100000*(V(INP,GND)-V(INN,GND)), V(VSN,GND)+2, V(VSP,GND)-2), 0) }
+R_OUT OUT_INT OUT 0.1
+.ends TDA7294_SUB`,
+
+  CD4013_SUB: `.subckt CD4013_SUB D1 CLK1 SET1 RST1 Q1 Q1_BAR VDD VSS
+* CD4013 dual D-type flip-flop (channel 1 modeled)
+B_Q1 Q1 VSS VALUE = { IF(V(SET1,VSS)>2.5, V(VDD,VSS), IF(V(RST1,VSS)>2.5, 0, V(D1,VSS))) }
+B_Q1B Q1_BAR VSS VALUE = { IF(V(SET1,VSS)>2.5, 0, IF(V(RST1,VSS)>2.5, V(VDD,VSS), V(VDD,VSS)-V(D1,VSS))) }
+R_PWR VDD VSS 100k
+.ends CD4013_SUB`,
+
+  HC125_SUB: `.subckt HC125_SUB A OE Y VCC GND
+* 74HC125 quad 3-state buffer (1 gate modeled)
+B_OUT Y GND VALUE = { IF(V(OE,GND)<0.8, V(A,GND), 0) }
+R_OUT Y GND 1k
+R_PWR VCC GND 100k
+.ends HC125_SUB`,
+
+  BPW34_SUB: `.subckt BPW34_SUB A K
+* BPW34 silicon PIN photodiode model
+D1 A K DBPW34
+I_PH K A 25u
+.model DBPW34 D(Is=1e-13 Rs=10 Cjo=70p Bv=60 Ibv=10u)
+.ends BPW34_SUB`,
+
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -1859,6 +1946,46 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'phototransistor_npn': {
       const [c='0', e='0', b='0'] = nodes;
       return { line: `X_${comp.id} ${c} ${e} ${b} PHOTOTRANS_SUB`, subckts: [SUBCKT_DEFINITIONS.PHOTOTRANS_SUB] };
+    }
+    case 'ic_ne556': {
+      const [dis1='0', thr1='0', cv1='0', rst1='0', trg1='0', out1='0', out2='0', trg2='0', rst2='0', cv2='0', thr2='0', dis2='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${dis1} ${thr1} ${cv1} ${rst1} ${trg1} ${out1} ${out2} ${trg2} ${rst2} ${cv2} ${thr2} ${dis2} ${vcc} ${gnd} NE556_SUB`, subckts: [SUBCKT_DEFINITIONS.NE556_SUB] };
+    }
+    case 'ic_lm339': {
+      const [in1p='0', in1n='0', out1='0', in2p='0', in2n='0', out2='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${in1p} ${in1n} ${out1} ${in2p} ${in2n} ${out2} ${vcc} ${gnd} LM339_SUB`, subckts: [SUBCKT_DEFINITIONS.LM339_SUB] };
+    }
+    case 'ic_74hc85': {
+      const [a0='0', a1='0', a2='0', a3='0', b0='0', b1='0', b2='0', b3='0', agt='0', aeq='0', alt='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a0} ${a1} ${a2} ${a3} ${b0} ${b1} ${b2} ${b3} ${agt} ${aeq} ${alt} ${vcc} ${gnd} HC85_SUB`, subckts: [SUBCKT_DEFINITIONS.HC85_SUB] };
+    }
+    case 'ic_74hc193': {
+      const [cpu='0', cpd='0', mr='0', pl='0', p0='0', p1='0', p2='0', p3='0', q0='0', q1='0', q2='0', q3='0', tcu='0', tcd='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cpu} ${cpd} ${mr} ${pl} ${p0} ${p1} ${p2} ${p3} ${q0} ${q1} ${q2} ${q3} ${tcu} ${tcd} ${vcc} ${gnd} HC193_SUB`, subckts: [SUBCKT_DEFINITIONS.HC193_SUB] };
+    }
+    case 'ic_max6675': {
+      const [gnd='0', t_neg='0', t_pos='0', vcc='0', sck='0', cs='0', so='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${t_neg} ${t_pos} ${vcc} ${sck} ${cs} ${so} MAX6675_SUB`, subckts: [SUBCKT_DEFINITIONS.MAX6675_SUB] };
+    }
+    case 'ic_hx711': {
+      const [avdd='0', inap='0', inan='0', inbp='0', inbn='0', agnd='0', vcc='0', dout='0', sck='0', dgnd='0'] = nodes;
+      return { line: `X_${comp.id} ${avdd} ${inap} ${inan} ${inbp} ${inbn} ${agnd} ${vcc} ${dout} ${sck} ${dgnd} HX711_SUB`, subckts: [SUBCKT_DEFINITIONS.HX711_SUB] };
+    }
+    case 'ic_tda7294': {
+      const [inp='0', inn='0', mute='0', outp='0', vsp='0', vsn='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${inp} ${inn} ${mute} ${outp} ${vsp} ${vsn} ${gnd} TDA7294_SUB`, subckts: [SUBCKT_DEFINITIONS.TDA7294_SUB] };
+    }
+    case 'ic_cd4013': {
+      const [d1='0', clk1='0', set1='0', rst1='0', q1='0', q1_bar='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${d1} ${clk1} ${set1} ${rst1} ${q1} ${q1_bar} ${vdd} ${vss} CD4013_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4013_SUB] };
+    }
+    case 'ic_74hc125': {
+      const [a='0', oe='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${oe} ${y} ${vcc} ${gnd} HC125_SUB`, subckts: [SUBCKT_DEFINITIONS.HC125_SUB] };
+    }
+    case 'photodiode_bpw34': {
+      const [anode='0', cathode='0'] = nodes;
+      return { line: `X_${comp.id} ${anode} ${cathode} BPW34_SUB`, subckts: [SUBCKT_DEFINITIONS.BPW34_SUB] };
     }
     default:
       return null;

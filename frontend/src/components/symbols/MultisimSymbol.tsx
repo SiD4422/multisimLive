@@ -79,6 +79,16 @@ function formatRefDes(id: string, type: string): string {
     ic_tda2030: 'U',
     ic_dac0808: 'U',
     phototransistor_npn: 'Q',
+    ic_ne556: 'U',
+    ic_lm339: 'U',
+    ic_74hc85: 'U',
+    ic_74hc193: 'U',
+    ic_max6675: 'U',
+    ic_hx711: 'U',
+    ic_tda7294: 'U',
+    ic_cd4013: 'U',
+    ic_74hc125: 'U',
+    photodiode_bpw34: 'D',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -3411,6 +3421,184 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{x:0,y:-30},{x:0,y:30},{x:-30,y:0}];
     labelOffset = { x: 22, y: -25 };
     valueOffset = { x: 22, y: 25 };
+  } else if (type === 'ic_ne556') {
+    // NE556 Dual Timer
+    rects.push({ x: -48, y: -60, width: 96, height: 120, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: 'NE556', x: -22, y: -52, size: 8 });
+    texts.push({ text: 'Dual Timer', x: -26, y: -38, size: 6 });
+    const lPins556 = [['1DIS',-45],['1THR',-30],['1CV',-15],['1RST',0],['1TRG',15],['1OUT',30]] as [string,number][];
+    lPins556.forEach(([n,py]) => {
+      lines.push({ points: [-60,py,-48,py] });
+      texts.push({ text: n, x: -44, y: py-4, size: 6 });
+    });
+    const rPins556 = [['2OUT',-45],['2TRG',-30],['2RST',-15],['2CV',0],['2THR',15],['2DIS',30]] as [string,number][];
+    rPins556.forEach(([n,py]) => {
+      lines.push({ points: [48,py,60,py] });
+      texts.push({ text: n, x: 22, y: py-4, size: 6 });
+    });
+    lines.push({ points: [0,-60,0,-65] }); texts.push({ text: 'VCC', x: -8, y: -54, size: 6 });
+    lines.push({ points: [0,60,0,65] });   texts.push({ text: 'GND', x: -8, y: 52, size: 6 });
+    pins = [{x:-60,y:-45},{x:-60,y:-30},{x:-60,y:-15},{x:-60,y:0},{x:-60,y:15},{x:-60,y:30},{x:60,y:-45},{x:60,y:-30},{x:60,y:-15},{x:60,y:0},{x:60,y:15},{x:60,y:30},{x:0,y:-65},{x:0,y:65}];
+    labelOffset = { x: 0, y: 72 };
+    valueOffset = { x: 0, y: 84 };
+
+  } else if (type === 'ic_lm339') {
+    // LM339 Quad Comparator
+    rects.push({ x: -40, y: -45, width: 80, height: 90, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: 'LM339', x: -22, y: -38, size: 8 });
+    texts.push({ text: 'Quad Comp', x: -26, y: -24, size: 6 });
+    lines.push({ points: [-50,-35,-40,-35] }); texts.push({ text: '1IN+', x: -38, y: -39, size: 6 });
+    lines.push({ points: [-50,-20,-40,-20] }); texts.push({ text: '1IN-', x: -38, y: -24, size: 6 });
+    lines.push({ points: [40,-28,50,-28] });   texts.push({ text: '1OUT', x: 12, y: -32, size: 6 });
+    lines.push({ points: [-50,20,-40,20] });   texts.push({ text: '2IN+', x: -38, y: 16, size: 6 });
+    lines.push({ points: [-50,35,-40,35] });   texts.push({ text: '2IN-', x: -38, y: 31, size: 6 });
+    lines.push({ points: [40,28,50,28] });     texts.push({ text: '2OUT', x: 12, y: 24, size: 6 });
+    lines.push({ points: [0,-45,0,-50] });     texts.push({ text: 'V+', x: -6, y: -42, size: 6 });
+    lines.push({ points: [0,45,0,50] });       texts.push({ text: 'V-', x: -6, y: 38, size: 6 });
+    pins = [{x:-50,y:-35},{x:-50,y:-20},{x:50,y:-28},{x:-50,y:20},{x:-50,y:35},{x:50,y:28},{x:0,y:-50},{x:0,y:50}];
+    labelOffset = { x: 0, y: 56 };
+    valueOffset = { x: 0, y: 68 };
+
+  } else if (type === 'ic_74hc85') {
+    // 74HC85 4-Bit Magnitude Comparator
+    rects.push({ x: -48, y: -70, width: 96, height: 140, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: '74HC85', x: -24, y: -62, size: 8 });
+    texts.push({ text: '4-Bit Comp', x: -28, y: -48, size: 6 });
+    const lPins85 = [['A0',-45],['A1',-30],['A2',-15],['A3',0],['B0',15],['B1',30],['B2',45],['B3',60]] as [string,number][];
+    lPins85.forEach(([n,py]) => {
+      lines.push({ points: [-60,py,-48,py] });
+      texts.push({ text: n, x: -44, y: py-4, size: 6 });
+    });
+    lines.push({ points: [48,-30,60,-30] }); texts.push({ text: 'A>B', x: 20, y: -34, size: 6 });
+    lines.push({ points: [48,0,60,0] });     texts.push({ text: 'A=B', x: 20, y: -4, size: 6 });
+    lines.push({ points: [48,30,60,30] });   texts.push({ text: 'A<B', x: 20, y: 26, size: 6 });
+    lines.push({ points: [0,-70,0,-75] });   texts.push({ text: 'VCC', x: -8, y: -64, size: 6 });
+    lines.push({ points: [0,70,0,75] });     texts.push({ text: 'GND', x: -8, y: 62, size: 6 });
+    pins = [{x:-60,y:-45},{x:-60,y:-30},{x:-60,y:-15},{x:-60,y:0},{x:-60,y:15},{x:-60,y:30},{x:-60,y:45},{x:-60,y:60},{x:60,y:-30},{x:60,y:0},{x:60,y:30},{x:0,y:-75},{x:0,y:75}];
+    labelOffset = { x: 0, y: 80 };
+    valueOffset = { x: 0, y: 92 };
+
+  } else if (type === 'ic_74hc193') {
+    // 74HC193 Synchronous 4-Bit Up/Down Counter
+    rects.push({ x: -48, y: -70, width: 96, height: 140, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: '74HC193', x: -26, y: -62, size: 8 });
+    texts.push({ text: 'Up/Down', x: -22, y: -48, size: 6 });
+    const lPins193 = [['CPU',-45],['CPD',-30],['MR',-15],['/PL',0],['D0',15],['D1',30],['D2',45],['D3',60]] as [string,number][];
+    lPins193.forEach(([n,py]) => {
+      lines.push({ points: [-60,py,-48,py] });
+      texts.push({ text: n, x: -44, y: py-4, size: 6 });
+    });
+    const rPins193 = [['Q0',-45],['Q1',-30],['Q2',-15],['Q3',0],['/TCU',30],['/TCD',45]] as [string,number][];
+    rPins193.forEach(([n,py]) => {
+      lines.push({ points: [48,py,60,py] });
+      texts.push({ text: n, x: 20, y: py-4, size: 6 });
+    });
+    lines.push({ points: [0,-70,0,-75] }); texts.push({ text: 'VCC', x: -8, y: -64, size: 6 });
+    lines.push({ points: [0,70,0,75] });   texts.push({ text: 'GND', x: -8, y: 62, size: 6 });
+    pins = [{x:-60,y:-45},{x:-60,y:-30},{x:-60,y:-15},{x:-60,y:0},{x:-60,y:15},{x:-60,y:30},{x:-60,y:45},{x:-60,y:60},{x:60,y:-45},{x:60,y:-30},{x:60,y:-15},{x:60,y:0},{x:60,y:30},{x:60,y:45},{x:0,y:-75},{x:0,y:75}];
+    labelOffset = { x: 0, y: 80 };
+    valueOffset = { x: 0, y: 92 };
+
+  } else if (type === 'ic_max6675') {
+    // MAX6675 Thermocouple-to-Digital Converter
+    rects.push({ x: -38, y: -45, width: 76, height: 90, fill: '#fff8f2', stroke: '#a85012', strokeWidth: 1.5, cornerRadius: 4 });
+    texts.push({ text: 'MAX6675', x: -26, y: -38, size: 8 });
+    texts.push({ text: 'K-Type SPI', x: -24, y: -22, size: 6 });
+    const lPins6675 = [['GND',-30],['T-',-10],['T+',10],['VCC',30]] as [string,number][];
+    lPins6675.forEach(([n,py]) => {
+      lines.push({ points: [-50,py,-38,py] });
+      texts.push({ text: n, x: -34, y: py-4, size: 6 });
+    });
+    const rPins6675 = [['SCK',-30],['/CS',-10],['SO',10]] as [string,number][];
+    rPins6675.forEach(([n,py]) => {
+      lines.push({ points: [38,py,50,py] });
+      texts.push({ text: n, x: 14, y: py-4, size: 6 });
+    });
+    pins = [{x:-50,y:-30},{x:-50,y:-10},{x:-50,y:10},{x:-50,y:30},{x:50,y:-30},{x:50,y:-10},{x:50,y:10}];
+    labelOffset = { x: 0, y: 55 };
+    valueOffset = { x: 0, y: 67 };
+
+  } else if (type === 'ic_hx711') {
+    // HX711 24-Bit Load Cell ADC
+    rects.push({ x: -40, y: -50, width: 80, height: 100, fill: '#f6fbf4', stroke: '#2e7d32', strokeWidth: 1.5, cornerRadius: 4 });
+    texts.push({ text: 'HX711', x: -20, y: -42, size: 8 });
+    texts.push({ text: '24-Bit ADC', x: -24, y: -26, size: 6 });
+    const lPins711 = [['AVDD',-35],['A+',-20],['A-',-5],['B+',10],['B-',25],['AGND',40]] as [string,number][];
+    lPins711.forEach(([n,py]) => {
+      lines.push({ points: [-50,py,-40,py] });
+      texts.push({ text: n, x: -38, y: py-4, size: 6 });
+    });
+    const rPins711 = [['DVDD',-30],['DOUT',-10],['SCK',10],['DGND',30]] as [string,number][];
+    rPins711.forEach(([n,py]) => {
+      lines.push({ points: [40,py,50,py] });
+      texts.push({ text: n, x: 12, y: py-4, size: 6 });
+    });
+    pins = [{x:-50,y:-35},{x:-50,y:-20},{x:-50,y:-5},{x:-50,y:10},{x:-50,y:25},{x:-50,y:40},{x:50,y:-30},{x:50,y:-10},{x:50,y:10},{x:50,y:30}];
+    labelOffset = { x: 0, y: 60 };
+    valueOffset = { x: 0, y: 72 };
+
+  } else if (type === 'ic_tda7294') {
+    // TDA7294 100W Audio Amplifier
+    paths.push({ data: 'M -30 -30 L 30 0 L -30 30 Z', fill: '#fff', stroke: '#333' });
+    lines.push({ points: [-50,-20,-30,-20] }); texts.push({ text: '+', x: -26, y: -25, size: 9 });
+    lines.push({ points: [-50,  0,-30,  0] }); texts.push({ text: '-', x: -26, y:  -6, size: 9 });
+    lines.push({ points: [-50, 20,-30, 20] }); texts.push({ text: 'MUTE', x: -48, y: 24, size: 6 });
+    lines.push({ points: [30,0,50,0] });       texts.push({ text: 'OUT', x: 8, y: -4, size: 6 });
+    lines.push({ points: [0,-15,0,-40] });     texts.push({ text: '+Vs', x: -8, y: -44, size: 6 });
+    lines.push({ points: [0, 15,0, 40] });     texts.push({ text: '-Vs', x: -8, y:  44, size: 6 });
+    lines.push({ points: [50,30,40,30,40,10] }); texts.push({ text: 'GND', x: 26, y: 34, size: 6 });
+    texts.push({ text: 'TDA7294', x: -20, y: -4, size: 7 });
+    pins = [{x:-50,y:-20},{x:-50,y:0},{x:-50,y:20},{x:50,y:0},{x:0,y:-40},{x:0,y:40},{x:50,y:30}];
+    labelOffset = { x: 0, y: 52 };
+    valueOffset = { x: 0, y: 64 };
+
+  } else if (type === 'ic_cd4013') {
+    // CD4013 Dual D-Type Flip-Flop
+    rects.push({ x: -40, y: -45, width: 80, height: 90, fill: '#fff', stroke: '#333', strokeWidth: 1.5 });
+    texts.push({ text: 'CD4013', x: -22, y: -38, size: 8 });
+    texts.push({ text: 'Dual D-FF', x: -26, y: -24, size: 6 });
+    const lPins4013 = [['1D',-30],['1CLK',-15],['1SET',0],['1RST',15]] as [string,number][];
+    lPins4013.forEach(([n,py]) => {
+      lines.push({ points: [-50,py,-40,py] });
+      texts.push({ text: n, x: -38, y: py-4, size: 6 });
+    });
+    lines.push({ points: [40,-25,50,-25] }); texts.push({ text: '1Q', x: 18, y: -29, size: 6 });
+    lines.push({ points: [40,-10,50,-10] }); texts.push({ text: '/1Q', x: 14, y: -14, size: 6 });
+    lines.push({ points: [0,-45,0,-50] });   texts.push({ text: 'VDD', x: -8, y: -42, size: 6 });
+    lines.push({ points: [0,45,0,50] });     texts.push({ text: 'VSS', x: -8, y: 38, size: 6 });
+    pins = [{x:-50,y:-30},{x:-50,y:-15},{x:-50,y:0},{x:-50,y:15},{x:50,y:-25},{x:50,y:-10},{x:0,y:-45},{x:0,y:45}];
+    labelOffset = { x: 0, y: 56 };
+    valueOffset = { x: 0, y: 68 };
+
+  } else if (type === 'ic_74hc125') {
+    // 74HC125 Quad 3-State Bus Buffer
+    paths.push({ data: 'M -18 -18 L 14 0 L -18 18 Z', fill: '#fff', stroke: '#333' });
+    circles.push({ x: 0, y: -16, r: 3, fill: '#fff', stroke: '#333' });
+    lines.push({ points: [-40,0,-18,0] });
+    lines.push({ points: [14,0,40,0] });
+    lines.push({ points: [0,-19,0,-30] }); texts.push({ text: '/OE', x: -6, y: -34, size: 6 });
+    lines.push({ points: [-20,-30,-20,-10] }); texts.push({ text: 'VCC', x: -28, y: -34, size: 6 });
+    lines.push({ points: [0,18,0,30] });   texts.push({ text: 'GND', x: -6, y: 32, size: 6 });
+    texts.push({ text: '74HC125', x: -18, y: 6, size: 6 });
+    pins = [{x:-40,y:0},{x:0,y:-30},{x:40,y:0},{x:-20,y:-30},{x:0,y:30}];
+    labelOffset = { x: 0, y: 40 };
+    valueOffset = { x: 0, y: 52 };
+
+  } else if (type === 'photodiode_bpw34') {
+    // PIN Photodiode (BPW34)
+    paths.push({ data: 'M -10 -12 L -10 12 L 10 0 Z', fill: '#fff', stroke: '#333' });
+    lines.push({ points: [10,-12,10,12] });
+    lines.push({ points: [-30,0,-10,0] });
+    lines.push({ points: [10,0,30,0] });
+    // Light rays
+    lines.push({ points: [-15,-22,-5,-12] });
+    lines.push({ points: [-10,-12,-5,-12,-5,-17] });
+    lines.push({ points: [-8,-26,2,-16] });
+    lines.push({ points: [-3,-16,2,-16,2,-21] });
+    texts.push({ text: 'BPW34', x: -16, y: 16, size: 7 });
+    pins = [{x:-30,y:0},{x:30,y:0}];
+    labelOffset = { x: 0, y: 28 };
+    valueOffset = { x: 0, y: 40 };
 
   }
   // --- FALLBACK ---
