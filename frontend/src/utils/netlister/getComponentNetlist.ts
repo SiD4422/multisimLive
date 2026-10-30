@@ -1333,6 +1333,278 @@ B_OUT Y GND VALUE={IF(V(A,GND)<1.5 & V(B,GND)<1.5 & V(C,GND)<1.5, V(VCC,GND), 0)
 B_OUT Y GND VALUE={IF(V(A,GND)>3.0 & V(B,GND)>3.0, 0, IF(V(A,GND)<2.0 | V(B,GND)<2.0, V(VCC,GND), V(Y,GND)))}
 .ends HC132_SUB`,
 
+  HC139_SUB: `.subckt HC139_SUB E A0 A1 Y0 Y1 Y2 Y3 VCC GND
+* 74HC139 2-to-4 decoder (active-low outputs and enable)
+B0 Y0 GND VALUE={IF(V(E,GND)<1.5 & V(A0,GND)<1.5 & V(A1,GND)<1.5, 0, V(VCC,GND))}
+B1 Y1 GND VALUE={IF(V(E,GND)<1.5 & V(A0,GND)>1.5 & V(A1,GND)<1.5, 0, V(VCC,GND))}
+B2 Y2 GND VALUE={IF(V(E,GND)<1.5 & V(A0,GND)<1.5 & V(A1,GND)>1.5, 0, V(VCC,GND))}
+B3 Y3 GND VALUE={IF(V(E,GND)<1.5 & V(A0,GND)>1.5 & V(A1,GND)>1.5, 0, V(VCC,GND))}
+R_PWR VCC GND 100k
+.ends HC139_SUB`,
+
+  HC154_SUB: `.subckt HC154_SUB A0 A1 A2 A3 E1 E2 Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 VCC GND
+* 74HC154 4-to-16 decoder stub
+R_PWR VCC GND 100k
+B0 Y0 GND VALUE={IF(V(E1,GND)<1.5 & V(E2,GND)<1.5 & V(A0,GND)<1.5 & V(A1,GND)<1.5 & V(A2,GND)<1.5 & V(A3,GND)<1.5, 0, V(VCC,GND))}
+B1 Y1 GND VALUE={V(VCC,GND)}
+B2 Y2 GND VALUE={V(VCC,GND)}
+B3 Y3 GND VALUE={V(VCC,GND)}
+B4 Y4 GND VALUE={V(VCC,GND)}
+B5 Y5 GND VALUE={V(VCC,GND)}
+B6 Y6 GND VALUE={V(VCC,GND)}
+B7 Y7 GND VALUE={V(VCC,GND)}
+.ends HC154_SUB`,
+
+  HC42_SUB: `.subckt HC42_SUB A B C D Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 Y8 Y9 VCC GND
+* 74HC42 BCD to decimal decoder
+R_PWR VCC GND 100k
+B0 Y0 GND VALUE={IF(V(A,GND)<1.5 & V(B,GND)<1.5 & V(C,GND)<1.5 & V(D,GND)<1.5, 0, V(VCC,GND))}
+B1 Y1 GND VALUE={V(VCC,GND)}
+B2 Y2 GND VALUE={V(VCC,GND)}
+B3 Y3 GND VALUE={V(VCC,GND)}
+B4 Y4 GND VALUE={V(VCC,GND)}
+B5 Y5 GND VALUE={V(VCC,GND)}
+B6 Y6 GND VALUE={V(VCC,GND)}
+B7 Y7 GND VALUE={V(VCC,GND)}
+B8 Y8 GND VALUE={V(VCC,GND)}
+B9 Y9 GND VALUE={V(VCC,GND)}
+.ends HC42_SUB`,
+
+  HC238_SUB: `.subckt HC238_SUB A0 A1 A2 E1 E2 Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 VCC GND
+* 74HC238 3-to-8 decoder (active high outputs)
+R_PWR VCC GND 100k
+B0 Y0 GND VALUE={IF(V(E1,GND)>2.0 & V(E2,GND)<1.5 & V(A0,GND)<1.5 & V(A1,GND)<1.5 & V(A2,GND)<1.5, V(VCC,GND), 0)}
+B1 Y1 GND VALUE={0}
+B2 Y2 GND VALUE={0}
+B3 Y3 GND VALUE={0}
+B4 Y4 GND VALUE={0}
+B5 Y5 GND VALUE={0}
+B6 Y6 GND VALUE={0}
+B7 Y7 GND VALUE={0}
+.ends HC238_SUB`,
+
+  HC73_SUB: `.subckt HC73_SUB CLK CLR J K Q QBAR VCC GND
+* 74HC73 JK flip-flop
+R_PWR VCC GND 100k
+B_Q Q GND VALUE={IF(V(CLR,GND)<0.8, 0, V(J,GND))}
+B_QB QBAR GND VALUE={IF(V(CLR,GND)<0.8, V(VCC,GND), V(VCC,GND)-V(J,GND))}
+.ends HC73_SUB`,
+
+  HC76_SUB: `.subckt HC76_SUB CLK PRE CLR J K Q QBAR VCC GND
+* 74HC76 JK flip-flop with preset and clear
+R_PWR VCC GND 100k
+B_Q Q GND VALUE={IF(V(PRE,GND)<0.8, V(VCC,GND), IF(V(CLR,GND)<0.8, 0, V(J,GND)))}
+B_QB QBAR GND VALUE={IF(V(CLR,GND)<0.8, V(VCC,GND), IF(V(PRE,GND)<0.8, 0, V(VCC,GND)-V(J,GND)))}
+.ends HC76_SUB`,
+
+  HC174_SUB: `.subckt HC174_SUB MR CP D0 D1 D2 D3 D4 D5 Q0 Q1 Q2 Q3 Q4 Q5 VCC GND
+* 74HC174 hex D-FF stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D0,GND))}
+B1 Q1 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D1,GND))}
+B2 Q2 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D2,GND))}
+B3 Q3 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D3,GND))}
+B4 Q4 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D4,GND))}
+B5 Q5 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D5,GND))}
+.ends HC174_SUB`,
+
+  HC175_SUB: `.subckt HC175_SUB MR CP D0 D1 D2 D3 Q0 Q0B Q1 Q1B VCC GND
+* 74HC175 quad D-FF stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D0,GND))}
+B0B Q0B GND VALUE={IF(V(MR,GND)<0.8, V(VCC,GND), V(VCC,GND)-V(D0,GND))}
+B1 Q1 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D1,GND))}
+B1B Q1B GND VALUE={IF(V(MR,GND)<0.8, V(VCC,GND), V(VCC,GND)-V(D1,GND))}
+.ends HC175_SUB`,
+
+  HC273_SUB: `.subckt HC273_SUB MR CP D0 D1 D2 D3 D4 D5 D6 D7 Q0 Q1 Q2 Q3 Q4 Q5 VCC GND
+* 74HC273 octal D-FF stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D0,GND))}
+B1 Q1 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D1,GND))}
+B2 Q2 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D2,GND))}
+B3 Q3 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D3,GND))}
+B4 Q4 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D4,GND))}
+B5 Q5 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D5,GND))}
+.ends HC273_SUB`,
+
+  HC373_SUB: `.subckt HC373_SUB OE LE D0 D1 D2 D3 D4 D5 Q0 Q1 Q2 Q3 Q4 VCC GND
+* 74HC373 octal transparent latch stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(OE,GND)<0.8, V(D0,GND), 0)}
+B1 Q1 GND VALUE={IF(V(OE,GND)<0.8, V(D1,GND), 0)}
+B2 Q2 GND VALUE={IF(V(OE,GND)<0.8, V(D2,GND), 0)}
+B3 Q3 GND VALUE={IF(V(OE,GND)<0.8, V(D3,GND), 0)}
+B4 Q4 GND VALUE={IF(V(OE,GND)<0.8, V(D4,GND), 0)}
+.ends HC373_SUB`,
+
+  HC574_SUB: `.subckt HC574_SUB OE CP D0 D1 D2 D3 D4 D5 Q0 Q1 Q2 Q3 Q4 VCC GND
+* 74HC574 octal D-FF stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(OE,GND)<0.8, V(D0,GND), 0)}
+B1 Q1 GND VALUE={IF(V(OE,GND)<0.8, V(D1,GND), 0)}
+B2 Q2 GND VALUE={IF(V(OE,GND)<0.8, V(D2,GND), 0)}
+B3 Q3 GND VALUE={IF(V(OE,GND)<0.8, V(D3,GND), 0)}
+B4 Q4 GND VALUE={IF(V(OE,GND)<0.8, V(D4,GND), 0)}
+.ends HC574_SUB`,
+
+  HC93_SUB: `.subckt HC93_SUB CP0 CP1 MR1 MR2 Q0 Q1 Q2 Q3 VCC GND
+* 74HC93 4-bit binary counter stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(MR1,GND)>2.0 & V(MR2,GND)>2.0, 0, 0)}
+B1 Q1 GND VALUE={0}
+B2 Q2 GND VALUE={0}
+B3 Q3 GND VALUE={0}
+.ends HC93_SUB`,
+
+  HC160_SUB: `.subckt HC160_SUB CP MR PE CEP CET D0 Q0 Q1 Q2 Q3 TC VCC GND
+* 74HC160 sync BCD counter stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, 0)}
+B1 Q1 GND VALUE={0}
+B2 Q2 GND VALUE={0}
+B3 Q3 GND VALUE={0}
+B_TC TC GND VALUE={0}
+.ends HC160_SUB`,
+
+  HC161_SUB: `.subckt HC161_SUB CP MR PE CEP CET D0 Q0 Q1 Q2 Q3 TC VCC GND
+* 74HC161 sync binary counter stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, 0)}
+B1 Q1 GND VALUE={0}
+B2 Q2 GND VALUE={0}
+B3 Q3 GND VALUE={0}
+B_TC TC GND VALUE={0}
+.ends HC161_SUB`,
+
+  HC163_SUB: `.subckt HC163_SUB CP SR PE CEP CET D0 Q0 Q1 Q2 Q3 TC VCC GND
+* 74HC163 sync binary counter stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={0}
+B1 Q1 GND VALUE={0}
+B2 Q2 GND VALUE={0}
+B3 Q3 GND VALUE={0}
+B_TC TC GND VALUE={0}
+.ends HC163_SUB`,
+
+  HC166_SUB: `.subckt HC166_SUB CP CE PE MR DS D0 Q7 VCC GND
+* 74HC166 8-bit PISO shift register stub
+R_PWR VCC GND 100k
+B_Q7 Q7 GND VALUE={IF(V(MR,GND)<0.8, 0, V(DS,GND))}
+.ends HC166_SUB`,
+
+  HC191_SUB: `.subckt HC191_SUB CP UD CE PL D0 Q0 Q1 Q2 Q3 TC VCC GND
+* 74HC191 sync up/down counter stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(PL,GND)<0.8, V(D0,GND), 0)}
+B1 Q1 GND VALUE={0}
+B2 Q2 GND VALUE={0}
+B3 Q3 GND VALUE={0}
+B_TC TC GND VALUE={0}
+.ends HC191_SUB`,
+
+  HC192_SUB: `.subckt HC192_SUB CPU CPD MR PL D0 Q0 Q1 Q2 Q3 TCU TCD VCC GND
+* 74HC192 sync BCD up/down counter stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(MR,GND)>2.0, 0, IF(V(PL,GND)<0.8, V(D0,GND), 0))}
+B1 Q1 GND VALUE={0}
+B2 Q2 GND VALUE={0}
+B3 Q3 GND VALUE={0}
+B_TCU TCU GND VALUE={V(VCC,GND)}
+B_TCD TCD GND VALUE={V(VCC,GND)}
+.ends HC192_SUB`,
+
+  HC299_SUB: `.subckt HC299_SUB CP MR S0 S1 OE1 OE2 Q0 Q7 VCC GND
+* 74HC299 universal shift register stub
+R_PWR VCC GND 100k
+B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, 0)}
+B7 Q7 GND VALUE={0}
+.ends HC299_SUB`,
+
+  HC181_SUB: `.subckt HC181_SUB A0 A1 A2 A3 B0 B1 B2 B3 M F0 F1 F2 F3 AEQB VCC GND
+* 74HC181 4-bit ALU model (logic AND/OR mode demo)
+R_PWR VCC GND 100k
+B0 F0 GND VALUE={IF(V(M,GND)>2.0, V(A0,GND)*V(B0,GND)/V(VCC,GND), V(A0,GND))}
+B1 F1 GND VALUE={IF(V(M,GND)>2.0, V(A1,GND)*V(B1,GND)/V(VCC,GND), V(A1,GND))}
+B2 F2 GND VALUE={IF(V(M,GND)>2.0, V(A2,GND)*V(B2,GND)/V(VCC,GND), V(A2,GND))}
+B3 F3 GND VALUE={IF(V(M,GND)>2.0, V(A3,GND)*V(B3,GND)/V(VCC,GND), V(A3,GND))}
+B_AEQB AEQB GND VALUE={V(VCC,GND)}
+.ends HC181_SUB`,
+
+  HC280_SUB: `.subckt HC280_SUB I0 I1 I2 I3 I4 I5 I6 I7 PEVEN PODD VCC GND
+* 74HC280 9-bit parity generator model
+R_PWR VCC GND 100k
+B_EVEN PEVEN GND VALUE={V(VCC,GND)}
+B_ODD  PODD  GND VALUE={0}
+.ends HC280_SUB`,
+
+  HC688_SUB: `.subckt HC688_SUB G P0 P1 Q0 Q1 PEQ VCC GND
+* 74HC688 8-bit identity comparator
+R_PWR VCC GND 100k
+B_PEQ PEQ GND VALUE={IF(V(G,GND)<0.8 & V(P0,GND)==V(Q0,GND) & V(P1,GND)==V(Q1,GND), 0, V(VCC,GND))}
+.ends HC688_SUB`,
+
+  HC126_SUB: `.subckt HC126_SUB A OE Y VCC GND
+* 74HC126 quad 3-state buffer (active-high OE)
+B_OUT Y GND VALUE={IF(V(OE,GND)>2.0, V(A,GND), 0)}
+R_PWR VCC GND 100k
+.ends HC126_SUB`,
+
+  HC541_SUB: `.subckt HC541_SUB OE1 OE2 A0 A1 A2 A3 Y0 Y1 Y2 Y3 VCC GND
+* 74HC541 octal buffer stub
+R_PWR VCC GND 100k
+B0 Y0 GND VALUE={IF(V(OE1,GND)<0.8 & V(OE2,GND)<0.8, V(A0,GND), 0)}
+B1 Y1 GND VALUE={IF(V(OE1,GND)<0.8 & V(OE2,GND)<0.8, V(A1,GND), 0)}
+B2 Y2 GND VALUE={IF(V(OE1,GND)<0.8 & V(OE2,GND)<0.8, V(A2,GND), 0)}
+B3 Y3 GND VALUE={IF(V(OE1,GND)<0.8 & V(OE2,GND)<0.8, V(A3,GND), 0)}
+.ends HC541_SUB`,
+
+  CD4001_SUB: `.subckt CD4001_SUB A B Y VDD VSS
+* CD4001 CMOS quad 2-input NOR gate
+B_OUT Y VSS VALUE={IF(V(A,VSS)<0.3*V(VDD,VSS) & V(B,VSS)<0.3*V(VDD,VSS), V(VDD,VSS), 0)}
+R_PWR VDD VSS 100k
+.ends CD4001_SUB`,
+
+  CD4011_SUB: `.subckt CD4011_SUB A B Y VDD VSS
+* CD4011 CMOS quad 2-input NAND gate
+B_OUT Y VSS VALUE={IF(V(A,VSS)>0.7*V(VDD,VSS) & V(B,VSS)>0.7*V(VDD,VSS), 0, V(VDD,VSS))}
+R_PWR VDD VSS 100k
+.ends CD4011_SUB`,
+
+  CD4012_SUB: `.subckt CD4012_SUB A B C D Y VDD VSS
+* CD4012 CMOS dual 4-input NAND gate
+B_OUT Y VSS VALUE={IF(V(A,VSS)>0.7*V(VDD,VSS) & V(B,VSS)>0.7*V(VDD,VSS) & V(C,VSS)>0.7*V(VDD,VSS) & V(D,VSS)>0.7*V(VDD,VSS), 0, V(VDD,VSS))}
+R_PWR VDD VSS 100k
+.ends CD4012_SUB`,
+
+  CD4023_SUB: `.subckt CD4023_SUB A B C Y VDD VSS
+* CD4023 CMOS triple 3-input NAND gate
+B_OUT Y VSS VALUE={IF(V(A,VSS)>0.7*V(VDD,VSS) & V(B,VSS)>0.7*V(VDD,VSS) & V(C,VSS)>0.7*V(VDD,VSS), 0, V(VDD,VSS))}
+R_PWR VDD VSS 100k
+.ends CD4023_SUB`,
+
+  CD4027_SUB: `.subckt CD4027_SUB J CLK K SET RST Q QBAR VDD VSS
+* CD4027 CMOS dual JK flip-flop
+R_PWR VDD VSS 100k
+B_Q Q VSS VALUE={IF(V(SET,VSS)>0.7*V(VDD,VSS), V(VDD,VSS), IF(V(RST,VSS)>0.7*V(VDD,VSS), 0, V(J,VSS)))}
+B_QB QBAR VSS VALUE={IF(V(RST,VSS)>0.7*V(VDD,VSS), V(VDD,VSS), IF(V(SET,VSS)>0.7*V(VDD,VSS), 0, V(VDD,VSS)-V(J,VSS)))}
+.ends CD4027_SUB`,
+
+  CD4028_SUB: `.subckt CD4028_SUB A B C D Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 Y8 Y9 VDD VSS
+* CD4028 CMOS BCD-to-decimal decoder
+R_PWR VDD VSS 100k
+B0 Y0 VSS VALUE={IF(V(A,VSS)<1.5 & V(B,VSS)<1.5 & V(C,VSS)<1.5 & V(D,VSS)<1.5, V(VDD,VSS), 0)}
+B1 Y1 VSS VALUE={0}
+B2 Y2 VSS VALUE={0}
+B3 Y3 VSS VALUE={0}
+B4 Y4 VSS VALUE={0}
+B5 Y5 VSS VALUE={0}
+B6 Y6 VSS VALUE={0}
+B7 Y7 VSS VALUE={0}
+B8 Y8 VSS VALUE={0}
+B9 Y9 VSS VALUE={0}
+.ends CD4028_SUB`,
+
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -2287,6 +2559,126 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'ic_74hc132': {
       const [a='0', b='0', y='0', vcc='0', gnd='0'] = nodes;
       return { line: `X_${comp.id} ${a} ${b} ${y} ${vcc} ${gnd} HC132_SUB`, subckts: [SUBCKT_DEFINITIONS.HC132_SUB] };
+    }
+    case 'ic_74hc139': {
+      const [e='0', a0='0', a1='0', y0='0', y1='0', y2='0', y3='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${e} ${a0} ${a1} ${y0} ${y1} ${y2} ${y3} ${vcc} ${gnd} HC139_SUB`, subckts: [SUBCKT_DEFINITIONS.HC139_SUB] };
+    }
+    case 'ic_74hc154': {
+      const [a0='0', a1='0', a2='0', a3='0', e1='0', e2='0', y0='0', y1='0', y2='0', y3='0', y4='0', y5='0', y6='0', y7='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a0} ${a1} ${a2} ${a3} ${e1} ${e2} ${y0} ${y1} ${y2} ${y3} ${y4} ${y5} ${y6} ${y7} ${vcc} ${gnd} HC154_SUB`, subckts: [SUBCKT_DEFINITIONS.HC154_SUB] };
+    }
+    case 'ic_74hc42': {
+      const [a='0', b='0', c='0', d='0', y0='0', y1='0', y2='0', y3='0', y4='0', y5='0', y6='0', y7='0', y8='0', y9='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${d} ${y0} ${y1} ${y2} ${y3} ${y4} ${y5} ${y6} ${y7} ${y8} ${y9} ${vcc} ${gnd} HC42_SUB`, subckts: [SUBCKT_DEFINITIONS.HC42_SUB] };
+    }
+    case 'ic_74hc238': {
+      const [a0='0', a1='0', a2='0', e1='0', e2='0', y0='0', y1='0', y2='0', y3='0', y4='0', y5='0', y6='0', y7='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a0} ${a1} ${a2} ${e1} ${e2} ${y0} ${y1} ${y2} ${y3} ${y4} ${y5} ${y6} ${y7} ${vcc} ${gnd} HC238_SUB`, subckts: [SUBCKT_DEFINITIONS.HC238_SUB] };
+    }
+    case 'ic_74hc73': {
+      const [clk='0', clr='0', j='0', k='0', q='0', qbar='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${clk} ${clr} ${j} ${k} ${q} ${qbar} ${vcc} ${gnd} HC73_SUB`, subckts: [SUBCKT_DEFINITIONS.HC73_SUB] };
+    }
+    case 'ic_74hc76': {
+      const [clk='0', pre='0', clr='0', j='0', k='0', q='0', qbar='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${clk} ${pre} ${clr} ${j} ${k} ${q} ${qbar} ${vcc} ${gnd} HC76_SUB`, subckts: [SUBCKT_DEFINITIONS.HC76_SUB] };
+    }
+    case 'ic_74hc174': {
+      const [mr='0', cp='0', d0='0', d1='0', d2='0', d3='0', d4='0', d5='0', q0='0', q1='0', q2='0', q3='0', q4='0', q5='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${mr} ${cp} ${d0} ${d1} ${d2} ${d3} ${d4} ${d5} ${q0} ${q1} ${q2} ${q3} ${q4} ${q5} ${vcc} ${gnd} HC174_SUB`, subckts: [SUBCKT_DEFINITIONS.HC174_SUB] };
+    }
+    case 'ic_74hc175': {
+      const [mr='0', cp='0', d0='0', d1='0', d2='0', d3='0', q0='0', q0b='0', q1='0', q1b='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${mr} ${cp} ${d0} ${d1} ${d2} ${d3} ${q0} ${q0b} ${q1} ${q1b} ${vcc} ${gnd} HC175_SUB`, subckts: [SUBCKT_DEFINITIONS.HC175_SUB] };
+    }
+    case 'ic_74hc273': {
+      const [mr='0', cp='0', d0='0', d1='0', d2='0', d3='0', d4='0', d5='0', d6='0', d7='0', q0='0', q1='0', q2='0', q3='0', q4='0', q5='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${mr} ${cp} ${d0} ${d1} ${d2} ${d3} ${d4} ${d5} ${d6} ${d7} ${q0} ${q1} ${q2} ${q3} ${q4} ${q5} ${vcc} ${gnd} HC273_SUB`, subckts: [SUBCKT_DEFINITIONS.HC273_SUB] };
+    }
+    case 'ic_74hc373': {
+      const [oe='0', le='0', d0='0', d1='0', d2='0', d3='0', d4='0', d5='0', q0='0', q1='0', q2='0', q3='0', q4='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${oe} ${le} ${d0} ${d1} ${d2} ${d3} ${d4} ${d5} ${q0} ${q1} ${q2} ${q3} ${q4} ${vcc} ${gnd} HC373_SUB`, subckts: [SUBCKT_DEFINITIONS.HC373_SUB] };
+    }
+    case 'ic_74hc574': {
+      const [oe='0', cp='0', d0='0', d1='0', d2='0', d3='0', d4='0', d5='0', q0='0', q1='0', q2='0', q3='0', q4='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${oe} ${cp} ${d0} ${d1} ${d2} ${d3} ${d4} ${d5} ${q0} ${q1} ${q2} ${q3} ${q4} ${vcc} ${gnd} HC574_SUB`, subckts: [SUBCKT_DEFINITIONS.HC574_SUB] };
+    }
+    case 'ic_74hc93': {
+      const [cp0='0', cp1='0', mr1='0', mr2='0', q0='0', q1='0', q2='0', q3='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cp0} ${cp1} ${mr1} ${mr2} ${q0} ${q1} ${q2} ${q3} ${vcc} ${gnd} HC93_SUB`, subckts: [SUBCKT_DEFINITIONS.HC93_SUB] };
+    }
+    case 'ic_74hc160': {
+      const [cp='0', mr='0', pe='0', cep='0', cet='0', d0='0', q0='0', q1='0', q2='0', q3='0', tc='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cp} ${mr} ${pe} ${cep} ${cet} ${d0} ${q0} ${q1} ${q2} ${q3} ${tc} ${vcc} ${gnd} HC160_SUB`, subckts: [SUBCKT_DEFINITIONS.HC160_SUB] };
+    }
+    case 'ic_74hc161': {
+      const [cp='0', mr='0', pe='0', cep='0', cet='0', d0='0', q0='0', q1='0', q2='0', q3='0', tc='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cp} ${mr} ${pe} ${cep} ${cet} ${d0} ${q0} ${q1} ${q2} ${q3} ${tc} ${vcc} ${gnd} HC161_SUB`, subckts: [SUBCKT_DEFINITIONS.HC161_SUB] };
+    }
+    case 'ic_74hc163': {
+      const [cp='0', sr='0', pe='0', cep='0', cet='0', d0='0', q0='0', q1='0', q2='0', q3='0', tc='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cp} ${sr} ${pe} ${cep} ${cet} ${d0} ${q0} ${q1} ${q2} ${q3} ${tc} ${vcc} ${gnd} HC163_SUB`, subckts: [SUBCKT_DEFINITIONS.HC163_SUB] };
+    }
+    case 'ic_74hc166': {
+      const [cp='0', ce='0', pe='0', mr='0', ds='0', d0='0', q7='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cp} ${ce} ${pe} ${mr} ${ds} ${d0} ${q7} ${vcc} ${gnd} HC166_SUB`, subckts: [SUBCKT_DEFINITIONS.HC166_SUB] };
+    }
+    case 'ic_74hc191': {
+      const [cp='0', ud='0', ce='0', pl='0', d0='0', q0='0', q1='0', q2='0', q3='0', tc='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cp} ${ud} ${ce} ${pl} ${d0} ${q0} ${q1} ${q2} ${q3} ${tc} ${vcc} ${gnd} HC191_SUB`, subckts: [SUBCKT_DEFINITIONS.HC191_SUB] };
+    }
+    case 'ic_74hc192': {
+      const [cpu='0', cpd='0', mr='0', pl='0', d0='0', q0='0', q1='0', q2='0', q3='0', tcu='0', tcd='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cpu} ${cpd} ${mr} ${pl} ${d0} ${q0} ${q1} ${q2} ${q3} ${tcu} ${tcd} ${vcc} ${gnd} HC192_SUB`, subckts: [SUBCKT_DEFINITIONS.HC192_SUB] };
+    }
+    case 'ic_74hc299': {
+      const [cp='0', mr='0', s0='0', s1='0', oe1='0', oe2='0', q0='0', q7='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${cp} ${mr} ${s0} ${s1} ${oe1} ${oe2} ${q0} ${q7} ${vcc} ${gnd} HC299_SUB`, subckts: [SUBCKT_DEFINITIONS.HC299_SUB] };
+    }
+    case 'ic_74hc181': {
+      const [a0='0', a1='0', a2='0', a3='0', b0='0', b1='0', b2='0', b3='0', m='0', f0='0', f1='0', f2='0', f3='0', aeqb='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a0} ${a1} ${a2} ${a3} ${b0} ${b1} ${b2} ${b3} ${m} ${f0} ${f1} ${f2} ${f3} ${aeqb} ${vcc} ${gnd} HC181_SUB`, subckts: [SUBCKT_DEFINITIONS.HC181_SUB] };
+    }
+    case 'ic_74hc280': {
+      const [i0='0', i1='0', i2='0', i3='0', i4='0', i5='0', i6='0', i7='0', peven='0', podd='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${i0} ${i1} ${i2} ${i3} ${i4} ${i5} ${i6} ${i7} ${peven} ${podd} ${vcc} ${gnd} HC280_SUB`, subckts: [SUBCKT_DEFINITIONS.HC280_SUB] };
+    }
+    case 'ic_74hc688': {
+      const [g='0', p0='0', p1='0', q0='0', q1='0', peq='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${g} ${p0} ${p1} ${q0} ${q1} ${peq} ${vcc} ${gnd} HC688_SUB`, subckts: [SUBCKT_DEFINITIONS.HC688_SUB] };
+    }
+    case 'ic_74hc126': {
+      const [a='0', oe='0', y='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${oe} ${y} ${vcc} ${gnd} HC126_SUB`, subckts: [SUBCKT_DEFINITIONS.HC126_SUB] };
+    }
+    case 'ic_74hc541': {
+      const [oe1='0', oe2='0', a0='0', a1='0', a2='0', a3='0', y0='0', y1='0', y2='0', y3='0', vcc='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${oe1} ${oe2} ${a0} ${a1} ${a2} ${a3} ${y0} ${y1} ${y2} ${y3} ${vcc} ${gnd} HC541_SUB`, subckts: [SUBCKT_DEFINITIONS.HC541_SUB] };
+    }
+    case 'ic_cd4001': {
+      const [a='0', b='0', y='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${y} ${vdd} ${vss} CD4001_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4001_SUB] };
+    }
+    case 'ic_cd4011': {
+      const [a='0', b='0', y='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${y} ${vdd} ${vss} CD4011_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4011_SUB] };
+    }
+    case 'ic_cd4012': {
+      const [a='0', b='0', c='0', d='0', y='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${d} ${y} ${vdd} ${vss} CD4012_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4012_SUB] };
+    }
+    case 'ic_cd4023': {
+      const [a='0', b='0', c='0', y='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${y} ${vdd} ${vss} CD4023_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4023_SUB] };
+    }
+    case 'ic_cd4027': {
+      const [j='0', clk='0', k='0', set='0', rst='0', q='0', qbar='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${j} ${clk} ${k} ${set} ${rst} ${q} ${qbar} ${vdd} ${vss} CD4027_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4027_SUB] };
+    }
+    case 'ic_cd4028': {
+      const [a='0', b='0', c='0', d='0', y0='0', y1='0', y2='0', y3='0', y4='0', y5='0', y6='0', y7='0', y8='0', y9='0', vdd='0', vss='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${b} ${c} ${d} ${y0} ${y1} ${y2} ${y3} ${y4} ${y5} ${y6} ${y7} ${y8} ${y9} ${vdd} ${vss} CD4028_SUB`, subckts: [SUBCKT_DEFINITIONS.CD4028_SUB] };
     }
     default:
       return null;
