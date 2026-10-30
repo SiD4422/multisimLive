@@ -7,6 +7,7 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#0f172a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google-site-verification" content="I677SBO7Wb_Xv-CvCMiKvnDZbkiAId64Gtyrk5-0KLU" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,39 +20,83 @@
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Caveat:wght@600;700&display=swap">
     </noscript>
     
+    <!-- Canonical Link -->
+    <link rel="canonical" href="https://www.nodesimapp.com/" />
+    
     <!-- Primary Meta Tags -->
-    <title>NodeSim | Free Online Circuit Simulator</title>
-    <meta name="title" content="NodeSim | Free Online Circuit Simulator" />
-    <meta name="description" content="The modern, free alternative to NI Multisim. Design, build, and run professional SPICE circuit simulations entirely in your browser. No account required." />
-    <meta name="keywords" content="NodeSim, multisim online, multisim alternative, multisim free, NI multisim, circuit simulator online, free SPICE simulator, online circuit design, browser circuit simulator, ngspice online, electronic circuit maker, schematic capture online, EEE tools, ECE lab tools, circuit simulation, transient analysis, AC sweep, DC sweep, breadboard simulator" />
+    <title>NodeSim | Free Online Circuit Simulator & Multisim Alternative</title>
+    <meta name="title" content="NodeSim | Free Online Circuit Simulator & Multisim Alternative" />
+    <meta name="description" content="The modern, free alternative to NI Multisim. Design, build, and run real SPICE circuit simulations entirely in your browser with 311+ components, waveform grapher, and AI Tutor. Zero install, no account required." />
+    <meta name="keywords" content="NodeSim, multisim online, multisim alternative, multisim free, NI multisim live, circuit simulator online, free SPICE simulator, online circuit design, browser circuit simulator, ngspice wasm, electronic circuit maker, schematic capture online, EEE tools, ECE lab tools, circuit simulation, transient analysis, AC sweep, DC sweep, breadboard simulator, online oscilloscope" />
     <meta name="author" content="NodeSim" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     
     <!-- Open Graph / Social Preview -->
+    <meta property="og:site_name" content="NodeSim" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.nodesimapp.com" />
-    <meta property="og:title" content="NodeSim | Free Online Circuit Simulator" />
-    <meta property="og:description" content="Real SPICE simulation in your browser. No install, no account. Powered by ngspice WASM + AI Tutor." />
+    <meta property="og:url" content="https://www.nodesimapp.com/" />
+    <meta property="og:title" content="NodeSim | Free Online Circuit Simulator & Multisim Alternative" />
+    <meta property="og:description" content="Real SPICE simulation in your browser. 311+ components, transient, AC sweep, DC op, oscilloscope grapher, and AI Circuit Tutor. No install, no account needed." />
     <meta property="og:image" content="https://www.nodesimapp.com/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="NodeSim Online SPICE Circuit Simulator interface with schematic editor and real-time waveform grapher" />
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="NodeSim | Free Online Circuit Simulator" />
-    <meta name="twitter:description" content="Real SPICE simulation. No install. No account. AI-powered circuit tutor." />
+    <meta name="twitter:site" content="@nodesim" />
+    <meta name="twitter:creator" content="@nodesim" />
+    <meta name="twitter:title" content="NodeSim | Free Online Circuit Simulator & Multisim Alternative" />
+    <meta name="twitter:description" content="Free SPICE circuit simulation in your browser. 311+ components, waveform grapher, interactive AI tutor, no account required." />
     <meta name="twitter:image" content="https://www.nodesimapp.com/og-image.png" />
+    <meta name="twitter:image:alt" content="NodeSim Online Circuit Simulator Workspace" />
     
-    <!-- Structured Data for Google -->
+    <!-- Structured Data: WebSite & SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "NodeSim",
+      "alternateName": ["NodeSim Circuit Simulator", "NodeSimApp", "Multisim Live Free Alternative"],
+      "url": "https://www.nodesimapp.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.nodesimapp.com/circuits?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "NodeSim",
+      "url": "https://www.nodesimapp.com",
+      "logo": "https://www.nodesimapp.com/logo_main.png",
+      "sameAs": [
+        "https://github.com/SiD4422/multisimLive"
+      ]
+    }
+    </script>
+    
+    <!-- Structured Data: SoftwareApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "NodeSim",
       "applicationCategory": "EducationalApplication",
-      "operatingSystem": "Web Browser",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "description": "Free browser-based SPICE circuit simulator - the modern alternative to NI Multisim Live.",
+      "applicationSubCategory": "Electronics Engineering & Circuit Simulation",
+      "operatingSystem": "Web Browser, Windows, macOS, Linux, ChromeOS, iPadOS, iOS, Android",
+      "offers": { 
+        "@type": "Offer", 
+        "price": "0", 
+        "priceCurrency": "USD" 
+      },
+      "description": "Free browser-based SPICE circuit simulator - the modern alternative to NI Multisim Live with 311+ interactive components, real ngspice WASM engine, and AI Tutor.",
       "url": "https://www.nodesimapp.com",
       "screenshot": "https://www.nodesimapp.com/og-image.png",
       "creator": {
@@ -59,11 +104,66 @@
         "name": "NodeSim"
       },
       "featureList": [
-        "SPICE simulation",
-        "Transient Analysis",
-        "AC Sweep",
-        "DC Sweep",
-        "AI Engineering Tutor"
+        "Real-time ngspice SPICE simulation in WebAssembly",
+        "311+ library components (MCUs, logic gates, op-amps, optocouplers, display modules)",
+        "Transient Analysis (Oscilloscope time-domain)",
+        "AC Sweep (Bode Plots and Frequency Response)",
+        "DC Operating Point & DC Sweep (IV characteristic curves)",
+        "Interactive Oscilloscope & Multi-Channel Waveform Grapher",
+        "AI Engineering & Circuit Debugging Tutor",
+        "Interactive Formula Calculators (Ohm's Law, RC, 555 Timer, Voltage Divider)",
+        "Academic PDF Lab Report and SPICE Netlist (.cir) Export",
+        "Zero installation, free and open access in browser"
+      ]
+    }
+    </script>
+
+    <!-- Structured Data: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is NodeSim completely free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, NodeSim is 100% free with no subscription, no credit card, and no account required. All 311+ components, SPICE simulation modes, and graphers run client-side in your web browser."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does NodeSim compare to NI Multisim Live?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "NodeSim is a fast, web-native alternative to NI Multisim Live powered by industry-standard ngspice compiled to WebAssembly. It offers instant simulation with zero server latency, interactive waveform graphers, AI-assisted circuit debugging, and PDF lab report export without login paywalls."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does NodeSim require downloading or installing any software?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. NodeSim runs entirely inside any modern web browser (Google Chrome, Firefox, Safari, Microsoft Edge) across Windows, macOS, Linux, ChromeOS, and iPadOS."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What SPICE simulation analysis types are available?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "NodeSim supports Transient Analysis (time-domain waveforms), AC Sweep (frequency response and Bode plots), DC Sweep (IV curves), and DC Operating Point calculations."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many electronic components does NodeSim support?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "NodeSim includes over 311+ verified components spanning microcontrollers (ATtiny85, PIC, STM32, ESP32, RP2040), 74HC and CD4000 digital logic ICs, precision op-amps, optocouplers, display controllers (OLED, LCD, TFT), power transistors, and passive components."
+          }
+        }
       ]
     }
     </script>
@@ -95,20 +195,46 @@
         <ul>
           <li><strong>Transient Analysis:</strong> Observe how your circuit behaves over time, perfect for analyzing oscillators, switching power supplies, and digital logic.</li>
           <li><strong>AC Sweep (Frequency Response):</strong> Generate Bode plots to analyze filter characteristics, amplifier bandwidth, and phase margins.</li>
-          <li><strong>DC Operating Point & Sweep:</strong> Instantly calculate steady-state node voltages and branch currents, or sweep a voltage source to plot IV curves for diodes and transistors.</li>
+          <li><strong>DC Operating Point &amp; Sweep:</strong> Instantly calculate steady-state node voltages and branch currents, or sweep a voltage source to plot IV curves for diodes and transistors.</li>
         </ul>
 
+        <h2>311+ Working Component Library</h2>
+        <p>Choose from an expansive library of over 311+ interactive components: microcontrollers (ATtiny85, PIC16F, STM32 Blue Pill, ESP32, Raspberry Pi Pico), 74HC &amp; CD4000 CMOS logic gates, precision audio and instrumentation op-amps (TL082, NE5532, OP07, AD823, OPA134), optocouplers (4N25, 6N137, MOC3021), graphics displays (SSD1306 OLED, ILI9341 TFT, LCD1602 I2C), power MOSFETs, BJTs, diodes, and passive RLC components.</p>
+
         <h2>Built for Education and Collaboration</h2>
-        <p>One of the biggest challenges in electronics education is troubleshooting. That's why NodeSim includes a built-in AI Engineering Tutor powered by Google Gemini, which can explain complex circuit behaviors and help debug wiring issues. Additionally, sharing your work has never been easier. You can generate a unique shareable link or embed your interactive circuit directly into a webpage, making it the perfect tool for professors assigning homework, or students collaborating on lab reports.</p>
+        <p>One of the biggest challenges in electronics education is troubleshooting. That's why NodeSim includes a built-in AI Engineering Tutor powered by Google Gemini, which can explain complex circuit behaviors and help debug wiring issues. Additionally, sharing your work has never been easier. You can generate a unique shareable link, export academic PDF lab reports with complete waveform plots, or embed your interactive circuit directly into a webpage.</p>
 
-        <h2>Explore Example Circuits and Tutorials</h2>
-        <p>Not sure where to start? Check out our extensive library of pre-built circuit templates, ranging from simple resistor networks and low-pass filters to complex operational amplifier circuits and 555 timers. Join the growing community of makers and engineers who are switching to the web's best free circuit simulator.</p>
+        <h2>Explore Example Circuits, Tutorials &amp; Engineering Tools</h2>
+        <p>Check out our extensive library of pre-built circuit templates, ranging from simple resistor networks and low-pass filters to complex operational amplifier circuits and 555 timers. Join the growing community of makers and engineers who are switching to the web's best free circuit simulator.</p>
 
-        <a href="/circuits">Circuit Library</a>
-        <a href="/simulator">Launch Simulator</a>
-        <a href="/features">Features</a>
-        <a href="/procedure">How to Use</a>
-        <a href="/resources">Resources</a>
+        <nav aria-label="Quick links">
+          <a href="/simulator">Launch Live Simulator</a>
+          <a href="/circuits">Circuit Library &amp; Templates</a>
+          <a href="/features">Feature Tour</a>
+          <a href="/educators">Educator Lab Resources &amp; Worksheets</a>
+          <a href="/about">About NodeSim</a>
+          <a href="/showcase">Product Showcase</a>
+          <a href="/tools">Interactive Engineering Calculators</a>
+          <a href="/tools/ohms-law">Ohm's Law Calculator</a>
+          <a href="/tools/voltage-divider">Voltage Divider Calculator</a>
+          <a href="/tools/rc-calculator">RC Filter Calculator</a>
+          <a href="/tools/555-timer">555 Timer Calculator</a>
+          <a href="/tools/resistor-color-code">Resistor Color Code Calculator</a>
+          <a href="/tutorials">Electronics Tutorials</a>
+          <a href="/tutorials/rc-circuit">RC Circuit Tutorial</a>
+          <a href="/tutorials/555-timer">555 Timer Tutorial</a>
+          <a href="/tutorials/transistor-amplifier">Transistor Amplifier Tutorial</a>
+          <a href="/tutorials/op-amp">Op-Amp Tutorial</a>
+          <a href="/tutorials/diode-rectifier">Diode Rectifier Tutorial</a>
+          <a href="/tutorials/rlc-circuit">RLC Resonance Tutorial</a>
+          <a href="/compare">Competitor Comparisons</a>
+          <a href="/compare/multisim">NodeSim vs NI Multisim Live</a>
+          <a href="/compare/ltspice">NodeSim vs LTspice</a>
+          <a href="/compare/falstad">NodeSim vs Falstad</a>
+          <a href="/compare/circuitlab">NodeSim vs CircuitLab</a>
+          <a href="/compare/tinkercad">NodeSim vs Tinkercad</a>
+          <a href="/compare/wokwi">NodeSim vs Wokwi</a>
+        </nav>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

@@ -24,9 +24,15 @@ export default function ResourcesPage() {
   return (
     <>
       <SEO 
-        title="Resources & Documentation | NodeSim" 
-        description="Documentation, tutorials, and ngspice reference manuals for the NodeSim circuit simulator."
-        url="https://nodesimapp.com/resources"
+        title="Resources & SPICE Documentation | NodeSim" 
+        description="Documentation, tutorials, and ngspice reference manuals for the NodeSim circuit simulator. Discover SPICE models, keyboard shortcuts, and syntax guides."
+        url="https://www.nodesimapp.com/resources"
+        canonical="https://www.nodesimapp.com/resources"
+        keywords={['nodesim documentation', 'ngspice manual', 'spice syntax guide', 'circuit simulation resources', 'ee lab documentation']}
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Resources', path: '/resources' }
+        ]}
       />
       <div style={{
         minHeight: '100vh',

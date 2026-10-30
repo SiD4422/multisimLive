@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/SEO';
 
 
 const TUTORIALS = [
@@ -14,11 +14,17 @@ const TUTORIALS = [
 export default function TutorialsIndex() {
   return (
     <>
-      <Helmet>
-        <title>Circuit Simulation Tutorials | NodeSim</title>
-        <meta name="description" content="Free step-by-step electronics tutorials with live SPICE simulation. RC circuits, 555 timer, transistor amplifiers, op-amps, diode rectifiers, RLC circuits — simulate as you learn." />
-        <meta name="keywords" content="circuit simulation tutorial, RC circuit tutorial, 555 timer simulation, transistor amplifier tutorial, op-amp circuit tutorial, diode rectifier simulation" />
-      </Helmet>
+      <SEO
+        title="Circuit Simulation Tutorials & Interactive Labs | NodeSim"
+        description="Free step-by-step electronics tutorials with live interactive SPICE simulations. RC circuits, 555 timers, BJT amplifiers, op-amps, diode rectifiers, and RLC resonance."
+        url="https://www.nodesimapp.com/tutorials"
+        canonical="https://www.nodesimapp.com/tutorials"
+        keywords={['circuit simulation tutorials', 'electronics tutorials', 'RC circuit analysis', '555 timer tutorial', 'transistor amplifier tutorial', 'op amp tutorials', 'rectifier simulation']}
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Tutorials', path: '/tutorials' }
+        ]}
+      />
       <div style={{ maxWidth: 960, margin: '0 auto', padding: '48px 24px', fontFamily: 'Inter, system-ui, sans-serif' }}>
         <div style={{ marginBottom: 40 }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#1e293b', marginBottom: 12 }}>Circuit Simulation Tutorials</h1>

@@ -18,7 +18,7 @@ export default function InvertingOpAmp() {
       <SEO
         title="Inverting Op-Amp Amplifier Circuit Simulation | NodeSim"
         description="Simulate an inverting op-amp amplifier online. Calculate voltage gain with Gain = -Rf/Rin, explore virtual ground, LM741 SPICE model — free, no install needed."
-        url="https://nodesimapp.com/circuits/inverting-op-amp"
+        url="https://www.nodesimapp.com/circuits/inverting-op-amp"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

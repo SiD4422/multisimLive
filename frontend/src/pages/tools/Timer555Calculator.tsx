@@ -53,8 +53,8 @@ export default function Timer555Calculator() {
         <meta property="og:title" content="555 Timer Calculator | NodeSim" />
         <meta property="og:description" content="Free 555 timer astable calculator. Calculate frequency, duty cycle, and timing instantly." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://nodesimapp.com/tools/555-timer" />
-        <link rel="canonical" href="https://nodesimapp.com/tools/555-timer" />
+        <meta property="og:url" content="https://www.nodesimapp.com/tools/555-timer" />
+        <link rel="canonical" href="https://www.nodesimapp.com/tools/555-timer" />
       </Helmet>
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › <Link to="/tools" style={{ color: '#16a34a' }}>Tools</Link> › 555 Timer</div>

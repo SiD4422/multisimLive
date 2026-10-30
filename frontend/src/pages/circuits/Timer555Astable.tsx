@@ -18,7 +18,7 @@ export default function Timer555Astable() {
       <SEO
         title="555 Timer Astable Circuit Simulator Online | NodeSim"
         description="Simulate a 555 timer astable oscillator online. Calculate frequency with f = 1.44/((R1+2R2)×C), adjust duty cycle, visualize square waves — free SPICE simulator."
-        url="https://nodesimapp.com/circuits/555-timer-astable"
+        url="https://www.nodesimapp.com/circuits/555-timer-astable"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

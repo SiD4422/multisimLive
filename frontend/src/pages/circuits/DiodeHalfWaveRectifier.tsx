@@ -18,7 +18,7 @@ export default function DiodeHalfWaveRectifier() {
       <SEO
         title="Half Wave Rectifier Circuit Simulation Online | NodeSim"
         description="Simulate a half wave rectifier online. See how a single diode converts AC to pulsating DC. Measure peak voltage, ripple factor, and efficiency — free SPICE simulator."
-        url="https://nodesimapp.com/circuits/half-wave-rectifier"
+        url="https://www.nodesimapp.com/circuits/half-wave-rectifier"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

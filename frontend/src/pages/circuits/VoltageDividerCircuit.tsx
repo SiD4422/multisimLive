@@ -24,7 +24,7 @@ export default function VoltageDividerCircuit() {
       <SEO
         title="Voltage Divider Circuit | Resistor Divider Calculator | NodeSim"
         description="Voltage divider using R1 and R2. Formula: Vout = Vin × R2/(R1+R2). Common uses: sensor biasing, ADC reference."
-        url="https://nodesimapp.com/circuits/voltage-divider"
+        url="https://www.nodesimapp.com/circuits/voltage-divider"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

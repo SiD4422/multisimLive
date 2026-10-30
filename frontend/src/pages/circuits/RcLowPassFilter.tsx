@@ -18,7 +18,7 @@ export default function RcLowPassFilter() {
       <SEO
         title="RC Low Pass Filter Circuit Simulator Online | NodeSim"
         description="Simulate an RC low pass filter online. Compute cutoff frequency with f = 1/(2πRC), visualize Bode plots, and understand signal attenuation — free, no install."
-        url="https://nodesimapp.com/circuits/rc-low-pass-filter"
+        url="https://www.nodesimapp.com/circuits/rc-low-pass-filter"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

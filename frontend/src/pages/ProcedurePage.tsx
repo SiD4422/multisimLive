@@ -21,9 +21,15 @@ export default function ProcedurePage() {
   return (
     <>
       <SEO 
-        title="How to Use NodeSim | Circuit Simulation Guide" 
-        description="Learn how to use NodeSim to design and simulate circuits in your browser. A step-by-step guide for students and engineers."
-        url="https://nodesimapp.com/procedure"
+        title="How to Use NodeSim | Circuit Simulation Guide & Procedure" 
+        description="Learn how to use NodeSim to design, wire, and simulate SPICE circuits in your browser. A comprehensive step-by-step guide for students, professors, and hardware engineers."
+        url="https://www.nodesimapp.com/procedure"
+        canonical="https://www.nodesimapp.com/procedure"
+        keywords={['how to use nodesim', 'circuit simulation tutorial', 'spice simulator guide', 'online schematic capture guide', 'multisim simulation steps']}
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'How to Use', path: '/procedure' }
+        ]}
       />
       <div style={{
         minHeight: '100vh',

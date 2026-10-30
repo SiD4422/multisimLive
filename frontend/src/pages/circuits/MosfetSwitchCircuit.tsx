@@ -18,7 +18,7 @@ export default function MosfetSwitchCircuit() {
       <SEO
         title="MOSFET Switch Circuit | N-Channel MOSFET as Switch | NodeSim"
         description="N-channel MOSFET used as a digital switch/inverter. Gate controls drain-source current."
-        url="https://nodesimapp.com/circuits/mosfet-switch"
+        url="https://www.nodesimapp.com/circuits/mosfet-switch"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

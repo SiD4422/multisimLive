@@ -447,9 +447,15 @@ function Simulator() {
   return (
     <>
       <SEO 
-        title="NodeSim | Online Circuit Simulator" 
-        description="Design and run SPICE circuit simulations entirely in your browser with real-time waveform graphers."
-        url="https://nodesimapp.com/simulator"
+        title="NodeSim | Online SPICE Circuit Simulator & Schematic Editor" 
+        description="Design and run SPICE circuit simulations entirely in your browser with real-time waveform graphers, 311+ components, and an AI circuit tutor. Free, no account needed."
+        url="https://www.nodesimapp.com/simulator"
+        canonical="https://www.nodesimapp.com/simulator"
+        keywords={['circuit simulator', 'online circuit simulator', 'SPICE simulator online', 'multisim online free', 'schematic editor', 'ngspice browser', 'transient analysis', 'ac sweep', 'waveform grapher']}
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Simulator', path: '/simulator' }
+        ]}
       />
       <div className="app-container">
         <RestoreBanner show={bootSource === 'restored'} />

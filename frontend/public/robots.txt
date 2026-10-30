@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
-Disallow: /simulator
+
+# Host
+Host: https://www.nodesimapp.com
+
+# Sitemaps
 Sitemap: https://www.nodesimapp.com/sitemap.xml

@@ -18,7 +18,7 @@ export default function CommonEmitterAmplifier() {
       <SEO
         title="Common Emitter BJT Amplifier Circuit Simulator | NodeSim"
         description="Simulate a common emitter BJT amplifier online. Calculate voltage gain Av = -hfe×Rc/hie, understand biasing, emitter bypass, and frequency response — free SPICE tool."
-        url="https://nodesimapp.com/circuits/common-emitter-amplifier"
+        url="https://www.nodesimapp.com/circuits/common-emitter-amplifier"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

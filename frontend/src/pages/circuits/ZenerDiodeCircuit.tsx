@@ -18,7 +18,7 @@ export default function ZenerDiodeCircuit() {
       <SEO
         title="Zener Diode Voltage Regulator Circuit | NodeSim"
         description="Zener diode used as a voltage regulator/clamp. Shows how a Zener maintains a stable output voltage."
-        url="https://nodesimapp.com/circuits/zener-diode"
+        url="https://www.nodesimapp.com/circuits/zener-diode"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

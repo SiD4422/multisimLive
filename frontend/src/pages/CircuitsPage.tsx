@@ -130,9 +130,15 @@ export default function CircuitsPage() {
   return (
     <>
       <SEO 
-        title="Example Circuits | NodeSim" 
-        description="Browse our library of pre-built circuit templates including 555 timers, op-amps, filters, and rectifiers. Load them instantly into the NodeSim circuit simulator."
-        url="https://nodesimapp.com/circuits"
+        title="Example Circuits & SPICE Templates Library | NodeSim" 
+        description="Browse our library of pre-built interactive circuit templates: 555 timers, op-amps, active filters, rectifiers, and power converters. Load them instantly into the NodeSim simulator."
+        url="https://www.nodesimapp.com/circuits"
+        canonical="https://www.nodesimapp.com/circuits"
+        keywords={['circuit templates', 'spice example circuits', '555 timer schematic', 'op amp circuit examples', 'low pass filter spice', 'bridge rectifier simulation', 'multisim circuit library']}
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Circuits', path: '/circuits' }
+        ]}
       />
       <div style={{
         minHeight: '100vh',

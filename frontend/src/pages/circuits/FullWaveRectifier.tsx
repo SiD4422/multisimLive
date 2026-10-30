@@ -18,7 +18,7 @@ export default function FullWaveRectifier() {
       <SEO
         title="Full Wave Bridge Rectifier Circuit Simulator | NodeSim"
         description="Simulate a full wave bridge rectifier online. Understand how 4 diodes convert AC to DC with 81% efficiency. Compare with half wave rectifier — free SPICE simulator."
-        url="https://nodesimapp.com/circuits/full-wave-rectifier"
+        url="https://www.nodesimapp.com/circuits/full-wave-rectifier"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

@@ -47,8 +47,8 @@ export default function RcCalculator() {
         <meta property="og:title" content="RC Time Constant Calculator | NodeSim" />
         <meta property="og:description" content="Free RC time constant calculator. Calculate tau (τ) and cutoff frequency (fc) instantly." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://nodesimapp.com/tools/rc-calculator" />
-        <link rel="canonical" href="https://nodesimapp.com/tools/rc-calculator" />
+        <meta property="og:url" content="https://www.nodesimapp.com/tools/rc-calculator" />
+        <link rel="canonical" href="https://www.nodesimapp.com/tools/rc-calculator" />
       </Helmet>
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › <Link to="/tools" style={{ color: '#16a34a' }}>Tools</Link> › RC Calculator</div>

@@ -13,15 +13,15 @@ const COMPARISON = [
   { feature: 'KiCad PCB Export',        us: '✅ .net netlist with footprints',  them: 'No PCB pipeline',           usWin: true },
   { feature: 'Community Gallery',       us: '✅ Firebase-powered gallery',      them: 'No sharing',                usWin: true },
   { feature: 'SPICE Import / Export',   us: '✅ .cir + custom .lib models',     them: 'Limited',                   usWin: true },
-  { feature: 'Component Library',       us: '85+ components',                   them: '~150 (Falstad)',             usWin: false },
-  { feature: 'MCU Simulation',          us: 'Not yet',                          them: 'Basic only',                usWin: false },
+  { feature: 'Component Library',       us: '311+ components',                  them: '~150 (Falstad)',             usWin: true },
+  { feature: 'Microcontrollers (MCUs)', us: '✅ ATtiny85, PIC, STM32, ESP32, Pico', them: 'Limited/None',          usWin: true },
 ];
 
 const NEW_BADGES = [
   { label: '🆕 KiCad PCB Export', color: '#7c3aed' },
   { label: '🆕 Animated Current Flow', color: '#0891b2' },
   { label: '🆕 Community Gallery', color: '#d97706' },
-  { label: '🆕 85+ Components', color: '#16a34a' },
+  { label: '🆕 311+ Components', color: '#16a34a' },
   { label: '🆕 Share via WhatsApp / LinkedIn', color: '#15803d' },
 ];
 
@@ -45,8 +45,14 @@ export default function FeaturesPage() {
     <>
       <SEO
         title="Features | NodeSim — Free Browser SPICE Simulator"
-        description="NodeSim features: real ngspice WASM engine, Gemini AI tutor, KiCad PCB export, animated current flow, 85+ components, community gallery. No account required."
-        url="https://nodesimapp.com/features"
+        description="Explore NodeSim features: real ngspice WASM engine, Gemini AI tutor, KiCad PCB export, animated current flow, 311+ components, oscilloscope grapher. No account required."
+        url="https://www.nodesimapp.com/features"
+        canonical="https://www.nodesimapp.com/features"
+        keywords={['circuit simulator features', 'online SPICE simulator', 'ngspice browser', 'AI circuit tutor', 'KiCad netlist export', '311 components library', 'interactive oscilloscope']}
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Features', path: '/features' }
+        ]}
       />
       <div style={{ minHeight: '100vh', backgroundColor: C.bgApp, padding: '80px 20px', color: C.textPrimary, fontFamily: "'Inter', sans-serif", transition: 'background-color 0.25s ease, color 0.25s ease' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>

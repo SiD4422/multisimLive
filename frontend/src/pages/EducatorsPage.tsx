@@ -175,7 +175,7 @@ export function EducatorsPage() {
     name: 'NodeSim for Educators - Free SPICE Simulator for ECE & EEE Lab Courses',
     description:
       'NodeSim is a free browser-based SPICE circuit simulator for ECE and EEE lab courses. No installation required. Includes AI lab record generator, real ngspice engine, and downloadable lab worksheets.',
-    url: 'https://nodesimapp.com/educators',
+    url: 'https://www.nodesimapp.com/educators',
     about: {
       '@type': 'EducationalOccupationalProgram',
       name: 'Electronics and Electrical Engineering Virtual Laboratory Courseware',
@@ -187,7 +187,7 @@ export function EducatorsPage() {
     provider: {
       '@type': 'Organization',
       name: 'NodeSim',
-      url: 'https://nodesimapp.com',
+      url: 'https://www.nodesimapp.com',
     },
     hasPart: WORKSHEETS.map((w) => ({
       '@type': 'LearningResource',
@@ -195,7 +195,7 @@ export function EducatorsPage() {
       description: w.desc,
       learningResourceType: 'Lab Worksheet',
       educationalLevel: w.course,
-      url: `https://nodesimapp.com/educators/worksheets/${w.id}`,
+      url: `https://www.nodesimapp.com/educators/worksheets/${w.id}`,
     })),
   };
 
@@ -212,7 +212,7 @@ export function EducatorsPage() {
       <SEO
         title="NodeSim for Educators - Free SPICE Simulator for ECE & EEE Lab Courses"
         description="NodeSim is a free browser-based SPICE circuit simulator for ECE and EEE lab courses. No installation required. Includes AI lab record generator, real ngspice engine, and downloadable lab worksheets."
-        url="https://nodesimapp.com/educators"
+        url="https://www.nodesimapp.com/educators"
       />
 
       <Helmet>
@@ -1740,7 +1740,7 @@ export function WorksheetPage() {
       <SEO
         title={`${data.title} - Lab Worksheet | NodeSim`}
         description={`Download and print the official ECE/EEE lab worksheet for ${data.title}. Includes pre-lab calculations, schematic, observation tables, and post-lab viva questions.`}
-        url={`https://nodesimapp.com/educators/worksheets/${validSlug}`}
+        url={`https://www.nodesimapp.com/educators/worksheets/${validSlug}`}
       />
 
       <style>{`
@@ -2103,7 +2103,7 @@ export function WorksheetPage() {
               alignItems: 'center',
             }}
           >
-            <span>NodeSim Open Courseware * https://nodesimapp.com/educators</span>
+            <span>NodeSim Open Courseware * https://www.nodesimapp.com/educators</span>
             <span>Free for Academic Use * No Commercial Attribution Required</span>
           </div>
         </div>

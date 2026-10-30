@@ -1,5 +1,5 @@
 ﻿import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/SEO';
 
 
 const COMPARISONS = [
@@ -14,11 +14,17 @@ const COMPARISONS = [
 export default function CompareIndex() {
   return (
     <>
-      <Helmet>
-        <title>NodeSim vs Other Circuit Simulators | Honest Comparison</title>
-        <meta name="description" content="How does NodeSim compare to LTspice, Multisim, CircuitLab, Tinkercad, and Falstad? Honest, detailed feature-by-feature comparisons of the best free circuit simulators available in 2026." />
-        <meta name="keywords" content="NodeSim vs LTspice, NodeSim vs CircuitLab, NodeSim vs Tinkercad, Multisim alternative free, Falstad alternative, best online circuit simulator, free SPICE simulator comparison" />
-      </Helmet>
+      <SEO
+        title="NodeSim vs Other Circuit Simulators | Comprehensive Feature Comparison"
+        description="How does NodeSim compare to NI Multisim, LTspice, Falstad, CircuitLab, Tinkercad, and Wokwi? Objective, in-depth feature comparisons of the best circuit simulators."
+        url="https://www.nodesimapp.com/compare"
+        canonical="https://www.nodesimapp.com/compare"
+        keywords={['circuit simulator comparison', 'multisim alternative', 'ltspice vs nodesim', 'circuitlab alternative free', 'falstad vs multisim', 'tinkercad circuits alternative', 'best free spice simulator']}
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Compare', path: '/compare' }
+        ]}
+      />
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '48px 24px', fontFamily: 'Inter, system-ui, sans-serif' }}>
         <div style={{ marginBottom: 40 }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#f8fafc', marginBottom: 12 }}>NodeSim vs Other Simulators</h1>

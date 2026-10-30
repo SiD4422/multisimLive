@@ -69,8 +69,8 @@ export default function ResistorColorCodeCalculator() {
         <meta property="og:title" content="Resistor Color Code Calculator | NodeSim" />
         <meta property="og:description" content="Free 4-band resistor color code calculator. Decode resistance and tolerance instantly." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://nodesimapp.com/tools/resistor-color-code" />
-        <link rel="canonical" href="https://nodesimapp.com/tools/resistor-color-code" />
+        <meta property="og:url" content="https://www.nodesimapp.com/tools/resistor-color-code" />
+        <link rel="canonical" href="https://www.nodesimapp.com/tools/resistor-color-code" />
       </Helmet>
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › <Link to="/tools" style={{ color: '#16a34a' }}>Tools</Link> › Resistor Color Code</div>

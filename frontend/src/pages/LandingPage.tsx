@@ -10,8 +10,46 @@ export default function LandingPage() {
   return (
     <>
       <SEO 
-        title="NodeSim | Free Online Circuit Simulator"
-        description="The modern, free alternative to NI Multisim. Design, build, and run professional SPICE circuit simulations entirely in your browser. No account required."
+        title="NodeSim | Free Online Circuit Simulator & Multisim Alternative"
+        description="The modern, free alternative to NI Multisim. Design, build, and run professional SPICE circuit simulations in your browser with 311+ components, interactive waveform grapher, and AI tutor. No install or account needed."
+        url="https://www.nodesimapp.com/"
+        canonical="https://www.nodesimapp.com/"
+        keywords={[
+          'NodeSim',
+          'multisim online',
+          'multisim free alternative',
+          'circuit simulator online',
+          'free SPICE simulator',
+          'ngspice browser',
+          'schematic editor online',
+          'breadboard circuit simulator',
+          'electronic circuit simulator',
+          'transient analysis online',
+          'ac sweep bode plot',
+          'electronics engineering lab tools'
+        ]}
+        faqs={[
+          {
+            question: "Is NodeSim completely free to use?",
+            answer: "Yes, NodeSim is 100% free with zero paywalls, no subscription, and no account required. All 311+ components and SPICE simulation engines run entirely in your web browser."
+          },
+          {
+            question: "How does NodeSim compare to NI Multisim Live?",
+            answer: "NodeSim is a fast, web-first alternative to NI Multisim Live powered by ngspice WebAssembly. It provides instant simulation, interactive graphers, AI circuit debugging, and PDF lab report export without login or desktop installation."
+          },
+          {
+            question: "Does NodeSim require any software download or installation?",
+            answer: "No. NodeSim runs 100% client-side in any modern web browser across Windows, macOS, Linux, ChromeOS, and iPadOS."
+          },
+          {
+            question: "What SPICE simulation analyses does NodeSim support?",
+            answer: "NodeSim supports Transient Analysis (time-domain waveforms), AC Sweep (frequency response and Bode plots), DC Sweep (IV characteristic curves), and DC Operating Point calculations."
+          },
+          {
+            question: "Can I export lab reports and circuit schematics?",
+            answer: "Yes. You can export complete academic PDF lab reports with waveform plots, export standard SPICE netlists (.cir), and download PNG schematics with a single click."
+          }
+        ]}
       />
 
       {/* SVG gradient definition */}

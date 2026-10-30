@@ -18,7 +18,7 @@ export default function BuckConverter() {
       <SEO
         title="Buck Converter Step-Down DC-DC Circuit Simulator | NodeSim"
         description="Simulate a PWM buck converter online. Calculate output voltage with Vout = D × Vin, select inductor and capacitor values, analyse ripple — free browser SPICE simulator."
-        url="https://nodesimapp.com/circuits/buck-converter"
+        url="https://www.nodesimapp.com/circuits/buck-converter"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import SEO from '../components/SEO';
 import './StaticPages.css';
 
 export function ShowcasePage() {
@@ -50,6 +51,15 @@ export function ShowcasePage() {
 
   return (
     <div className="msl-static-page">
+      <SEO
+        title="Circuit Showcase & Community Designs | NodeSim"
+        description="Explore interactive analog and digital circuit designs simulated in NodeSim. Oscillators, power converters, active filters, and 555 timer circuits."
+        url="https://www.nodesimapp.com/showcase"
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Showcase', path: '/showcase' }
+        ]}
+      />
       <div dangerouslySetInnerHTML={{ __html: `<main>
 <main id="main"><section class="hero gridbg" style="padding-bottom:40px"><svg class="traces" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M0 120H260V220H520V90H820V190H1200"/><path d="M0 420H180V340H430V470H700V380H1000V300H1200"/><path d="M300 700V560H620V620H900V520H1200"/></svg><div class="wrap" style="position:relative"><span class="pill up"><i></i>SHOWCASE</span><h1 class="up" style="--d:.08s">See NodeSim <em>in Action.</em></h1>
 <p class="lead up" style="--d:.16s">Explore how NodeSim brings circuit design, simulation, analysis, and engineering workflows into the browser.</p>

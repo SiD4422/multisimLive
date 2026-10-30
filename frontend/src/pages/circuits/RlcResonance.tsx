@@ -18,7 +18,7 @@ export default function RlcResonance() {
       <SEO
         title="RLC Series Resonance Circuit Simulator | NodeSim"
         description="Simulate RLC series resonance online. Calculate resonant frequency f = 1/(2π√LC) and Q-factor. Visualize impedance curves and peak current — free SPICE simulator."
-        url="https://nodesimapp.com/circuits/rlc-resonance"
+        url="https://www.nodesimapp.com/circuits/rlc-resonance"
       />
 
       <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', color: '#10b981', fontWeight: 800, letterSpacing: '-0.5px' }}>

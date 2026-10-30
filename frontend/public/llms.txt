@@ -1,17 +1,43 @@
 # NodeSim
 
-> A modern, browser-based circuit simulator powered by ngspice.
+> A modern, browser-based SPICE circuit simulator and NI Multisim Live free alternative powered by ngspice WebAssembly.
 
-NodeSim is a free alternative to NI Multisim. Design, build, and run professional SPICE circuit simulations entirely in your browser without an account.
+NodeSim is a completely free, client-side electronic circuit simulation platform. Design, wire, and simulate analog, digital, and mixed-signal circuits directly in any web browser without installation, accounts, or subscriptions.
 
-## Features
-- Real-time SPICE simulation powered by ngspice WASM
-- DC Sweep, AC Sweep, and Transient Analysis
-- Oscilloscope and grapher with interactive cursors
-- Example circuits for students (555 timers, op-amps, logic gates)
+## Key Capabilities
+- **Engine**: Industry-standard ngspice compiled to WebAssembly (runs 100% client-side with zero server latency).
+- **Component Library**: 311+ verified components including microcontrollers (ATtiny85, PIC16F84A, STM32 Blue Pill, ESP32, Raspberry Pi Pico), 74HC & CD4000 series CMOS logic gates, precision op-amps, optocouplers, display modules (OLED, LCD, TFT), sensors, and power semiconductors.
+- **Analysis Modes**: Transient Analysis (time-domain oscilloscope waveforms), AC Frequency Sweep (Bode magnitude and phase plots), DC Operating Point (bias voltage/current table), and DC Sweep (IV curves).
+- **Instruments**: Interactive multi-channel oscilloscope & waveform grapher with measurement cursors and FFT spectrum analysis.
+- **AI Circuit Tutor**: Integrated Google Gemini assistant for circuit explanation, wiring troubleshooting, and formula derivations.
+- **Export Formats**: Academic PDF Lab Reports, standard SPICE Netlists (.cir), and PNG schematics.
 
-## Links
-- [Simulator](https://nodesimapp.com/simulator)
-- [Example Circuits](https://nodesimapp.com/circuits)
-- [Features](https://nodesimapp.com/features)
-- [How to Use](https://nodesimapp.com/procedure)
+## Core Applications
+- [Online Circuit Simulator](https://www.nodesimapp.com/simulator): Direct interactive simulator workspace.
+- [Circuit Template Library](https://www.nodesimapp.com/circuits): Over 30 pre-built circuits (filters, rectifiers, amplifiers, 555 timers, power converters).
+- [Features Overview](https://www.nodesimapp.com/features): Comprehensive feature breakdown and technical specifications.
+- [Educator Resources](https://www.nodesimapp.com/educators): Lab sheets, teaching packs, and curriculum-aligned worksheets.
+- [Educator Worksheets](https://www.nodesimapp.com/educators/worksheets): Hands-on circuit lab exercises (RC circuits, op-amp configurations, BJT amplifiers, rectifiers).
+
+## Engineering Calculators & Tools
+- [Ohm's Law Calculator](https://www.nodesimapp.com/tools/ohms-law): Interactive voltage, current, resistance, and power calculator.
+- [Voltage Divider Calculator](https://www.nodesimapp.com/tools/voltage-divider): Loaded and unloaded resistive divider calculations.
+- [RC Filter Calculator](https://www.nodesimapp.com/tools/rc-calculator): Cutoff frequency, time constant (tau), and rise-time calculator.
+- [555 Timer Calculator](https://www.nodesimapp.com/tools/555-timer): Astable and monostable frequency, period, and duty cycle calculator.
+- [Resistor Color Code Calculator](https://www.nodesimapp.com/tools/resistor-color-code): 4-band and 5-band precision resistor decoder.
+
+## Educational Tutorials
+- [RC Circuit Analysis](https://www.nodesimapp.com/tutorials/rc-circuit): Time-constant and frequency response of passive RC networks.
+- [555 Timer Astable Multivibrator](https://www.nodesimapp.com/tutorials/555-timer): Timing formulas, duty cycle, and internal comparator operation.
+- [Transistor BJT Amplifiers](https://www.nodesimapp.com/tutorials/transistor-amplifier): Common-emitter biasing, AC load line, and voltage gain.
+- [Operational Amplifiers](https://www.nodesimapp.com/tutorials/op-amp): Inverting, non-inverting, summing, and integrator op-amp circuits.
+- [Diode Rectifier Circuits](https://www.nodesimapp.com/tutorials/diode-rectifier): Half-wave and full-wave bridge rectifiers with smoothing filters.
+- [RLC Resonance Circuits](https://www.nodesimapp.com/tutorials/rlc-circuit): Series and parallel resonance, quality factor (Q), and bandwidth.
+
+## Competitor Comparisons
+- [NodeSim vs NI Multisim Live](https://www.nodesimapp.com/compare/multisim): Modern free alternative with zero paywalls.
+- [NodeSim vs LTspice](https://www.nodesimapp.com/compare/ltspice): Browser-first accessibility vs desktop software.
+- [NodeSim vs Falstad](https://www.nodesimapp.com/compare/falstad): Mathematical ngspice precision vs idealized heuristics.
+- [NodeSim vs CircuitLab](https://www.nodesimapp.com/compare/circuitlab): 100% free full-featured simulator vs $24/month paywall.
+- [NodeSim vs Tinkercad Circuits](https://www.nodesimapp.com/compare/tinkercad): Real SPICE engine vs toy animation.
+- [NodeSim vs Wokwi](https://www.nodesimapp.com/compare/wokwi): SPICE analog circuit simulation vs microcontroller firmware emulator.
