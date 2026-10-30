@@ -2536,6 +2536,381 @@ B_iec e c I = 1000*I(B_eb)
 Rb e b 1G
 .ends BJT_TIP127_SUB`,
 
+
+  // ==========================================
+  // BATCH 18 SUBCIRCUITS
+  // ==========================================
+  MCU_ATTINY85_SUB: `* ATtiny85 Microcontroller Model
+.subckt MCU_ATTINY85_SUB pb5 pb3 pb4 gnd pb0 pb1 pb2 vcc
+R_supply vcc gnd 100k
+C_bypass vcc gnd 100n
+R_pb5 pb5 vcc 50k
+R_pb3 pb3 gnd 10Meg
+R_pb4 pb4 gnd 10Meg
+R_pb0 pb0 gnd 10Meg
+R_pb1 pb1 gnd 10Meg
+R_pb2 pb2 gnd 10Meg
+.ends MCU_ATTINY85_SUB`,
+
+  MCU_PIC16F84A_SUB: `* PIC16F84A Microcontroller Model
+.subckt MCU_PIC16F84A_SUB ra2 ra3 ra4 mclr vss rb0 rb1 rb2 rb3 rb4 rb5 rb6 rb7 vdd osc1 osc2 ra0 ra1
+R_sup vdd vss 100k
+C_sup vdd vss 100n
+R_mclr mclr vdd 50k
+R_ra0 ra0 vss 10Meg
+R_ra1 ra1 vss 10Meg
+R_ra2 ra2 vss 10Meg
+R_ra3 ra3 vss 10Meg
+R_ra4 ra4 vss 10Meg
+R_rb0 rb0 vss 10Meg
+R_rb1 rb1 vss 10Meg
+R_rb2 rb2 vss 10Meg
+R_rb3 rb3 vss 10Meg
+R_rb4 rb4 vss 10Meg
+R_rb5 rb5 vss 10Meg
+R_rb6 rb6 vss 10Meg
+R_rb7 rb7 vss 10Meg
+.ends MCU_PIC16F84A_SUB`,
+
+  MCU_PIC16F877A_SUB: `* PIC16F877A Microcontroller Model
+.subckt MCU_PIC16F877A_SUB mclr ra0 ra1 ra2 ra3 vss vdd osc1 osc2 rb0 rb1 rb2 rb3 rc0 rc1 rc2
+R_sup vdd vss 100k
+C_sup vdd vss 100n
+R_mclr mclr vdd 50k
+R_ra0 ra0 vss 10Meg
+R_ra1 ra1 vss 10Meg
+R_ra2 ra2 vss 10Meg
+R_ra3 ra3 vss 10Meg
+R_rb0 rb0 vss 10Meg
+R_rb1 rb1 vss 10Meg
+R_rb2 rb2 vss 10Meg
+R_rb3 rb3 vss 10Meg
+R_rc0 rc0 vss 10Meg
+R_rc1 rc1 vss 10Meg
+R_rc2 rc2 vss 10Meg
+.ends MCU_PIC16F877A_SUB`,
+
+  MCU_STM32F103_SUB: `* STM32F103C8T6 ARM Cortex-M3 Board Model
+.subckt MCU_STM32F103_SUB v33 gnd vbat nrst pa0 pa1 pa2 pa3 pc13 pb11 pb10 pb1 pb0 pa10 pa9 pa8
+R_sup v33 gnd 80k
+C_sup v33 gnd 100n
+R_rst nrst v33 40k
+R_bat vbat gnd 10Meg
+R_pa0 pa0 gnd 10Meg
+R_pa1 pa1 gnd 10Meg
+R_pa2 pa2 gnd 10Meg
+R_pa3 pa3 gnd 10Meg
+R_pc13 pc13 gnd 10Meg
+R_pb11 pb11 gnd 10Meg
+R_pb10 pb10 gnd 10Meg
+R_pb1 pb1 gnd 10Meg
+R_pb0 pb0 gnd 10Meg
+R_pa10 pa10 gnd 10Meg
+R_pa9 pa9 gnd 10Meg
+R_pa8 pa8 gnd 10Meg
+.ends MCU_STM32F103_SUB`,
+
+  MCU_ESP32_WROOM_SUB: `* ESP32-WROOM-32 Wi-Fi / BLE Module Model
+.subckt MCU_ESP32_WROOM_SUB v33 en vp vn io34 io35 io32 io33 txd0 gnd io13 io12 io14 io27 io26 io25
+R_sup v33 gnd 50k
+C_sup v33 gnd 1u
+R_en en v33 10k
+R_vp vp gnd 10Meg
+R_vn vn gnd 10Meg
+R_34 io34 gnd 10Meg
+R_35 io35 gnd 10Meg
+R_32 io32 gnd 10Meg
+R_33 io33 gnd 10Meg
+R_tx txd0 gnd 10Meg
+R_13 io13 gnd 10Meg
+R_12 io12 gnd 10Meg
+R_14 io14 gnd 10Meg
+R_27 io27 gnd 10Meg
+R_26 io26 gnd 10Meg
+R_25 io25 gnd 10Meg
+.ends MCU_ESP32_WROOM_SUB`,
+
+  MCU_RPI_PICO_SUB: `* Raspberry Pi Pico RP2040 Board Model
+.subckt MCU_RPI_PICO_SUB gp0 gp1 gnd1 gp2 gp3 gp4 gp5 gnd2 run gp15 gp14 vbus vsys gnd3 v33_en v33
+R_gnd1 gnd1 0 0.001
+R_gnd2 gnd2 0 0.001
+R_gnd3 gnd3 0 0.001
+R_sup v33 0 60k
+C_sup v33 0 100n
+R_vsys vsys v33 10
+R_vbus vbus vsys 0.5
+R_run run v33 10k
+R_gp0 gp0 0 10Meg
+R_gp1 gp1 0 10Meg
+R_gp2 gp2 0 10Meg
+R_gp3 gp3 0 10Meg
+R_gp4 gp4 0 10Meg
+R_gp5 gp5 0 10Meg
+R_gp14 gp14 0 10Meg
+R_gp15 gp15 0 10Meg
+.ends MCU_RPI_PICO_SUB`,
+
+  OPTO_6N137_SUB: `* 6N137 High-Speed Optocoupler Model
+.subckt OPTO_6N137_SUB nc1 a k nc4 gnd vo ve vcc
+D_in a k D_OPTO
+.model D_OPTO D(Is=1e-14 Rs=5 N=1.5)
+B_gate ctrl gnd V = (V(a,k) > 1.2 && V(ve,gnd) > 1.5) ? 1 : 0
+B_out vo gnd I = V(ctrl,gnd) * (V(vo,gnd) / 25)
+R_leak vo vcc 1Meg
+R_sup vcc gnd 50k
+R_ve ve vcc 100k
+.ends OPTO_6N137_SUB`,
+
+  OPTO_MOC3021_SUB: `* MOC3021 Random-Phase Triac Driver Optocoupler Model
+.subckt OPTO_MOC3021_SUB a k nc3 mt1 nc5 mt2
+D_in a k D_MOC
+.model D_MOC D(Is=1e-14 Rs=10 N=1.6)
+B_triac mt2 mt1 I = (V(a,k) > 1.1) ? V(mt2,mt1)/10 : V(mt2,mt1)/100Meg
+R_leak mt2 mt1 10Meg
+.ends OPTO_MOC3021_SUB`,
+
+  OPTO_MOC3041_SUB: `* MOC3041 Zero-Crossing Triac Driver Optocoupler Model
+.subckt OPTO_MOC3041_SUB a k nc3 mt1 nc5 mt2
+D_in a k D_MOC
+.model D_MOC D(Is=1e-14 Rs=10 N=1.6)
+B_triac mt2 mt1 I = (V(a,k) > 1.1) ? V(mt2,mt1)/10 : V(mt2,mt1)/100Meg
+R_leak mt2 mt1 10Meg
+.ends OPTO_MOC3041_SUB`,
+
+  OPTO_4N25_SUB: `* 4N25 General Purpose Optocoupler Model
+.subckt OPTO_4N25_SUB a k nc e c b
+D_led a k D_4N
+.model D_4N D(Is=1e-14 Rs=2 N=1.4)
+B_ib b e I = 0.5 * (V(a,k) > 1.1 ? (V(a,k)-1.1)/15 : 0)
+Q1 c b e NPN_4N
+.model NPN_4N NPN(Bf=100 Is=1e-14)
+.ends OPTO_4N25_SUB`,
+
+  DISP_ILI9341_SUB: `* ILI9341 2.8in TFT LCD Display Module Model
+.subckt DISP_ILI9341_SUB vcc gnd cs rst dc mosi sck led miso
+R_pwr vcc gnd 10k
+C_pwr vcc gnd 100n
+R_cs cs vcc 50k
+R_rst rst vcc 50k
+R_dc dc gnd 10Meg
+R_mosi mosi gnd 10Meg
+R_sck sck gnd 10Meg
+R_led led gnd 100
+R_miso miso gnd 10Meg
+.ends DISP_ILI9341_SUB`,
+
+  DISP_ST7789_SUB: `* ST7789 1.3in IPS LCD Display Module Model
+.subckt DISP_ST7789_SUB gnd vcc scl sda res dc blk
+R_pwr vcc gnd 12k
+C_pwr vcc gnd 100n
+R_scl scl gnd 10Meg
+R_sda sda gnd 10Meg
+R_res res vcc 50k
+R_dc dc gnd 10Meg
+R_blk blk gnd 200
+.ends DISP_ST7789_SUB`,
+
+  DISP_SSD1306_SUB: `* SSD1306 128x64 OLED Display Module Model
+.subckt DISP_SSD1306_SUB gnd vcc scl sda
+R_pwr vcc gnd 5k
+C_pwr vcc gnd 100n
+R_scl scl vcc 10k
+R_sda sda vcc 10k
+.ends DISP_SSD1306_SUB`,
+
+  DISP_NOKIA5110_SUB: `* Nokia 5110 / PCD8544 Graphic LCD Display Model
+.subckt DISP_NOKIA5110_SUB rst ce dc din clk vcc light gnd
+R_pwr vcc gnd 20k
+C_pwr vcc gnd 100n
+R_rst rst vcc 50k
+R_ce ce vcc 50k
+R_dc dc gnd 10Meg
+R_din din gnd 10Meg
+R_clk clk gnd 10Meg
+R_light light gnd 150
+.ends DISP_NOKIA5110_SUB`,
+
+  DISP_LCD1602_I2C_SUB: `* LCD1602 Character Display with I2C Backpack Model
+.subckt DISP_LCD1602_I2C_SUB gnd vcc sda scl
+R_pwr vcc gnd 2k
+C_pwr vcc gnd 100n
+R_sda sda vcc 4.7k
+R_scl scl vcc 4.7k
+.ends DISP_LCD1602_I2C_SUB`,
+
+  DISP_LCD2004_I2C_SUB: `* LCD2004 Character Display with I2C Backpack Model
+.subckt DISP_LCD2004_I2C_SUB gnd vcc sda scl
+R_pwr vcc gnd 1.5k
+C_pwr vcc gnd 100n
+R_sda sda vcc 4.7k
+R_scl scl vcc 4.7k
+.ends DISP_LCD2004_I2C_SUB`,
+
+  OPAMP_NE5534A_SUB: `* NE5534A Low Noise Audio Op-Amp Model
+.subckt OPAMP_NE5534A_SUB bal1 inm inp vm bal2 out vp comp
+R_in inp inm 100k
+R_bal1 bal1 vm 1Meg
+R_bal2 bal2 vm 1Meg
+R_comp comp out 1Meg
+E_gain out_i 0 inp inm 200000
+R_out out_i out 0.3
+B_clamp out 0 V = min(V(vp)-1.2, max(V(vm)+1.2, V(out_i)))
+.ends OPAMP_NE5534A_SUB`,
+
+  OPAMP_OPA134_SUB: `* OPA134 SoundPlus Audio Op-Amp Model
+.subckt OPAMP_OPA134_SUB nc1 inm inp vm nc5 out vp nc8
+R_in inp inm 1e12
+E_gain out_i 0 inp inm 200000
+R_out out_i out 10
+B_clamp out 0 V = min(V(vp)-1.5, max(V(vm)+1.5, V(out_i)))
+.ends OPAMP_OPA134_SUB`,
+
+  OPAMP_OPA627_SUB: `* OPA627 Precision Difet Op-Amp Model
+.subckt OPAMP_OPA627_SUB trim1 inm inp vm trim2 out vp nc
+R_in inp inm 1e12
+R_t1 trim1 vm 1Meg
+R_t2 trim2 vm 1Meg
+E_gain out_i 0 inp inm 500000
+R_out out_i out 5
+B_clamp out 0 V = min(V(vp)-1.8, max(V(vm)+1.8, V(out_i)))
+.ends OPAMP_OPA627_SUB`,
+
+  OPAMP_LT1028_SUB: `* LT1028 Ultralow Noise Op-Amp Model
+.subckt OPAMP_LT1028_SUB trim1 inm inp vm trim2 out vp decomp
+R_in inp inm 30Meg
+R_t1 trim1 vm 1Meg
+R_t2 trim2 vm 1Meg
+R_dec decomp out 1Meg
+E_gain out_i 0 inp inm 1000000
+R_out out_i out 8
+B_clamp out 0 V = min(V(vp)-1.2, max(V(vm)+1.2, V(out_i)))
+.ends OPAMP_LT1028_SUB`,
+
+  OPAMP_AD823_SUB: `* AD823 Dual Rail-to-Rail FET Op-Amp Model
+.subckt OPAMP_AD823_SUB out1 in1m in1p vm in2p in2m out2 vp
+R_in1 in1p in1m 1e11
+E_gain1 out1_i 0 in1p in1m 100000
+R_o1 out1_i out1 15
+B_c1 out1 0 V = min(V(vp)-0.05, max(V(vm)+0.05, V(out1_i)))
+R_in2 in2p in2m 1e11
+E_gain2 out2_i 0 in2p in2m 100000
+R_o2 out2_i out2 15
+B_c2 out2 0 V = min(V(vp)-0.05, max(V(vm)+0.05, V(out2_i)))
+.ends OPAMP_AD823_SUB`,
+
+  OPAMP_LM392_SUB: `* LM392 Op-Amp & Comparator Dual Model
+.subckt OPAMP_LM392_SUB out1 in1m in1p gnd in2p in2m out2 vcc
+R_in1 in1p in1m 10Meg
+E_gain1 out1_i 0 in1p in1m 100000
+R_o1 out1_i out1 50
+B_c1 out1 0 V = min(V(vcc)-1.5, max(V(gnd)+0.05, V(out1_i)))
+R_in2 in2p in2m 10Meg
+B_comp out2 gnd I = (V(in2p) < V(in2m)) ? V(out2,gnd)/20 : V(out2,gnd)/100Meg
+.ends OPAMP_LM392_SUB`,
+
+  OPAMP_TL062_SUB: `* TL062 Low-Power JFET Dual Op-Amp Model
+.subckt OPAMP_TL062_SUB out1 in1m in1p vm in2p in2m out2 vp
+R_in1 in1p in1m 1e12
+E_gain1 out1_i 0 in1p in1m 100000
+R_o1 out1_i out1 200
+B_c1 out1 0 V = min(V(vp)-1.5, max(V(vm)+1.5, V(out1_i)))
+R_in2 in2p in2m 1e12
+E_gain2 out2_i 0 in2p in2m 100000
+R_o2 out2_i out2 200
+B_c2 out2 0 V = min(V(vp)-1.5, max(V(vm)+1.5, V(out2_i)))
+.ends OPAMP_TL062_SUB`,
+
+  OPAMP_TL064_SUB: `* TL064 Low-Power JFET Quad Op-Amp Model
+.subckt OPAMP_TL064_SUB out1 in1m in1p vp in2p in2m out2 out3 in3m in3p vm in4p in4m out4
+R_in1 in1p in1m 1e12
+E_gain1 o1_i 0 in1p in1m 100000
+B_c1 out1 0 V = min(V(vp)-1.5, max(V(vm)+1.5, V(o1_i)))
+R_in2 in2p in2m 1e12
+E_gain2 o2_i 0 in2p in2m 100000
+B_c2 out2 0 V = min(V(vp)-1.5, max(V(vm)+1.5, V(o2_i)))
+R_in3 in3p in3m 1e12
+E_gain3 o3_i 0 in3p in3m 100000
+B_c3 out3 0 V = min(V(vp)-1.5, max(V(vm)+1.5, V(o3_i)))
+R_in4 in4p in4m 1e12
+E_gain4 o4_i 0 in4p in4m 100000
+B_c4 out4 0 V = min(V(vp)-1.5, max(V(vm)+1.5, V(o4_i)))
+.ends OPAMP_TL064_SUB`,
+
+  OPAMP_LM301A_SUB: `* LM301A General Purpose Op-Amp Model
+.subckt OPAMP_LM301A_SUB bal1 inm inp vm bal2 out vp comp
+R_in inp inm 2Meg
+R_b1 bal1 vm 1Meg
+R_b2 bal2 vm 1Meg
+R_c comp out 1Meg
+E_gain out_i 0 inp inm 160000
+R_out out_i out 75
+B_clamp out 0 V = min(V(vp)-1.5, max(V(vm)+1.5, V(out_i)))
+.ends OPAMP_LM301A_SUB`,
+
+  OPAMP_LF411_SUB: `* LF411 Low Offset JFET Op-Amp Model
+.subckt OPAMP_LF411_SUB off1 inm inp vm off2 out vp nc
+R_in inp inm 1e12
+R_o1 off1 vm 1Meg
+R_o2 off2 vm 1Meg
+E_gain out_i 0 inp inm 200000
+R_out out_i out 30
+B_clamp out 0 V = min(V(vp)-1.5, max(V(vm)+1.5, V(out_i)))
+.ends OPAMP_LF411_SUB`,
+
+  DRIVER_MAX6921_SUB: `* MAX6921 20-Output VFD Tube Driver Model
+.subckt DRIVER_MAX6921_SUB vbb clk load din blank gnd out0 out1 out2 out3 out4 out5 out6 dout
+R_sup vbb gnd 200k
+R_in_clk clk gnd 10Meg
+R_in_ld load gnd 10Meg
+R_in_din din gnd 10Meg
+R_in_blk blank gnd 10Meg
+B_dout dout gnd V = V(din) > 1.5 ? 3.3 : 0
+B_o0 out0 gnd V = (V(blank) < 0.8 && V(din) > 1.5) ? V(vbb) : 0
+B_o1 out1 gnd V = (V(blank) < 0.8 && V(din) > 1.5) ? V(vbb) : 0
+B_o2 out2 gnd V = (V(blank) < 0.8 && V(din) > 1.5) ? V(vbb) : 0
+B_o3 out3 gnd V = (V(blank) < 0.8 && V(din) > 1.5) ? V(vbb) : 0
+B_o4 out4 gnd V = (V(blank) < 0.8 && V(din) > 1.5) ? V(vbb) : 0
+B_o5 out5 gnd V = (V(blank) < 0.8 && V(din) > 1.5) ? V(vbb) : 0
+B_o6 out6 gnd V = (V(blank) < 0.8 && V(din) > 1.5) ? V(vbb) : 0
+.ends DRIVER_MAX6921_SUB`,
+
+  DRIVER_ULN2004_SUB: `* ULN2004 7-Channel Darlington Driver Model
+.subckt DRIVER_ULN2004_SUB in1 in2 in3 in4 in5 in6 in7 gnd com out7 out6 out5 out4 out3 out2 out1
+B_q1 out1 gnd I = V(in1,gnd) > 2.5 ? (V(out1,gnd)/5) : (V(out1,gnd)/10Meg)
+B_q2 out2 gnd I = V(in2,gnd) > 2.5 ? (V(out2,gnd)/5) : (V(out2,gnd)/10Meg)
+B_q3 out3 gnd I = V(in3,gnd) > 2.5 ? (V(out3,gnd)/5) : (V(out3,gnd)/10Meg)
+B_q4 out4 gnd I = V(in4,gnd) > 2.5 ? (V(out4,gnd)/5) : (V(out4,gnd)/10Meg)
+B_q5 out5 gnd I = V(in5,gnd) > 2.5 ? (V(out5,gnd)/5) : (V(out5,gnd)/10Meg)
+B_q6 out6 gnd I = V(in6,gnd) > 2.5 ? (V(out6,gnd)/5) : (V(out6,gnd)/10Meg)
+B_q7 out7 gnd I = V(in7,gnd) > 2.5 ? (V(out7,gnd)/5) : (V(out7,gnd)/10Meg)
+R_com com gnd 10Meg
+.ends DRIVER_ULN2004_SUB`,
+
+  LOGIC_74LVC245_SUB: `* SN74LVC245 Octal Bus Transceiver Model
+.subckt LOGIC_74LVC245_SUB dir a1 a2 a3 a4 a5 a6 a7 a8 gnd b8 b7 b6 b5 b4 b3 b2 b1 oe vcc
+R_pwr vcc gnd 100k
+B_b1 b1 gnd V = (V(oe,gnd) < 0.8 && V(dir,gnd) > 2.0) ? (V(a1,gnd) > 1.5 ? V(vcc) : 0) : 0
+B_b2 b2 gnd V = (V(oe,gnd) < 0.8 && V(dir,gnd) > 2.0) ? (V(a2,gnd) > 1.5 ? V(vcc) : 0) : 0
+B_b3 b3 gnd V = (V(oe,gnd) < 0.8 && V(dir,gnd) > 2.0) ? (V(a3,gnd) > 1.5 ? V(vcc) : 0) : 0
+B_b4 b4 gnd V = (V(oe,gnd) < 0.8 && V(dir,gnd) > 2.0) ? (V(a4,gnd) > 1.5 ? V(vcc) : 0) : 0
+B_b5 b5 gnd V = (V(oe,gnd) < 0.8 && V(dir,gnd) > 2.0) ? (V(a5,gnd) > 1.5 ? V(vcc) : 0) : 0
+B_b6 b6 gnd V = (V(oe,gnd) < 0.8 && V(dir,gnd) > 2.0) ? (V(a6,gnd) > 1.5 ? V(vcc) : 0) : 0
+B_b7 b7 gnd V = (V(oe,gnd) < 0.8 && V(dir,gnd) > 2.0) ? (V(a7,gnd) > 1.5 ? V(vcc) : 0) : 0
+B_b8 b8 gnd V = (V(oe,gnd) < 0.8 && V(dir,gnd) > 2.0) ? (V(a8,gnd) > 1.5 ? V(vcc) : 0) : 0
+.ends LOGIC_74LVC245_SUB`,
+
+  LOGIC_CD4511_SUB: `* CD4511 BCD to 7-Segment Decoder Model
+.subckt LOGIC_CD4511_SUB b c lt bl le d a vss vdd qa qb qc qd qe qf qg
+R_pwr vdd vss 100k
+B_val val 0 V = (V(a)>1.5?1:0) + (V(b)>1.5?2:0) + (V(c)>1.5?4:0) + (V(d)>1.5?8:0)
+B_qa qa vss V = (V(bl)>1.5 && (V(val)<1 || V(val)==2 || V(val)==3 || V(val)==5 || V(val)==6 || V(val)==7 || V(val)==8 || V(val)==9)) ? V(vdd) : 0
+B_qb qb vss V = (V(bl)>1.5 && (V(val)<5 || (V(val)>=7 && V(val)<=9))) ? V(vdd) : 0
+B_qc qc vss V = (V(bl)>1.5 && (V(val)!=2)) ? V(vdd) : 0
+B_qd qd vss V = (V(bl)>1.5 && (V(val)==0 || V(val)==2 || V(val)==3 || V(val)==5 || V(val)==6 || V(val)==8)) ? V(vdd) : 0
+B_qe qe vss V = (V(bl)>1.5 && (V(val)==0 || V(val)==2 || V(val)==6 || V(val)==8)) ? V(vdd) : 0
+B_qf qf vss V = (V(bl)>1.5 && (V(val)==0 || V(val)==4 || V(val)==5 || V(val)==6 || V(val)==8 || V(val)==9)) ? V(vdd) : 0
+B_qg qg vss V = (V(bl)>1.5 && (V(val)>=2 && V(val)<=6 || V(val)==8 || V(val)==9)) ? V(vdd) : 0
+.ends LOGIC_CD4511_SUB`,
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -3970,6 +4345,128 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     case 'transistor_tip127': {
       const [b='0', c='0', e='0'] = nodes;
       return { line: `X_${comp.id} ${b} ${c} ${e} BJT_TIP127_SUB`, subckts: [SUBCKT_DEFINITIONS.BJT_TIP127_SUB] };
+    }
+
+    // BATCH 18 CASES
+    case 'ic_attiny85': {
+      const [pb5='0', pb3='0', pb4='0', gnd='0', pb0='0', pb1='0', pb2='0', vcc='0'] = nodes;
+      return { line: `X_${comp.id} ${pb5} ${pb3} ${pb4} ${gnd} ${pb0} ${pb1} ${pb2} ${vcc} MCU_ATTINY85_SUB`, subckts: [SUBCKT_DEFINITIONS.MCU_ATTINY85_SUB] };
+    }
+    case 'ic_pic16f84a': {
+      const [ra2='0', ra3='0', ra4='0', mclr='0', vss='0', rb0='0', rb1='0', rb2='0', rb3='0', rb4='0', rb5='0', rb6='0', rb7='0', vdd='0', osc1='0', osc2='0', ra0='0', ra1='0'] = nodes;
+      return { line: `X_${comp.id} ${ra2} ${ra3} ${ra4} ${mclr} ${vss} ${rb0} ${rb1} ${rb2} ${rb3} ${rb4} ${rb5} ${rb6} ${rb7} ${vdd} ${osc1} ${osc2} ${ra0} ${ra1} MCU_PIC16F84A_SUB`, subckts: [SUBCKT_DEFINITIONS.MCU_PIC16F84A_SUB] };
+    }
+    case 'ic_pic16f877a': {
+      const [mclr='0', ra0='0', ra1='0', ra2='0', ra3='0', vss='0', vdd='0', osc1='0', osc2='0', rb0='0', rb1='0', rb2='0', rb3='0', rc0='0', rc1='0', rc2='0'] = nodes;
+      return { line: `X_${comp.id} ${mclr} ${ra0} ${ra1} ${ra2} ${ra3} ${vss} ${vdd} ${osc1} ${osc2} ${rb0} ${rb1} ${rb2} ${rb3} ${rc0} ${rc1} ${rc2} MCU_PIC16F877A_SUB`, subckts: [SUBCKT_DEFINITIONS.MCU_PIC16F877A_SUB] };
+    }
+    case 'ic_stm32f103c8t6': {
+      const [v33='0', gnd='0', vbat='0', nrst='0', pa0='0', pa1='0', pa2='0', pa3='0', pc13='0', pb11='0', pb10='0', pb1='0', pb0='0', pa10='0', pa9='0', pa8='0'] = nodes;
+      return { line: `X_${comp.id} ${v33} ${gnd} ${vbat} ${nrst} ${pa0} ${pa1} ${pa2} ${pa3} ${pc13} ${pb11} ${pb10} ${pb1} ${pb0} ${pa10} ${pa9} ${pa8} MCU_STM32F103_SUB`, subckts: [SUBCKT_DEFINITIONS.MCU_STM32F103_SUB] };
+    }
+    case 'ic_esp32_wroom': {
+      const [v33='0', en='0', vp='0', vn='0', io34='0', io35='0', io32='0', io33='0', txd0='0', gnd='0', io13='0', io12='0', io14='0', io27='0', io26='0', io25='0'] = nodes;
+      return { line: `X_${comp.id} ${v33} ${en} ${vp} ${vn} ${io34} ${io35} ${io32} ${io33} ${txd0} ${gnd} ${io13} ${io12} ${io14} ${io27} ${io26} ${io25} MCU_ESP32_WROOM_SUB`, subckts: [SUBCKT_DEFINITIONS.MCU_ESP32_WROOM_SUB] };
+    }
+    case 'ic_raspberry_pi_pico': {
+      const [gp0='0', gp1='0', gnd1='0', gp2='0', gp3='0', gp4='0', gp5='0', gnd2='0', run='0', gp15='0', gp14='0', vbus='0', vsys='0', gnd3='0', v33_en='0', v33='0'] = nodes;
+      return { line: `X_${comp.id} ${gp0} ${gp1} ${gnd1} ${gp2} ${gp3} ${gp4} ${gp5} ${gnd2} ${run} ${gp15} ${gp14} ${vbus} ${vsys} ${gnd3} ${v33_en} ${v33} MCU_RPI_PICO_SUB`, subckts: [SUBCKT_DEFINITIONS.MCU_RPI_PICO_SUB] };
+    }
+    case 'optocoupler_6n137': {
+      const [nc1='0', a='0', k='0', nc4='0', gnd='0', vo='0', ve='0', vcc='0'] = nodes;
+      return { line: `X_${comp.id} ${nc1} ${a} ${k} ${nc4} ${gnd} ${vo} ${ve} ${vcc} OPTO_6N137_SUB`, subckts: [SUBCKT_DEFINITIONS.OPTO_6N137_SUB] };
+    }
+    case 'optocoupler_moc3021': {
+      const [a='0', k='0', nc3='0', mt1='0', nc5='0', mt2='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} ${nc3} ${mt1} ${nc5} ${mt2} OPTO_MOC3021_SUB`, subckts: [SUBCKT_DEFINITIONS.OPTO_MOC3021_SUB] };
+    }
+    case 'optocoupler_moc3041': {
+      const [a='0', k='0', nc3='0', mt1='0', nc5='0', mt2='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} ${nc3} ${mt1} ${nc5} ${mt2} OPTO_MOC3041_SUB`, subckts: [SUBCKT_DEFINITIONS.OPTO_MOC3041_SUB] };
+    }
+    case 'optocoupler_4n25': {
+      const [a='0', k='0', nc='0', e='0', c='0', b='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} ${nc} ${e} ${c} ${b} OPTO_4N25_SUB`, subckts: [SUBCKT_DEFINITIONS.OPTO_4N25_SUB] };
+    }
+    case 'display_ili9341': {
+      const [vcc='0', gnd='0', cs='0', rst='0', dc='0', mosi='0', sck='0', led='0', miso='0'] = nodes;
+      return { line: `X_${comp.id} ${vcc} ${gnd} ${cs} ${rst} ${dc} ${mosi} ${sck} ${led} ${miso} DISP_ILI9341_SUB`, subckts: [SUBCKT_DEFINITIONS.DISP_ILI9341_SUB] };
+    }
+    case 'display_st7789': {
+      const [gnd='0', vcc='0', scl='0', sda='0', res='0', dc='0', blk='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${vcc} ${scl} ${sda} ${res} ${dc} ${blk} DISP_ST7789_SUB`, subckts: [SUBCKT_DEFINITIONS.DISP_ST7789_SUB] };
+    }
+    case 'display_ssd1306': {
+      const [gnd='0', vcc='0', scl='0', sda='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${vcc} ${scl} ${sda} DISP_SSD1306_SUB`, subckts: [SUBCKT_DEFINITIONS.DISP_SSD1306_SUB] };
+    }
+    case 'display_nokia5110': {
+      const [rst='0', ce='0', dc='0', din='0', clk='0', vcc='0', light='0', gnd='0'] = nodes;
+      return { line: `X_${comp.id} ${rst} ${ce} ${dc} ${din} ${clk} ${vcc} ${light} ${gnd} DISP_NOKIA5110_SUB`, subckts: [SUBCKT_DEFINITIONS.DISP_NOKIA5110_SUB] };
+    }
+    case 'display_lcd1602_i2c': {
+      const [gnd='0', vcc='0', sda='0', scl='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${vcc} ${sda} ${scl} DISP_LCD1602_I2C_SUB`, subckts: [SUBCKT_DEFINITIONS.DISP_LCD1602_I2C_SUB] };
+    }
+    case 'display_lcd2004_i2c': {
+      const [gnd='0', vcc='0', sda='0', scl='0'] = nodes;
+      return { line: `X_${comp.id} ${gnd} ${vcc} ${sda} ${scl} DISP_LCD2004_I2C_SUB`, subckts: [SUBCKT_DEFINITIONS.DISP_LCD2004_I2C_SUB] };
+    }
+    case 'ic_ne5534a': {
+      const [bal1='0', inm='0', inp='0', vm='0', bal2='0', out='0', vp='0', compPin='0'] = nodes;
+      return { line: `X_${comp.id} ${bal1} ${inm} ${inp} ${vm} ${bal2} ${out} ${vp} ${compPin} OPAMP_NE5534A_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_NE5534A_SUB] };
+    }
+    case 'ic_opa134': {
+      const [nc1='0', inm='0', inp='0', vm='0', nc5='0', out='0', vp='0', nc8='0'] = nodes;
+      return { line: `X_${comp.id} ${nc1} ${inm} ${inp} ${vm} ${nc5} ${out} ${vp} ${nc8} OPAMP_OPA134_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_OPA134_SUB] };
+    }
+    case 'ic_opa627': {
+      const [trim1='0', inm='0', inp='0', vm='0', trim2='0', out='0', vp='0', nc='0'] = nodes;
+      return { line: `X_${comp.id} ${trim1} ${inm} ${inp} ${vm} ${trim2} ${out} ${vp} ${nc} OPAMP_OPA627_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_OPA627_SUB] };
+    }
+    case 'ic_lt1028': {
+      const [trim1='0', inm='0', inp='0', vm='0', trim2='0', out='0', vp='0', decomp='0'] = nodes;
+      return { line: `X_${comp.id} ${trim1} ${inm} ${inp} ${vm} ${trim2} ${out} ${vp} ${decomp} OPAMP_LT1028_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_LT1028_SUB] };
+    }
+    case 'ic_ad823': {
+      const [out1='0', in1m='0', in1p='0', vm='0', in2p='0', in2m='0', out2='0', vp='0'] = nodes;
+      return { line: `X_${comp.id} ${out1} ${in1m} ${in1p} ${vm} ${in2p} ${in2m} ${out2} ${vp} OPAMP_AD823_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_AD823_SUB] };
+    }
+    case 'ic_lm392': {
+      const [out1='0', in1m='0', in1p='0', gnd='0', in2p='0', in2m='0', out2='0', vcc='0'] = nodes;
+      return { line: `X_${comp.id} ${out1} ${in1m} ${in1p} ${gnd} ${in2p} ${in2m} ${out2} ${vcc} OPAMP_LM392_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_LM392_SUB] };
+    }
+    case 'ic_tl062': {
+      const [out1='0', in1m='0', in1p='0', vm='0', in2p='0', in2m='0', out2='0', vp='0'] = nodes;
+      return { line: `X_${comp.id} ${out1} ${in1m} ${in1p} ${vm} ${in2p} ${in2m} ${out2} ${vp} OPAMP_TL062_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_TL062_SUB] };
+    }
+    case 'ic_tl064': {
+      const [out1='0', in1m='0', in1p='0', vp='0', in2p='0', in2m='0', out2='0', out3='0', in3m='0', in3p='0', vm='0', in4p='0', in4m='0', out4='0'] = nodes;
+      return { line: `X_${comp.id} ${out1} ${in1m} ${in1p} ${vp} ${in2p} ${in2m} ${out2} ${out3} ${in3m} ${in3p} ${vm} ${in4p} ${in4m} ${out4} OPAMP_TL064_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_TL064_SUB] };
+    }
+    case 'ic_lm301a': {
+      const [bal1='0', inm='0', inp='0', vm='0', bal2='0', out='0', vp='0', compPin='0'] = nodes;
+      return { line: `X_${comp.id} ${bal1} ${inm} ${inp} ${vm} ${bal2} ${out} ${vp} ${compPin} OPAMP_LM301A_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_LM301A_SUB] };
+    }
+    case 'ic_lf411': {
+      const [off1='0', inm='0', inp='0', vm='0', off2='0', out='0', vp='0', nc='0'] = nodes;
+      return { line: `X_${comp.id} ${off1} ${inm} ${inp} ${vm} ${off2} ${out} ${vp} ${nc} OPAMP_LF411_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_LF411_SUB] };
+    }
+    case 'ic_max6921': {
+      const [vbb='0', clk='0', load='0', din='0', blank='0', gnd='0', out0='0', out1='0', out2='0', out3='0', out4='0', out5='0', out6='0', dout='0'] = nodes;
+      return { line: `X_${comp.id} ${vbb} ${clk} ${load} ${din} ${blank} ${gnd} ${out0} ${out1} ${out2} ${out3} ${out4} ${out5} ${out6} ${dout} DRIVER_MAX6921_SUB`, subckts: [SUBCKT_DEFINITIONS.DRIVER_MAX6921_SUB] };
+    }
+    case 'ic_uln2004': {
+      const [in1='0', in2='0', in3='0', in4='0', in5='0', in6='0', in7='0', gnd='0', com='0', out7='0', out6='0', out5='0', out4='0', out3='0', out2='0', out1='0'] = nodes;
+      return { line: `X_${comp.id} ${in1} ${in2} ${in3} ${in4} ${in5} ${in6} ${in7} ${gnd} ${com} ${out7} ${out6} ${out5} ${out4} ${out3} ${out2} ${out1} DRIVER_ULN2004_SUB`, subckts: [SUBCKT_DEFINITIONS.DRIVER_ULN2004_SUB] };
+    }
+    case 'ic_sn74lvc245': {
+      const [dir='0', a1='0', a2='0', a3='0', a4='0', a5='0', a6='0', a7='0', a8='0', gnd='0', b8='0', b7='0', b6='0', b5='0', b4='0', b3='0', b2='0', b1='0', oe='0', vcc='0'] = nodes;
+      return { line: `X_${comp.id} ${dir} ${a1} ${a2} ${a3} ${a4} ${a5} ${a6} ${a7} ${a8} ${gnd} ${b8} ${b7} ${b6} ${b5} ${b4} ${b3} ${b2} ${b1} ${oe} ${vcc} LOGIC_74LVC245_SUB`, subckts: [SUBCKT_DEFINITIONS.LOGIC_74LVC245_SUB] };
+    }
+    case 'ic_cd4511': {
+      const [b='0', c='0', lt='0', bl='0', le='0', d='0', a='0', vss='0', vdd='0', qa='0', qb='0', qc='0', qd='0', qe='0', qf='0', qg='0'] = nodes;
+      return { line: `X_${comp.id} ${b} ${c} ${lt} ${bl} ${le} ${d} ${a} ${vss} ${vdd} ${qa} ${qb} ${qc} ${qd} ${qe} ${qf} ${qg} LOGIC_CD4511_SUB`, subckts: [SUBCKT_DEFINITIONS.LOGIC_CD4511_SUB] };
     }
     default:
       return null;

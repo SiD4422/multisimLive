@@ -239,6 +239,36 @@ function formatRefDes(id: string, type: string): string {
     transistor_tip32c: 'Q',
     transistor_tip122: 'Q',
     transistor_tip127: 'Q',
+    ic_attiny85: 'U',
+    ic_pic16f84a: 'U',
+    ic_pic16f877a: 'U',
+    ic_stm32f103c8t6: 'U',
+    ic_esp32_wroom: 'U',
+    ic_raspberry_pi_pico: 'U',
+    optocoupler_6n137: 'U',
+    optocoupler_moc3021: 'U',
+    optocoupler_moc3041: 'U',
+    optocoupler_4n25: 'U',
+    display_ili9341: 'DISP',
+    display_st7789: 'DISP',
+    display_ssd1306: 'DISP',
+    display_nokia5110: 'DISP',
+    display_lcd1602_i2c: 'DISP',
+    display_lcd2004_i2c: 'DISP',
+    ic_ne5534a: 'U',
+    ic_opa134: 'U',
+    ic_opa627: 'U',
+    ic_lt1028: 'U',
+    ic_ad823: 'U',
+    ic_lm392: 'U',
+    ic_tl062: 'U',
+    ic_tl064: 'U',
+    ic_lm301a: 'U',
+    ic_lf411: 'U',
+    ic_max6921: 'U',
+    ic_uln2004: 'U',
+    ic_sn74lvc245: 'U',
+    ic_cd4511: 'U',
   };
   const prefix = prefixMap[type] || 'U';
   // Extract trailing digits if any
@@ -5201,6 +5231,218 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     labelOffset = { x: 32, y: 0 };
     valueOffset = { x: 32, y: 12 };
 
+  }
+  else if (type === 'ic_attiny85') {
+    rects.push({ x: -40, y: -40, width: 80, height: 80 });
+    circles.push({ x: 0, y: -40, r: 4, stroke: '#64748b' });
+    const yOffsets = [-30, -10, 10, 30];
+    yOffsets.forEach(y => {
+      lines.push({ points: [-50, y, -40, y] });
+      lines.push({ points: [40, y, 50, y] });
+    });
+    pins = [
+      { x: -50, y: -30 }, { x: -50, y: -10 }, { x: -50, y: 10 }, { x: -50, y: 30 },
+      { x: 50, y: 30 }, { x: 50, y: 10 }, { x: 50, y: -10 }, { x: 50, y: -30 },
+    ];
+    texts.push({ text: 'ATTINY85', x: 0, y: 0, size: 9 });
+  } else if (type === 'ic_pic16f84a') {
+    rects.push({ x: -45, y: -50, width: 90, height: 100 });
+    circles.push({ x: 0, y: -50, r: 4, stroke: '#64748b' });
+    const yOffsets = [-40, -30, -20, -10, 0, 10, 20, 30, 40];
+    yOffsets.forEach(y => {
+      lines.push({ points: [-55, y, -45, y] });
+      lines.push({ points: [45, y, 55, y] });
+    });
+    pins = [
+      { x: -55, y: -40 }, { x: -55, y: -30 }, { x: -55, y: -20 }, { x: -55, y: -10 }, { x: -55, y: 0 },
+      { x: -55, y: 10 }, { x: -55, y: 20 }, { x: -55, y: 30 }, { x: -55, y: 40 },
+      { x: 55, y: 40 }, { x: 55, y: 30 }, { x: 55, y: 20 }, { x: 55, y: 10 }, { x: 55, y: 0 },
+      { x: 55, y: -10 }, { x: 55, y: -20 }, { x: 55, y: -30 }, { x: 55, y: -40 },
+    ];
+    texts.push({ text: 'PIC16F84A', x: 0, y: 0, size: 8 });
+  } else if (type === 'ic_pic16f877a' || type === 'ic_stm32f103c8t6') {
+    const title = type === 'ic_pic16f877a' ? 'PIC16F877A' : 'STM32F103';
+    rects.push({ x: -50, y: -60, width: 100, height: 120 });
+    circles.push({ x: 0, y: -60, r: 4, stroke: '#64748b' });
+    const yOffsets = [-50, -35, -20, -5, 10, 25, 40, 55];
+    yOffsets.forEach(y => {
+      lines.push({ points: [-60, y, -50, y] });
+      lines.push({ points: [50, y, 60, y] });
+    });
+    pins = [
+      { x: -60, y: -50 }, { x: -60, y: -35 }, { x: -60, y: -20 }, { x: -60, y: -5 },
+      { x: -60, y: 10 }, { x: -60, y: 25 }, { x: -60, y: 40 }, { x: -60, y: 55 },
+      { x: 60, y: 55 }, { x: 60, y: 40 }, { x: 60, y: 25 }, { x: 60, y: 10 },
+      { x: 60, y: -5 }, { x: 60, y: -20 }, { x: 60, y: -35 }, { x: 60, y: -50 },
+    ];
+    texts.push({ text: title, x: 0, y: 0, size: 8 });
+  } else if (type === 'ic_esp32_wroom' || type === 'ic_raspberry_pi_pico') {
+    const title = type === 'ic_esp32_wroom' ? 'ESP32-WROOM' : 'RPI PICO';
+    rects.push({ x: -55, y: -60, width: 110, height: 120 });
+    rects.push({ x: -45, y: -50, width: 90, height: 35, stroke: '#64748b' }); // Shield / Ant
+    const yOffsets = [-50, -35, -20, -5, 10, 25, 40, 55];
+    yOffsets.forEach(y => {
+      lines.push({ points: [-65, y, -55, y] });
+      lines.push({ points: [55, y, 65, y] });
+    });
+    pins = [
+      { x: -65, y: -50 }, { x: -65, y: -35 }, { x: -65, y: -20 }, { x: -65, y: -5 },
+      { x: -65, y: 10 }, { x: -65, y: 25 }, { x: -65, y: 40 }, { x: -65, y: 55 },
+      { x: 65, y: 55 }, { x: 65, y: 40 }, { x: 65, y: 25 }, { x: 65, y: 10 },
+      { x: 65, y: -5 }, { x: 65, y: -20 }, { x: 65, y: -35 }, { x: 65, y: -50 },
+    ];
+    texts.push({ text: title, x: 0, y: 15, size: 8 });
+  } else if (type === 'optocoupler_6n137' || type === 'optocoupler_moc3021' || type === 'optocoupler_moc3041' || type === 'optocoupler_4n25') {
+    rects.push({ x: -35, y: -35, width: 70, height: 70 });
+    lines.push({ points: [0, -30, 0, 30] }); // Barrier
+    // Input LED
+    lines.push({ points: [-45, -20, -20, -20] }, { points: [-45, 0, -20, 0] });
+    paths.push({ data: 'M -25 -25 L -15 -20 L -25 -15 Z', fill: '#3b82f6' });
+    lines.push({ points: [-15, -25, -15, -15] });
+    if (type === 'optocoupler_6n137') {
+      const yOffsets = [-30, -10, 10, 30];
+      yOffsets.forEach(y => {
+        lines.push({ points: [-45, y, -35, y] });
+        lines.push({ points: [35, y, 45, y] });
+      });
+      pins = [
+        { x: -45, y: -30 }, { x: -45, y: -10 }, { x: -45, y: 10 }, { x: -45, y: 30 },
+        { x: 45, y: 30 }, { x: 45, y: 10 }, { x: 45, y: -10 }, { x: 45, y: -30 },
+      ];
+      texts.push({ text: '6N137', x: 15, y: 0, size: 8 });
+    } else {
+      const yOffsets = [-20, 0, 20];
+      yOffsets.forEach(y => {
+        lines.push({ points: [-45, y, -35, y] });
+        lines.push({ points: [35, y, 45, y] });
+      });
+      pins = [
+        { x: -45, y: -20 }, { x: -45, y: 0 }, { x: -45, y: 20 },
+        { x: 45, y: 20 }, { x: 45, y: 0 }, { x: 45, y: -20 },
+      ];
+      const lbl = type === 'optocoupler_4n25' ? '4N25' : (type === 'optocoupler_moc3021' ? 'MOC3021' : 'MOC3041');
+      texts.push({ text: lbl, x: 15, y: 0, size: 7 });
+    }
+  } else if (type === 'display_ili9341') {
+    rects.push({ x: -40, y: -50, width: 80, height: 100 });
+    rects.push({ x: -20, y: -45, width: 55, height: 90, stroke: '#38bdf8' }); // Screen area
+    const yOffsets = [-40, -30, -20, -10, 0, 10, 20, 30, 40];
+    yOffsets.forEach(y => lines.push({ points: [-50, y, -40, y] }));
+    pins = yOffsets.map(y => ({ x: -50, y }));
+    texts.push({ text: 'ILI9341', x: 8, y: 0, size: 8 });
+  } else if (type === 'display_st7789') {
+    rects.push({ x: -35, y: -40, width: 70, height: 80 });
+    rects.push({ x: -15, y: -35, width: 45, height: 70, stroke: '#38bdf8' });
+    const yOffsets = [-30, -20, -10, 0, 10, 20, 30];
+    yOffsets.forEach(y => lines.push({ points: [-45, y, -35, y] }));
+    pins = yOffsets.map(y => ({ x: -45, y }));
+    texts.push({ text: 'ST7789', x: 8, y: 0, size: 8 });
+  } else if (type === 'display_ssd1306') {
+    rects.push({ x: -30, y: -25, width: 60, height: 50 });
+    rects.push({ x: -10, y: -20, width: 35, height: 40, stroke: '#e2e8f0' });
+    const yOffsets = [-15, -5, 5, 15];
+    yOffsets.forEach(y => lines.push({ points: [-40, y, -30, y] }));
+    pins = yOffsets.map(y => ({ x: -40, y }));
+    texts.push({ text: 'SSD1306', x: 7, y: 0, size: 7 });
+  } else if (type === 'display_nokia5110') {
+    rects.push({ x: -40, y: -45, width: 80, height: 90 });
+    rects.push({ x: -20, y: -40, width: 55, height: 80, stroke: '#4ade80' });
+    const yOffsets = [-35, -25, -15, -5, 5, 15, 25, 35];
+    yOffsets.forEach(y => lines.push({ points: [-50, y, -40, y] }));
+    pins = yOffsets.map(y => ({ x: -50, y }));
+    texts.push({ text: 'NOKIA 5110', x: 8, y: 0, size: 7 });
+  } else if (type === 'display_lcd1602_i2c' || type === 'display_lcd2004_i2c') {
+    const is2004 = type === 'display_lcd2004_i2c';
+    const w = is2004 ? 110 : 100;
+    const h = is2004 ? 50 : 40;
+    rects.push({ x: -w/2, y: -h/2, width: w, height: h });
+    rects.push({ x: -w/2 + 20, y: -h/2 + 6, width: w - 26, height: h - 12, stroke: '#22c55e' });
+    const yOffsets = [-15, -5, 5, 15];
+    const pinX = -w/2 - 10;
+    yOffsets.forEach(y => lines.push({ points: [pinX, y, -w/2, y] }));
+    pins = yOffsets.map(y => ({ x: pinX, y }));
+    texts.push({ text: is2004 ? 'LCD 2004 I2C' : 'LCD 1602 I2C', x: 5, y: 0, size: 8 });
+  } else if (type === 'ic_ne5534a' || type === 'ic_opa134' || type === 'ic_opa627' || type === 'ic_lt1028' || type === 'ic_ad823' || type === 'ic_lm392' || type === 'ic_tl062' || type === 'ic_lm301a' || type === 'ic_lf411') {
+    // Standard 8-pin precision op-amp DIP
+    rects.push({ x: -35, y: -40, width: 70, height: 80 });
+    circles.push({ x: 0, y: -40, r: 4, stroke: '#64748b' });
+    const yOffsets = [-30, -10, 10, 30];
+    yOffsets.forEach(y => {
+      lines.push({ points: [-45, y, -35, y] });
+      lines.push({ points: [35, y, 45, y] });
+    });
+    pins = [
+      { x: -45, y: -30 }, { x: -45, y: -10 }, { x: -45, y: 10 }, { x: -45, y: 30 },
+      { x: 45, y: 30 }, { x: 45, y: 10 }, { x: 45, y: -10 }, { x: 45, y: -30 },
+    ];
+    const lbl = type.replace('ic_', '').toUpperCase();
+    texts.push({ text: lbl, x: 0, y: 0, size: 8 });
+  } else if (type === 'ic_tl064') {
+    // 14-pin DIP quad op-amp
+    rects.push({ x: -40, y: -55, width: 80, height: 110 });
+    circles.push({ x: 0, y: -55, r: 4, stroke: '#64748b' });
+    const yOffsets = [-45, -30, -15, 0, 15, 30, 45];
+    yOffsets.forEach(y => {
+      lines.push({ points: [-50, y, -40, y] });
+      lines.push({ points: [40, y, 50, y] });
+    });
+    pins = [
+      { x: -50, y: -45 }, { x: -50, y: -30 }, { x: -50, y: -15 }, { x: -50, y: 0 }, { x: -50, y: 15 }, { x: -50, y: 30 }, { x: -50, y: 45 },
+      { x: 50, y: 45 }, { x: 50, y: 30 }, { x: 50, y: 15 }, { x: 50, y: 0 }, { x: 50, y: -15 }, { x: 50, y: -30 }, { x: 50, y: -45 },
+    ];
+    texts.push({ text: 'TL064', x: 0, y: 0, size: 9 });
+  } else if (type === 'ic_max6921') {
+    rects.push({ x: -45, y: -55, width: 90, height: 110 });
+    circles.push({ x: 0, y: -55, r: 4, stroke: '#64748b' });
+    const yLeft = [-45, -30, -15, 0, 15, 30, 45];
+    const yRight = [-45, -30, -15, 0, 15, 30, 45];
+    yLeft.forEach(y => lines.push({ points: [-55, y, -45, y] }));
+    yRight.forEach(y => lines.push({ points: [45, y, 55, y] }));
+    pins = [
+      { x: -55, y: -45 }, { x: -55, y: -30 }, { x: -55, y: -15 }, { x: -55, y: 0 }, { x: -55, y: 15 }, { x: -55, y: 30 },
+      { x: 55, y: -45 }, { x: 55, y: -30 }, { x: 55, y: -15 }, { x: 55, y: 0 }, { x: 55, y: 15 }, { x: 55, y: 30 }, { x: 55, y: 45 },
+      { x: -55, y: 45 }
+    ];
+    texts.push({ text: 'MAX6921', x: 0, y: 0, size: 8 });
+  } else if (type === 'ic_uln2004' || type === 'ic_cd4511') {
+    const title = type === 'ic_uln2004' ? 'ULN2004' : 'CD4511';
+    rects.push({ x: -40, y: -70, width: 80, height: 140 });
+    circles.push({ x: 0, y: -70, r: 4, stroke: '#64748b' });
+    const yOffsets = [-60, -45, -30, -15, 0, 15, 30, 45];
+    // ULN2004 & CD4511 have 8 pins per side (16 pins total)
+    // For ULN2004:
+    // Left: IN1..IN7, GND (-45, -30, -15, 0, 15, 30, 45, 60)
+    // Right: COM, OUT7..OUT1 (60, 45, 30, 15, 0, -15, -30, -45)
+    const y16 = [-45, -30, -15, 0, 15, 30, 45, 60];
+    y16.forEach(y => {
+      lines.push({ points: [-50, y, -40, y] });
+      lines.push({ points: [40, y, 50, y] });
+    });
+    if (type === 'ic_uln2004') {
+      pins = [
+        { x: -50, y: -45 }, { x: -50, y: -30 }, { x: -50, y: -15 }, { x: -50, y: 0 }, { x: -50, y: 15 }, { x: -50, y: 30 }, { x: -50, y: 45 }, { x: -50, y: 60 },
+        { x: 50, y: 60 }, { x: 50, y: 45 }, { x: 50, y: 30 }, { x: 50, y: 15 }, { x: 50, y: 0 }, { x: 50, y: -15 }, { x: 50, y: -30 }, { x: 50, y: -45 },
+      ];
+    } else {
+      pins = [
+        { x: -50, y: -45 }, { x: -50, y: -30 }, { x: -50, y: -15 }, { x: -50, y: 0 }, { x: -50, y: 15 }, { x: -50, y: 30 }, { x: -50, y: 45 }, { x: -50, y: 60 },
+        { x: 50, y: -45 }, { x: 50, y: -30 }, { x: 50, y: -15 }, { x: 50, y: 0 }, { x: 50, y: 15 }, { x: 50, y: 30 }, { x: 50, y: 45 }, { x: 50, y: 60 },
+      ];
+    }
+    texts.push({ text: title, x: 0, y: 0, size: 8 });
+  } else if (type === 'ic_sn74lvc245') {
+    rects.push({ x: -45, y: -65, width: 90, height: 130 });
+    circles.push({ x: 0, y: -65, r: 4, stroke: '#64748b' });
+    const y20 = [-55, -42, -29, -16, -3, 10, 23, 36, 49, 62];
+    y20.forEach(y => {
+      lines.push({ points: [-55, y, -45, y] });
+      lines.push({ points: [45, y, 55, y] });
+    });
+    pins = [
+      { x: -55, y: -55 }, { x: -55, y: -42 }, { x: -55, y: -29 }, { x: -55, y: -16 }, { x: -55, y: -3 }, { x: -55, y: 10 }, { x: -55, y: 23 }, { x: -55, y: 36 }, { x: -55, y: 49 }, { x: -55, y: 62 },
+      { x: 55, y: 62 }, { x: 55, y: 49 }, { x: 55, y: 36 }, { x: 55, y: 23 }, { x: 55, y: 10 }, { x: 55, y: -3 }, { x: 55, y: -16 }, { x: 55, y: -29 }, { x: 55, y: -42 }, { x: 55, y: -55 },
+    ];
+    texts.push({ text: '74LVC245', x: 0, y: 0, size: 8 });
   }
   // --- FALLBACK ---
   else {
