@@ -247,21 +247,87 @@ export default function SchematicEditor() {
     };
   }, [isPlaying]);
 
-  // Handle Schematic Export
+  // Handle Schematic Export with intelligent auto-bounding box framing
   useEffect(() => {
     const handleExport = (e: Event) => {
       const detail = (e as CustomEvent)?.detail;
-      if (stageRef.current) {
-        const dataURL = stageRef.current.toDataURL({ pixelRatio: 2 });
-        if (detail?.returnDataUrl) {
-          window.dispatchEvent(new CustomEvent('schematic-exported', { detail: { dataUrl: dataURL } }));
-          return;
+      const stage = stageRef.current;
+      if (!stage) return;
+
+      const { components, wires } = useSchematicStore.getState();
+
+      let dataURL = '';
+
+      if (components.length > 0 || wires.length > 0) {
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+
+        for (const comp of components) {
+          minX = Math.min(minX, comp.position.x - 25);
+          minY = Math.min(minY, comp.position.y - 25);
+          maxX = Math.max(maxX, comp.position.x + 110);
+          maxY = Math.max(maxY, comp.position.y + 110);
         }
-        const link = document.createElement('a');
-        link.download = 'schematic_snapshot.png';
-        link.href = dataURL;
-        link.click();
+
+        for (const wire of wires) {
+          for (const pt of wire.points) {
+            minX = Math.min(minX, pt.x);
+            minY = Math.min(minY, pt.y);
+            maxX = Math.max(maxX, pt.x);
+            maxY = Math.max(maxY, pt.y);
+          }
+        }
+
+        const padding = 60;
+        const boxX = minX - padding;
+        const boxY = minY - padding;
+        const boxW = Math.max(maxX - minX + padding * 2, 240);
+        const boxH = Math.max(maxY - minY + padding * 2, 180);
+
+        // Save current view state
+        const origScaleX = stage.scaleX();
+        const origScaleY = stage.scaleY();
+        const origX = stage.x();
+        const origY = stage.y();
+        const origW = stage.width();
+        const origH = stage.height();
+
+        // Target high-definition export resolution
+        const targetW = 1280;
+        const targetH = 800;
+        const fitScale = Math.min((targetW - 60) / boxW, (targetH - 60) / boxH, 2.2);
+
+        const offsetX = (targetW - boxW * fitScale) / 2;
+        const offsetY = (targetH - boxH * fitScale) / 2;
+
+        stage.width(targetW);
+        stage.height(targetH);
+        stage.scale({ x: fitScale, y: fitScale });
+        stage.position({ x: -boxX * fitScale + offsetX, y: -boxY * fitScale + offsetY });
+        stage.batchDraw();
+
+        dataURL = stage.toDataURL({ pixelRatio: 1.5, mimeType: 'image/png' });
+
+        // Immediately restore original view
+        stage.width(origW);
+        stage.height(origH);
+        stage.scale({ x: origScaleX, y: origScaleY });
+        stage.position({ x: origX, y: origY });
+        stage.batchDraw();
+      } else {
+        dataURL = stage.toDataURL({ pixelRatio: 2 });
       }
+
+      if (detail?.returnDataUrl) {
+        window.dispatchEvent(new CustomEvent('schematic-exported', { detail: { dataUrl: dataURL } }));
+        return;
+      }
+      const link = document.createElement('a');
+      link.download = 'schematic_snapshot.png';
+      link.href = dataURL;
+      link.click();
     };
     window.addEventListener('export-schematic', handleExport);
     return () => window.removeEventListener('export-schematic', handleExport);

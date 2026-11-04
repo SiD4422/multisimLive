@@ -189,7 +189,12 @@ function Simulator() {
       }
     };
     window.addEventListener('nodesim-toast', handleToastEvent);
-    return () => window.removeEventListener('nodesim-toast', handleToastEvent);
+    const handleRunSimEvent = () => handleRunSimulation();
+    window.addEventListener('run-simulation', handleRunSimEvent);
+    return () => {
+      window.removeEventListener('nodesim-toast', handleToastEvent);
+      window.removeEventListener('run-simulation', handleRunSimEvent);
+    };
   }, []);
 
   const bootSource = useCircuitBoot();
