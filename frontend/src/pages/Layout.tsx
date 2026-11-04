@@ -107,6 +107,16 @@ export default function Layout() {
                 <Link to="/tutorials/transistor-amplifier" className={`dd-item ${pathname === '/tutorials/transistor-amplifier' ? 'active' : ''}`}>Transistor Amplifier</Link>
                 <Link to="/tutorials/rlc-circuit" className={`dd-item ${pathname === '/tutorials/rlc-circuit' ? 'active' : ''}`}>RLC Circuit</Link>
                 <Link to="/tutorials/diode-rectifier" className={`dd-item ${pathname === '/tutorials/diode-rectifier' ? 'active' : ''}`}>Diode Rectifier</Link>
+                <Link to="/tutorials/mosfet-switch" className={`dd-item ${pathname === '/tutorials/mosfet-switch' ? 'active' : ''}`}>MOSFET Switch</Link>
+                <Link to="/tutorials/active-filter" className={`dd-item ${pathname === '/tutorials/active-filter' ? 'active' : ''}`}>Active Filter</Link>
+                <Link to="/tutorials/darlington-pair" className={`dd-item ${pathname === '/tutorials/darlington-pair' ? 'active' : ''}`}>Darlington Pair</Link>
+                <Link to="/tutorials" className="dd-item" style={{fontWeight:600,color:'#4ade80'}}>View all 16 tutorials...</Link>
+                <hr className="dd-divider"/>
+                <div className="dd-section-head">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                  Components
+                </div>
+                <Link to="/components" className={`dd-item ${pathname === '/components' ? 'active' : ''}`}>335+ Component Library</Link>
                 <hr className="dd-divider"/>
                 {/* Comparisons */}
                 <div className="dd-section-head">
@@ -192,6 +202,11 @@ export default function Layout() {
               <Link to="/tutorials/transistor-amplifier" className={pathname === '/tutorials/transistor-amplifier' ? 'active' : ''}>Transistor Amplifier</Link>
               <Link to="/tutorials/rlc-circuit" className={pathname === '/tutorials/rlc-circuit' ? 'active' : ''}>RLC Circuit</Link>
               <Link to="/tutorials/diode-rectifier" className={pathname === '/tutorials/diode-rectifier' ? 'active' : ''}>Diode Rectifier</Link>
+              <Link to="/tutorials/mosfet-switch" className={pathname === '/tutorials/mosfet-switch' ? 'active' : ''}>MOSFET Switch</Link>
+              <Link to="/tutorials/active-filter" className={pathname === '/tutorials/active-filter' ? 'active' : ''}>Active Filter</Link>
+              <Link to="/tutorials/darlington-pair" className={pathname === '/tutorials/darlington-pair' ? 'active' : ''}>Darlington Pair</Link>
+              <Link to="/tutorials" style={{color:'#4ade80',fontWeight:600}}>All 16 Tutorials...</Link>
+              <Link to="/components" className={pathname === '/components' ? 'active' : ''}>Component Library (335+)</Link>
               <div style={{ fontSize: '10px', fontWeight: 700, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '8px 0 4px' }}>Comparisons</div>
               <Link to="/compare/ltspice" className={pathname === '/compare/ltspice' ? 'active' : ''}>vs LTspice</Link>
               <Link to="/compare/falstad" className={pathname === '/compare/falstad' ? 'active' : ''}>vs Falstad</Link>
@@ -255,6 +270,7 @@ export default function Layout() {
             <li><Link to="/circuits">Circuits</Link></li>
             <li><Link to="/showcase">Video Showcase</Link></li>
             <li><Link to="/tutorials">Tutorials</Link></li>
+            <li><Link to="/components">Components</Link></li>
             <li><Link to="/compare">Comparisons</Link></li>
             <li><Link to="/resources">Resources</Link></li>
             <li><a href="https://github.com/SiD4422/multisimLive" target="_blank" rel="noopener noreferrer">GitHub</a></li>
