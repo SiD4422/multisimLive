@@ -5,30 +5,32 @@ import { Link } from 'react-router-dom';
 import LZString from 'lz-string';
 import { Play, MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, LayoutGrid, HelpCircle, Share, Maximize, Activity, PanelLeftClose, PanelLeftOpen, FileCode, Zap, CircleDot, ChevronRight, X, Search, FolderOpen, Save, CheckCircle2, AlertTriangle, BookOpen, Camera, Sparkles, Upload, Download, Copy, Code, Globe } from 'lucide-react';
 import { importSpiceNetlist, looksLikeSpiceNetlist } from '../utils/spiceImporter';
-import { PublishModal } from '../components/PublishModal';
 import SchematicEditor from '../components/SchematicEditor';
-import Grapher from '../components/Grapher';
-import { ComponentInspectorPanel } from '../components/ComponentInspectorPanel';
-import { SimulationControls } from '../components/SimulationControls';
-import { AnalysisSettings } from '../components/AnalysisSettings';
-import { ExampleLibraryModal } from '../components/ExampleLibraryModal';
-import AiExplainerPanel from '../components/AiExplainerPanel';
-import { OpPointTable } from '../components/OpPointTable';
-import { CircuitLibrary } from '../components/CircuitLibrary';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { generateNetlist, getComponentPins } from '../utils/netlister';
-import { EmbedModal } from '../components/EmbedModal';
-import { ShareModal } from '../components/ShareModal';
-import { WelcomeTour } from '../components/WelcomeTour';
 import { useCircuitBoot } from '../hooks/useCircuitBoot';
 import { RestoreBanner } from '../components/RestoreBanner';
-import { LabReportModal } from '../components/LabReportModal';
-
 import { ComponentPalette } from '../components/ComponentPalette';
 import { SimulatorHeader } from '../components/SimulatorHeader';
 import { downloadKiCadNetlist } from '../utils/exportKiCad';
-import { CustomModelPanel } from '../components/CustomModelPanel';
 import { StatusBar } from '../components/StatusBar';
+
+// Lazily loaded panels — not needed at initial paint
+const Grapher = React.lazy(() => import('../components/Grapher'));
+const ComponentInspectorPanel = React.lazy(() => import('../components/ComponentInspectorPanel').then(m => ({ default: m.ComponentInspectorPanel })));
+const SimulationControls = React.lazy(() => import('../components/SimulationControls').then(m => ({ default: m.SimulationControls })));
+const AnalysisSettings = React.lazy(() => import('../components/AnalysisSettings').then(m => ({ default: m.AnalysisSettings })));
+const ExampleLibraryModal = React.lazy(() => import('../components/ExampleLibraryModal').then(m => ({ default: m.ExampleLibraryModal })));
+const AiExplainerPanel = React.lazy(() => import('../components/AiExplainerPanel'));
+const OpPointTable = React.lazy(() => import('../components/OpPointTable').then(m => ({ default: m.OpPointTable })));
+const CircuitLibrary = React.lazy(() => import('../components/CircuitLibrary').then(m => ({ default: m.CircuitLibrary })));
+const EmbedModal = React.lazy(() => import('../components/EmbedModal').then(m => ({ default: m.EmbedModal })));
+const ShareModal = React.lazy(() => import('../components/ShareModal').then(m => ({ default: m.ShareModal })));
+const WelcomeTour = React.lazy(() => import('../components/WelcomeTour').then(m => ({ default: m.WelcomeTour })));
+const LabReportModal = React.lazy(() => import('../components/LabReportModal').then(m => ({ default: m.LabReportModal })));
+const PublishModal = React.lazy(() => import('../components/PublishModal').then(m => ({ default: m.PublishModal })));
+const CustomModelPanel = React.lazy(() => import('../components/CustomModelPanel').then(m => ({ default: m.CustomModelPanel })));
+const SavedCircuitsModal = React.lazy(() => import('../components/SavedCircuitsModal').then(m => ({ default: m.SavedCircuitsModal })));
 import '../index.css';
 
 // Error boundary to prevent Grapher crashes from blanking the whole screen
@@ -88,6 +90,7 @@ function Simulator() {
   const [lastSimMs, setLastSimMs] = useState<number | null>(null);
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isSavesOpen, setIsSavesOpen] = useState(false);
   const [isLabReportModalOpen, setIsLabReportModalOpen] = useState(false);
   const [schematicSnapshot, setSchematicSnapshot] = useState<string | undefined>();
   const [graphSnapshot, setGraphSnapshot] = useState<string | undefined>();
@@ -477,29 +480,29 @@ function Simulator() {
       />
 
       {/* Example Library Modal */}
-      <WelcomeTour />
-      <EmbedModal 
+      <React.Suspense fallback={null}><WelcomeTour /></React.Suspense>
+      <React.Suspense fallback={null}><EmbedModal 
         isOpen={isEmbedModalOpen} 
         onClose={() => setIsEmbedModalOpen(false)} 
         circuitData={LZString.compressToEncodedURIComponent(exportState())}
-      />
-      <ExampleLibraryModal
+      /></React.Suspense>
+      <React.Suspense fallback={null}><ExampleLibraryModal
         isOpen={isLibraryOpen}
         onClose={() => setIsLibraryOpen(false)}
-      />
+      /></React.Suspense>
 
-      <AiExplainerPanel
+      <React.Suspense fallback={null}><AiExplainerPanel
         isOpen={isAiPanelOpen}
         onClose={() => setIsAiPanelOpen(false)}
         onFocusNode={(_node) => { setActiveView('grapher'); }}
-      />
-      <CustomModelPanel
+      /></React.Suspense>
+      <React.Suspense fallback={null}><CustomModelPanel
         isOpen={isCustomModelOpen}
         onClose={() => setIsCustomModelOpen(false)}
-      />
+      /></React.Suspense>
 
       {/* My Circuit Library (localStorage) */}
-      <CircuitLibrary
+      <React.Suspense fallback={null}><CircuitLibrary
         isOpen={isMyCktOpen}
         onClose={() => setIsMyCktOpen(false)}
         onSaveRequest={() => {
@@ -509,7 +512,7 @@ function Simulator() {
             return canvas?.toDataURL('image/jpeg', 0.6) || '';
           } catch { return ''; }
         }}
-      />
+      /></React.Suspense>
 
       {/* Toast Notification */}
       {toast && (
@@ -587,7 +590,7 @@ function Simulator() {
           Interactive
         </div>
 
-        <SimulationControls drcIssues={drcIssues} onRun={handleRunSimulation} />
+        <React.Suspense fallback={null}><SimulationControls drcIssues={drcIssues} onRun={handleRunSimulation} /></React.Suspense>
 
         {/* View tabs */}
         <div style={{ display: 'flex', marginLeft: '8px', gap: '2px' }}>
@@ -603,6 +606,14 @@ function Simulator() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => setIsSavesOpen(true)}
+            title="My Saved Circuits"
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.85)', fontSize:12, fontWeight:600, cursor:'pointer' }}
+          >
+            <FolderOpen size={14} />
+            Saves
+          </button>
           <button
             onClick={() => setIsPublishModalOpen(true)}
             title="Publish to Community Gallery"
@@ -726,18 +737,18 @@ function Simulator() {
             {(activeView === 'grapher' || activeView === 'split') && (
               <div className={`canvas-wrapper relative ${activeView === 'split' ? 'w-1/2' : 'w-full'}`} id="grapher-wrapper">
                 {analysisMode === 'op' ? (
-                  <OpPointTable />
+                  <React.Suspense fallback={<div style={{padding:16,color:'#64748b'}}>Loading...</div>}><OpPointTable /></React.Suspense>
                 ) : (
-                  <GrapherErrorBoundary>
+                  <GrapherErrorBoundary><React.Suspense fallback={<div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',color:'#64748b'}}>Loading Grapher...</div>}>
                     <Grapher />
-                  </GrapherErrorBoundary>
+                  </React.Suspense></GrapherErrorBoundary>
                 )}
               </div>
             )}
           </div>
 
           {/* Right Configuration Panel */}
-          <ComponentInspectorPanel />
+          <React.Suspense fallback={null}><ComponentInspectorPanel /></React.Suspense>
         </div>
       </div>
 
@@ -782,14 +793,15 @@ function Simulator() {
           </div>
         </div>
       )}
-      <LabReportModal
+      <React.Suspense fallback={null}><LabReportModal
         isOpen={isLabReportModalOpen}
         onClose={() => setIsLabReportModalOpen(false)}
         schematicDataUrl={schematicSnapshot}
         graphDataUrl={graphSnapshot}
-      />
-      <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
-      <PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} />
+      /></React.Suspense>
+      <React.Suspense fallback={null}><ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} /></React.Suspense>
+      <React.Suspense fallback={null}><PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} /></React.Suspense>
+      <React.Suspense fallback={null}><SavedCircuitsModal isOpen={isSavesOpen} onClose={() => setIsSavesOpen(false)} circuitName={circuitName} onNameChange={setCircuitName} /></React.Suspense>
       {/* Viral Embed Badge — shows only in embedded iframe mode */}
       {isEmbed && (
         <a

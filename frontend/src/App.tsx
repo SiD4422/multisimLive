@@ -1,4 +1,4 @@
-﻿import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './pages/Layout';
@@ -32,6 +32,17 @@ const OpAmpTutorial = lazy(() => import('./pages/tutorials/OpAmpTutorial'));
 const DiodeRectifierTutorial = lazy(() => import('./pages/tutorials/DiodeRectifierTutorial'));
 const RlcCircuitTutorial = lazy(() => import('./pages/tutorials/RlcCircuitTutorial'));
 const Timer555Tutorial = lazy(() => import('./pages/tutorials/Timer555Tutorial'));
+const MosfetTutorial = lazy(() => import('./pages/tutorials/MosfetTutorial'));
+const PowerSupplyTutorial = lazy(() => import('./pages/tutorials/PowerSupplyTutorial'));
+const DifferentialAmplifierTutorial = lazy(() => import('./pages/tutorials/DifferentialAmplifierTutorial'));
+const VoltageFollowerTutorial = lazy(() => import('./pages/tutorials/VoltageFollowerTutorial'));
+const ColpittsOscillatorTutorial = lazy(() => import('./pages/tutorials/ColpittsOscillatorTutorial'));
+const WheatstonesBridgeTutorial = lazy(() => import('./pages/tutorials/WheatstonesBridgeTutorial'));
+const ActiveFilterTutorial = lazy(() => import('./pages/tutorials/ActiveFilterTutorial'));
+const PWMCircuitTutorial = lazy(() => import('./pages/tutorials/PWMCircuitTutorial'));
+const LogicGateTutorial = lazy(() => import('./pages/tutorials/LogicGateTutorial'));
+const DarlingtonTutorial = lazy(() => import('./pages/tutorials/DarlingtonTutorial'));
+const ComponentsPage = lazy(() => import('./pages/ComponentsPage'));
 
 const VsLtspice = lazy(() => import('./pages/compare/VsLtspice'));
 const VsMultisim = lazy(() => import('./pages/compare/VsMultisim'));
@@ -107,6 +118,17 @@ function App() {
               <Route path="/tutorials/op-amp" element={<Suspense fallback={LOADING_DARK}><OpAmpTutorial /></Suspense>} />
               <Route path="/tutorials/diode-rectifier" element={<Suspense fallback={LOADING_DARK}><DiodeRectifierTutorial /></Suspense>} />
               <Route path="/tutorials/rlc-circuit" element={<Suspense fallback={LOADING_DARK}><RlcCircuitTutorial /></Suspense>} />
+              <Route path="/tutorials/mosfet-switch" element={<Suspense fallback={LOADING_DARK}><MosfetTutorial /></Suspense>} />
+              <Route path="/tutorials/power-supply" element={<Suspense fallback={LOADING_DARK}><PowerSupplyTutorial /></Suspense>} />
+              <Route path="/tutorials/differential-amplifier" element={<Suspense fallback={LOADING_DARK}><DifferentialAmplifierTutorial /></Suspense>} />
+              <Route path="/tutorials/voltage-follower" element={<Suspense fallback={LOADING_DARK}><VoltageFollowerTutorial /></Suspense>} />
+              <Route path="/tutorials/colpitts-oscillator" element={<Suspense fallback={LOADING_DARK}><ColpittsOscillatorTutorial /></Suspense>} />
+              <Route path="/tutorials/wheatstone-bridge" element={<Suspense fallback={LOADING_DARK}><WheatstonesBridgeTutorial /></Suspense>} />
+              <Route path="/tutorials/active-filter" element={<Suspense fallback={LOADING_DARK}><ActiveFilterTutorial /></Suspense>} />
+              <Route path="/tutorials/pwm-circuit" element={<Suspense fallback={LOADING_DARK}><PWMCircuitTutorial /></Suspense>} />
+              <Route path="/tutorials/logic-gates" element={<Suspense fallback={LOADING_DARK}><LogicGateTutorial /></Suspense>} />
+              <Route path="/tutorials/darlington-pair" element={<Suspense fallback={LOADING_DARK}><DarlingtonTutorial /></Suspense>} />
+              <Route path="/components" element={<Suspense fallback={LOADING}><ComponentsPage /></Suspense>} />
 
               <Route path="/compare/ltspice" element={<Suspense fallback={LOADING_DARK}><VsLtspice /></Suspense>} />
               <Route path="/compare/multisim" element={<Suspense fallback={LOADING_DARK}><VsMultisim /></Suspense>} />

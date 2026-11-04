@@ -15,6 +15,7 @@ import {
   IconVoltmeter, IconAmmeter, IconWattmeter,
   IconThermistor, IconLDR, IconVaristor, IconVaractor, IconTVSDiode
 } from './icons/MultisimIcons';
+import { standardICLibrary } from '../data/components';
 
 export interface ComponentPaletteProps {
   isOpen: boolean;
@@ -29,10 +30,20 @@ const TAB_CATEGORIES: Record<string, string[]> = {
   Digital: ['Logic Gates', 'Timers & Counters', 'Flip-Flops', 'Memory'],
   Sources: ['Voltage Sources', 'Current Sources', 'Signal Generators'],
   Instruments: ['Probes & Meters'],
+  'ICs & Modules': [],
 };
 
-const TABS = ['Basic', 'Analog', 'Digital', 'Sources', 'Instruments'] as const;
+const TABS = ['Basic', 'Analog', 'Digital', 'Sources', 'Instruments', 'ICs & Modules'] as const;
 type TabType = typeof TABS[number];
+
+// Build IC library entries from standardICLibrary
+const IC_COMPONENTS = standardICLibrary.map(ic => ({
+  tab: 'ICs & Modules' as const,
+  category: ic.category || 'ICs',
+  type: ic.id,
+  value: (ic.defaultProps?.value as string) || '',
+  label: ic.name,
+}));
 
 const ALL_COMPONENTS = [
   { tab: 'Basic', category: 'Passive', type: 'Resistor', value: '1k', label: 'Resistor' },
@@ -323,8 +334,10 @@ export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: Compon
   let displaySections: { category: string, components: typeof ALL_COMPONENTS }[] = [];
 
   if (cleanQuery) {
-    const matches = ALL_COMPONENTS.filter(c => 
-      c.label.toLowerCase().includes(cleanQuery) || 
+    // Search across ALL components including IC library
+    const ALL_WITH_ICS = [...ALL_COMPONENTS, ...IC_COMPONENTS];
+    const matches = ALL_WITH_ICS.filter(c =>
+      c.label.toLowerCase().includes(cleanQuery) ||
       c.type.toLowerCase().includes(cleanQuery)
     );
     const grouped: Record<string, typeof ALL_COMPONENTS> = {};
@@ -334,6 +347,14 @@ export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: Compon
       grouped[key].push(c);
     });
     displaySections = Object.keys(grouped).map(k => ({ category: k, components: grouped[k] }));
+  } else if (activeTab === 'ICs & Modules') {
+    // Dynamic grouping by category for IC library
+    const grouped: Record<string, typeof ALL_COMPONENTS> = {};
+    IC_COMPONENTS.forEach(c => {
+      if (!grouped[c.category]) grouped[c.category] = [];
+      grouped[c.category].push(c);
+    });
+    displaySections = Object.keys(grouped).sort().map(cat => ({ category: cat, components: grouped[cat] }));
   } else {
     // Show sections for active tab
     const categories = TAB_CATEGORIES[activeTab] || [];

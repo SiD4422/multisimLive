@@ -158,6 +158,20 @@ function fmtNum(value: number): string {
   return Number(value.toFixed(4)).toString();
 }
 
+/** Format a Y-axis tick with SI prefixes (µ, m, k, M, G) */
+function fmtSI(value: number): string {
+  if (value === 0) return '0';
+  const abs = Math.abs(value);
+  if (abs >= 1e9)  return `${(value / 1e9).toPrecision(3)}G`;
+  if (abs >= 1e6)  return `${(value / 1e6).toPrecision(3)}M`;
+  if (abs >= 1e3)  return `${(value / 1e3).toPrecision(3)}k`;
+  if (abs >= 1)    return `${Number(value.toPrecision(3))}`;
+  if (abs >= 1e-3) return `${(value * 1e3).toPrecision(3)}m`;
+  if (abs >= 1e-6) return `${(value * 1e6).toPrecision(3)}µ`;
+  if (abs >= 1e-9) return `${(value * 1e9).toPrecision(3)}n`;
+  return value.toExponential(2);
+}
+
 function getYAxisLabel(traces: string[], isAcMagnitude: boolean = false, isAcPhase: boolean = false): string {
   if (isAcMagnitude) return 'Magnitude (dB)';
   if (isAcPhase) return 'Phase (°)';
@@ -746,7 +760,7 @@ function DcSweepPlot({
               tick={{ fill: textColor }}
               label={{ value: `${sweepKey} (V)`, position: 'insideBottom', offset: -15, fill: textColor }}
             />
-            <YAxis label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
+            <YAxis label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} tickFormatter={fmtSI} width={60} />
             <Tooltip
               formatter={(val: any, name: any) => [fmtNum(val as number), name]}
               labelFormatter={(v: any) => `${sweepKey}: ${Number(v).toFixed(3)}V`}
@@ -920,7 +934,7 @@ function TransientPlot({
                 tick={{ fill: textColor }}
                 label={{ value: 'Time (ms)', position: 'insideBottom', offset: -15, fill: textColor }}
               />
-              <YAxis label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
+              <YAxis label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} tickFormatter={fmtSI} width={60} />
               <Tooltip
                 formatter={(value: any, name: any) => [fmtNum(value as number), name]}
                 labelFormatter={(label: any) => `Time: ${(parseFloat(label) * 1000).toFixed(4)}ms`}

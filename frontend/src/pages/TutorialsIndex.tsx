@@ -3,12 +3,22 @@ import SEO from '../components/SEO';
 
 
 const TUTORIALS = [
-  { path: '/tutorials/rc-circuit', title: 'RC Circuit Tutorial', desc: 'RC time constant, charging/discharging, cutoff frequency — with live simulation.', icon: '〜' },
-  { path: '/tutorials/555-timer', title: '555 Timer Tutorial', desc: 'Astable and monostable modes. Build a blinking LED oscillator from scratch.', icon: '⏱' },
-  { path: '/tutorials/transistor-amplifier', title: 'Transistor Amplifier', desc: 'Common-emitter NPN amplifier with biasing and voltage gain calculation.', icon: '📡' },
-  { path: '/tutorials/op-amp', title: 'Op-Amp Amplifier', desc: 'Inverting and non-inverting configurations, virtual ground, gain formula.', icon: '⚡' },
-  { path: '/tutorials/diode-rectifier', title: 'Diode Rectifier', desc: 'Half-wave rectification, peak detector, smoothing capacitor — simulated live.', icon: '▷' },
-  { path: '/tutorials/rlc-circuit', title: 'RLC Circuit and Resonance', desc: 'Series RLC circuit, resonant frequency, bandwidth, and Q factor.', icon: '∿' },
+  { path: '/tutorials/rc-circuit', title: 'RC Circuit Tutorial', desc: 'RC time constant, charging/discharging, cutoff frequency — with live simulation.', icon: '⚡' },
+  { path: '/tutorials/555-timer', title: '555 Timer Tutorial', desc: 'Astable and monostable modes. Build a blinking LED oscillator from scratch.', icon: '⏱️' },
+  { path: '/tutorials/transistor-amplifier', title: 'Transistor Amplifier', desc: 'Common-emitter NPN amplifier with biasing and voltage gain calculation.', icon: '🔊' },
+  { path: '/tutorials/op-amp', title: 'Op-Amp Amplifier', desc: 'Inverting and non-inverting configurations, virtual ground, gain formula.', icon: '📐' },
+  { path: '/tutorials/diode-rectifier', title: 'Diode Rectifier', desc: 'Half-wave rectification, peak detector, smoothing capacitor — simulated live.', icon: '🔌' },
+  { path: '/tutorials/rlc-circuit', title: 'RLC Circuit and Resonance', desc: 'Series RLC circuit, resonant frequency, bandwidth, and Q factor.', icon: '〰️' },
+  { path: '/tutorials/mosfet-switch', title: 'MOSFET Switch', desc: 'N-channel MOSFET gate drive, drain current, threshold voltage, and switching circuits.', icon: '🔧' },
+  { path: '/tutorials/power-supply', title: 'Linear Power Supply', desc: 'Transformer, rectifier, filter capacitor, and voltage regulator — full power supply design.', icon: '🔋' },
+  { path: '/tutorials/differential-amplifier', title: 'Differential Amplifier', desc: 'Op-amp differential amplifier, CMRR, and common-mode rejection with formula.', icon: '📊' },
+  { path: '/tutorials/voltage-follower', title: 'Voltage Follower (Buffer)', desc: 'Unity-gain buffer, input/output impedance, and practical use cases.', icon: '➡️' },
+  { path: '/tutorials/colpitts-oscillator', title: 'Colpitts Oscillator', desc: 'LC tank circuit, capacitive feedback, frequency formula f=1/(2π√(L·Ceq)).', icon: '〜' },
+  { path: '/tutorials/wheatstone-bridge', title: 'Wheatstone Bridge', desc: 'Balance condition R1/R2=R3/R4, null detector, strain gauge applications.', icon: '⚖️' },
+  { path: '/tutorials/active-filter', title: 'Active Filter (Sallen-Key)', desc: '2nd-order Butterworth low-pass filter, Q factor, cutoff frequency formula.', icon: '🎚️' },
+  { path: '/tutorials/pwm-circuit', title: 'PWM with 555 Timer', desc: 'Duty cycle D=RA/(RA+RB), frequency formula, pot-controlled PWM for LED and motor.', icon: '📶' },
+  { path: '/tutorials/logic-gates', title: 'Logic Gates & NAND', desc: "NAND truth table, De Morgan's theorem, universal gate concept, CMOS implementation.", icon: '🔀' },
+  { path: '/tutorials/darlington-pair', title: 'Darlington Pair', desc: 'β_total=β₁×β₂, high-current gain, TIP120 motor driver, VBE≈1.4V.', icon: '⚙️' },
 ];
 
 export default function TutorialsIndex() {
