@@ -1209,6 +1209,29 @@ export default function Grapher() {
     return () => ro.disconnect();
   }, []); // [] — only mount/unmount; chartRef.current is stable after first render
 
+  // Event listener for automated Lab Report graph snapshot capture
+  useEffect(() => {
+    const handleExport = async (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (chartRef.current) {
+        try {
+          const dataUrl = await toPng(chartRef.current, {
+            backgroundColor: '#0f172a',
+            pixelRatio: 2,
+            cacheBust: true,
+          });
+          if (detail?.returnDataUrl) {
+            window.dispatchEvent(new CustomEvent('graph-exported', { detail: { dataUrl } }));
+          }
+        } catch (err) {
+          console.warn('Graph export error:', err);
+        }
+      }
+    };
+    window.addEventListener('export-graph', handleExport);
+    return () => window.removeEventListener('export-graph', handleExport);
+  }, []);
+
   // Format data for Recharts (safe key names)
   const formattedData = useMemo(() => {
     if (!simulationBuffer || simulationBuffer.length === 0) return [];

@@ -412,17 +412,31 @@ function Simulator() {
   };
 
   const handleLabReport = useCallback(async () => {
-    // Capture schematic PNG via existing export-schematic event
-    const schematic = await new Promise<string | undefined>((resolve) => {
+    // 1. Capture schematic PNG via existing export-schematic event
+    const schematicPromise = new Promise<string | undefined>((resolve) => {
       const handler = (e: Event) => {
         window.removeEventListener('schematic-exported', handler);
         resolve((e as CustomEvent).detail?.dataUrl);
       };
       window.addEventListener('schematic-exported', handler);
       window.dispatchEvent(new CustomEvent('export-schematic', { detail: { returnDataUrl: true } }));
-      setTimeout(() => { window.removeEventListener('schematic-exported', handler); resolve(undefined); }, 3000);
+      setTimeout(() => { window.removeEventListener('schematic-exported', handler); resolve(undefined); }, 2500);
     });
+
+    // 2. Capture graph PNG via export-graph event (if Grapher is mounted)
+    const graphPromise = new Promise<string | undefined>((resolve) => {
+      const handler = (e: Event) => {
+        window.removeEventListener('graph-exported', handler);
+        resolve((e as CustomEvent).detail?.dataUrl);
+      };
+      window.addEventListener('graph-exported', handler);
+      window.dispatchEvent(new CustomEvent('export-graph', { detail: { returnDataUrl: true } }));
+      setTimeout(() => { window.removeEventListener('graph-exported', handler); resolve(undefined); }, 2500);
+    });
+
+    const [schematic, graph] = await Promise.all([schematicPromise, graphPromise]);
     setSchematicSnapshot(schematic);
+    setGraphSnapshot(graph);
     setIsLabReportModalOpen(true);
   }, []);
 
