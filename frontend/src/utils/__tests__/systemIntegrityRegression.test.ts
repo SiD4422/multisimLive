@@ -8,8 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { useSchematicStore } from '../../store/useSchematicStore';
 import { generateNetlist } from '../netlister/generateNetlist';
-import { cleanEngineeringText } from '../../components/LabReportModal';
-import { extractValidatedReadings } from '../report/measurementValidation';
+import { cleanEngineeringText, extractValidatedReadings } from '../report/measurementValidation';
 import { evaluateCircuitVerification } from '../report/verificationEngine';
 import type { SchematicComponent, Wire } from '../../store/useSchematicStore';
 

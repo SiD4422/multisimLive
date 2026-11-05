@@ -254,3 +254,31 @@ export function toDynamicReadingItems(measurements: ValidatedSignalMeasurement[]
       behavior: m.behaviorDescription,
     }));
 }
+
+/**
+ * Eliminates raw unrendered LaTeX math notation ($...$, \_, \times, \frac, etc.)
+ * and converts them into crisp, publication-grade Unicode engineering notation.
+ */
+export function cleanEngineeringText(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/\$\$([\s\S]*?)\$\$/g, '$1')
+    .replace(/\$([^\$\n]+)\$/g, '$1')
+    .replace(/\\_/g, '_')
+    .replace(/\\times/g, '·')
+    .replace(/\\cdot/g, '·')
+    .replace(/\\Omega/g, 'Ω')
+    .replace(/\\mu/g, 'µ')
+    .replace(/\\pi/g, 'π')
+    .replace(/\\approx/g, '≈')
+    .replace(/\\le/g, '≤')
+    .replace(/\\ge/g, '≥')
+    .replace(/\\pm/g, '±')
+    .replace(/\\infty/g, '∞')
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1 / $2)')
+    .replace(/\\left\(/g, '(')
+    .replace(/\\right\)/g, ')')
+    .replace(/\\mathrm\{([^}]+)\}/g, '$1')
+    .replace(/\\text\{([^}]+)\}/g, '$1')
+    .replace(/\{([^{}]+)\}/g, '$1');
+}

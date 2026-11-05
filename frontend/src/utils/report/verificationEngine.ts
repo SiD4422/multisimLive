@@ -115,6 +115,7 @@ export interface FourPillarEvaluation {
   overallState: VerificationState;
   qualifiedSignOffAvailable: boolean;
   verdictSummary: string;
+  isCoverageAdequate: boolean;
 }
 
 /**
@@ -425,6 +426,7 @@ export function evaluateCircuitVerification(
       overallState: 'NOT_SIMULATED',
       qualifiedSignOffAvailable: false,
       verdictSummary: 'THEORETICAL ANALYSIS ONLY — No SPICE simulation results were used. Verification verdicts are withheld.',
+      isCoverageAdequate: false,
     };
   }
 
@@ -462,6 +464,7 @@ export function evaluateCircuitVerification(
       overallState: 'SIMULATION_FAILED',
       qualifiedSignOffAvailable: false,
       verdictSummary: 'SIMULATION FAILED — Numerical solver could not achieve a convergent solution.',
+      isCoverageAdequate: false,
     };
   }
 
@@ -481,6 +484,24 @@ export function evaluateCircuitVerification(
 
   // Pillar 3: Functional Verification Test Matrix
   const testCases: VerificationTestCase[] = [];
+
+  // Test 0: Transient Simulation Coverage Test (Requirement 1 & 9)
+  if (topology.type !== 'GENERIC_DC') {
+    const covPass = coverage.isAdequate;
+    testCases.push({
+      testId: 'TC-COV-01',
+      pillar: 'NUMERICAL',
+      objective: 'Transient Simulation Coverage & Cycle Sufficiency',
+      expected: `Capture ≥ 3.0 full cycles (t_stop ≥ ${coverage.recommendation.formattedStopTime})`,
+      acceptanceCriteria: 'Simulation window must capture at least 3 complete oscillation cycles for periodic circuits',
+      measuredValue: `Simulated ${currentEndTimeStr} (~${(coverage.cyclesCapturedEstimate * 100).toFixed(1)}% of 1 cycle, expected T ≈ ${topology.periodTheoretical ? topology.periodTheoretical.toFixed(3) + 's' : 'N/A'})`,
+      measurementSource: 'Timebase vector (time)',
+      verdict: covPass ? 'PASS' : (coverage.status === 'SEVERELY_UNDER_COVERED' ? 'INSUFFICIENT_DATA' : 'WARN'),
+      engineeringNotes: covPass
+        ? `Adequate simulation window (~${coverage.cyclesCapturedEstimate.toFixed(1)} cycles captured).`
+        : coverage.advisoryMessage,
+    });
+  }
 
   // Test 1: Power Supply Regulation Test
   const dcSources = components.filter(
@@ -652,7 +673,11 @@ export function evaluateCircuitVerification(
   let qualifiedSignOffAvailable = false;
   let verdictSummary = '';
 
-  if (hasFail) {
+  if (!coverage.isAdequate && topology.type !== 'GENERIC_DC') {
+    overallState = 'INSUFFICIENT_DATA';
+    qualifiedSignOffAvailable = false;
+    verdictSummary = `INSUFFICIENT SIMULATION EVIDENCE: Transient simulation duration (${currentEndTimeStr}) is severely under-covered (~${(coverage.cyclesCapturedEstimate * 100).toFixed(1)}% of cycle). Re-run with recommended duration (≥${coverage.recommendation.formattedStopTime}).`;
+  } else if (hasFail) {
     overallState = 'VERIFICATION_FAILED';
     qualifiedSignOffAvailable = false;
     verdictSummary = 'VERIFICATION FAILED: One or more critical functional test cases failed acceptance criteria.';
@@ -674,7 +699,7 @@ export function evaluateCircuitVerification(
     theoretical,
     numericalConvergence,
     functionalVerification: {
-      status: allPass ? 'FUNCTIONAL_PASS' : (hasFail ? 'FUNCTIONAL_FAIL' : 'INSUFFICIENT_EVIDENCE'),
+      status: (allPass && coverage.isAdequate) ? 'FUNCTIONAL_PASS' : (hasFail ? 'FUNCTIONAL_FAIL' : 'INSUFFICIENT_EVIDENCE'),
       testCases,
       summary: verdictSummary,
     },
@@ -688,5 +713,6 @@ export function evaluateCircuitVerification(
     overallState,
     qualifiedSignOffAvailable,
     verdictSummary,
+    isCoverageAdequate: coverage.isAdequate,
   };
 }

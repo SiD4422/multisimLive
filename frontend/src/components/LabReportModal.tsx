@@ -31,6 +31,7 @@ import {
   extractValidatedReadings,
   toDynamicReadingItems,
   formatEngineeringValue,
+  cleanEngineeringText,
   type ValidatedSignalMeasurement,
   type DynamicReadingItem,
 } from '../utils/report/measurementValidation';
@@ -74,41 +75,6 @@ export interface FormulaExplanation {
   formula: string;
   simpleExplanation: string;
   variables: { symbol: string; meaning: string }[];
-}
-
-/**
- * Eliminates raw unrendered LaTeX math notation ($...$, \_, \times, \frac, etc.)
- * and converts them into crisp, publication-grade Unicode engineering notation.
- */
-export function cleanEngineeringText(str: string): string {
-  if (!str) return '';
-  return str
-    .replace(/\$\$([\s\S]*?)\$\$/g, '$1')
-    .replace(/\$([^\$\n]+)\$/g, '$1')
-    .replace(/\\_/g, '_')
-    .replace(/\\times/g, '·')
-    .replace(/\\cdot/g, '·')
-    .replace(/\\Omega/g, 'Ω')
-    .replace(/\\mu/g, 'µ')
-    .replace(/\\pi/g, 'π')
-    .replace(/\\approx/g, '≈')
-    .replace(/\\le/g, '≤')
-    .replace(/\\ge/g, '≥')
-    .replace(/\\pm/g, '±')
-    .replace(/\\infty/g, '∞')
-    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1 / $2)')
-    .replace(/\\left\(/g, '(')
-    .replace(/\\right\)/g, ')')
-    .replace(/\\left\[/g, '[')
-    .replace(/\\right\]/g, ']')
-    .replace(/\\\{/g, '{')
-    .replace(/\\\}/g, '}')
-    .replace(/\\text\{([^}]+)\}/g, '$1')
-    .replace(/\\mathrm\{([^}]+)\}/g, '$1')
-    .replace(/\\mathbf\{([^}]+)\}/g, '$1')
-    .replace(/\\[a-zA-Z]+/g, '')
-    .replace(/\$/g, '')
-    .trim();
 }
 
 /**
@@ -392,6 +358,7 @@ export function LabReportModal({
     components,
     simulationBuffer,
     analysisMode,
+    setAnalysisMode,
     wires,
     transientSettings,
     setTransientSettings,
@@ -400,13 +367,14 @@ export function LabReportModal({
     simulationError,
   } = useSchematicStore();
 
-  const { user, loading, signInWithGoogle } = useAuth();
+  const { user } = useAuth();
   const { activeExperiment } = useActiveExperimentStore();
 
   const hasSimulated = Boolean(simulationBuffer && simulationBuffer.length > 0);
 
   // Three Document Modes
   const [docMode, setDocMode] = useState<ReportDocMode>('DVR');
+  const [isDiagnosticMode, setIsDiagnosticMode] = useState(false);
   const [step, setStep] = useState<Step>('form');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -430,23 +398,24 @@ export function LabReportModal({
     signOff: string;
   } | null>(null);
 
-  // Auto-fill defaults based on user or experiment
+  // Auto-fill defaults based on authenticated user or active lab experiment (Requirement 10)
   useEffect(() => {
     if (isOpen) {
-      const defaultName = user?.displayName || user?.email?.split('@')[0] || 'NodeSim Hardware Engineer';
+      const profileName = user?.displayName || user?.email?.split('@')[0] || '';
+      const defaultName = profileName || 'NodeSim Hardware Engineer';
       if (activeExperiment) {
         setFormData(prev => ({
           ...prev,
           title: `Experiment ${activeExperiment.experimentNo}: ${activeExperiment.title}`,
           organization: activeExperiment.university || 'Department of Electrical & Electronic Engineering',
-          engineerName: prev.engineerName || defaultName,
+          engineerName: (!prev.engineerName || prev.engineerName === 'NodeSim Hardware Engineer') ? defaultName : prev.engineerName,
         }));
       } else {
         setFormData(prev => ({
           ...prev,
           title: prev.title || 'Mixed-Signal Hardware Design Verification',
           organization: prev.organization || 'Hardware Systems R&D Workspace',
-          engineerName: prev.engineerName || defaultName,
+          engineerName: (!prev.engineerName || prev.engineerName === 'NodeSim Hardware Engineer') ? defaultName : prev.engineerName,
         }));
       }
     }
@@ -469,7 +438,7 @@ export function LabReportModal({
     [validatedMeasurements]
   );
 
-  // Formal 4-Pillar Verification Evaluation
+  // Formal 4-Pillar Verification Evaluation (Enforces backend rule integrity)
   const verificationEvaluation: FourPillarEvaluation = useMemo(() => {
     return evaluateCircuitVerification(
       components,
@@ -483,7 +452,15 @@ export function LabReportModal({
       transientSettings.endTime,
       transientSettings.step
     );
-  }, [components, simulationBuffer, hasSimulated, isSimulating, simulationError, engineVersion, transientSettings]);
+  }, [components, simulationBuffer, hasSimulated, isSimulating, simulationError, engineVersion, transientSettings, coverage]);
+
+  // Rule: Final DVR requires executed simulation, no solver errors, adequate coverage, and passing criteria
+  const canGenerateFormalDVR = Boolean(
+    hasSimulated &&
+    !simulationError &&
+    coverage.isAdequate &&
+    verificationEvaluation.qualifiedSignOffAvailable
+  );
 
   if (!isOpen) return null;
 
@@ -491,8 +468,9 @@ export function LabReportModal({
   const effectiveGraphSnapshot = graphDataUrl || generateWaveformCanvasSnapshot(simulationBuffer);
   const formulaCards = getDetailedCircuitFormulas(components);
 
-  // Execute Adaptive Simulation re-run directly from advisory banner
+  // Execute Adaptive Simulation re-run directly from advisory banner (Requirement 3 & 4)
   const handleRunAdaptiveSimulation = async () => {
+    setAnalysisMode('transient');
     setTransientSettings({
       endTime: coverage.recommendation.formattedStopTime,
       step: coverage.recommendation.formattedStep,
@@ -504,12 +482,23 @@ export function LabReportModal({
     }
   };
 
-  const handleGenerate = async () => {
-    // Mode requirement check: Theoretical report does not require simulation!
+  const handleGenerate = async (forceDiagnostic = false) => {
+    // Mode requirement check: Theoretical report does not require simulation! (Requirement 7)
     if (docMode !== 'THEORETICAL' && !hasSimulated) {
       setErrorMsg('SPICE simulation must be executed before generating Simulation or Verification reports.');
       return;
     }
+
+    // Backend rule enforcement (Requirement 1 & 9):
+    // Cannot generate certified DVR if simulation coverage is insufficient unless explicitly running in diagnostic mode!
+    if (docMode === 'DVR' && !canGenerateFormalDVR && !forceDiagnostic) {
+      setErrorMsg(
+        'Cannot generate certified DVR: mandatory simulation coverage is insufficient. Please run adaptive simulation or generate an incomplete diagnostic report.'
+      );
+      return;
+    }
+
+    setIsDiagnosticMode(forceDiagnostic);
     if (!formData.title.trim()) return;
 
     setStep('generating');
@@ -539,15 +528,22 @@ export function LabReportModal({
         .map(m => `${m.signal}: Min=${m.min}, Max=${m.max}, Vpp=${m.vpp}, DC=${m.avg}, RMS=${m.rms}`)
         .join('\n');
 
+      const docTypeString = forceDiagnostic
+        ? 'Preliminary Diagnostic Report (Incomplete Evidence)'
+        : (docMode === 'THEORETICAL'
+            ? 'Theoretical Engineering Report'
+            : (docMode === 'SIMULATION' ? 'SPICE Simulation Report' : 'Design Verification Report (DVR)'));
+
       const prompt = `You are a Senior Electronic Engineering Specialist authoring an authoritative technical report for NodeSim EDA.
-Document Type: ${docMode === 'THEORETICAL' ? 'Theoretical Engineering Report' : (docMode === 'SIMULATION' ? 'SPICE Simulation Report' : 'Design Verification Report (DVR)')}
+Document Type: ${docTypeString}
 Organization: ${formData.organization}
 Document Title: ${formData.title}
 Revision: ${formData.docRevision}
 Analysis Mode: ${analysisMode || 'transient'}
 SPICE Engine: ${engineVersion}
 Simulation Executed: ${hasSimulated ? 'YES' : 'NO (Theoretical Only)'}
-Verification Verdict: ${verificationEvaluation.overallState} (${verificationEvaluation.verdictSummary})
+Simulation Coverage: ${coverage.status} (~${(coverage.cyclesCapturedEstimate * 100).toFixed(1)}% of cycle)
+Verification Verdict: ${forceDiagnostic ? 'INSUFFICIENT_DATA (Diagnostic Incomplete)' : verificationEvaluation.overallState} (${verificationEvaluation.verdictSummary})
 
 Circuit Netlist Topology:
 ${netlist}
@@ -561,9 +557,10 @@ ${hasSimulated ? simSummary : 'NO SIMULATION PERFORMED - THEORETICAL CALCULATION
 CRITICAL ENGINEERING INTEGRITY RULES:
 1. NEVER claim a simulation was run or verified if Simulation Executed is NO.
 2. In Theoretical mode, state clearly that calculations are analytical models based on circuit physics.
-3. In DVR mode, adhere strictly to the verification state: ${verificationEvaluation.overallState}. If periodic oscillation was suppressed or simulation duration was insufficient, state that plainly without false claims.
-4. Express formulas in clean Unicode notation without LaTeX dollar delimiters.
-5. Structure your response into these 5 exact sections:
+3. In Diagnostic or Incomplete mode, state clearly that mandatory simulation coverage was NOT achieved. Output remained at static bias or switching was unobserved.
+4. In DVR mode, adhere strictly to the verification state: ${verificationEvaluation.overallState}. If periodic oscillation was suppressed or simulation duration was insufficient, state that plainly without false claims.
+5. Express formulas in clean Unicode notation without LaTeX dollar delimiters.
+6. Structure your response into these 5 exact sections:
    SECTION I. EXECUTIVE SUMMARY & CIRCUIT ARCHITECTURE
    SECTION II. OPERATING PRINCIPLES & GOVERNING FORMULAS
    SECTION III. SPICE SOLVER METHODOLOGY & NUMERICAL CONVERGENCE
@@ -621,7 +618,9 @@ CRITICAL ENGINEERING INTEGRITY RULES:
             simulationMethodology ||
             `1. Schematic capture executed via NodeSim WebAssembly SPICE (${engineVersion}).\n2. Modified Nodal Analysis (MNA) with Sparse 1.3 LU matrix factorization.\n3. Dynamic time-step integration with adaptive local truncation error (LTE) control.`,
           dynamicPerformance: dynamicPerformance || (hasSimulated ? simSummary : 'No simulation performed; analytical baseline derived.'),
-          signOff: signOff || verificationEvaluation.verdictSummary,
+          signOff: forceDiagnostic
+            ? `VERIFICATION DISPOSITION: WITHHELD / INSUFFICIENT SIMULATION EVIDENCE.\n\nSimulated interval is severely under-covered. Dynamic switching transitions were not observed. Re-run simulation with recommended duration (≥${coverage.recommendation.formattedStopTime}) before requesting formal design verification.`
+            : (signOff || verificationEvaluation.verdictSummary),
         });
       } else {
         // High-grade deterministic fallback strictly tied to 4 pillars
@@ -632,10 +631,19 @@ CRITICAL ENGINEERING INTEGRITY RULES:
         if (docMode === 'THEORETICAL') {
           execSummary = `This Theoretical Engineering Report documents the mathematical modeling and circuit physics governing "${formData.title}". The circuit integrates ${compCount} discrete components (${compTypes}).\n\nNOTICE: This document is an analytical derivation. No SPICE numerical simulation results were utilized.`;
         } else if (docMode === 'SIMULATION') {
-          execSummary = `This SPICE Simulation Report documents the experimental nodal voltages and transient vectors captured from "${formData.title}" using ${engineVersion}.\n\nSimulation executed in ${analysisMode.toUpperCase()} domain with ${compCount} active components (${compTypes}).`;
+          const partialNotice = !coverage.isAdequate
+            ? `\n\nNOTICE: Simulation captured a partial transient interval (${transientSettings.endTime}, ~${(coverage.cyclesCapturedEstimate * 100).toFixed(1)}% of estimated cycle). Dynamic switching steady-state is not captured in this time window.`
+            : '';
+          execSummary = `This SPICE Simulation Report documents the experimental nodal voltages and transient vectors captured from "${formData.title}" using ${engineVersion}.${partialNotice}\n\nSimulation executed in ${analysisMode.toUpperCase()} domain with ${compCount} active components (${compTypes}).`;
+        } else if (forceDiagnostic || !canGenerateFormalDVR) {
+          execSummary = `PRELIMINARY DIAGNOSTIC REPORT (INCOMPLETE EVIDENCE)\n\nThis diagnostic report documents the partial transient simulation of "${formData.title}".\n\nCRITICAL AUDIT NOTICE: Simulation duration (${transientSettings.endTime}) achieved only ${(coverage.cyclesCapturedEstimate * 100).toFixed(1)}% of the estimated circuit operating period (${topology.periodTheoretical ? topology.periodTheoretical.toFixed(3) + 's' : 'N/A'}). Mandatory verification coverage was not achieved. No formal verification, pass verdict, or production release is certified.`;
         } else {
           execSummary = `This Design Verification Report (DVR) provides formal engineering verification for "${formData.title}" under ${engineVersion}.\n\nPrimary Verification Status: ${verificationEvaluation.overallState} (${verificationEvaluation.verdictSummary}). Circuit integrates ${compCount} discrete components (${compTypes}).`;
         }
+
+        const effectiveSignOff = forceDiagnostic || (docMode === 'DVR' && !canGenerateFormalDVR)
+          ? `VERIFICATION DISPOSITION: WITHHELD / INSUFFICIENT SIMULATION EVIDENCE.\n\nSimulated interval is severely under-covered. Dynamic switching transitions were not observed. Re-run simulation with recommended duration (≥${coverage.recommendation.formattedStopTime}) before requesting formal design verification.`
+          : verificationEvaluation.verdictSummary;
 
         setReportContent({
           executiveSummary: execSummary,
@@ -646,7 +654,7 @@ CRITICAL ENGINEERING INTEGRITY RULES:
           dynamicPerformance: hasSimulated
             ? `MEASURED TRANSIENT PERFORMANCE SUMMARY:\n${simSummary || 'All signals converged within standard operating limits.'}`
             : 'Theoretical study; dynamic simulation waveforms are not applicable.',
-          signOff: verificationEvaluation.verdictSummary,
+          signOff: effectiveSignOff,
         });
       }
 
@@ -673,7 +681,7 @@ CRITICAL ENGINEERING INTEGRITY RULES:
       const contentW = pageW - margin * 2;
       let y = margin;
 
-      const docId = `NS-${docMode}-${Date.now().toString(36).toUpperCase()}`;
+      const docId = `NS-${isDiagnosticMode ? 'DIAGNOSTIC' : docMode}-${Date.now().toString(36).toUpperCase()}`;
 
       const ensureSpace = (neededH: number): boolean => {
         if (y + neededH > pageH - 22) {
@@ -822,18 +830,23 @@ CRITICAL ENGINEERING INTEGRITY RULES:
         y += 6;
       };
 
-      // Header Banner
-      doc.setFillColor(0, 102, 153);
-      doc.rect(margin, y, 22, 6, 'F');
+      // Header Banner Tag
+      const headerTag = isDiagnosticMode
+        ? 'DIAGNOSTIC (INCOMPLETE)'
+        : (docMode === 'SIMULATION' && !coverage.isAdequate ? 'SIMULATION (PARTIAL)' : docMode);
+      const tagBgColor = isDiagnosticMode ? [217, 119, 6] : [0, 102, 153];
+
+      doc.setFillColor(tagBgColor[0], tagBgColor[1], tagBgColor[2]);
+      doc.rect(margin, y, isDiagnosticMode ? 38 : 22, 6, 'F');
       doc.setFontSize(7.5);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text(docMode, margin + 2, y + 4.2);
+      doc.text(headerTag, margin + 2, y + 4.2);
 
       doc.setFontSize(8.5);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(15, 23, 42);
-      doc.text('ENGINEERING TECHNICAL REPORT', margin + 26, y + 4.2);
+      doc.text('ENGINEERING TECHNICAL REPORT', margin + (isDiagnosticMode ? 42 : 26), y + 4.2);
 
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
@@ -846,7 +859,10 @@ CRITICAL ENGINEERING INTEGRITY RULES:
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(15, 23, 42);
-      const titleLines = doc.splitTextToSize(formData.title || 'Electronic Circuit Report', contentW);
+      const displayTitle = isDiagnosticMode
+        ? `Preliminary Diagnostic Report: ${formData.title || 'Electronic Circuit'}`
+        : (formData.title || 'Electronic Circuit Report');
+      const titleLines = doc.splitTextToSize(displayTitle, contentW);
       doc.text(titleLines, margin, y);
       y += titleLines.length * 6.5 + 2;
 
@@ -854,11 +870,18 @@ CRITICAL ENGINEERING INTEGRITY RULES:
       doc.setFontSize(8.5);
       doc.setFont('helvetica', 'italic');
       doc.setTextColor(71, 85, 105);
-      const subtitle = docMode === 'THEORETICAL'
-        ? 'Theoretical Analytical Derivation, Governing Physical Invariants & Component Equations'
-        : (docMode === 'SIMULATION'
-            ? 'Experimental SPICE Simulation Waveforms, Numerical Nodal Vector Characterization'
-            : 'Formal Hardware Design Verification (DVR), Acceptance Criteria Evaluation & Parametric Compliance');
+      let subtitle = '';
+      if (isDiagnosticMode) {
+        subtitle = 'Preliminary Diagnostic Audit — Incomplete Simulation Evidence (Verification Withheld)';
+      } else if (docMode === 'THEORETICAL') {
+        subtitle = 'Theoretical Analytical Derivation, Governing Physical Invariants & Component Equations';
+      } else if (docMode === 'SIMULATION') {
+        subtitle = !coverage.isAdequate
+          ? `Experimental SPICE Simulation Waveforms (Partial Transient Window: ${transientSettings.endTime})`
+          : 'Experimental SPICE Simulation Waveforms, Numerical Nodal Vector Characterization';
+      } else {
+        subtitle = 'Formal Hardware Design Verification (DVR), Acceptance Criteria Evaluation & Parametric Compliance';
+      }
       doc.text(subtitle, margin, y);
       y += 6;
 
@@ -873,7 +896,7 @@ CRITICAL ENGINEERING INTEGRITY RULES:
         { label: 'LEAD ENGINEER', val: formData.engineerName || 'Hardware Verification Engineer' },
         { label: 'ORGANIZATION', val: formData.organization },
         { label: 'SPICE ENGINE', val: engineVersion },
-        { label: 'DATE & STATUS', val: `${formData.date} • ${verificationEvaluation.overallState}` },
+        { label: 'DATE & STATUS', val: `${formData.date} • ${isDiagnosticMode ? 'INSUFFICIENT_DATA' : verificationEvaluation.overallState}` },
       ];
 
       mItems.forEach((m, i) => {
@@ -890,8 +913,23 @@ CRITICAL ENGINEERING INTEGRITY RULES:
       });
       y += 18;
 
-      // Theoretical Notice or Verification State Banner
-      if (docMode === 'THEORETICAL') {
+      // Status Banner
+      if (isDiagnosticMode) {
+        doc.setFillColor(254, 242, 242);
+        doc.setDrawColor(252, 165, 165);
+        doc.rect(margin, y, contentW, 11, 'FD');
+
+        doc.setFontSize(8.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(220, 38, 38);
+        doc.text('STATUS: PRELIMINARY DIAGNOSTIC REPORT (INCOMPLETE SIMULATION EVIDENCE)', margin + 4, y + 5);
+
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(51, 65, 85);
+        doc.text(`Mandatory simulation coverage was not achieved (~${(coverage.cyclesCapturedEstimate * 100).toFixed(1)}% of cycle). Verification verdicts and sign-off are withheld.`, margin + 4, y + 8.5);
+        y += 15;
+      } else if (docMode === 'THEORETICAL') {
         doc.setFillColor(241, 245, 249);
         doc.setDrawColor(148, 163, 184);
         doc.rect(margin, y, contentW, 10, 'FD');
@@ -963,8 +1001,8 @@ CRITICAL ENGINEERING INTEGRITY RULES:
         drawIeeeTable('TABLE I: TIME-DOMAIN ELECTRICAL MEASUREMENTS (NGSPICE SOLVER)', t1Headers, t1Widths, t1Rows);
       }
 
-      // TABLE II: VERIFICATION MATRIX (in DVR mode)
-      if (docMode === 'DVR' && verificationEvaluation.functionalVerification.testCases.length > 0) {
+      // TABLE II: VERIFICATION MATRIX (in DVR or Diagnostic mode)
+      if ((docMode === 'DVR' || isDiagnosticMode) && verificationEvaluation.functionalVerification.testCases.length > 0) {
         const t2Headers = ['TEST ID', 'ENGINEERING OBJECTIVE', 'EXPECTED SPEC', 'MEASURED SIMULATION', 'VERDICT'];
         const t2Widths = [26, 48, 44, 42, 18];
         const t2Rows = verificationEvaluation.functionalVerification.testCases.map(tc => [
@@ -1085,8 +1123,8 @@ CRITICAL ENGINEERING INTEGRITY RULES:
       doc.text(engineVersion, qax + 4, y + 10);
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(21, 128, 61);
-      doc.text(`Audit Status: ${verificationEvaluation.overallState}`, qax + 4, y + 15);
+      doc.setTextColor(isDiagnosticMode ? 217 : 21, isDiagnosticMode ? 119 : 128, isDiagnosticMode ? 6 : 61);
+      doc.text(`Audit Status: ${isDiagnosticMode ? 'INSUFFICIENT_DATA (Diagnostic)' : verificationEvaluation.overallState}`, qax + 4, y + 15);
       doc.setTextColor(148, 163, 184);
       doc.text(`Doc-ID: ${docId}`, qax + 4, y + 19);
 
@@ -1115,7 +1153,8 @@ CRITICAL ENGINEERING INTEGRITY RULES:
       }
 
       const safeTitle = (formData.title || 'circuit').replace(/[^a-zA-Z0-9_-]/g, '_');
-      doc.save(`${docMode}_${safeTitle}_${formData.docRevision}.pdf`);
+      const filePrefix = isDiagnosticMode ? 'DIAGNOSTIC' : docMode;
+      doc.save(`${filePrefix}_${safeTitle}_${formData.docRevision}.pdf`);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Unknown error';
       alert('PDF generation failed: ' + msg);
@@ -1339,7 +1378,7 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                 </div>
               )}
 
-              {/* Adaptive Transient Advisory Box */}
+              {/* Adaptive Transient Advisory Box (Requirement 3 & 4) */}
               {hasSimulated && !coverage.isAdequate && (
                 <div
                   style={{
@@ -1372,12 +1411,34 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                       padding: '7px 12px',
                       fontSize: 12,
                       fontWeight: 700,
-                      cursor: 'pointer',
+                      cursor: isSimulating ? 'wait' : 'pointer',
                     }}
                   >
                     {isSimulating ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
                     Apply & Run Adaptive Simulation ({coverage.recommendation.formattedStopTime} @ {coverage.recommendation.formattedStep})
                   </button>
+                </div>
+              )}
+
+              {/* Optimal Coverage Confirmation */}
+              {hasSimulated && coverage.isAdequate && topology.type !== 'GENERIC_DC' && (
+                <div
+                  style={{
+                    background: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    borderLeft: '4px solid #16a34a',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    marginBottom: 16,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <CheckCircle2 size={16} color="#16a34a" style={{ flexShrink: 0 }} />
+                  <div style={{ fontSize: 12, color: '#166534', fontWeight: 600 }}>
+                    Transient Simulation Coverage Verified: ~{coverage.cyclesCapturedEstimate.toFixed(1)} complete cycles captured ({transientSettings.endTime}). All mandatory evidence requirements are satisfied.
+                  </div>
                 </div>
               )}
 
@@ -1396,7 +1457,14 @@ CRITICAL ENGINEERING INTEGRITY RULES:
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
-                    <label style={labelStyle}>Lead Engineer Name</label>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <label style={{ ...labelStyle, marginBottom: 0 }}>Lead Engineer Name</label>
+                      {user && (
+                        <span style={{ fontSize: 10, color: '#16a34a', fontWeight: 600 }}>
+                          ✓ Authenticated Profile
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
                       value={formData.engineerName}
@@ -1451,43 +1519,123 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                 </div>
               )}
 
-              {/* Submit Button */}
-              <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button
-                  onClick={onClose}
-                  style={{
-                    background: '#f1f5f9',
-                    border: '1px solid #cbd5e1',
-                    color: '#475569',
-                    borderRadius: 8,
-                    padding: '10px 18px',
-                    fontSize: 13,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleGenerate}
-                  disabled={docMode !== 'THEORETICAL' && !hasSimulated}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: docMode !== 'THEORETICAL' && !hasSimulated ? '#94a3b8' : '#006699',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: 8,
-                    padding: '10px 20px',
-                    fontSize: 13,
-                    fontWeight: 700,
-                    cursor: docMode !== 'THEORETICAL' && !hasSimulated ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  <Sparkles size={16} />
-                  Generate {docMode} Report
-                </button>
+              {/* Submit & Action Buttons (Requirements 1, 2, 5, 6, 7, 8) */}
+              <div style={{ marginTop: 20 }}>
+                {/* Explanation banner next to disabled DVR button (Requirement 2) */}
+                {docMode === 'DVR' && !canGenerateFormalDVR && (
+                  <div
+                    style={{
+                      background: '#fffbeb',
+                      border: '1px solid #fde68a',
+                      borderRadius: 6,
+                      padding: '8px 12px',
+                      marginBottom: 12,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <AlertTriangle size={15} color="#d97706" style={{ flexShrink: 0 }} />
+                    <span style={{ fontSize: 11.5, color: '#92400e', fontWeight: 600 }}>
+                      {!hasSimulated
+                        ? 'SPICE simulation has not been executed. Run simulation or apply adaptive simulation before generating a Design Verification Report.'
+                        : !coverage.isAdequate
+                        ? `DVR requires sufficient simulation coverage (≥3 cycles). Current: ~${(coverage.cyclesCapturedEstimate * 100).toFixed(1)}% of cycle. Apply adaptive simulation above or generate an incomplete diagnostic report.`
+                        : 'One or more verification acceptance criteria failed. Review the test matrix before sign-off.'}
+                    </span>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, alignItems: 'center' }}>
+                  <button
+                    onClick={onClose}
+                    style={{
+                      background: '#f1f5f9',
+                      border: '1px solid #cbd5e1',
+                      color: '#475569',
+                      borderRadius: 8,
+                      padding: '10px 18px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+
+                  {/* Secondary Incomplete / Diagnostic Report Button (Requirement 6) */}
+                  {docMode === 'DVR' && !canGenerateFormalDVR && hasSimulated && (
+                    <button
+                      type="button"
+                      onClick={() => handleGenerate(true)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        background: '#fffbeb',
+                        border: '1px solid #fcd34d',
+                        color: '#92400e',
+                        borderRadius: 8,
+                        padding: '10px 16px',
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <AlertCircle size={15} color="#d97706" />
+                      Generate Diagnostic Report (Incomplete Evidence)
+                    </button>
+                  )}
+
+                  {/* Primary Generation Button (Requirement 1 & 5) */}
+                  <button
+                    onClick={() => handleGenerate(false)}
+                    disabled={
+                      (docMode !== 'THEORETICAL' && !hasSimulated) ||
+                      (docMode === 'DVR' && !canGenerateFormalDVR)
+                    }
+                    title={
+                      docMode === 'DVR' && !canGenerateFormalDVR
+                        ? 'Mandatory simulation coverage insufficient. Run adaptive simulation first.'
+                        : undefined
+                    }
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      background:
+                        (docMode !== 'THEORETICAL' && !hasSimulated) ||
+                        (docMode === 'DVR' && !canGenerateFormalDVR)
+                          ? '#94a3b8'
+                          : '#006699',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '10px 20px',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor:
+                        (docMode !== 'THEORETICAL' && !hasSimulated) ||
+                        (docMode === 'DVR' && !canGenerateFormalDVR)
+                          ? 'not-allowed'
+                          : 'pointer',
+                      opacity:
+                        (docMode !== 'THEORETICAL' && !hasSimulated) ||
+                        (docMode === 'DVR' && !canGenerateFormalDVR)
+                          ? 0.65
+                          : 1,
+                    }}
+                  >
+                    <Sparkles size={16} />
+                    {docMode === 'DVR'
+                      ? 'Generate DVR Report'
+                      : docMode === 'SIMULATION'
+                      ? hasSimulated && !coverage.isAdequate
+                        ? 'Generate Simulation Report (Partial Window)'
+                        : 'Generate SPICE Simulation Report'
+                      : 'Generate Theoretical Report'}
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1558,7 +1706,7 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div
                       style={{
-                        background: '#006699',
+                        background: isDiagnosticMode ? '#d97706' : '#006699',
                         color: '#fff',
                         fontWeight: 800,
                         fontSize: 11,
@@ -1566,7 +1714,7 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                         borderRadius: 4,
                       }}
                     >
-                      {docMode}
+                      {isDiagnosticMode ? 'DIAGNOSTIC (INCOMPLETE)' : docMode}
                     </div>
                     <div>
                       <div style={{ fontWeight: 800, fontSize: 13, color: '#0f172a' }}>
@@ -1585,14 +1733,18 @@ CRITICAL ENGINEERING INTEGRITY RULES:
 
                 {/* Title */}
                 <h1 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: '0 0 4px' }}>
-                  {formData.title}
+                  {isDiagnosticMode ? `Preliminary Diagnostic Report: ${formData.title}` : formData.title}
                 </h1>
                 <div style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic', marginBottom: 16 }}>
-                  {docMode === 'THEORETICAL'
-                    ? 'Theoretical Analytical Derivation, Circuit Invariants & Component Equations'
-                    : (docMode === 'SIMULATION'
-                        ? 'Experimental SPICE Simulation Vectors & Waveform Characterization'
-                        : 'Formal Design Verification Report (DVR) & Multi-Pillar Acceptance Audit')}
+                  {isDiagnosticMode
+                    ? 'Diagnostic Audit — Mandatory Simulation Coverage Incomplete (Verification Withheld)'
+                    : (docMode === 'THEORETICAL'
+                        ? 'Theoretical Analytical Derivation, Circuit Invariants & Component Equations'
+                        : (docMode === 'SIMULATION'
+                            ? !coverage.isAdequate
+                              ? `Experimental SPICE Simulation Vectors (Partial Transient Window: ${transientSettings.endTime})`
+                              : 'Experimental SPICE Simulation Vectors & Waveform Characterization'
+                            : 'Formal Design Verification Report (DVR) & Multi-Pillar Acceptance Audit'))}
                 </div>
 
                 {/* Metadata Box */}
@@ -1632,20 +1784,39 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                       style={{
                         fontSize: 11.5,
                         fontWeight: 800,
-                        color:
-                          verificationEvaluation.overallState === 'VERIFICATION_PASSED'
-                            ? '#16a34a'
-                            : (verificationEvaluation.overallState === 'INSUFFICIENT_DATA' ? '#0284c7' : '#dc2626'),
+                        color: isDiagnosticMode
+                          ? '#d97706'
+                          : (verificationEvaluation.overallState === 'VERIFICATION_PASSED'
+                              ? '#16a34a'
+                              : (verificationEvaluation.overallState === 'INSUFFICIENT_DATA' ? '#0284c7' : '#dc2626')),
                         marginTop: 2,
                       }}
                     >
-                      {verificationEvaluation.overallState}
+                      {isDiagnosticMode ? 'INSUFFICIENT_DATA (Diagnostic)' : verificationEvaluation.overallState}
                     </div>
                   </div>
                 </div>
 
-                {/* Theoretical Notice or Verification State Banner */}
-                {docMode === 'THEORETICAL' ? (
+                {/* Status Banner */}
+                {isDiagnosticMode ? (
+                  <div
+                    style={{
+                      background: '#fffbeb',
+                      border: '1px solid #fde68a',
+                      borderLeft: '5px solid #d97706',
+                      borderRadius: 6,
+                      padding: '10px 14px',
+                      marginBottom: 18,
+                    }}
+                  >
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#92400e', marginBottom: 2 }}>
+                      STATUS: PRELIMINARY DIAGNOSTIC REPORT (INSUFFICIENT SIMULATION EVIDENCE)
+                    </div>
+                    <div style={{ fontSize: 11.5, color: '#78350f' }}>
+                      Mandatory simulation coverage was not achieved (~{(coverage.cyclesCapturedEstimate * 100).toFixed(1)}% of expected cycle). Dynamic switching transitions could not be evaluated. Verification verdicts and sign-off are strictly withheld.
+                    </div>
+                  </div>
+                ) : docMode === 'THEORETICAL' ? (
                   <div
                     style={{
                       background: '#f1f5f9',
@@ -1822,8 +1993,8 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                   </div>
                 )}
 
-                {/* Table II: Verification Acceptance Matrix (in DVR mode) */}
-                {docMode === 'DVR' && verificationEvaluation.functionalVerification.testCases.length > 0 && (
+                {/* Table II: Verification Acceptance Matrix (in DVR or Diagnostic mode) */}
+                {(docMode === 'DVR' || isDiagnosticMode) && verificationEvaluation.functionalVerification.testCases.length > 0 && (
                   <div style={{ marginBottom: 20 }}>
                     <div style={{ fontSize: 11, fontWeight: 800, color: '#0f172a', textAlign: 'center', marginBottom: 6 }}>
                       TABLE II: FUNCTIONAL ACCEPTANCE & VERIFICATION MATRIX
@@ -1985,8 +2156,8 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                       <div style={{ fontSize: 12, fontWeight: 800, color: '#0f172a', margin: '3px 0' }}>
                         {engineVersion}
                       </div>
-                      <div style={{ fontSize: 10.5, color: '#006699', fontWeight: 700 }}>
-                        Audit Status: {verificationEvaluation.overallState}
+                      <div style={{ fontSize: 10.5, color: isDiagnosticMode ? '#d97706' : '#006699', fontWeight: 700 }}>
+                        Audit Status: {isDiagnosticMode ? 'INSUFFICIENT_DATA (Diagnostic)' : verificationEvaluation.overallState}
                       </div>
                       <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>NodeSim Verification Framework v1.0</div>
                     </div>
@@ -2020,7 +2191,7 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
-                    background: '#006699',
+                    background: isDiagnosticMode ? '#d97706' : '#006699',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: 8,
@@ -2030,7 +2201,7 @@ CRITICAL ENGINEERING INTEGRITY RULES:
                     fontSize: 13.5,
                   }}
                 >
-                  <Download size={16} /> Download {docMode} Report (PDF)
+                  <Download size={16} /> Download {isDiagnosticMode ? 'Diagnostic' : docMode} Report (PDF)
                 </button>
               </div>
             </div>
