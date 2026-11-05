@@ -47,7 +47,7 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
     }, 60000);
 
     worker.onmessage = (e: MessageEvent) => {
-      const { id: incomingId, type, data, error, __plotType, __isComplex, __variables } = e.data as {
+      const { id: incomingId, type, data, error, __plotType, __isComplex, __variables, engineVersion } = e.data as {
         id: number;
         type: 'SUCCESS' | 'ERROR';
         data: SpiceResult;
@@ -55,6 +55,7 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
         __plotType?: string;
         __isComplex?: boolean;
         __variables?: unknown[];
+        engineVersion?: string;
       };
       if (pendingJob && pendingJob.id === incomingId) {
         clearTimeout(pendingJob.timeoutId);
@@ -63,6 +64,7 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
           if (__plotType) (data as SpiceResult).__plotType = __plotType as SpiceResult['__plotType'];
           if (__isComplex !== undefined) (data as SpiceResult).__isComplex = __isComplex;
           if (__variables) (data as SpiceResult).__variables = __variables as SpiceResult['__variables'];
+          if (engineVersion) (data as SpiceResult).__engineVersion = engineVersion;
           
           pendingJob.resolve(data);
         } else {

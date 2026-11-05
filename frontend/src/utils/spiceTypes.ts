@@ -29,6 +29,7 @@ export type SpiceResult = SpiceDataRow[] & {
   __plotType?: 'transient' | 'ac' | 'dc' | 'op';
   __isComplex?: boolean;
   __variables?: SpiceVariable[];
+  __engineVersion?: string;
 };
 
 /**

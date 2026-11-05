@@ -12,6 +12,7 @@ import createNgspiceModule from '@o.z/ngspice-wasm';
 let ngspiceInstance: any = null;
 let isInitializing = false;
 let initPromise: Promise<void> | null = null;
+let detectedNgspiceVersion = 'ngspice (WebAssembly build)';
 
 async function initNgspice() {
   if (ngspiceInstance) return;
@@ -25,9 +26,19 @@ async function initNgspice() {
     try {
       ngspiceInstance = await createNgspiceModule({
         locateFile: (file: string) => `/${file}`,
-        print: (text: string) => console.log('[SPICE Worker]', text),
+        print: (text: string) => {
+          console.log('[SPICE Worker]', text);
+          const m = text.match(/ngspice[- ]?(?:version\s*)?(\d+[\w.-]*)/i);
+          if (m && m[1]) {
+            detectedNgspiceVersion = `ngspice-${m[1]}`;
+          }
+        },
         printErr: (text: string) => {
           console.error('[SPICE Worker ERR]', text);
+          const m = text.match(/ngspice[- ]?(?:version\s*)?(\d+[\w.-]*)/i);
+          if (m && m[1]) {
+            detectedNgspiceVersion = `ngspice-${m[1]}`;
+          }
         },
         noExitRuntime: false
       });
@@ -137,23 +148,33 @@ function parseRawFile(rawStr: string): any[] {
   // If this was an operating point (.op), data[0] contains all the static values as keys
   if (plotType === 'op' && data.length > 0) {
     const opValues = data[0];
-    const formattedData = Object.keys(opValues).map(key => {
-      // Determine unit based on key format (e.g. i(v1) -> A, v(1) -> V)
-      let unit = 'unknown';
-      if (key.toLowerCase().startsWith('i(')) unit = 'A';
-      else if (key.toLowerCase().startsWith('v(') || key.toLowerCase() === 'v') unit = 'V';
-      else if (key.toLowerCase() === 'time') unit = 's';
-      
-      return {
-        node: key,
-        value: opValues[key],
-        unit: unit
-      };
-    });
+    const formattedData = Object.keys(opValues)
+      .filter(key => !key.startsWith('__'))
+      .map(key => {
+        // Determine unit based on key format (e.g. i(v1) -> A, v(1) -> V)
+        let unit = 'unknown';
+        if (key.toLowerCase().startsWith('i(')) unit = 'A';
+        else if (key.toLowerCase().startsWith('v(') || key.toLowerCase() === 'v') unit = 'V';
+        else if (key.toLowerCase() === 'time') unit = 's';
+        
+        return {
+          node: key,
+          value: opValues[key],
+          unit: unit
+        };
+      });
     
-    // Filter out internal variables if necessary, but returning all is fine
     (formattedData as any).__plotType = plotType;
     return formattedData;
+  }
+
+  // CRITICAL: Clean up internal parser tracking property (__parsedVars) from all row records
+  // so internal parser variables never leak into simulation output or measurement tables.
+  for (let i = 0; i < data.length; i++) {
+    const row = data[i];
+    if (row && typeof row === 'object' && '__parsedVars' in row) {
+      delete row.__parsedVars;
+    }
   }
 
   if (data.length > 0) {
@@ -294,7 +315,15 @@ self.addEventListener('message', async (e: MessageEvent) => {
     try {
       data = await runNgspice(fullNetlist);
       // Success — send result normally
-      self.postMessage({ id, type: 'SUCCESS', data, __plotType: (data as any).__plotType, __isComplex: (data as any).__isComplex, __variables: (data as any).__variables });
+      self.postMessage({
+        id,
+        type: 'SUCCESS',
+        data,
+        __plotType: (data as any).__plotType,
+        __isComplex: (data as any).__isComplex,
+        __variables: (data as any).__variables,
+        engineVersion: detectedNgspiceVersion,
+      });
       return;
     } catch (err1: any) {
       originalError = err1.message || String(err1);
@@ -322,6 +351,7 @@ self.addEventListener('message', async (e: MessageEvent) => {
         __isComplex: (data as any).__isComplex,
         __variables: (data as any).__variables,
         __warning: 'Simulation converged with relaxed tolerances. Results may be slightly less accurate.',
+        engineVersion: detectedNgspiceVersion,
       });
     } catch (err2: any) {
       // Both attempts failed — report original error with hint
