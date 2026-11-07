@@ -1,15 +1,15 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 const OpAmpTutorial: React.FC = () => {
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <Helmet>
-        <title>Op Amp Circuit Simulator | Inverting Amplifier Simulation</title>
-        <meta name="description" content="Simulate an operational amplifier circuit online. Learn about inverting amplifiers and op-amp behavior using NodeSim." />
-        <meta name="keywords" content="op amp circuit simulator, inverting amplifier simulation, operational amplifier online, free circuit simulator" />
-      </Helmet>
+      <SEO
+        title="Op Amp Circuit Simulator | Inverting Amplifier Simulation"
+        description="Simulate an operational amplifier circuit online. Learn about inverting amplifiers and op-amp behavior using NodeSim."
+        url="https://www.nodesimapp.com/tutorials/op-amp"
+      />
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>Op-Amp Circuit Simulation</h1>
       

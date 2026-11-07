@@ -1,14 +1,14 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 const VoltageFollowerTutorial: React.FC = () => (
   <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
-    <Helmet>
-      <title>Voltage Follower (Unity Gain Buffer) Simulator | NodeSim Tutorial</title>
-      <meta name="description" content="Simulate an op-amp voltage follower online. Learn unity gain, impedance matching, and buffering with a free browser-based SPICE circuit simulator." />
-      <meta name="keywords" content="voltage follower simulator, unity gain buffer op-amp, impedance matching circuit, op-amp buffer tutorial, free SPICE online" />
-    </Helmet>
+    <SEO
+        title="Voltage Follower (Unity Gain Buffer) Simulator | NodeSim Tutorial"
+        description="Simulate an op-amp voltage follower online. Learn unity gain, impedance matching, and buffering with a free browser-based SPICE circuit simulator."
+        url="https://www.nodesimapp.com/tutorials/voltage-follower"
+      />
     <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>Voltage Follower (Buffer) Tutorial</h1>
     <section style={{ marginBottom: '2rem' }}>
       <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>What this circuit does</h2>

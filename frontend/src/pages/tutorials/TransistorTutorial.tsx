@@ -1,15 +1,15 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 const TransistorTutorial: React.FC = () => {
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <Helmet>
-        <title>Transistor Amplifier Simulation | Common Emitter Circuit</title>
-        <meta name="description" content="Learn how to simulate a common emitter transistor amplifier circuit online using NodeSim." />
-        <meta name="keywords" content="transistor amplifier simulation, common emitter circuit, BJT simulator online, free circuit simulator" />
-      </Helmet>
+      <SEO
+        title="Transistor Amplifier Simulation | Common Emitter Circuit"
+        description="Learn how to simulate a common emitter transistor amplifier circuit online using NodeSim."
+        url="https://www.nodesimapp.com/tutorials/transistor-amplifier"
+      />
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>Transistor Amplifier Simulation</h1>
       

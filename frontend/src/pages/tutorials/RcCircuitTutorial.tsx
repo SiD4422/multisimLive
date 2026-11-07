@@ -1,15 +1,15 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 const RcCircuitTutorial: React.FC = () => {
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <Helmet>
-        <title>RC Circuit Simulator Online | NodeSim Tutorial</title>
-        <meta name="description" content="Learn how to simulate an RC circuit online. Understand the RC time constant and transient response using our free browser-based simulator." />
-        <meta name="keywords" content="RC circuit simulator online, RC time constant, RC transient analysis, free circuit simulator" />
-      </Helmet>
+      <SEO
+        title="RC Circuit Simulator Online | NodeSim Tutorial"
+        description="Learn how to simulate an RC circuit online. Understand the RC time constant and transient response using our free browser-based simulator."
+        url="https://www.nodesimapp.com/tutorials/rc-circuit"
+      />
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>RC Circuit Simulator Tutorial</h1>
       

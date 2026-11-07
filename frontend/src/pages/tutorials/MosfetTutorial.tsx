@@ -1,14 +1,14 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 const MosfetTutorial: React.FC = () => (
   <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
-    <Helmet>
-      <title>MOSFET Switch Circuit Simulator Online | NodeSim Tutorial</title>
-      <meta name="description" content="Learn how to simulate a MOSFET switch circuit online. Understand VGS threshold, drain current, and digital switching with a free browser SPICE simulator." />
-      <meta name="keywords" content="MOSFET switch simulator, NMOS circuit online, MOSFET tutorial, transistor switch simulation, free SPICE simulator" />
-    </Helmet>
+    <SEO
+        title="MOSFET Switch Circuit Simulator Online | NodeSim Tutorial"
+        description="Learn how to simulate a MOSFET switch circuit online. Understand VGS threshold, drain current, and digital switching with a free browser SPICE simulator."
+        url="https://www.nodesimapp.com/tutorials/mosfet-switch"
+      />
     <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>MOSFET Switch Circuit Tutorial</h1>
     <section style={{ marginBottom: '2rem' }}>
       <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>What this circuit does</h2>

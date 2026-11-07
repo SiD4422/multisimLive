@@ -1,15 +1,15 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 const RlcCircuitTutorial: React.FC = () => {
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <Helmet>
-        <title>RLC Circuit Simulator | Resonant Frequency Simulation</title>
-        <meta name="description" content="Simulate RLC circuits online. Explore resonance, damping, and AC frequency response with our free browser-based SPICE simulator." />
-        <meta name="keywords" content="RLC circuit simulator, resonant frequency simulation, AC sweep, RLC transient, free circuit simulator" />
-      </Helmet>
+      <SEO
+        title="RLC Circuit Simulator | Resonant Frequency Simulation"
+        description="Simulate RLC circuits online. Explore resonance, damping, and AC frequency response with our free browser-based SPICE simulator."
+        url="https://www.nodesimapp.com/tutorials/rlc-circuit"
+      />
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>RLC Circuit Simulation</h1>
       

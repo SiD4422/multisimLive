@@ -1,15 +1,15 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 const DiodeRectifierTutorial: React.FC = () => {
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#1e293b', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <Helmet>
-        <title>Diode Rectifier Simulator | Half Wave Rectifier Simulation</title>
-        <meta name="description" content="Simulate diode rectifier circuits online. Learn how a half-wave rectifier converts AC to DC with our interactive SPICE simulator." />
-        <meta name="keywords" content="diode rectifier simulator, half wave rectifier simulation, AC to DC, free circuit simulator" />
-      </Helmet>
+      <SEO
+        title="Diode Rectifier Simulator | Half Wave Rectifier Simulation"
+        description="Simulate diode rectifier circuits online. Learn how a half-wave rectifier converts AC to DC with our interactive SPICE simulator."
+        url="https://www.nodesimapp.com/tutorials/diode-rectifier"
+      />
 
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>Diode Rectifier Simulation</h1>
       
