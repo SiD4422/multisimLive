@@ -40,7 +40,7 @@ export default function SEO({
   keywords,
   name = "NodeSim", 
   type = "website", 
-  url = "https://www.nodesimapp.com",
+  url,
   image = DEFAULT_IMAGE,
   imageAlt = DEFAULT_IMAGE_ALT,
   canonical,
@@ -52,11 +52,18 @@ export default function SEO({
   modifiedTime,
   author = "NodeSim"
 }: SEOProps) {
+  // Determine canonical target: explicit canonical > explicit url > browser pathname > root
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+  const rawCanonical = canonical || url || (currentPath ? `${BASE_URL}${currentPath}` : `${BASE_URL}/`);
+
   // Normalize canonical URL to always include www and trim trailing slashes except root
-  const rawCanonical = canonical || url;
-  const normalizedCanonical = rawCanonical.startsWith('http') 
-    ? rawCanonical.replace('https://www.nodesimapp.com', BASE_URL).replace('https://www.nodesimapp.com', BASE_URL)
+  let normalizedCanonical = rawCanonical.startsWith('http') 
+    ? rawCanonical.replace('http://', 'https://').replace('https://nodesimapp.com', BASE_URL)
     : `${BASE_URL}${rawCanonical.startsWith('/') ? '' : '/'}${rawCanonical}`;
+
+  if (normalizedCanonical !== `${BASE_URL}/` && normalizedCanonical.endsWith('/')) {
+    normalizedCanonical = normalizedCanonical.slice(0, -1);
+  }
 
   const formattedKeywords = Array.isArray(keywords) ? keywords.join(', ') : keywords;
 
