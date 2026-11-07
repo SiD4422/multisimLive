@@ -452,6 +452,8 @@ export function LabReportModal({
   );
 
   // Formal 4-Pillar Verification Evaluation (Enforces backend rule integrity)
+  // topology and coverage are passed in to avoid independent recomputation that could
+  // produce inconsistent topology classifications between the advisory banner and the gating logic.
   const verificationEvaluation: FourPillarEvaluation = useMemo(() => {
     return evaluateCircuitVerification(
       components,
@@ -463,9 +465,12 @@ export function LabReportModal({
         engineVersion,
       },
       transientSettings.endTime,
-      transientSettings.step
+      transientSettings.step,
+      undefined,
+      topology,
+      coverage
     );
-  }, [components, simulationBuffer, hasSimulated, isSimulating, simulationError, engineVersion, transientSettings, coverage]);
+  }, [components, simulationBuffer, hasSimulated, isSimulating, simulationError, engineVersion, transientSettings, topology, coverage]);
 
   // Rule: Final DVR requires executed simulation, no solver errors, adequate coverage, and passing criteria
   const canGenerateFormalDVR = Boolean(

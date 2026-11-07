@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Play, LayoutGrid, CheckCircle2, Activity } from 'lucide-react';
-import { EXAMPLES } from './CircuitsPage';
+import { EXAMPLES } from '../data/circuitExamples';
 import SEO from '../components/SEO';
 
 const C = {

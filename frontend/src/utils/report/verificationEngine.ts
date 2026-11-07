@@ -392,11 +392,15 @@ export function evaluateCircuitVerification(
   },
   currentEndTimeStr = '10ms',
   currentStepStr = '0.01ms',
-  customCriteria?: CircuitAcceptanceCriteria
+  customCriteria?: CircuitAcceptanceCriteria,
+  // Accept pre-computed topology/coverage from caller to avoid independent recomputation
+  // that could produce inconsistent topology classifications.
+  precomputedTopology?: TopologyTimingInvariants,
+  precomputedCoverage?: TransientCoverageEvaluation
 ): FourPillarEvaluation {
   const engineVersion = simulationState.engineVersion || 'ngspice (WebAssembly build)';
-  const topology = analyzeCircuitTopology(components);
-  const coverage = evaluateTransientCoverage(topology, currentEndTimeStr, currentStepStr);
+  const topology = precomputedTopology ?? analyzeCircuitTopology(components);
+  const coverage = precomputedCoverage ?? evaluateTransientCoverage(topology, currentEndTimeStr, currentStepStr);
 
   // Pillar 1: Theoretical Analysis
   const theoretical = {
