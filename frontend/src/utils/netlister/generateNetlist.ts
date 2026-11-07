@@ -366,33 +366,29 @@ export function generateNetlist(
       netlist += `X_${comp.id} ${vcc} ${gnd} ${rst} ${dis} ${thr} ${tri} ${con} ${out} LM555\n`;
       models.add(
 `.subckt LM555 VCC GND RST DIS THR TRI CON OUT
-* 555 Timer Macromodel with SR Latch
+* 555 Timer Macromodel with Regenerative Cross-Coupled SR Latch
 R_d1 VCC CON 5k
 R_d2 CON ref_lo 5k
 R_d3 ref_lo GND 5k
-* SR Latch state storage (capacitor holds latch value)
-C_latch latch GND 100p
-R_leak latch GND 1G
-* SET: TRI < 1/3 VCC charges latch positive via diode
-B_set set_drv GND V = V(TRI) < V(ref_lo) ? 5 : -5
-R_set set_drv set_mid 1k
-D_set set_mid latch DMOD555
-* RESET: THR > 2/3 VCC discharges latch via diode
-B_rst rst_drv GND V = V(THR) > V(CON) ? 5 : -5
-R_rst rst_drv rst_mid 1k
-D_rst latch rst_mid DMOD555
-* RST pin override (active LOW, threshold 0.7V)
-B_rst_pin rst_pin_drv GND V = V(RST) < 0.7 ? 5 : -5
-R_rst_pin rst_pin_drv rst_pin_mid 1k
-D_rst_pin latch rst_pin_mid DMOD555
-* Output buffer
-B_out OUT GND V = V(latch) > 0.5 ? V(VCC) : 0
-R_load OUT GND 1Meg
-* Discharge open-collector (ON when output LOW)
-B_dis_gate dis_gate GND V = V(latch) > 0.5 ? 0 : 5
+* Comparators:
+* Upper comparator (Reset): active HIGH when THR > CON or RST is active LOW (<0.7V)
+B_cmp_rst rst_int GND V = (V(RST) < 0.7 || V(THR) > V(CON)) ? 5 : 0
+* Lower comparator (Set): active HIGH when TRI < ref_lo
+B_cmp_set set_int GND V = V(TRI) < V(ref_lo) ? 5 : 0
+* Regenerative Bistable SR Latch (cross-coupled NOR architecture with 100p filter)
+B_q q_int GND V = (V(rst_int) > 2.5 || V(qbar_int) > 2.5) ? 0 : 5
+B_qbar qbar_int GND V = (V(set_int) > 2.5 || V(q_int) > 2.5) ? 0 : 5
+C_q q_int GND 100p
+C_qbar qbar_int GND 100p
+R_q q_int GND 1Meg
+R_qbar qbar_int GND 1Meg
+* Output Stage (swings between 0V and VCC)
+B_out OUT GND V = V(q_int) > 2.5 ? V(VCC) : 0
+R_out OUT GND 1Meg
+* Discharge Stage (ON when Q is LOW / Reset)
+B_dis_gate dis_gate GND V = V(q_int) > 2.5 ? 0 : 5
 S_dis DIS GND dis_gate GND SMOD555
 .model SMOD555 SW(VT=2.5 VH=0.1 RON=10 ROFF=10Meg)
-.model DMOD555 D(IS=1e-14)
 .ends LM555`);
     }
     else if (comp.type === 'Opamp' || comp.type === 'Comparator' || comp.type === 'Opamps') {

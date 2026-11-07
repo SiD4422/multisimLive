@@ -401,6 +401,8 @@ export function LabReportModal({
   // Auto-fill defaults based on authenticated user or active lab experiment (Requirement 10)
   useEffect(() => {
     if (isOpen) {
+      setStep('form');
+      setIsDiagnosticMode(false);
       const profileName = user?.displayName || user?.email?.split('@')[0] || '';
       const defaultName = profileName || 'NodeSim Hardware Engineer';
       if (activeExperiment) {
@@ -420,6 +422,17 @@ export function LabReportModal({
       }
     }
   }, [isOpen, activeExperiment, user]);
+
+  // Escape key handler to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   // Topology Analysis and Adaptive Transient Coverage
   const topology = useMemo(() => analyzeCircuitTopology(components), [components]);
@@ -1249,6 +1262,8 @@ CRITICAL ENGINEERING INTEGRITY RULES:
           </div>
           <button
             onClick={onClose}
+            aria-label="Close modal"
+            data-testid="close-modal-btn"
             style={{
               background: 'transparent',
               border: 'none',
@@ -2168,7 +2183,10 @@ CRITICAL ENGINEERING INTEGRITY RULES:
               {/* Action Buttons */}
               <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
                 <button
-                  onClick={() => setStep('form')}
+                  onClick={() => {
+                    setIsDiagnosticMode(false);
+                    setStep('form');
+                  }}
                   style={{
                     flex: 1,
                     background: '#f1f5f9',

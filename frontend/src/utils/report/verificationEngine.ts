@@ -533,10 +533,30 @@ export function evaluateCircuitVerification(
 
   // Test 2 & 3: Dynamic Timing / Functional Switching Test
   if (topology.type === '555_ASTABLE') {
-    // Look for output node (node 3 or OUT on LM555)
-    const outKey = Object.keys(simulationBuffer[0]).find(
-      k => k.toLowerCase() === 'v(out)' || k.toLowerCase() === 'v(3)' || k.toLowerCase().includes('out')
+    // Look for output node:
+    // 1. Explicit OUT node (v(out), or any node containing 'out')
+    // 2. Candidate top-level nodal voltage v(...) with maximum peak-to-peak switching swing
+    let outKey = Object.keys(simulationBuffer[0]).find(
+      k => /^v\(.*out.*\)$/i.test(k)
     );
+    if (!outKey) {
+      const candidateKeys = Object.keys(simulationBuffer[0]).filter(k => /^v\([^._)]+\)$/i.test(k));
+      let bestSwing = -1;
+      for (const k of candidateKeys) {
+        let min = simulationBuffer[0][k] ?? 0;
+        let max = min;
+        for (const row of simulationBuffer) {
+          const val = row[k] ?? 0;
+          if (val < min) min = val;
+          if (val > max) max = val;
+        }
+        const swing = max - min;
+        if (swing > bestSwing) {
+          bestSwing = swing;
+          outKey = k;
+        }
+      }
+    }
 
     if (outKey) {
       const outSignal = simulationBuffer.map(r => r[outKey] || 0);
