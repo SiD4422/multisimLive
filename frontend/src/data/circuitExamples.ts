@@ -25,6 +25,7 @@ import wienBridge           from '../examples/wien_bridge_oscillator.json';
 import mosfetInverter       from '../examples/mosfet_inverter.json';
 import voltageRegulator5V   from '../examples/voltage_regulator_5v.json';
 import zenerVoltageReg      from '../examples/zener_voltage_regulator.json';
+import seriesResonantConverter from '../examples/series_resonant_converter.json';
 
 export const EXAMPLES = [
   // ── FILTERS ────────────────────────────────────────────────────
@@ -65,4 +66,5 @@ export const EXAMPLES = [
   // ── POWER (additional) ─────────────────────────────────────────
   { id: 'vreg_5v', name: '5V Linear Voltage Regulator', category: 'Power', description: 'Behavioral voltage regulator holds output at 5V regardless of load or input variation.', analysis: 'DC Sweep', analysisColor: C.dcSweep, difficulty: 'Intermediate', components: ['B-Source Reg', 'Capacitors', 'DC Source'], Icon: Zap, accent: '#16a34a', data: voltageRegulator5V },
   { id: 'zener_reg', name: 'Zener Voltage Regulator', category: 'Power', description: 'Zener diode shunt regulator. Clamps output voltage at Vz. Simple low-current regulation.', analysis: 'DC Sweep', analysisColor: C.dcSweep, difficulty: 'Beginner', components: ['Zener Diode', 'Resistor', 'DC Source'], Icon: Sliders, accent: '#b45309', data: zenerVoltageReg },
+  { id: 'series_resonant', name: 'Series Resonant Converter (SRC)', category: 'Power', description: 'Half-bridge resonant DC-DC converter (24V in, ~12V out). LC resonant tank (Lr=100µH, Cs=47nF, fr=73.4kHz) with fast-recovery rectifier.', analysis: 'Transient', analysisColor: C.transient, difficulty: 'Advanced', components: ['2× MOSFET', 'LC Resonant Tank', 'Diode Bridge', 'Pulse Gen'], Icon: Zap, accent: '#f59e0b', data: seriesResonantConverter },
 ];

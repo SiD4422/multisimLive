@@ -35,6 +35,7 @@ import bjtCommonBaseAmp       from '../examples/bjt_common_base_amp.json';
 import zenerVoltageRegulator  from '../examples/zener_voltage_regulator.json';
 import fullWaveBridgeRectifier from '../examples/full_wave_bridge_rectifier.json';
 import mosfetInverter         from '../examples/mosfet_inverter.json';
+import seriesResonantConverter from '../examples/series_resonant_converter.json';
 
 // ── Palette (matches site CSS vars) ─────────────────────────────────────────
 const C = {
@@ -262,6 +263,16 @@ const EXAMPLES = [
     Icon: Sliders,
     accent: '#d97706',
     data: zenerVoltageRegulator,
+  },
+  {
+    id: 'series_resonant', name: 'Series Resonant Converter (SRC)', category: 'Power',
+    description: 'Half-bridge resonant DC-DC converter (24V in, ~12V out). LC resonant tank (Lr=100µH, Cs=47nF, fr=73.4kHz) with fast-recovery diode bridge.',
+    analysis: 'Transient', analysisColor: '#16a34a',
+    difficulty: 'Advanced',
+    components: ['2x N-MOSFET', '100uH Inductor', '47nF Cap', '4x Diode'],
+    Icon: Zap,
+    accent: '#f59e0b',
+    data: seriesResonantConverter,
   },
 
   // ── SWITCHING ──────────────────────────────────────────────────
