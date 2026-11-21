@@ -470,7 +470,7 @@ function Simulator() {
     <>
       <SEO 
         title="NodeSim | Online SPICE Circuit Simulator & Schematic Editor" 
-        description="Design and run SPICE circuit simulations entirely in your browser with real-time waveform graphers, 311+ components, and an AI circuit tutor. Free, no account needed."
+        description="Free SPICE circuit simulation in your browser. Drag-and-drop schematic editor, 311+ components, transient, AC sweep, DC analysis, waveform grapher, and AI tutor. No install required."
         url="https://www.nodesimapp.com/simulator"
         canonical="https://www.nodesimapp.com/simulator"
         keywords={['circuit simulator', 'online circuit simulator', 'SPICE simulator online', 'multisim online free', 'schematic editor', 'ngspice browser', 'transient analysis', 'ac sweep', 'waveform grapher']}

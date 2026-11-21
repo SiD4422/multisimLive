@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 export default function VoltageDividerCalculator() {
@@ -27,16 +27,12 @@ export default function VoltageDividerCalculator() {
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', maxWidth: 640, margin: '0 auto', padding: '3rem 1.5rem', color: '#111827' }}>
-      <Helmet>
-        <title>Voltage Divider Calculator | NodeSim Tools</title>
-        <meta name="description" content="Free Voltage Divider calculator. Calculate Vout given Vin, R1, and R2. Instant results. Verify with circuit simulation." />
-        <meta name="keywords" content="voltage divider calculator, resistor divider, Vout formula, electronics calculator" />
-        <meta property="og:title" content="Voltage Divider Calculator | NodeSim" />
-        <meta property="og:description" content="Free Voltage Divider calculator. Calculate Vout given Vin, R1, and R2 instantly." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.nodesimapp.com/tools/voltage-divider" />
-        <link rel="canonical" href="https://www.nodesimapp.com/tools/voltage-divider" />
-      </Helmet>
+      <SEO
+        title="Voltage Divider Calculator — Free Online | NodeSim"
+        description="Free online voltage divider calculator. Enter R1, R2, and Vin to instantly compute Vout. With formula derivation and circuit diagram."
+        url="https://www.nodesimapp.com/tools/voltage-divider"
+        canonical="https://www.nodesimapp.com/tools/voltage-divider"
+      />
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › <Link to="/tools" style={{ color: '#16a34a' }}>Tools</Link> › Voltage Divider</div>
       <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: 8 }}>Voltage Divider Calculator</h1>

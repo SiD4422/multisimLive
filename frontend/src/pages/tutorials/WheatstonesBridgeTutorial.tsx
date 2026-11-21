@@ -1,29 +1,22 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import SEO from '../../components/SEO';
 
 const WheatstonesBridgeTutorial: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Wheatstone Bridge Circuit Tutorial | NodeSim</title>
-        <meta name="description" content="Understand the Wheatstone bridge: balance condition R1/R2 = R3/R4, null detector, strain gauge sensors, and bridge imbalance voltage calculation with live simulation." />
-        <meta name="keywords" content="Wheatstone bridge, balanced bridge, null detector, strain gauge, resistance measurement, sensor circuit" />
-        <link rel="canonical" href="https://nodesimfree.netlify.app/tutorials/wheatstone-bridge" />
-        <meta property="og:title" content="Wheatstone Bridge Circuit Tutorial | NodeSim" />
-        <meta property="og:description" content="Learn Wheatstone bridge balance conditions and sensor measurement with interactive simulation." />
-        <meta property="og:type" content="article" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "TechArticle",
-          "headline": "Wheatstone Bridge Circuit Tutorial",
-          "description": "Learn the Wheatstone bridge balance condition and use it for precision resistance measurement and sensor interfacing.",
-          "author": { "@type": "Organization", "name": "NodeSim" },
-          "publisher": { "@type": "Organization", "name": "NodeSim" },
-          "educationalUse": "instruction",
-          "learningResourceType": "tutorial"
-        })}</script>
-      </Helmet>
+      <SEO
+        title="Wheatstone Bridge Circuit Tutorial | NodeSim"
+        description="Understand the Wheatstone bridge: balance condition R1/R2 = R3/R4, null detector, strain gauge sensors, and bridge imbalance voltage calculation with live simulation."
+        canonical="https://www.nodesimapp.com/tutorials/wheatstone-bridge"
+        url="https://www.nodesimapp.com/tutorials/wheatstone-bridge"
+        type="article"
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Tutorials', path: '/tutorials' },
+          { name: 'Wheatstone Bridge', path: '/tutorials/wheatstone-bridge' },
+        ]}
+      />
 
       <main className="max-w-4xl mx-auto px-4 py-12 text-gray-100">
         {/* Breadcrumb */}

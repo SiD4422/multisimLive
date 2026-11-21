@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 export default function OhmsLawCalculator() {
@@ -38,16 +38,12 @@ export default function OhmsLawCalculator() {
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', maxWidth: 640, margin: '0 auto', padding: '3rem 1.5rem', color: '#111827' }}>
-      <Helmet>
-        <title>Ohm's Law Calculator | V = IR | NodeSim Tools</title>
-        <meta name="description" content="Free Ohm's Law calculator. Calculate voltage, current, or resistance using V = IR. Instant results. Verify with circuit simulation." />
-        <meta name="keywords" content="ohm's law calculator, V=IR, voltage calculator, current calculator, resistance calculator, electronics calculator" />
-        <meta property="og:title" content="Ohm's Law Calculator | NodeSim" />
-        <meta property="og:description" content="Free Ohm's Law calculator. Calculate voltage, current, or resistance instantly." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.nodesimapp.com/tools/ohms-law" />
-        <link rel="canonical" href="https://www.nodesimapp.com/tools/ohms-law" />
-      </Helmet>
+      <SEO
+        title="Ohm's Law Calculator — Free Online | NodeSim"
+        description="Calculate voltage, current, and resistance instantly with this free Ohm's Law calculator. V=IR, I=V/R, R=V/I — interactive with real-time results."
+        url="https://www.nodesimapp.com/tools/ohms-law"
+        canonical="https://www.nodesimapp.com/tools/ohms-law"
+      />
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › <Link to="/tools" style={{ color: '#16a34a' }}>Tools</Link> › Ohm's Law</div>
       <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: 8 }}>Ohm's Law Calculator</h1>

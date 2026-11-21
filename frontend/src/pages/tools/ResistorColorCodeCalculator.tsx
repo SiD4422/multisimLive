@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 const COLORS = [
@@ -62,16 +62,12 @@ export default function ResistorColorCodeCalculator() {
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', maxWidth: 640, margin: '0 auto', padding: '3rem 1.5rem', color: '#111827' }}>
-      <Helmet>
-        <title>Resistor Color Code Calculator | 4 Band | NodeSim Tools</title>
-        <meta name="description" content="Free 4-band resistor color code decoder. Calculate resistance and tolerance easily." />
-        <meta name="keywords" content="resistor color code calculator, 4 band resistor, resistor decoder, electronics calculator" />
-        <meta property="og:title" content="Resistor Color Code Calculator | NodeSim" />
-        <meta property="og:description" content="Free 4-band resistor color code calculator. Decode resistance and tolerance instantly." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.nodesimapp.com/tools/resistor-color-code" />
-        <link rel="canonical" href="https://www.nodesimapp.com/tools/resistor-color-code" />
-      </Helmet>
+      <SEO
+        title="Resistor Color Code Calculator — 4 & 5 Band | NodeSim"
+        description="Decode resistor color bands instantly. Free 4-band and 5-band resistor color code calculator with tolerance and value in ohms, kΩ, and MΩ."
+        url="https://www.nodesimapp.com/tools/resistor-color-code"
+        canonical="https://www.nodesimapp.com/tools/resistor-color-code"
+      />
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › <Link to="/tools" style={{ color: '#16a34a' }}>Tools</Link> › Resistor Color Code</div>
       <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: 8 }}>Resistor Color Code Calculator</h1>

@@ -1,29 +1,22 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import SEO from '../../components/SEO';
 
 const ActiveFilterTutorial: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Active Filter Circuit Tutorial — Sallen-Key Low-Pass | NodeSim</title>
-        <meta name="description" content="Design a 2nd-order Sallen-Key active low-pass filter with Butterworth response. Learn cutoff frequency formula, Q factor, and maximally flat passband with browser simulation." />
-        <meta name="keywords" content="active filter, Sallen-Key filter, low pass filter, Butterworth filter, op-amp filter, cutoff frequency, Q factor" />
-        <link rel="canonical" href="https://nodesimfree.netlify.app/tutorials/active-filter" />
-        <meta property="og:title" content="Active Filter Circuit Tutorial — Sallen-Key Low-Pass | NodeSim" />
-        <meta property="og:description" content="Design a 2nd-order Sallen-Key Butterworth active filter and simulate it online." />
-        <meta property="og:type" content="article" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "TechArticle",
-          "headline": "Active Filter Circuit Tutorial — Sallen-Key Low-Pass",
-          "description": "Design a 2nd-order Sallen-Key active low-pass filter with Butterworth response and simulate it in the browser.",
-          "author": { "@type": "Organization", "name": "NodeSim" },
-          "publisher": { "@type": "Organization", "name": "NodeSim" },
-          "educationalUse": "instruction",
-          "learningResourceType": "tutorial"
-        })}</script>
-      </Helmet>
+      <SEO
+        title="Active Filter Circuit Tutorial — Sallen-Key Low-Pass | NodeSim"
+        description="Design a 2nd-order Sallen-Key active low-pass filter with Butterworth response. Learn cutoff frequency formula, Q factor, and maximally flat passband with browser simulation."
+        canonical="https://www.nodesimapp.com/tutorials/active-filter"
+        url="https://www.nodesimapp.com/tutorials/active-filter"
+        type="article"
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Tutorials', path: '/tutorials' },
+          { name: 'Active Filter', path: '/tutorials/active-filter' },
+        ]}
+      />
 
       <main className="max-w-4xl mx-auto px-4 py-12 text-gray-100">
         {/* Breadcrumb */}

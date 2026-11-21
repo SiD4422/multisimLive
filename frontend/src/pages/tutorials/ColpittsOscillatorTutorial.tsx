@@ -1,29 +1,22 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import SEO from '../../components/SEO';
 
 const ColpittsOscillatorTutorial: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Colpitts Oscillator Circuit Tutorial | NodeSim</title>
-        <meta name="description" content="Learn how to design a Colpitts LC oscillator. Understand the tank circuit, feedback network, and frequency formula f = 1/(2π√(L·Ceq)) with interactive simulation." />
-        <meta name="keywords" content="Colpitts oscillator, LC oscillator, tank circuit, RF oscillator, circuit simulation, frequency formula" />
-        <link rel="canonical" href="https://nodesimfree.netlify.app/tutorials/colpitts-oscillator" />
-        <meta property="og:title" content="Colpitts Oscillator Circuit Tutorial | NodeSim" />
-        <meta property="og:description" content="Design a Colpitts LC oscillator and simulate it in your browser." />
-        <meta property="og:type" content="article" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "TechArticle",
-          "headline": "Colpitts Oscillator Circuit Tutorial",
-          "description": "Learn to design and simulate a Colpitts LC oscillator with interactive browser-based simulation.",
-          "author": { "@type": "Organization", "name": "NodeSim" },
-          "publisher": { "@type": "Organization", "name": "NodeSim" },
-          "educationalUse": "instruction",
-          "learningResourceType": "tutorial"
-        })}</script>
-      </Helmet>
+      <SEO
+        title="Colpitts Oscillator Circuit Tutorial | NodeSim"
+        description="Learn how to design a Colpitts LC oscillator. Understand the tank circuit, feedback network, and frequency formula f = 1/(2π√(L·Ceq)) with interactive simulation."
+        canonical="https://www.nodesimapp.com/tutorials/colpitts-oscillator"
+        url="https://www.nodesimapp.com/tutorials/colpitts-oscillator"
+        type="article"
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Tutorials', path: '/tutorials' },
+          { name: 'Colpitts Oscillator', path: '/tutorials/colpitts-oscillator' },
+        ]}
+      />
 
       <main className="max-w-4xl mx-auto px-4 py-12 text-gray-100">
         {/* Breadcrumb */}

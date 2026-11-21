@@ -1,29 +1,22 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import SEO from '../../components/SEO';
 
 const DarlingtonTutorial: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Darlington Pair Transistor Circuit Tutorial | NodeSim</title>
-        <meta name="description" content="Learn the Darlington pair transistor: combined β = β1×β2, high current gain, motor driver applications, VBE(total) ≈ 1.4V, TIP120 example with interactive simulation." />
-        <meta name="keywords" content="Darlington pair, Darlington transistor, TIP120, high current gain, motor driver, power transistor, beta multiplication" />
-        <link rel="canonical" href="https://nodesimfree.netlify.app/tutorials/darlington-pair" />
-        <meta property="og:title" content="Darlington Pair Transistor Tutorial | NodeSim" />
-        <meta property="og:description" content="Design a Darlington pair for high-current motor and relay driving applications." />
-        <meta property="og:type" content="article" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "TechArticle",
-          "headline": "Darlington Pair Transistor Circuit Tutorial",
-          "description": "Learn the Darlington pair configuration for high current gain, motor driving, and relay control applications.",
-          "author": { "@type": "Organization", "name": "NodeSim" },
-          "publisher": { "@type": "Organization", "name": "NodeSim" },
-          "educationalUse": "instruction",
-          "learningResourceType": "tutorial"
-        })}</script>
-      </Helmet>
+      <SEO
+        title="Darlington Pair Transistor Circuit Tutorial | NodeSim"
+        description="Learn the Darlington pair transistor: combined β = β1×β2, high current gain, motor driver applications, VBE(total) ≈ 1.4V, TIP120 example with interactive simulation."
+        canonical="https://www.nodesimapp.com/tutorials/darlington-pair"
+        url="https://www.nodesimapp.com/tutorials/darlington-pair"
+        type="article"
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Tutorials', path: '/tutorials' },
+          { name: 'Darlington Pair', path: '/tutorials/darlington-pair' },
+        ]}
+      />
 
       <main className="max-w-4xl mx-auto px-4 py-12 text-gray-100">
         {/* Breadcrumb */}

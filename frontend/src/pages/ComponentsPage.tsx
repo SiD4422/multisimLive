@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/SEO';
 import { Link } from 'react-router-dom';
 import { standardICLibrary } from '../data/components';
 import type { ComponentDefinition } from '../data/components';
@@ -93,26 +93,12 @@ const ComponentsPage: React.FC = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{allComponents.length}+ Electronic Components | Free Circuit Simulator | NodeSim</title>
-        <meta
-          name="description"
-          content={`NodeSim includes ${allComponents.length}+ simulation-ready components: resistors, capacitors, transistors, op-amps, logic ICs, microcontrollers, sensors, and more. No install required.`}
-        />
-        <meta name="keywords" content="electronic components library, circuit simulator components, SPICE components, op-amp simulation, transistor simulation, logic gate simulation, NodeSim" />
-        <link rel="canonical" href="https://nodesimfree.netlify.app/components" />
-        <meta property="og:title" content={`${allComponents.length}+ Electronic Components | NodeSim`} />
-        <meta property="og:description" content="Browse all simulation-ready components in NodeSim — from basic passives to 74xx logic ICs and microcontrollers." />
-        <meta property="og:type" content="website" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "ItemList",
-          "name": "NodeSim Electronic Components Library",
-          "description": `${allComponents.length}+ simulation-ready electronic components`,
-          "numberOfItems": allComponents.length,
-          "url": "https://nodesimfree.netlify.app/components"
-        })}</script>
-      </Helmet>
+      <SEO
+        title="Circuit Components Library | 311+ SPICE Components — NodeSim"
+        description="Browse 311+ SPICE-ready components: resistors, capacitors, inductors, op-amps, MOSFETs, BJTs, microcontrollers (ATtiny85, ESP32, PIC), logic gates, displays, optocouplers. All free in NodeSim."
+        url="https://www.nodesimapp.com/components"
+        canonical="https://www.nodesimapp.com/components"
+      />
 
       <main className="max-w-7xl mx-auto px-4 py-12 text-gray-100">
         {/* Breadcrumb */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 const tools = [
@@ -13,30 +13,12 @@ const tools = [
 export default function ToolsIndex() {
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', maxWidth: 800, margin: '0 auto', padding: '3rem 1.5rem', color: '#111827' }}>
-      <Helmet>
-        <title>Free Engineering Calculators | NodeSim</title>
-        <meta name="description" content="Free online electronics and engineering calculators. Ohm's Law, Voltage Divider, RC circuits, 555 timers, and more." />
-        <meta name="keywords" content="free engineering calculators, electronics calculators online, circuit calculators" />
-        <meta property="og:title" content="Free Engineering Calculators | NodeSim" />
-        <meta property="og:description" content="Free online electronics and engineering calculators. Ohm's Law, Voltage Divider, RC circuits, 555 timers, and more." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.nodesimapp.com/tools" />
-        <link rel="canonical" href="https://www.nodesimapp.com/tools" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebPage",
-          "name": "Free Engineering Calculators",
-          "description": "Free online electronics calculators for engineering students.",
-          "url": "https://www.nodesimapp.com/tools",
-          "hasPart": [
-            { "@type": "SoftwareApplication", "name": "Ohm's Law Calculator", "url": "https://www.nodesimapp.com/tools/ohms-law", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" },
-            { "@type": "SoftwareApplication", "name": "Voltage Divider Calculator", "url": "https://www.nodesimapp.com/tools/voltage-divider", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" },
-            { "@type": "SoftwareApplication", "name": "RC Time Constant Calculator", "url": "https://www.nodesimapp.com/tools/rc-calculator", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" },
-            { "@type": "SoftwareApplication", "name": "555 Timer Calculator", "url": "https://www.nodesimapp.com/tools/555-timer", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" },
-            { "@type": "SoftwareApplication", "name": "Resistor Color Code Calculator", "url": "https://www.nodesimapp.com/tools/resistor-color-code", "applicationCategory": "EducationalApplication", "operatingSystem": "Web" }
-          ]
-        })}</script>
-      </Helmet>
+      <SEO
+        title="Free Engineering Calculators & Tools | NodeSim"
+        description="Free online engineering calculators: Ohm's Law, Voltage Divider, RC Filter, 555 Timer, and Resistor Color Code. Instant results, no install required."
+        url="https://www.nodesimapp.com/tools"
+        canonical="https://www.nodesimapp.com/tools"
+      />
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › Tools</div>
       <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: 16 }}>Free Engineering Calculators</h1>

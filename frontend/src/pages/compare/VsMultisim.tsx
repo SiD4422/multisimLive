@@ -30,8 +30,8 @@ const VsMultisim: React.FC = () => {
   return (
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#e2e8f0', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
-        title="Multisim Alternative Online | Free SPICE Circuit Simulator — NodeSim"
-        description="Best free NI Multisim alternative online. NodeSim delivers browser SPICE simulation with 311+ components, waveform grapher, and AI circuit tutor. No account required."
+        title="Free NI Multisim Alternative Online | NodeSim SPICE Simulator"
+        description="NodeSim is the best free NI Multisim alternative. Run real SPICE circuit simulations in your browser — 311+ components, waveform grapher, AI tutor. No login or install needed. Multisim Live replacement."
         url="https://www.nodesimapp.com/compare/multisim"
         canonical="https://www.nodesimapp.com/compare/multisim"
         keywords={[

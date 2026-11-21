@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../../components/SEO';
 import { Link } from 'react-router-dom';
 
 export default function RcCalculator() {
@@ -40,16 +40,12 @@ export default function RcCalculator() {
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', maxWidth: 640, margin: '0 auto', padding: '3rem 1.5rem', color: '#111827' }}>
-      <Helmet>
-        <title>RC Time Constant Calculator | NodeSim Tools</title>
-        <meta name="description" content="Free RC time constant calculator. Calculate tau (τ) and cutoff frequency (fc). Instant results. Verify with circuit simulation." />
-        <meta name="keywords" content="RC time constant calculator, RC circuit calculator, cutoff frequency calculator, electronics calculator" />
-        <meta property="og:title" content="RC Time Constant Calculator | NodeSim" />
-        <meta property="og:description" content="Free RC time constant calculator. Calculate tau (τ) and cutoff frequency (fc) instantly." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.nodesimapp.com/tools/rc-calculator" />
-        <link rel="canonical" href="https://www.nodesimapp.com/tools/rc-calculator" />
-      </Helmet>
+      <SEO
+        title="RC Circuit Calculator — Time Constant & Cutoff Frequency | NodeSim"
+        description="Calculate RC time constant (τ=RC) and cutoff frequency (fc=1/2πRC) instantly. Free online RC circuit calculator with circuit simulation link."
+        url="https://www.nodesimapp.com/tools/rc-calculator"
+        canonical="https://www.nodesimapp.com/tools/rc-calculator"
+      />
 
       <div style={{ marginBottom: 8, fontSize: 13 }}><Link to="/" style={{ color: '#16a34a' }}>NodeSim</Link> › <Link to="/tools" style={{ color: '#16a34a' }}>Tools</Link> › RC Calculator</div>
       <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: 8 }}>RC Time Constant Calculator</h1>

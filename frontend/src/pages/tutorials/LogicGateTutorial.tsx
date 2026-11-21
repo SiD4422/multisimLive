@@ -1,29 +1,22 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import SEO from '../../components/SEO';
 
 const LogicGateTutorial: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Logic Gates Tutorial — NAND, NOR & Universal Gates | NodeSim</title>
-        <meta name="description" content="Master logic gates: NAND truth table, De Morgan's theorem NAND(A,B) = NOT(A AND B), CMOS implementation, fan-out limits, and universal gate concept with simulation." />
-        <meta name="keywords" content="logic gates, NAND gate, NOR gate, De Morgan theorem, universal gate, CMOS logic, digital circuit simulation" />
-        <link rel="canonical" href="https://nodesimfree.netlify.app/tutorials/logic-gates" />
-        <meta property="og:title" content="Logic Gates Tutorial — NAND, NOR & Universal Gates | NodeSim" />
-        <meta property="og:description" content="Learn NAND gate truth tables, De Morgan's theorem, and how to build any logic function from NAND gates." />
-        <meta property="og:type" content="article" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "TechArticle",
-          "headline": "Logic Gates Tutorial — NAND, NOR & Universal Gates",
-          "description": "Master NAND gate truth table, De Morgan's theorem, CMOS implementation, and the universal gate concept.",
-          "author": { "@type": "Organization", "name": "NodeSim" },
-          "publisher": { "@type": "Organization", "name": "NodeSim" },
-          "educationalUse": "instruction",
-          "learningResourceType": "tutorial"
-        })}</script>
-      </Helmet>
+      <SEO
+        title="Logic Gates Tutorial — NAND, NOR & Universal Gates | NodeSim"
+        description="Master logic gates: NAND truth table, De Morgan's theorem NAND(A,B) = NOT(A AND B), CMOS implementation, fan-out limits, and universal gate concept with simulation."
+        canonical="https://www.nodesimapp.com/tutorials/logic-gates"
+        url="https://www.nodesimapp.com/tutorials/logic-gates"
+        type="article"
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Tutorials', path: '/tutorials' },
+          { name: 'Logic Gates', path: '/tutorials/logic-gates' },
+        ]}
+      />
 
       <main className="max-w-4xl mx-auto px-4 py-12 text-gray-100">
         {/* Breadcrumb */}

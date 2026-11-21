@@ -1,29 +1,22 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import SEO from '../../components/SEO';
 
 const PWMCircuitTutorial: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>PWM Circuit with 555 Timer Tutorial | NodeSim</title>
-        <meta name="description" content="Learn PWM generation using a 555 timer in astable mode. Calculate duty cycle D = RA/(RA+RB) and frequency f = 1.44/((RA+2RB)×C) with interactive simulation." />
-        <meta name="keywords" content="PWM, pulse width modulation, 555 timer, duty cycle, astable multivibrator, motor control, LED dimming" />
-        <link rel="canonical" href="https://nodesimfree.netlify.app/tutorials/pwm-circuit" />
-        <meta property="og:title" content="PWM Circuit with 555 Timer Tutorial | NodeSim" />
-        <meta property="og:description" content="Design a 555 timer PWM circuit and control duty cycle with a potentiometer." />
-        <meta property="og:type" content="article" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "TechArticle",
-          "headline": "PWM Circuit with 555 Timer",
-          "description": "Learn PWM generation using a 555 timer — calculate duty cycle and frequency, control with a pot.",
-          "author": { "@type": "Organization", "name": "NodeSim" },
-          "publisher": { "@type": "Organization", "name": "NodeSim" },
-          "educationalUse": "instruction",
-          "learningResourceType": "tutorial"
-        })}</script>
-      </Helmet>
+      <SEO
+        title="PWM Circuit with 555 Timer Tutorial | NodeSim"
+        description="Learn PWM generation using a 555 timer in astable mode. Calculate duty cycle D = RA/(RA+RB) and frequency f = 1.44/((RA+2RB)×C) with interactive simulation."
+        canonical="https://www.nodesimapp.com/tutorials/pwm-circuit"
+        url="https://www.nodesimapp.com/tutorials/pwm-circuit"
+        type="article"
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Tutorials', path: '/tutorials' },
+          { name: 'PWM Circuit', path: '/tutorials/pwm-circuit' },
+        ]}
+      />
 
       <main className="max-w-4xl mx-auto px-4 py-12 text-gray-100">
         {/* Breadcrumb */}
