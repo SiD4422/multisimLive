@@ -14,20 +14,6 @@ export default function LandingPage() {
         description="The modern free alternative to NI Multisim Live. Run real SPICE simulations in your browser with 311+ components, waveform grapher, and AI tutor. No install, no account required."
         url="https://www.nodesimapp.com/"
         canonical="https://www.nodesimapp.com/"
-        keywords={[
-          'NodeSim',
-          'multisim online',
-          'multisim free alternative',
-          'circuit simulator online',
-          'free SPICE simulator',
-          'ngspice browser',
-          'schematic editor online',
-          'breadboard circuit simulator',
-          'electronic circuit simulator',
-          'transient analysis online',
-          'ac sweep bode plot',
-          'electronics engineering lab tools'
-        ]}
         faqs={[
           {
             question: "Is NodeSim completely free to use?",
