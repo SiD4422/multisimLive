@@ -179,6 +179,8 @@ async function main() {
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu',
+      '--disable-features=VizDisplayCompositor',
+      '--single-process',
     ],
   });
 

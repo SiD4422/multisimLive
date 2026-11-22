@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:seo",
+  "buildCommand": "npx puppeteer browsers install chrome && npm run build:seo",
   "redirects": [
     {
       "source": "/(.*)",
