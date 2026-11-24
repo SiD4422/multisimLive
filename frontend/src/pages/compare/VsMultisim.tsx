@@ -54,11 +54,45 @@ const VsMultisim: React.FC = () => {
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
 
-      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>NodeSim vs NI Multisim</h1>
+      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>Free NI Multisim Alternative Online — NodeSim SPICE Simulator</h1>
       
-      <p style={{ fontSize: '1.1rem', marginBottom: '2rem' }}>
-        NI Multisim is widely used in universities, but its desktop version is expensive and Multisim Live has restrictions. NodeSim offers a fully free, modern alternative that runs directly in your browser.
+      <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>
+        Looking for a free alternative to NI Multisim? NodeSim is a web-native SPICE circuit simulator powered by ngspice WebAssembly. Design, wire, and analyze analog and digital circuits with 311+ components, real-time waveform graphing, and AI tutoring — 100% free with no install and no account required.
       </p>
+
+      {/* Quick Launch Interactive CTA Banner */}
+      <div style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(15,23,42,0.6))', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '12px', padding: '1.5rem', marginBottom: '2.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Instant In-Browser SPICE</div>
+            <h3 style={{ fontSize: '1.25rem', color: '#f8fafc', margin: '4px 0 0' }}>Launch NodeSim Simulator Workspace</h3>
+          </div>
+          <Link
+            to="/simulator"
+            style={{
+              backgroundColor: '#10b981',
+              color: '#0f172a',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '8px',
+              fontWeight: 700,
+              textDecoration: 'none',
+              fontSize: '1rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            Launch Free Simulator →
+          </Link>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '0.85rem', color: '#94a3b8' }}>
+          <span>Try pre-built circuits:</span>
+          <Link to="/circuits/555-timer-astable" style={{ color: '#38bdf8', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: '4px' }}>555 Timer</Link>
+          <Link to="/circuits/inverting-op-amp" style={{ color: '#38bdf8', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: '4px' }}>Inverting Op-Amp</Link>
+          <Link to="/circuits/buck-converter" style={{ color: '#38bdf8', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: '4px' }}>Buck Converter</Link>
+          <Link to="/circuits/rc-low-pass-filter" style={{ color: '#38bdf8', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '3px 8px', borderRadius: '4px' }}>RC Low-Pass Filter</Link>
+        </div>
+      </div>
 
       <h2 style={{ fontSize: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Comparison</h2>
       
