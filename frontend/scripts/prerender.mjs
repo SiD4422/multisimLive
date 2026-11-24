@@ -33,8 +33,8 @@ const BASE_URL  = 'https://www.nodesimapp.com';
 const ROUTES = [
   {
     route: '/',
-    title: 'NodeSim | Free Online Circuit Simulator & Multisim Alternative',
-    description: 'The modern, free alternative to NI Multisim. Design, build, and run real SPICE circuit simulations entirely in your browser with 311+ components, waveform grapher, and AI Tutor. Zero install, no account required.',
+    title: 'Free Online Circuit Simulator & Multisim Alternative | NodeSim',
+    description: 'Run real SPICE circuit simulations in your browser. 311+ components, live waveform grapher, interactive AI tutor. Free alternative to NI Multisim Live, zero install.',
     ogType: 'website',
   },
   {
