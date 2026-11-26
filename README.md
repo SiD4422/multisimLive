@@ -1,26 +1,27 @@
-# NodeSim — Free Browser-Based SPICE Circuit Simulator
+# NodeSim — Free Online SPICE Circuit Simulator & Multisim Alternative
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Live](https://img.shields.io/badge/Live-nodesimapp.com-blue)](https://www.nodesimapp.com)
 [![Tests](https://github.com/SiD4422/multisimLive/actions/workflows/test.yml/badge.svg)](https://github.com/SiD4422/multisimLive/actions)
 
-**NodeSim** is a zero-install, browser-based SPICE circuit simulator with an AI circuit debugger. It runs entirely in-browser using ngspice compiled to WebAssembly — no downloads, no accounts, no limits.
-
-> **Built as a free alternative for students who lost access to NI Multisim Live.**
+**NodeSim** is a free online SPICE circuit simulator and modern browser-based alternative to NI Multisim Live. Powered by **ngspice compiled to WebAssembly**, it runs full analog and mixed-signal simulations 100% client-side with zero installation and no account required.
 
 🔗 **Live site:** [nodesimapp.com](https://www.nodesimapp.com)  
-🔗 **Simulator:** [nodesimapp.com/simulator](https://www.nodesimapp.com/simulator)
+🔗 **Simulator:** [nodesimapp.com/simulator](https://www.nodesimapp.com/simulator)  
+🔗 **Compare vs Multisim:** [nodesimapp.com/compare/multisim](https://www.nodesimapp.com/compare/multisim)  
+🔗 **Circuit Library & Tools:** [nodesimapp.com/circuits](https://www.nodesimapp.com/circuits) · [nodesimapp.com/tools](https://www.nodesimapp.com/tools)
 
 ---
 
-## What it does
+## Features
 
-- **SPICE simulation** — Transient, AC sweep, DC sweep, and operating point analysis via ngspice-WASM running client-side
-- **Schematic editor** — Drag-and-drop canvas with 60+ component types (resistors, capacitors, transistors, op-amps, logic gates, and more)
-- **AI circuit debugger** — Diagnose issues, explain circuits, and chat with an AI that understands your actual schematic topology (powered by Gemini)
-- **Waveform viewer** — Oscilloscope-style plot with cursors, FFT, and measurements
-- **Circuit sharing** — Shareable URLs via LZString-compressed circuit state
-- **Export** — SPICE netlist (`.cir`), PNG snapshot
+- **Real SPICE engine (ngspice WASM)** — Transient analysis, AC frequency sweeps (Bode plots), DC sweeps, and DC operating points executed locally in your browser
+- **311+ verified components** — Passive RLC parts, diodes, BJTs, MOSFETs, precision op-amps, 555 timers, 74HC/CD4000 logic gates, optocouplers, MCUs, and display modules
+- **Interactive waveform grapher** — Multi-channel oscilloscope plots with cursors, FFT spectrum view, animated current-flow visualization, and CSV export
+- **AI circuit debugger** — Diagnose wiring issues, verify equations, and inspect netlist behavior with Gemini AI (`AiExplainerPanel`)
+- **Academic & PCB exports** — Export IEEE-formatted PDF lab reports (`LabReportModal`), KiCad netlists (`.net` via `exportKiCad`), SPICE netlists (`.cir`), and PNG schematics
+- **Zero-install learning tools** — 24+ ready-to-run starter schematics, 16 circuit tutorials, printable lab worksheets, and interactive engineering calculators
+- **Instant sharing** — Generate LZString-compressed shareable circuit links and embeddable iframes (`/simulator?embed=true`)
 
 ---
 
@@ -31,8 +32,8 @@ Browser
 │
 ├── React 19 + Konva (Canvas)
 │     ├── SchematicEditor.tsx   — drag-and-drop canvas, wire routing
-│     ├── MultisimSymbol.tsx    — renders 60+ component types as Konva shapes
-│     └── Grapher.tsx           — waveform viewer (recharts)
+│     ├── MultisimSymbol.tsx    — renders component shapes on Konva canvas
+│     └── Grapher.tsx           — waveform viewer, cursors, FFT, CSV export
 │
 ├── Zustand Store (useSchematicStore.ts)
 │     ├── Components, wires, probes state
@@ -44,10 +45,12 @@ Browser
 │     ├── spiceEngine.ts                — spawns ngspice-WASM Web Worker
 │     └── spiceWorker.ts                — runs inside Worker, calls ngspice WASM
 │
-└── AI Debugger
+└── AI Debugger & Exports
       ├── aiContext.ts          — extracts circuit topology + simulation stats
       ├── geminiClient.ts       — calls Gemini API (direct BYOK or hosted proxy)
-      └── AiExplainerPanel.tsx  — 3-mode UI: Diagnose / Chat / Explain
+      ├── AiExplainerPanel.tsx  — 3-mode UI: Diagnose / Chat / Explain
+      ├── LabReportModal.tsx    — IEEE-style PDF lab report export
+      └── exportKiCad.ts        — KiCad netlist export
 ```
 
 ---
@@ -91,6 +94,7 @@ npm run test:watch # watch mode
 
 ```bash
 npm run build      # production build to dist/
+npm run build:seo  # full build + 58-route React SSR static prerendering
 npm run preview    # preview the production build
 ```
 
@@ -141,14 +145,22 @@ multisimfree/
 │   │   ├── lib/                # AI client, type definitions
 │   │   ├── pages/
 │   │   │   ├── Simulator.tsx
-│   │   │   ├── tutorials/      # SEO tutorial pages
-│   │   │   └── compare/        # Comparison pages
+│   │   │   ├── LandingPage.tsx
+│   │   │   ├── circuits/       # Circuit templates & landing pages
+│   │   │   ├── tools/          # Interactive electronics calculators
+│   │   │   ├── tutorials/      # Step-by-step circuit tutorials
+│   │   │   └── compare/        # Simulator comparison pages
+│   │   ├── routes/
+│   │   │   └── marketingRoutes.tsx
+│   │   ├── entry-server.tsx    # React 19 SSR prerender entry
 │   │   ├── store/
 │   │   │   └── useSchematicStore.ts
 │   │   └── utils/
 │   │       ├── netlister/      # SPICE netlist generation (modular)
 │   │       ├── spiceEngine.ts
 │   │       └── spiceWorker.ts
+│   ├── scripts/
+│   │   └── prerender.mjs       # Build-time SSR HTML generator
 │   ├── .env.example
 │   └── vercel.json
 └── LICENSE
