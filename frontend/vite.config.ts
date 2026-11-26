@@ -68,22 +68,24 @@ function geminiDevPlugin(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   plugins: [react(), geminiDevPlugin()],
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          const normalized = id.replace(/\\/g, '/');
-          if (normalized.includes('node_modules')) {
-            if (normalized.includes('/react/') || normalized.includes('/react-dom/') || normalized.includes('/react-router-dom/')) return 'react-vendor';
-            if (normalized.includes('/recharts/')) return 'charts';
-            if (normalized.includes('/firebase/') || normalized.includes('/@firebase/')) return 'firebase';
-            if (normalized.includes('/konva/') || normalized.includes('/react-konva/')) return 'konva';
-            if (normalized.includes('/lucide-react/')) return 'lucide';
-          }
+    rollupOptions: isSsrBuild
+      ? undefined
+      : {
+          output: {
+            manualChunks(id) {
+              const normalized = id.replace(/\\/g, '/');
+              if (normalized.includes('node_modules')) {
+                if (normalized.includes('/react/') || normalized.includes('/react-dom/') || normalized.includes('/react-router-dom/')) return 'react-vendor';
+                if (normalized.includes('/recharts/')) return 'charts';
+                if (normalized.includes('/firebase/') || normalized.includes('/@firebase/')) return 'firebase';
+                if (normalized.includes('/konva/') || normalized.includes('/react-konva/')) return 'konva';
+                if (normalized.includes('/lucide-react/')) return 'lucide';
+              }
+            },
+          },
         },
-      },
-    },
   },
-})
+}))
