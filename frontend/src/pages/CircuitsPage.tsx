@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, ChevronRight, Layers } from 'lucide-react';
 import { getCommunityCircuits, incrementViews, type CommunityCircuit } from '../lib/firebase';
 import { useTheme } from '../contexts/ThemeContext';
@@ -243,12 +243,14 @@ export default function CircuitsPage() {
               const isHov = hovered === ex.id;
               const { Icon: IconComp } = ex;
               return (
-                <div
+                <Link
                   key={ex.id}
-                  onClick={() => navigate(`/circuits/${ex.id}`)}
+                  to={`/circuits/${ex.id}`}
                   onMouseEnter={() => setHovered(ex.id)}
                   onMouseLeave={() => setHovered(null)}
                   style={{
+                    display: 'block',
+                    textDecoration: 'none',
                     borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
                     border: `1px solid ${isHov ? ex.accent : C.border}`,
                     backgroundColor: C.bgCard,
@@ -366,7 +368,7 @@ export default function CircuitsPage() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

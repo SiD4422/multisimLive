@@ -87,6 +87,32 @@ const SSR_ROUTES = [
   '/circuits/voltage-divider',
   '/circuits/zener-diode',
   '/circuits/mosfet-switch',
+  // Dynamic circuit template pages (/circuits/:id)
+  '/circuits/hpf',
+  '/circuits/rl_lp',
+  '/circuits/lc_bp',
+  '/circuits/integrator',
+  '/circuits/transformer',
+  '/circuits/npn_amp',
+  '/circuits/comparator',
+  '/circuits/schmitt',
+  '/circuits/mosfet_inv',
+  '/circuits/wien',
+  '/circuits/pnp_amp',
+  '/circuits/cb_amp',
+  '/circuits/vreg_5v',
+  '/circuits/zener_reg',
+  '/circuits/series_resonant',
+  // Aliased template routes (SSR renders with their CANONICAL_MAPPINGS canonical pointer)
+  '/circuits/lpf',
+  '/circuits/opamp',
+  '/circuits/555',
+  '/circuits/rectifier',
+  '/circuits/half_wave',
+  '/circuits/ce_amp',
+  '/circuits/vdivider',
+  '/circuits/zener',
+  '/circuits/mosfet_sw',
 ];
 
 /**

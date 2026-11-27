@@ -45,6 +45,21 @@
   <url><loc>https://www.nodesimapp.com/circuits/voltage-divider</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.nodesimapp.com/circuits/zener-diode</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.nodesimapp.com/circuits/mosfet-switch</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/hpf</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/rl_lp</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/lc_bp</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/integrator</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/transformer</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/npn_amp</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/comparator</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/schmitt</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/mosfet_inv</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/wien</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/pnp_amp</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/cb_amp</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/vreg_5v</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/zener_reg</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.nodesimapp.com/circuits/series_resonant</loc><lastmod>2026-11-27</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
   <url><loc>https://www.nodesimapp.com/privacy</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://www.nodesimapp.com/terms</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://www.nodesimapp.com/components</loc><lastmod>2026-11-24</lastmod><changefreq>monthly</changefreq><priority>0.85</priority></url>
