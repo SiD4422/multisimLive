@@ -1,3 +1,4 @@
+import type Konva from 'konva';
 import { Group, Path, Text, Circle, Line, Rect } from 'react-konva';
 import type { SchematicComponent } from '../../store/useSchematicStore';
 
@@ -5,9 +6,9 @@ interface SourceSymbolProps {
   component: SchematicComponent;
   selected?: boolean;
   onSelect?: () => void;
-  onDragMove: (e: any) => void;
-  onDragEnd: (e: any) => void;
-  onNodeClick: (e: any, pos: { x: number, y: number }) => void;
+  onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onNodeClick: (e: Konva.KonvaEventObject<MouseEvent | PointerEvent>, pos: { x: number, y: number }) => void;
 }
 
 export default function SourceSymbol({ component, selected, onSelect, onDragMove, onDragEnd, onNodeClick }: SourceSymbolProps) {
@@ -84,7 +85,7 @@ export default function SourceSymbol({ component, selected, onSelect, onDragMove
       onDragMove={onDragMove}
       onDragEnd={onDragEnd}
       rotation={component.rotation || 0}
-      onMouseDown={(e) => {
+      onMouseDown={() => {
         if (onSelect) onSelect();
       }}
     >
@@ -105,8 +106,8 @@ export default function SourceSymbol({ component, selected, onSelect, onDragMove
           e.cancelBubble = true; 
           onNodeClick(e, { x: component.position.x, y: component.position.y }); 
         }}
-        onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as any).fill('#e5e7eb'); }}
-        onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}
+        onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as Konva.Circle).fill('#e5e7eb'); }}
+        onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as Konva.Circle).fill('#fff'); }}
       />
       <Circle 
         x={60} y={0} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={isTouch ? 56 : 15}
@@ -124,8 +125,8 @@ export default function SourceSymbol({ component, selected, onSelect, onDragMove
           const rotY = 60 * Math.sin(rad);
           onNodeClick(e, { x: component.position.x + rotX, y: component.position.y + rotY }); 
         }}
-        onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as any).fill('#e5e7eb'); }}
-        onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}
+        onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as Konva.Circle).fill('#e5e7eb'); }}
+        onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as Konva.Circle).fill('#fff'); }}
       />
       
       {/* Labels — positioned clear of the circle body (radius=15 at centerX=30) */}

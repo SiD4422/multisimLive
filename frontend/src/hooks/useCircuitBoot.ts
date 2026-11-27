@@ -1,8 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSchematicStore, hadSavedCircuitAtBoot } from '../store/useSchematicStore';
 import LZString from 'lz-string';
 
 type BootSource = 'url' | 'restored' | 'fresh' | 'demo';
+
+interface BootPlan {
+  source: BootSource;
+  urlJson: string | null;
+}
 
 const demoCircuit = {
   components: [
@@ -27,56 +32,60 @@ const demoCircuit = {
   acSettings: { fStart: '10', fStop: '100k', points: '100' }
 };
 
+function resolveBootPlan(): BootPlan {
+  if (typeof window === 'undefined') {
+    return { source: 'fresh', urlJson: null };
+  }
+
+  const hash = window.location.hash;
+  const rawParam = hash && hash.startsWith('#circuit=')
+    ? hash.substring(9)
+    : new URLSearchParams(window.location.search).get('circuit');
+
+  if (rawParam) {
+    try {
+      let jsonStr: string | null = LZString.decompressFromEncodedURIComponent(rawParam);
+      if (!jsonStr) {
+        try {
+          jsonStr = decodeURIComponent(atob(rawParam));
+        } catch {
+          jsonStr = null;
+        }
+      }
+      if (jsonStr) {
+        return { source: 'url', urlJson: jsonStr };
+      }
+    } catch (err) {
+      console.error('Failed to load circuit from URL:', err);
+    }
+  }
+
+  return hadSavedCircuitAtBoot()
+    ? { source: 'restored', urlJson: null }
+    : { source: 'demo', urlJson: null };
+}
+
 export function useCircuitBoot() {
-  const ranRef = useRef(false);
-  const [source, setSource] = useState<BootSource>('fresh');
+  const [plan] = useState<BootPlan>(resolveBootPlan);
 
   useEffect(() => {
-    if (ranRef.current) return;
-    ranRef.current = true;
-
-    const hash = window.location.hash;
-    let rawParam: string | null = null;
-    if (hash && hash.startsWith('#circuit=')) {
-      rawParam = hash.substring(9);
-    } else {
-      const searchParams = new URLSearchParams(window.location.search);
-      rawParam = searchParams.get('circuit');
+    if (plan.source === 'url' && plan.urlJson) {
+      const jsonStr = plan.urlJson;
+      // Defer importState until Zustand store hydration finishes
+      const timer = setTimeout(() => {
+        useSchematicStore.getState().importState(jsonStr);
+        window.history.replaceState(null, '', window.location.pathname);
+      }, 50);
+      return () => clearTimeout(timer);
     }
 
-    if (rawParam) {
-      try {
-        let jsonStr: string | null = LZString.decompressFromEncodedURIComponent(rawParam);
-        if (!jsonStr) {
-          try {
-            jsonStr = decodeURIComponent(atob(rawParam));
-          } catch {
-            jsonStr = null;
-          }
-        }
-        if (jsonStr) {
-          // Wrap in setTimeout to ensure Zustand store hydration finishes before we override it
-          setTimeout(() => {
-            useSchematicStore.getState().importState(jsonStr);
-            window.history.replaceState(null, '', window.location.pathname);
-          }, 50);
-          setSource('url');
-          return;
-        }
-      } catch (err) {
-        console.error("Failed to load circuit from URL:", err);
-      }
-    }
-
-    if (hadSavedCircuitAtBoot()) {
-      setSource('restored');
-    } else {
-      setSource('demo');
-      setTimeout(() => {
+    if (plan.source === 'demo') {
+      const timer = setTimeout(() => {
         useSchematicStore.getState().importState(JSON.stringify(demoCircuit));
       }, 80);
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [plan]);
 
-  return source;
+  return plan.source;
 }

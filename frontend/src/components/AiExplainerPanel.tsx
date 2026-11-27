@@ -10,7 +10,7 @@ import { buildAIContext } from '../lib/aiContext';
 import { diagnose, streamExplain, streamChat } from '../lib/geminiClient';
 import { saveApiKey, loadApiKey, clearApiKey } from '../lib/secureKeyStorage';
 import { track } from '@vercel/analytics';
-import type { DiagnosisResult, ChatMessage, DiagnosticIssue } from '../lib/aiTypes';
+import type { ChatMessage, DiagnosticIssue } from '../lib/aiTypes';
 
 // ─── Mini markdown renderer (unchanged from before) ────────────────────────
 

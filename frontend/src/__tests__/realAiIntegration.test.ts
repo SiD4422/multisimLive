@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import handler from '../../api/gemini';
-import { diagnose, streamExplain, streamChat } from '../lib/geminiClient';
+import { diagnose, streamExplain } from '../lib/geminiClient';
 import { saveApiKey, loadApiKey, clearApiKey, hasStoredApiKey } from '../lib/keyStorage';
 import { jsPDF } from 'jspdf';
 import type { AIContext } from '../lib/aiTypes';

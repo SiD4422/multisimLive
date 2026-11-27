@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React from 'react';
 import { X } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
 

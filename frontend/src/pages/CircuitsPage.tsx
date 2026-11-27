@@ -1,33 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, ChevronRight, Layers } from 'lucide-react';
 import { getCommunityCircuits, incrementViews, type CommunityCircuit } from '../lib/firebase';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 import SEO from '../components/SEO';
-
-// EXAMPLES re-exported from shared registry — CircuitTemplatePage imports directly from there,
-// breaking the cross-page static import that defeated Vite's lazy chunk splitting.
-export { EXAMPLES } from '../data/circuitExamples';
 import { EXAMPLES } from '../data/circuitExamples';
-
-import lowPassFilter        from '../examples/low_pass_filter.json';
-import rcHighPassFilter     from '../examples/rc_high_pass_filter.json';
-import bridgeRectifier      from '../examples/bridge_rectifier.json';
-import halfWaveRectifier    from '../examples/half_wave_rectifier.json';
-import invertingOpamp       from '../examples/inverting_opamp.json';
-import astable555           from '../examples/astable_555.json';
-import voltageDivider       from '../examples/voltage_divider.json';
-import lcBandpassFilter     from '../examples/lc_bandpass_filter.json';
-import zenerClipper         from '../examples/zener_clipper.json';
-import npnAmplifier         from '../examples/npn_amplifier.json';
-import transformerStepdown  from '../examples/transformer_stepdown.json';
-import rlLowPass            from '../examples/rl_low_pass.json';
-import mosfetSwitch         from '../examples/mosfet_switch.json';
-import rcIntegrator         from '../examples/rc_integrator.json';
-import commonEmitter        from '../examples/common_emitter.json';
-import hybridSwitchedInductor from '../examples/hybrid_switched_inductor.json';
-import comparatorCircuit    from '../examples/comparator_circuit.json';
-
 
 const ANALYSIS_COLORS = {
   acSweep: '#0ea5e9',
@@ -44,7 +21,6 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 };
 
 export default function CircuitsPage() {
-  const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -71,20 +47,16 @@ export default function CircuitsPage() {
   const [communityLoading, setCommunityLoading] = useState(false);
   const [communityError, setCommunityError] = useState('');
 
-  const handleSimulate = (circuitData: object) => {
-    try { sessionStorage.setItem('nodesim-pending-circuit', JSON.stringify(circuitData)); } catch {}
-    navigate('/simulator');
-  };
-
-  useEffect(() => {
-    if (activeTab !== 'community') return;
+  const handleOpenCommunityTab = () => {
+    setActiveTab('community');
+    if (activeTab === 'community' || communityLoading) return;
     setCommunityLoading(true);
     setCommunityError('');
     getCommunityCircuits(50)
       .then(circuits => setCommunityCircuits(circuits))
       .catch(() => setCommunityError('Failed to load community circuits.'))
       .finally(() => setCommunityLoading(false));
-  }, [activeTab]);
+  };
 
   const filtered = EXAMPLES.filter(ex => {
     const matchCat = activeCategory === 'All' || ex.category === activeCategory;
@@ -215,7 +187,7 @@ export default function CircuitsPage() {
               color: activeTab === 'featured' ? '#fff' : C.textSecondary }}
           >⭐ Featured ({EXAMPLES.length})</button>
           <button
-            onClick={() => setActiveTab('community')}
+            onClick={handleOpenCommunityTab}
             style={{ padding: '8px 20px', borderRadius: 7, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
               background: activeTab === 'community' ? '#16a34a' : 'transparent',
               color: activeTab === 'community' ? '#fff' : C.textSecondary }}
@@ -321,7 +293,7 @@ export default function CircuitsPage() {
                       color: C.textSecondary,
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical' as any,
+                      WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
                       height: 42,
                     }}>

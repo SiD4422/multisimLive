@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useSchematicStore } from '../store/useSchematicStore';
-import { X, Info, Zap, Settings, Activity, ActivitySquare, Timer, Waves, SlidersHorizontal, Trash2, ChevronDown, ChevronRight, Palette, Check } from 'lucide-react';
+import { useSchematicStore, type SchematicComponent } from '../store/useSchematicStore';
+import { X, Zap, Settings, Activity, ActivitySquare, Timer, Waves, SlidersHorizontal, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { getComponentMetadata } from '../utils/ComponentDescriptions';
 import { parseSpiceToFloat } from '../utils/netlister';
 
@@ -37,13 +37,12 @@ function formatWithUnit(baseValue: number, unitStr: string) {
   return `${baseValue}`;
 }
 
-// old import replaced:
-import { getComponentMetadata as _unused } from '../utils/ComponentDescriptions';
+// old import replaced cleanly via single top import
 import { AnalysisSettings } from './AnalysisSettings';
 import { componentDisplayValue, normalizeValue, validateValue, COMPONENT_UNITS } from '../utils/valueFormatter';
 
 function parseValueWithUnit(raw: string): { num: string; unit: string } {
-  const m = raw.trim().match(/^([+\-]?[\d.]+)\s*([kKmMuU\u00b5nNpP]?)(\u03a9|F|H|ohm|ohms?)?$/i);
+  const m = raw.trim().match(/^([+-]?[\d.]+)\s*([kKmMuU\u00b5nNpP]?)(\u03a9|F|H|ohm|ohms?)?$/i);
   if (!m) return { num: raw, unit: '' };
   const prefix = m[2] || '';
   if (prefix === 'M') return { num: m[1], unit: 'M' };
@@ -58,7 +57,7 @@ function buildValueString(num: string, unit: string, compType: string): string {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function parseValue(type: string, rawVal: string) {
+function parseValue(type: string, rawVal: string): InspectorFields {
   const val = rawVal || '';
   const parts = val.split(' ');
 
@@ -104,7 +103,24 @@ function parseValue(type: string, rawVal: string) {
   }
 }
 
-function stringifyValue(type: string, fields: any) {
+type InspectorFields = Record<string, string>;
+
+interface LocalVisualState {
+  showLabel: boolean;
+  labelPosition: string;
+  color: string;
+}
+
+interface InputGroupProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  icon?: React.ComponentType<{ size?: number; style?: React.CSSProperties }>;
+  type?: string;
+}
+
+function stringifyValue(type: string, fields: InspectorFields) {
   switch (type) {
     case 'ACSource': return `${fields.amplitude || '1'}Vpk ${fields.frequency || '1k'}Hz`;
     case 'ACCurrent': return `${fields.amplitude || '1'}Apk ${fields.frequency || '1k'}Hz`;
@@ -113,13 +129,13 @@ function stringifyValue(type: string, fields: any) {
       if (fields.v1 !== undefined) {
         return `${fields.v1} ${fields.v2} ${fields.delay} ${fields.rise} ${fields.fall} ${fields.width} ${fields.period}`;
       }
-      return fields.main;
+      return fields.main || '';
     case 'AMVoltage': case 'FMVoltage': case 'ChirpVoltage': case 'StepVoltage': case 'TriangularVoltage':
       if (fields.amplitude !== undefined) return `${fields.amplitude}Vpk ${fields.frequency}Hz`;
-      return fields.main;
+      return fields.main || '';
     case 'TriangularCurrent': case 'StepCurrent': case 'FMCurrent': case 'ChirpCurrent':
       if (fields.amplitude !== undefined) return `${fields.amplitude}Apk ${fields.frequency}Hz`;
-      return fields.main;
+      return fields.main || '';
     default:
       return fields.main || '';
   }
@@ -144,7 +160,7 @@ const DEFAULT_VALUES: Record<string, string> = {
 
 // ── Field Sub-components ─────────────────────────────────────────────────────
 
-const InputGroup = ({ label, value, onChange, placeholder, icon: Icon, type = 'text' }: any) => (
+const InputGroup = ({ label, value, onChange, placeholder, icon: Icon, type = 'text' }: InputGroupProps) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
     <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6 }}>
       {Icon && <Icon size={12} style={{ color: '#3b82f6' }} />}
@@ -164,44 +180,130 @@ const InputGroup = ({ label, value, onChange, placeholder, icon: Icon, type = 't
 
 export const ComponentInspectorPanel: React.FC = () => {
   const { components, selectedComponentId, isConfigOpen, setIsConfigOpen, updateComponentProperties, deleteComponent } = useSchematicStore();
-  const updateComponent = (id: string, newProps: { value: string }) => {
-    updateField('main', newProps.value);
-    updateComponentProperties(id, newProps);
-  };
   const [activeTab, setActiveTab] = useState<'properties' | 'simulation'>('properties');
+  const activeComponent = components.find(c => c.id === selectedComponentId);
 
-const [designator, setDesignator] = useState('');
-  const [fields, setFields] = useState<any>({});
-  const [rclInput, setRclInput] = useState<string>('');
+  // Switch back to properties tab when a new component is selected via external store subscription
+  useEffect(() => {
+    return useSchematicStore.subscribe((state, prev) => {
+      if (state.selectedComponentId && state.selectedComponentId !== prev.selectedComponentId) {
+        setActiveTab('properties');
+      }
+    });
+  }, []);
+
+  if (!isConfigOpen) return null;
+
+  return (
+    <div className="right-panel-wrapper" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+
+      {/* ── Tab Header ── */}
+      <div style={{ display: 'flex', borderBottom: '2px solid #e5e7eb', backgroundColor: '#fff', flexShrink: 0 }}>
+        <button
+          onClick={() => setActiveTab('properties')}
+          style={{
+            flex: 1, padding: '12px 8px', fontSize: '12px', fontWeight: 700,
+            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            borderBottom: activeTab === 'properties' ? '3px solid #2563eb' : '3px solid transparent',
+            color: activeTab === 'properties' ? '#2563eb' : '#6b7280',
+            backgroundColor: 'transparent', textTransform: 'uppercase', letterSpacing: '0.05em',
+            transition: 'all 0.15s'
+          }}
+        >
+          <Zap size={14} /> Properties
+        </button>
+        <button
+          onClick={() => setActiveTab('simulation')}
+          style={{
+            flex: 1, padding: '12px 8px', fontSize: '12px', fontWeight: 700,
+            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            borderBottom: activeTab === 'simulation' ? '3px solid #16a34a' : '3px solid transparent',
+            color: activeTab === 'simulation' ? '#16a34a' : '#6b7280',
+            backgroundColor: 'transparent', textTransform: 'uppercase', letterSpacing: '0.05em',
+            transition: 'all 0.15s'
+          }}
+        >
+          <SlidersHorizontal size={14} /> Simulation
+        </button>
+        <button
+          onClick={() => setIsConfigOpen(false)}
+          style={{ padding: '12px', border: 'none', cursor: 'pointer', color: '#9ca3af', backgroundColor: 'transparent' }}
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      {/* ── Properties Tab ── */}
+      {activeTab === 'properties' && (
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+          {!activeComponent ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', gap: 12, color: '#9ca3af', textAlign: 'center' }}>
+              <Settings size={48} style={{ color: '#d1d5db' }} />
+              <p style={{ fontSize: '13px', fontWeight: 500, color: '#6b7280', margin: 0 }}>
+                Select a component on the canvas to view its detailed properties.
+              </p>
+            </div>
+          ) : (
+            <ComponentPropertiesEditor
+              key={activeComponent.id}
+              activeComponent={activeComponent}
+              updateComponentProperties={updateComponentProperties}
+              deleteComponent={deleteComponent}
+              setIsConfigOpen={setIsConfigOpen}
+            />
+          )}
+        </div>
+      )}
+
+      {/* ── Simulation Tab ── */}
+      {activeTab === 'simulation' && (
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <AnalysisSettings isOpen={true} onClose={undefined} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface ComponentPropertiesEditorProps {
+  activeComponent: SchematicComponent;
+  updateComponentProperties: (id: string, newProps: Partial<SchematicComponent>) => void;
+  deleteComponent: (id: string) => void;
+  setIsConfigOpen: (isOpen: boolean) => void;
+}
+
+const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
+  activeComponent,
+  updateComponentProperties,
+  deleteComponent,
+  setIsConfigOpen,
+}) => {
+  const isRCLType = activeComponent.type === 'Resistor' || activeComponent.type === 'Capacitor' || activeComponent.type === 'Inductor';
+  const parsedInitialNum = parseValueWithUnit(activeComponent.value || '').num;
+  const parsedInitialFloat = parseFloat(parsedInitialNum);
+  const needsDefaultRepair = isRCLType && (!parsedInitialNum || isNaN(parsedInitialFloat) || parsedInitialFloat <= 0);
+  const effectiveInitialValue = needsDefaultRepair
+    ? (DEFAULT_VALUES[activeComponent.type] || '1k')
+    : (activeComponent.value || '');
+
+  const [designator] = useState(() => activeComponent.id || '');
+  const [fields, setFields] = useState<InspectorFields>(() => parseValue(activeComponent.type, effectiveInitialValue));
+  const [rclInput, setRclInput] = useState<string>(() => parseValueWithUnit(effectiveInitialValue).num);
   const [valueError, setValueError] = useState<string | null>(null);
 
   const [showVisual, setShowVisual] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [localVisual, setLocalVisual] = useState<any>({ showLabel: true, labelPosition: 'Top', color: 'Default' });
+  const [localVisual, setLocalVisual] = useState<LocalVisualState>({ showLabel: true, labelPosition: 'Top', color: 'Default' });
 
-  const activeComponent = components.find(c => c.id === selectedComponentId);
-
-  // Auto-switch to properties tab when a component is selected
   useEffect(() => {
-    if (activeComponent) {
-      setActiveTab('properties');
-      setDesignator(activeComponent.id || '');
-      setFields(parseValue(activeComponent.type, activeComponent.value || ''));
-      const parsedNum = parseValueWithUnit(activeComponent.value || '').num;
-      const parsedFloat = parseFloat(parsedNum);
-      const isRCLComp = activeComponent.type === 'Resistor' || activeComponent.type === 'Capacitor' || activeComponent.type === 'Inductor';
-      if (isRCLComp && (!parsedNum || isNaN(parsedFloat) || parsedFloat <= 0)) {
-        const def = DEFAULT_VALUES[activeComponent.type] || '1k';
-        const safeParsed = parseValue(activeComponent.type, def);
-        setFields(safeParsed);
-        setRclInput(parseValueWithUnit(def).num);
-        updateComponentProperties(activeComponent.id, { value: def });
-      } else {
-        setRclInput(parsedNum);
-      }
-      setValueError(null);
+    if (needsDefaultRepair) {
+      updateComponentProperties(activeComponent.id, { value: effectiveInitialValue });
     }
-  }, [activeComponent?.id]);
+  }, [needsDefaultRepair, activeComponent.id, effectiveInitialValue, updateComponentProperties]);
+
+  const updateField = (key: string, val: string) => {
+    setFields((prev) => ({ ...prev, [key]: val }));
+  };
 
   const handleSave = () => {
     if (!activeComponent || !designator.trim()) return;
@@ -227,7 +329,7 @@ const [designator, setDesignator] = useState('');
     const newValue = stringifyValue(activeComponent.type, fields);
     updateComponentProperties(activeComponent.id, {
       id: designator.trim(),
-      value: newValue.trim()
+      value: newValue.trim(),
     });
   };
 
@@ -244,8 +346,9 @@ const [designator, setDesignator] = useState('');
     }
   };
 
-  const updateField = (key: string, val: string) => {
-    setFields((prev: any) => ({ ...prev, [key]: val }));
+  const updateComponent = (id: string, newProps: { value: string }) => {
+    updateField('main', newProps.value);
+    updateComponentProperties(id, newProps);
   };
 
   const renderFields = () => {
@@ -585,61 +688,10 @@ const [designator, setDesignator] = useState('');
     );
   };
 
-  if (!isConfigOpen) return null;
-
-  const meta = activeComponent ? getComponentMetadata(activeComponent.type) : null;
+  const meta = getComponentMetadata(activeComponent.type);
 
   return (
-    <div className="right-panel-wrapper" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-
-      {/* ── Tab Header ── */}
-      <div style={{ display: 'flex', borderBottom: '2px solid #e5e7eb', backgroundColor: '#fff', flexShrink: 0 }}>
-        <button
-          onClick={() => setActiveTab('properties')}
-          style={{
-            flex: 1, padding: '12px 8px', fontSize: '12px', fontWeight: 700,
-            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            borderBottom: activeTab === 'properties' ? '3px solid #2563eb' : '3px solid transparent',
-            color: activeTab === 'properties' ? '#2563eb' : '#6b7280',
-            backgroundColor: 'transparent', textTransform: 'uppercase', letterSpacing: '0.05em',
-            transition: 'all 0.15s'
-          }}
-        >
-          <Zap size={14} /> Properties
-        </button>
-        <button
-          onClick={() => setActiveTab('simulation')}
-          style={{
-            flex: 1, padding: '12px 8px', fontSize: '12px', fontWeight: 700,
-            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            borderBottom: activeTab === 'simulation' ? '3px solid #16a34a' : '3px solid transparent',
-            color: activeTab === 'simulation' ? '#16a34a' : '#6b7280',
-            backgroundColor: 'transparent', textTransform: 'uppercase', letterSpacing: '0.05em',
-            transition: 'all 0.15s'
-          }}
-        >
-          <SlidersHorizontal size={14} /> Simulation
-        </button>
-        <button
-          onClick={() => setIsConfigOpen(false)}
-          style={{ padding: '12px', border: 'none', cursor: 'pointer', color: '#9ca3af', backgroundColor: 'transparent' }}
-        >
-          <X size={16} />
-        </button>
-      </div>
-
-      {/* ── Properties Tab ── */}
-      {activeTab === 'properties' && (
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
-          {!activeComponent ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', gap: 12, color: '#9ca3af', textAlign: 'center' }}>
-              <Settings size={48} style={{ color: '#d1d5db' }} />
-              <p style={{ fontSize: '13px', fontWeight: 500, color: '#6b7280', margin: 0 }}>
-                Select a component on the canvas to view its detailed properties.
-              </p>
-            </div>
-          ) : (
-            <>
+    <>
               {/* Component Info */}
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: 16, marginBottom: 16, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
                 <div style={{ flexShrink: 0, width: 40, height: 40, background: '#eff6ff', color: '#2563eb', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #dbeafe' }}>
@@ -757,21 +809,10 @@ const [designator, setDesignator] = useState('');
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#fee2e2'; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#fff5f5'; }}
                   >
-                    <Trash2 size={16} />
-                    Delete Component
-                  </button>
-                </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ── Simulation Tab ── */}
-      {activeTab === 'simulation' && (
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          <AnalysisSettings isOpen={true} onClose={undefined} />
-        </div>
-      )}
-    </div>
+                      <Trash2 size={16} />
+                      Delete Component
+                    </button>
+                  </div>
+    </>
   );
 };

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React from 'react';
+import type Konva from 'konva';
 import { Group, Rect, Text, Path } from 'react-konva';
 import { useSchematicStore } from '../../store/useSchematicStore';
 import { getSpiceNodeForPoint } from '../../utils/netlister';
@@ -9,7 +10,7 @@ interface VoltageProbeProps {
 }
 
 export const VoltageProbe: React.FC<VoltageProbeProps> = ({ id, position }) => {
-  const { isSimulating, simulationBuffer, playbackTime, components, wires, selectedProbeId, setSelectedProbe } = useSchematicStore();
+  const { simulationBuffer, playbackTime, components, wires, selectedProbeId, setSelectedProbe } = useSchematicStore();
   
   // Calculate Spice Node at this position
   const spiceNode = React.useMemo(() => {
@@ -19,13 +20,13 @@ export const VoltageProbe: React.FC<VoltageProbeProps> = ({ id, position }) => {
   let valueDisplay = "V: --";
   
   if (simulationBuffer && simulationBuffer.length > 0) {
-    const isAc = (simulationBuffer as any).__plotType === 'ac';
+    const isAc = simulationBuffer.__plotType === 'ac';
     
     if (isAc) {
       valueDisplay = "V: (AC)";
     } else {
       // Find the current point based on playbackTime
-      const activeData = simulationBuffer.filter((row: any) => row.time <= playbackTime);
+      const activeData = simulationBuffer.filter((row) => row.time <= playbackTime);
       const lastPoint = activeData.length > 0 ? activeData[activeData.length - 1] : simulationBuffer[0];
       
       const key1 = `v(${spiceNode})`;
@@ -49,13 +50,13 @@ export const VoltageProbe: React.FC<VoltageProbeProps> = ({ id, position }) => {
       x={position.x} 
       y={position.y} 
       draggable
-      onDragEnd={(e: any) => {
+      onDragEnd={(e: Konva.KonvaEventObject<DragEvent>) => {
         const x = Math.round(e.target.x() / 10) * 10; // SNAP_GRID
         const y = Math.round(e.target.y() / 10) * 10;
         e.target.position({ x, y });
         useSchematicStore.getState().updateProbePosition(id, { x, y });
       }}
-      onClick={(e: any) => {
+      onClick={(e: Konva.KonvaEventObject<MouseEvent>) => {
         e.cancelBubble = true;
         setSelectedProbe(id);
       }}

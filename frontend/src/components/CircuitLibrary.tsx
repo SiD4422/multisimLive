@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { BookOpen, Save, Trash2, FolderOpen, X, Clock, Cpu } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
 
@@ -29,14 +29,15 @@ interface Props {
 }
 
 export function CircuitLibrary({ isOpen, onClose, onSaveRequest }: Props) {
+  if (!isOpen) return null;
+  return <CircuitLibraryInner onClose={onClose} onSaveRequest={onSaveRequest} />;
+}
+
+function CircuitLibraryInner({ onClose, onSaveRequest }: Omit<Props, 'isOpen'>) {
   const { exportState, importState } = useSchematicStore();
-  const [library, setLibrary] = useState<SavedCircuit[]>([]);
+  const [library, setLibrary] = useState<SavedCircuit[]>(getLibrary);
   const [saveName, setSaveName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) setLibrary(getLibrary());
-  }, [isOpen]);
 
   const handleSave = useCallback(() => {
     const name = saveName.trim() || 'Untitled Circuit';
@@ -78,8 +79,6 @@ export function CircuitLibrary({ isOpen, onClose, onSaveRequest }: Props) {
       return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     } catch { return iso; }
   };
-
-  if (!isOpen) return null;
 
   return (
     <div style={{

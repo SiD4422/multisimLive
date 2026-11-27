@@ -19,7 +19,6 @@ import type { SchematicComponent } from '../../store/useSchematicStore';
 import { parseSpiceToFloat } from '../netlister/parseSpiceToFloat';
 import {
   type ValidatedSignalMeasurement,
-  formatEngineeringValue,
 } from './measurementValidation';
 import {
   type TopologyTimingInvariants,
@@ -269,7 +268,7 @@ export function detectWaveformEdgesWithHysteresis(
  */
 export function evaluateComponentStress(
   components: SchematicComponent[],
-  readings: ValidatedSignalMeasurement[]
+  _readings: ValidatedSignalMeasurement[]
 ): ComponentStressItem[] {
   return components.map(c => {
     const id = c.id || 'Comp';
@@ -277,9 +276,9 @@ export function evaluateComponentStress(
     const val = c.value || '';
 
     // Check if component has explicit rating properties in metadata or custom parameters
-    const explicitPowerRating = (c as any).powerRating || (c as any).maxPower;
-    const explicitVoltageRating = (c as any).voltageRating || (c as any).maxVoltage;
-    const explicitCurrentRating = (c as any).currentRating || (c as any).maxCurrent;
+    const explicitPowerRating = c.powerRating || c.maxPower;
+    const explicitVoltageRating = c.voltageRating || c.maxVoltage;
+    const explicitCurrentRating = c.currentRating || c.maxCurrent;
 
     if (type.toLowerCase() === 'resistor') {
       if (!explicitPowerRating) {
@@ -481,8 +480,6 @@ export function evaluateCircuitVerification(
     engineVersion,
   };
 
-  // Extract validated electrical measurements (no parser variables)
-  const signalMeasurements = simulationBuffer.map(r => r);
   // Prepare time vector
   const timeVec = simulationBuffer.map(r => r.time || 0);
 
@@ -693,9 +690,9 @@ export function evaluateCircuitVerification(
   const hasInsufficient = testCases.some(tc => tc.verdict === 'INSUFFICIENT_DATA');
   const allPass = testCases.length > 0 && testCases.every(tc => tc.verdict === 'PASS');
 
-  let overallState: VerificationState = 'PARTIALLY_VERIFIED';
-  let qualifiedSignOffAvailable = false;
-  let verdictSummary = '';
+  let overallState: VerificationState;
+  let qualifiedSignOffAvailable: boolean;
+  let verdictSummary: string;
 
   if (!coverage.isAdequate && topology.type !== 'GENERIC_DC') {
     overallState = 'INSUFFICIENT_DATA';

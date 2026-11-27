@@ -13,6 +13,7 @@ import { Activity, Download, Crosshair, Table2, BarChart2, Sparkles, ChevronDown
 import { AiWaveformPanel } from './AiWaveformPanel';
 import { toPng } from 'html-to-image';
 import { generateCSV } from '../utils/csvExport';
+import { evaluateMathExpression } from '../utils/evaluateMathExpression';
 
 const COLORS = [
   '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'
@@ -25,75 +26,6 @@ const OSC_COLORS = [
 const EXPR_COLORS = [
   '#ec4899', '#8b5cf6', '#06b6d4', '#f59e0b', '#10b981', '#f43f5e', '#a855f7'
 ];
-
-export function evaluateMathExpression(
-  expr: string,
-  row: Record<string, number>,
-  probeMap: Record<string, string>
-): number | null {
-  try {
-    let resolved = expr;
-
-    // Replace V(probeName) with actual node voltage values
-    resolved = resolved.replace(/V\((\w+)\)/gi, (_match, probeName) => {
-      if (probeName === '0') return '0';
-      const pnLower = probeName.toLowerCase();
-      let mapped = probeMap[probeName];
-      if (!mapped) {
-        for (const [k, v] of Object.entries(probeMap)) {
-          if (k.toLowerCase() === pnLower) {
-            mapped = v;
-            break;
-          }
-        }
-      }
-      if (!mapped) mapped = probeName;
-      if (mapped === '0') return '0';
-
-      const candidates = [
-        mapped,
-        mapped.toLowerCase(),
-        `v(${mapped})`,
-        `v(${mapped.toLowerCase()})`,
-        `V(${mapped})`,
-        probeName,
-        probeName.toLowerCase(),
-        `v(${probeName})`,
-        `v(${probeName.toLowerCase()})`,
-        `V(${probeName})`,
-      ];
-
-      for (const k of candidates) {
-        const val = row[k];
-        if (typeof val === 'number' && !isNaN(val)) {
-          return String(val);
-        }
-      }
-
-      // Case-insensitive fallback search in row keys
-      const mappedLower = mapped.toLowerCase();
-      const vMappedLower = `v(${mappedLower})`;
-      for (const key of Object.keys(row)) {
-        const kl = key.toLowerCase();
-        if (kl === mappedLower || kl === vMappedLower || kl === probeName.toLowerCase() || kl === `v(${probeName.toLowerCase()})`) {
-          const val = row[key];
-          if (typeof val === 'number' && !isNaN(val)) return String(val);
-        }
-      }
-
-      return 'NaN';
-    });
-
-    // Safe evaluate: only allow numbers, whitespace, and basic math operators
-    if (!/^[\d\s\.\+\-\*\/\(\)eE]+$/.test(resolved)) return null;
-
-    // eslint-disable-next-line no-new-func
-    const val = Function(`"use strict"; return (${resolved})`)() as number;
-    return typeof val === 'number' && Number.isFinite(val) ? val : null;
-  } catch {
-    return null;
-  }
-}
 
 // Ã°Å¸â€Â§ Helpers Ã°Å¸â€Â§
 
@@ -237,7 +169,7 @@ const MeasurementsPanel = ({ data, traces, plotType, probeMap, isOscilloscope }:
     
     // Pass 2: Calculate RMS and find zero crossings based on the correct mean
     let sumSqInt = 0;
-    let crossings: number[] = [];
+    const crossings: number[] = [];
     
     for (let i = 1; i < data.length; i++) {
       const v1 = data[i-1][trace];
@@ -548,8 +480,8 @@ function FftPlot({ simulationBuffer, traces, probeMap, isOscilloscope, isDigital
               label={{ value: yLabel, angle: -90, position: 'insideLeft', fill: textColor, fontSize: 12 }}
             />
             <Tooltip
-              labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
-              formatter={(val: any, name: any) => [fmtNum(val as number) + ' dBV', name]}
+              labelFormatter={(v) => `Freq: ${formatHz(Number(v))}`}
+              formatter={(val, name) => [fmtNum(Number(val)) + ' dBV', String(name ?? '')]}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
@@ -654,8 +586,8 @@ function BodePlot({
             {commonXAxis}
             <YAxis label={{ value: 'Magnitude (dB)', angle: -90, position: 'insideLeft', fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} />
             <Tooltip
-              labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
-              formatter={(val: any, name: any) => [fmtNum(val as number) + ' dB', name]}
+              labelFormatter={(v) => `Freq: ${formatHz(Number(v))}`}
+              formatter={(val, name) => [fmtNum(Number(val)) + ' dB', String(name ?? '')]}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
@@ -696,8 +628,8 @@ function BodePlot({
             {commonXAxis}
             <YAxis label={{ value: 'Phase (°)', angle: -90, position: 'insideLeft', fill: textColor }} domain={[-180, 180]} tick={{ fill: textColor }} />
             <Tooltip
-              labelFormatter={(v: any) => `Freq: ${formatHz(Number(v))}`}
-              formatter={(val: any, name: any) => [fmtNum(val as number) + '°', name]}
+              labelFormatter={(v) => `Freq: ${formatHz(Number(v))}`}
+              formatter={(val, name) => [fmtNum(Number(val)) + '°', String(name ?? '')]}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
@@ -762,15 +694,15 @@ function DcSweepPlot({
             />
             <YAxis label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} tickFormatter={fmtSI} width={60} />
             <Tooltip
-              formatter={(val: any, name: any) => [fmtNum(val as number), name]}
-              labelFormatter={(v: any) => `${sweepKey}: ${Number(v).toFixed(3)}V`}
+              formatter={(val, name) => [fmtNum(Number(val)), String(name ?? '')]}
+              labelFormatter={(v) => `${sweepKey}: ${Number(v).toFixed(3)}V`}
               contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
             />
             <Legend
               verticalAlign="top"
               height={36}
               wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined}
-              formatter={(value: any, entry: any) => {
+              formatter={(value: string, entry) => {
                 const expr = mathExpressions?.find(e => e.id === entry?.dataKey || e.expr === value);
                 if (!expr) return <span>{value}</span>;
                 return (
@@ -832,7 +764,7 @@ function DcSweepPlot({
                 tickFormatter={(v) => `${Number(v).toFixed(1)}V`}
                 startIndex={Number.isFinite(brushRange?.start) ? brushRange!.start : 0}
                 endIndex={Number.isFinite(brushRange?.end) ? brushRange!.end : Math.max(0, data.length - 1)}
-                onChange={(e: any) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
+                onChange={(e) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
               />
             )}
           </LineChart>
@@ -862,13 +794,15 @@ function TransientPlot({
 }) {
   const [zoomDomain, setZoomDomain] = useState<[number | 'dataMin', number | 'dataMax']>(['dataMin', 'dataMax']);
   const [brushRange, setBrushRange] = useState<{ start?: number; end?: number } | null>(null);
+  const [prevPlaybackTime, setPrevPlaybackTime] = useState(playbackTime);
 
-  React.useEffect(() => {
+  if (playbackTime !== prevPlaybackTime) {
+    setPrevPlaybackTime(playbackTime);
     if (playbackTime === 0) {
       setZoomDomain(['dataMin', 'dataMax']);
       setBrushRange(null);
     }
-  }, [playbackTime]);
+  }
 
   const handleWheel = (e: React.WheelEvent) => {
     if (!data || data.length < 2) return;
@@ -876,8 +810,8 @@ function TransientPlot({
     const dataMin = data[0]?.time;
     const dataMax = data[data.length - 1]?.time;
     if (!Number.isFinite(dataMin) || !Number.isFinite(dataMax)) return;
-    let currentMin = zoomDomain[0] === 'dataMin' ? dataMin : (zoomDomain[0] as number);
-    let currentMax = zoomDomain[1] === 'dataMax' ? dataMax : (zoomDomain[1] as number);
+    const currentMin = zoomDomain[0] === 'dataMin' ? dataMin : zoomDomain[0];
+    const currentMax = zoomDomain[1] === 'dataMax' ? dataMax : zoomDomain[1];
     if (!Number.isFinite(currentMin) || !Number.isFinite(currentMax)) return;
     const range = currentMax - currentMin;
     if (range <= 0) return;
@@ -936,15 +870,15 @@ function TransientPlot({
               />
               <YAxis label={{ value: yLabel, angle: -90, position: 'insideLeft', offset: -5, fill: textColor }} domain={['auto', 'auto']} tick={{ fill: textColor }} tickFormatter={fmtSI} width={60} />
               <Tooltip
-                formatter={(value: any, name: any) => [fmtNum(value as number), name]}
-                labelFormatter={(label: any) => `Time: ${(parseFloat(label) * 1000).toFixed(4)}ms`}
+                formatter={(value, name) => [fmtNum(Number(value)), String(name ?? '')]}
+                labelFormatter={(label) => `Time: ${(parseFloat(String(label)) * 1000).toFixed(4)}ms`}
                 contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
               />
               <Legend
                 verticalAlign="top"
                 height={36}
                 wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined}
-                formatter={(value: any, entry: any) => {
+                formatter={(value: string, entry) => {
                   const expr = mathExpressions?.find(e => e.id === entry?.dataKey || e.expr === value);
                   if (!expr) return <span>{value}</span>;
                   return (
@@ -1006,7 +940,7 @@ function TransientPlot({
                   tickFormatter={(val) => `${(val * 1000).toFixed(1)}ms`}
                   startIndex={Number.isFinite(brushRange?.start) ? brushRange!.start : Math.max(0, data.length > 0 ? data.length - Math.min(200, data.length) : 0)}
                   endIndex={Number.isFinite(brushRange?.end) ? brushRange!.end : Math.max(0, data.length - 1)}
-                  onChange={(e: any) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
+                  onChange={(e) => { if (e) setBrushRange({ start: e.startIndex, end: e.endIndex }); }}
                 />
               )}
             </LineChart>
@@ -1186,28 +1120,16 @@ export default function Grapher() {
   
   const chartRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const [prevSimulationBuffer, setPrevSimulationBuffer] = useState(simulationBuffer);
+  if (simulationBuffer !== prevSimulationBuffer) {
+    setPrevSimulationBuffer(simulationBuffer);
     setAiAnalysis(null);
     setAiLoading(false);
     setAiError(null);
     setShowAiPanel(false);
-  }, [simulationBuffer]);
+  }
 
-  // Measure the container so charts always get real pixel dimensions
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const TOOLBAR_H = 44; // toolbar row height in px
-
-  useEffect(() => {
-    const el = chartRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        setContainerSize({ width: entry.contentRect.width, height: entry.contentRect.height });
-      }
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []); // [] — only mount/unmount; chartRef.current is stable after first render
 
   // Event listener for automated Lab Report graph snapshot capture
   useEffect(() => {
@@ -1423,7 +1345,7 @@ export default function Grapher() {
   }
 
   const plotType = (simulationBuffer as SimulationData)?.__plotType || analysisMode || 'transient';
-  let PlotComponent = null;
+  let PlotComponent: React.ReactNode;
 
   const cursorProps = {
     isCursorMode,

@@ -67,7 +67,7 @@ export interface TimestepValidationResult {
 export function parseTimeString(timeStr: string): number {
   if (!timeStr) return 0.01; // default 10ms
   const cleaned = timeStr.trim().toLowerCase();
-  const match = cleaned.match(/^([\+\-]?\d*(?:\.\d+)?(?:[eE][\+\-]?\d+)?)\s*([a-zµ]+)?$/);
+  const match = cleaned.match(/^([+-]?\d*(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*([a-zµ]+)?$/);
   if (!match) return 0.01;
   const num = parseFloat(match[1]);
   if (isNaN(num)) return 0.01;
@@ -294,7 +294,7 @@ export function getRecommendedTransientSettings(topology: TopologyTimingInvarian
 export function evaluateTransientCoverage(
   topology: TopologyTimingInvariants,
   currentEndTimeStr: string,
-  currentStepStr: string
+  _currentStepStr: string
 ): TransientCoverageEvaluation {
   const actualDuration = parseTimeString(currentEndTimeStr);
   const recommendation = getRecommendedTransientSettings(topology);

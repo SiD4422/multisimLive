@@ -338,6 +338,11 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 
 // ── Modal ────────────────────────────────────────────────────────────────────
 export function ExampleLibraryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  if (!isOpen) return null;
+  return <ExampleLibraryModalInner onClose={onClose} />;
+}
+
+function ExampleLibraryModalInner({ onClose }: { onClose: () => void }) {
   const { importState } = useSchematicStore();
   const [activeCategory, setActiveCategory] = useState('All');
   const [search, setSearch] = useState('');
@@ -355,23 +360,19 @@ export function ExampleLibraryModal({ isOpen, onClose }: { isOpen: boolean; onCl
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => setAnimIn(true), 10);
-      setTimeout(() => searchRef.current?.focus(), 200);
-    } else {
-      setAnimIn(false);
-      setSearch('');
-      setActiveCategory('All');
-    }
-  }, [isOpen]);
-
-  if (!isOpen) return null;
+    const t1 = setTimeout(() => setAnimIn(true), 10);
+    const t2 = setTimeout(() => searchRef.current?.focus(), 200);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
 
   const toggleViva = (id: string) => {
     setExpandedViva(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleSelect = (data: any, name: string) => {
+  const handleSelect = (data: unknown, name: string) => {
     useActiveExperimentStore.getState().setActiveExperiment(null);
     console.log(`Loading circuit: ${name}`);
     importState(JSON.stringify(data));
@@ -980,7 +981,7 @@ export function ExampleLibraryModal({ isOpen, onClose }: { isOpen: boolean; onCl
                         color: C.gray500,
                         display:'-webkit-box',
                         WebkitLineClamp:2,
-                        WebkitBoxOrient:'vertical' as any,
+                        WebkitBoxOrient:'vertical',
                         overflow:'hidden',
                       }}>
                         {ex.description}

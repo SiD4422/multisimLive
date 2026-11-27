@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateCSV, formatTraceName } from './csvExport';
+import { generateCSV } from './csvExport';
 
 describe('CSV Export Utility', () => {
   it('should generate a correct CSV string from array of objects with human-readable headers and X-axis first', () => {

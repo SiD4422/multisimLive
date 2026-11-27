@@ -23,12 +23,19 @@ export interface OpDataPoint {
 }
 
 /**
- * The result of a SPICE simulation — either transient/AC/DC data rows or OP data.
+ * The result of a SPICE simulation ï¿½ either transient/AC/DC data rows or OP data.
  */
+export type SpiceParsedOutput = (SpiceDataRow[] | OpDataPoint[]) & {
+  __plotType?: 'transient' | 'ac' | 'dc' | 'op';
+  __isComplex?: boolean;
+  __variables?: string[];
+  __engineVersion?: string;
+};
+
 export type SpiceResult = SpiceDataRow[] & {
   __plotType?: 'transient' | 'ac' | 'dc' | 'op';
   __isComplex?: boolean;
-  __variables?: SpiceVariable[];
+  __variables?: string[];
   __engineVersion?: string;
 };
 
@@ -52,6 +59,10 @@ export interface NgspiceModule {
   };
   _main: (argc: number, argv: number) => number;
   __emscripten_stack_alloc: (size: number) => number;
+  __emscripten_stack_get_current?: () => number;
+  __emscripten_stack_restore?: (stack: number) => void;
+  stackSave?: () => number;
+  stackRestore?: (stack: number) => void;
   stringToUTF8: (str: string, ptr: number, len: number) => void;
   HEAP32: Int32Array;
 }
@@ -67,13 +78,14 @@ export interface SpiceJob {
   timeoutId: ReturnType<typeof setTimeout>;
 }
 
-// Simulation result row — one time step or frequency point
+// Simulation result row ï¿½ one time step or frequency point
 export interface SimulationRow {
   [key: string]: number; // node voltages, currents, frequencies
 }
 
-// Tagged simulation result array — carries plot type metadata
+// Tagged simulation result array ï¿½ carries plot type metadata
 export interface SimulationData extends Array<SimulationRow> {
   __plotType?: 'transient' | 'ac' | 'dc' | 'op';
+  __engineVersion?: string;
 }
 

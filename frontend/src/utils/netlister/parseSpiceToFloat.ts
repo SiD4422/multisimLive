@@ -1,9 +1,9 @@
 ﻿export function parseSpiceToFloat(valStr: string): number {
     if (!valStr) return 0;
-    let clean = valStr.trim()
+    const clean = valStr.trim()
       .replace(/(?:Ohm|ohm|Ω|Vpk|Apk|Hz|V|A|F|H)$/i, '')
       .trim();
-  const match = clean.match(/^([\+\-]?\d*(?:\.\d+)?(?:[eE][\+\-]?\d+)?)([a-zA-Z]+)?$/);
+  const match = clean.match(/^([+-]?\d*(?:\.\d+)?(?:[eE][+-]?\d+)?)([a-zA-Z]+)?$/);
   if (!match) return parseFloat(clean) || 0;
   
   const numPart = parseFloat(match[1]);

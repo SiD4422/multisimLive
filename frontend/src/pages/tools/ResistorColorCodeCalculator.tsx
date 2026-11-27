@@ -31,11 +31,11 @@ export default function ResistorColorCodeCalculator() {
 
     if (band1 !== undefined && band2 !== undefined && multiplier !== undefined && tolerance !== undefined) {
       const res = (band1 * 10 + band2) * multiplier;
-      
-      let resDisplay = '';
-      if (res >= 1e6) resDisplay = (res / 1e6) + ' MΩ';
-      else if (res >= 1e3) resDisplay = (res / 1e3) + ' kΩ';
-      else resDisplay = res + ' Ω';
+      const resDisplay = res >= 1e6
+        ? `${res / 1e6} MΩ`
+        : res >= 1e3
+          ? `${res / 1e3} kΩ`
+          : `${res} Ω`;
 
       const diff = res * (tolerance / 100);
       const min = res - diff;

@@ -54,5 +54,7 @@ export async function getCommunityCircuits(limitCount = 50): Promise<CommunityCi
 export async function incrementViews(circuitId: string): Promise<void> {
   try {
     await updateDoc(doc(db, 'circuits', circuitId), { views: increment(1) });
-  } catch {}
+  } catch (err) {
+    console.warn('Failed to increment circuit view count:', err);
+  }
 }

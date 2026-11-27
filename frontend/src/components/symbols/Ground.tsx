@@ -1,3 +1,4 @@
+import type Konva from 'konva';
 import { Group, Line, Text, Circle } from 'react-konva';
 import type { SchematicComponent } from '../../store/useSchematicStore';
 
@@ -5,9 +6,9 @@ interface GroundProps {
   component: SchematicComponent;
   selected?: boolean;
   onSelect?: () => void;
-  onDragMove: (e: any) => void;
-  onDragEnd: (e: any) => void;
-  onNodeClick: (e: any, pos: { x: number, y: number }) => void;
+  onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onNodeClick: (e: Konva.KonvaEventObject<MouseEvent | PointerEvent>, pos: { x: number, y: number }) => void;
 }
 
 export default function Ground({ component, selected, onSelect, onDragMove, onDragEnd, onNodeClick }: GroundProps) {
@@ -22,7 +23,7 @@ export default function Ground({ component, selected, onSelect, onDragMove, onDr
       onDragMove={onDragMove}
       onDragEnd={onDragEnd}
       rotation={component.rotation || 0}
-      onMouseDown={(e) => {
+      onMouseDown={() => {
         if (onSelect) onSelect();
       }}
     >
@@ -34,8 +35,8 @@ export default function Ground({ component, selected, onSelect, onDragMove, onDr
         x={0} y={0} radius={4} fill="#fff" stroke={strokeColor} strokeWidth={1.5} hitStrokeWidth={isTouch ? 56 : 15}
         onPointerDown={(e) => { e.cancelBubble = true; onNodeClick(e, { x: component.position.x, y: component.position.y }); }}
         onMouseDown={(e) => { e.cancelBubble = true; onNodeClick(e, { x: component.position.x, y: component.position.y }); }}
-        onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as any).fill('#e5e7eb'); }}
-        onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}
+        onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as Konva.Circle).fill('#e5e7eb'); }}
+        onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as Konva.Circle).fill('#fff'); }}
       />
       <Text text="0" x={10} y={-10} fontSize={12} fontFamily="Inter" fill="#666" />
     </Group>

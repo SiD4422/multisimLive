@@ -4,8 +4,6 @@ import { useSchematicStore } from '../store/useSchematicStore';
 
 export function StatusBar({ onShare }: { onShare?: () => void }) {
   const { components, wires, isSimulating, simulationError, simulationData } = useSchematicStore();
-
-  const simTime = useSchematicStore(s => (s as any).lastSimTime) ?? null;
   
   const status = simulationError ? 'error'
                : isSimulating ? 'running'

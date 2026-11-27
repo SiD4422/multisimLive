@@ -1,7 +1,7 @@
 ﻿import './LandingPage.css';
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 import { Sun, Moon, Sliders, Play, Activity, Check, Minus } from 'lucide-react';
 import LandingInteractiveDemo from '../components/LandingInteractiveDemo';
 

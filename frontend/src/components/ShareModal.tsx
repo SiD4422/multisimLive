@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { X, Copy, Check, Share2, MessageCircle } from 'lucide-react';
 import LZString from 'lz-string';
 import { useSchematicStore } from '../store/useSchematicStore';
@@ -9,33 +9,33 @@ interface ShareModalProps {
 }
 
 export function ShareModal({ isOpen, onClose }: ShareModalProps) {
-  const { components, wires, probes } = useSchematicStore();
-  const [shareUrl, setShareUrl] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState('');
+  if (!isOpen) return null;
+  return <ShareModalInner onClose={onClose} />;
+}
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setIsGenerating(true);
-    setError('');
-    setCopied(false);
+function ShareModalInner({ onClose }: { onClose: () => void }) {
+  const { components, wires, probes } = useSchematicStore();
+  const [copied, setCopied] = useState(false);
+
+  const { shareUrl, error } = useMemo(() => {
     try {
-      // Strip position/scale metadata — only keep what's needed to recreate the circuit
       const payload = JSON.stringify({ components, wires, probes });
       const compressed = LZString.compressToEncodedURIComponent(payload);
-      const url = `${window.location.origin}/simulator#circuit=${compressed}`;
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.nodesimapp.com';
+      const url = `${origin}/simulator#circuit=${compressed}`;
       if (url.length > 32000) {
-        setError('Circuit is too large to share via URL. Use File → Save to download as JSON instead.');
-      } else {
-        setShareUrl(url);
+        return {
+          shareUrl: '',
+          error: 'Circuit is too large to share via URL. Use File → Save to download as JSON instead.',
+        };
       }
+      return { shareUrl: url, error: '' };
     } catch {
-      setError('Failed to generate share link.');
-    } finally {
-      setIsGenerating(false);
+      return { shareUrl: '', error: 'Failed to generate share link.' };
     }
-  }, [isOpen, components, wires, probes]);
+  }, [components, wires, probes]);
+
+  const isGenerating = false;
 
   const handleCopy = async () => {
     if (!shareUrl) return;
@@ -58,8 +58,6 @@ export function ShareModal({ isOpen, onClose }: ShareModalProps) {
     if (!shareUrl) return;
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
   };
-
-  if (!isOpen) return null;
 
   const componentCount = components.length;
 

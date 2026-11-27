@@ -54,7 +54,7 @@ export default function FeedbackWidget() {
       } else {
         setStatus('error');
       }
-    } catch (err) {
+    } catch {
       setStatus('error');
     }
   };

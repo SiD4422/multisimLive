@@ -1,4 +1,5 @@
-import { Group, Circle, Text, Path, Rect } from 'react-konva';
+import type Konva from 'konva';
+import { Group, Text, Path, Rect } from 'react-konva';
 import type { Point } from '../../store/useSchematicStore';
 import { useSchematicStore } from '../../store/useSchematicStore';
 
@@ -8,7 +9,7 @@ interface CurrentProbeProps {
 }
 
 export const CurrentProbe: React.FC<CurrentProbeProps> = ({ id, position }) => {
-  const { isSimulating, simulationBuffer, playbackTime, selectedProbeId, setSelectedProbe, updateProbePosition } = useSchematicStore();
+  const { simulationBuffer, playbackTime, selectedProbeId, setSelectedProbe, updateProbePosition } = useSchematicStore();
   
   // ngspice outputs branch current for a voltage source "V_PROBE_PR2" as "v_probe_pr2#branch"
   const idLower = id.toLowerCase();
@@ -19,11 +20,11 @@ export const CurrentProbe: React.FC<CurrentProbeProps> = ({ id, position }) => {
   let currentDisplay = "A: --";
   
   if (simulationBuffer && simulationBuffer.length > 0) {
-    const isAc = (simulationBuffer as any).__plotType === 'ac';
+    const isAc = simulationBuffer.__plotType === 'ac';
     if (isAc) {
       currentDisplay = "A: (AC)";
     } else {
-      const activeData = simulationBuffer.filter((row: any) => row.time <= playbackTime);
+      const activeData = simulationBuffer.filter((row) => row.time <= playbackTime);
       const lastPoint = activeData.length > 0 ? activeData[activeData.length - 1] : simulationBuffer[0];
       
       // Try all key variants
@@ -49,7 +50,7 @@ export const CurrentProbe: React.FC<CurrentProbeProps> = ({ id, position }) => {
 
   const isSelected = selectedProbeId === id;
 
-  const handleDragEnd = (e: any) => {
+  const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const x = Math.round(e.target.x() / 10) * 10;
     const y = Math.round(e.target.y() / 10) * 10;
     e.target.position({ x, y });

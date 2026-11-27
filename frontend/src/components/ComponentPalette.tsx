@@ -5,9 +5,9 @@ import {
   IconGround, IconConnector, IconJunction,
   IconACVoltage, IconDCVoltage, IconPulseVoltage, IconACCurrent, IconDCCurrent,
   IconResistor, IconLoad, IconCapacitor, IconInductor, IconOpamp, IconOpamp3T, IconOpamp5T, IconComparator, IconTimer555, IconDiode, IconDiodeZener, IconDiodeLED, IconBridgeRectifier, IconThyristor, IconOptocoupler, IconTransistor, IconTransistorNPN, IconTransistorPNP, IconMosfetN, IconMosfetP, IconJFET, IconIGBT, IconSwitch,
-  IconPotentiometer, IconFuse, IconTransformers, IconTransformer1P1S, IconTransformer1P1S_CT, IconTransformer1P2S, IconTransformer2P1S, IconTransformer2P2S, IconCoupledInductors, 
+  IconPotentiometer, IconFuse, IconTransformer1P1S, IconTransformer1P1S_CT, IconTransformer1P2S, IconTransformer2P1S, IconTransformer2P2S, IconCoupledInductors, 
   IconLossyTransmissionLine, IconLosslessTransmissionLine, IconResistorsPack,
-  IconLogicGate, IconGateAND, IconGateOR, IconGateNOT, IconGateNAND, IconGateNOR, IconGateXOR, IconGateXNOR, IconGateBuffer,
+  IconGateAND, IconGateOR, IconGateNOT, IconGateNAND, IconGateNOR, IconGateXOR, IconGateXNOR, IconGateBuffer,
   IconVoltageRegulator, IconBuckConverter, Icon7Segment, IconCrystal, IconPhotodiode, IconPhototransistor,
   IconDIP14, Icon74HC595, IconTriac, IconDiac, IconDarlington, IconCurrentMirror,
   IconDFlipFlop, IconJKFlipFlop, IconSRFlipFlop, IconTFlipFlop, IconLamp,
@@ -307,7 +307,7 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
   }
 };
 
-export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: ComponentPaletteProps) {
+export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbed: _isEmbed }: ComponentPaletteProps) {
   const [activeTab, setActiveTab] = useState<TabType>('Basic');
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
@@ -331,7 +331,7 @@ export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed }: Compon
   const cleanQuery = searchQuery.trim().toLowerCase();
   
   // If searching, show all matches. Otherwise, show by active tab.
-  let displaySections: { category: string, components: typeof ALL_COMPONENTS }[] = [];
+  let displaySections: { category: string, components: typeof ALL_COMPONENTS }[];
 
   if (cleanQuery) {
     // Search across ALL components including IC library

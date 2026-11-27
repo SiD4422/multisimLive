@@ -1,17 +1,14 @@
 import { generateNetlist } from '../src/utils/netlister.js';
+import type { SchematicComponent, Wire, Probe } from '../src/store/useSchematicStore.js';
 
 // Mock circuit
-const components = [
+const components: SchematicComponent[] = [
   {
     id: 'dc1',
     type: 'DCSource',
     position: { x: -10, y: 0 },
     rotation: 0,
     value: '5V', // 5V source
-    pins: [
-      { id: 'p1', position: { x: 0, y: -20 }, gridNode: 'n1' },
-      { id: 'p2', position: { x: 0, y: 20 }, gridNode: 'gnd' }
-    ]
   },
   {
     id: 'load1',
@@ -19,10 +16,6 @@ const components = [
     position: { x: 10, y: 0 },
     rotation: 90, // Vertical
     value: '1k', // 1k ohm load
-    pins: [
-      { id: 'p1', position: { x: 0, y: -20 }, gridNode: 'n1' },
-      { id: 'p2', position: { x: 0, y: 20 }, gridNode: 'gnd' }
-    ]
   },
   {
     id: 'gnd1',
@@ -30,17 +23,14 @@ const components = [
     position: { x: 0, y: 40 },
     rotation: 0,
     value: '',
-    pins: [
-      { id: 'p1', position: { x: 0, y: 0 }, gridNode: 'gnd' }
-    ]
   }
 ];
 
-const wires = [];
-const probes = [];
+const wires: Wire[] = [];
+const probes: Probe[] = [];
 
 console.log("Generating netlist for 5V DC Source connected to 1k Load...");
-const netlist = generateNetlist(components as any, wires, probes);
+const netlist = generateNetlist(components, wires, probes);
 console.log("\n--- SPICE NETLIST ---");
 console.log(netlist);
 console.log("---------------------\n");

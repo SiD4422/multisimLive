@@ -1,7 +1,7 @@
 import type { SchematicComponent, Wire, Probe, Point } from '../../store/useSchematicStore';
 import { parseSpiceToFloat } from './parseSpiceToFloat';
 import { getComponentPins } from './getComponentPins';
-import { toGridNode, isSameGridNode, isPointOnSegment, PIN_TOLERANCE } from './utils';
+import { toGridNode, isSameGridNode, isPointOnSegment, PIN_TOLERANCE, type NetlistPoint } from './utils';
 import { getComponentNetlist } from './getComponentNetlist';
 export function generateNetlist(
   components: SchematicComponent[], 
@@ -11,11 +11,11 @@ export function generateNetlist(
   customModelPorts: Record<string, string[]> = {}
 ): string {
   let netlist = "* WebAssembly SPICE Netlist\n";
-  let models = new Set<string>();
+  const models = new Set<string>();
 
   // 0. Inject Ammeters for Current Probes
-  let processedWires = [...wires];
-  let processedComponents = [...components];
+  const processedWires = [...wires];
+  const processedComponents = [...components];
 
   const currentProbes = probes.filter(p => p.type === 'Current');
   currentProbes.forEach((probe) => {
@@ -26,7 +26,7 @@ export function generateNetlist(
         if (isPointOnSegment(probe.position, wire.points[i], wire.points[i+1])) {
           // Use the exact same coordinates so geometry checks (isPointOnSegment) still work perfectly,
           // but add a special flag so toGridNode returns a unique ID to prevent net merging.
-          const fakeP = { x: probe.position.x, y: probe.position.y, _isFake: true, _probeId: probe.id } as any;
+          const fakeP: NetlistPoint = { x: probe.position.x, y: probe.position.y, _isFake: true, _probeId: probe.id };
           
           const isAtEnd = isSameGridNode(toGridNode(probe.position), toGridNode(wire.points[i+1]));
           const wireBPoints = [fakeP];
@@ -89,7 +89,7 @@ export function generateNetlist(
       allPins.forEach(pin => {
         // AMMETER SHORT-CIRCUIT FIX: if this segment starts with a fake probe point (wireB),
         // don't claim component pins sitting exactly at the probe position — those belong to wireA's side.
-        if ((p1 as any)._isFake && pin.p && Math.abs(pin.p.x - p1.x) < 1 && Math.abs(pin.p.y - p1.y) < 1) return;
+        if ((p1 as NetlistPoint)._isFake && pin.p && Math.abs(pin.p.x - p1.x) < 1 && Math.abs(pin.p.y - p1.y) < 1) return;
         if (isPointOnSegment(pin.p, p1, p2, PIN_TOLERANCE)) {
           gridPoints.push(pin.gridNode);
         }
@@ -102,12 +102,12 @@ export function generateNetlist(
       processedWires.forEach(otherWire => {
         if (otherWire === wire) return;
         otherWire.points.forEach(otherPt => {
-          if ((otherPt as any)._isFake) return; // Protect ammeter nodes from T-junction merging
+          if ((otherPt as NetlistPoint)._isFake) return; // Protect ammeter nodes from T-junction merging
           // AMMETER SHORT-CIRCUIT FIX: if this segment starts with a fake probe point (wireB),
           // do NOT pull in wireA's terminal endpoint that sits at the exact same real coordinates.
           // Without this guard, wireA's end and wireB's fakeP start share the same physical location,
           // causing the T-junction scan to merge them into one net → both ammeter pins → same SPICE node → shorted VSRC.
-          if ((p1 as any)._isFake && Math.abs(otherPt.x - p1.x) < 1 && Math.abs(otherPt.y - p1.y) < 1) return;
+          if ((p1 as NetlistPoint)._isFake && Math.abs(otherPt.x - p1.x) < 1 && Math.abs(otherPt.y - p1.y) < 1) return;
           if (isPointOnSegment(otherPt, p1, p2, PIN_TOLERANCE)) {
             gridPoints.push(toGridNode(otherPt));
           }
@@ -115,7 +115,7 @@ export function generateNetlist(
       });
     }
 
-    let connectedNetIndices: number[] = [];
+    const connectedNetIndices: number[] = [];
     gridPoints.forEach(gp => {
       nets.forEach((net, idx) => {
         if (net.has(gp) && !connectedNetIndices.includes(idx)) {
@@ -194,7 +194,6 @@ export function generateNetlist(
   // Auto-ground the first net if no ground exists
   if (!hasGroundComponents && groundNetIndex === -1 && finalNets.length > 0) {
     netIdMap.set(0, "0");
-    groundNetIndex = 0;
   }
   finalNets.forEach((_, idx) => {
     if (!netIdMap.has(idx)) {
@@ -1101,8 +1100,6 @@ S_dis DIS GND dis_gate GND SMOD555
       // Behavioral D flip-flop approximation using RC delay + comparator (continuous-time SPICE)
       // Note: True edge-triggered behavior requires XSPICE A-devices not available in WASM ngspice.
       // This model approximates: Q follows D with a small RC delay, gated by CLK level.
-      const rc = `Rdff_${comp.id}`;
-      const cd = `Cdff_${comp.id}`;
       const qint = `qint_${comp.id}`;
       models.add(`.subckt DFF D CLK Q QBAR\nRin D ${qint} 1k\nCdel ${qint} 0 1n\nBQ Q 0 V=limit(V(${qint})*10,0,5)\nBQB QBAR 0 V=5-limit(V(${qint})*10,0,5)\n.ends`);
       netlist += `X_${comp.id} ${d} ${clk} ${q} ${qbar} DFF\n`;

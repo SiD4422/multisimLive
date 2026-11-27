@@ -14,12 +14,10 @@ import {
   Printer,
   ArrowLeft,
   ExternalLink,
-  ShieldCheck,
-  Layers,
   Award
 } from 'lucide-react';
 import SEO from '../components/SEO';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 import { universityLabPacks } from '../data/universityLabPacks';
 
 interface ExperimentItem {

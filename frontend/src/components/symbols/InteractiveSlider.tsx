@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React from 'react';
+import type Konva from 'konva';
 import { Group, Rect, Circle, Text, Line } from 'react-konva';
 
 interface InteractiveSliderProps {
@@ -25,7 +26,6 @@ export const InteractiveSlider: React.FC<InteractiveSliderProps> = ({
   const trackY = 0;
   const trackX = knobRadius;
   const trackWidth = width - knobRadius * 2;
-  const isDraggingRef = useRef(false);
 
   // Map value to x position on the track
   const valueToX = (v: number) => {
@@ -53,7 +53,9 @@ export const InteractiveSlider: React.FC<InteractiveSliderProps> = ({
     return `${v.toPrecision(3)}`;
   };
 
-  const handleDragMove = (e: any) => {
+  type DragBoundPos = Konva.Vector2d & { _origin?: { y: number } };
+
+  const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     const stage = e.target.getStage();
     if (!stage) return;
     const pointerPos = stage.getPointerPosition();
@@ -71,7 +73,7 @@ export const InteractiveSlider: React.FC<InteractiveSliderProps> = ({
     e.target.y(trackY);
   };
 
-  const handleDragEnd = (e: any) => {
+  const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     const stage = e.target.getStage();
     if (!stage) return;
     const pointerPos = stage.getPointerPosition();
@@ -128,7 +130,7 @@ export const InteractiveSlider: React.FC<InteractiveSliderProps> = ({
         draggable
         dragBoundFunc={(pos) => {
           // Constrain dragging to horizontal only within parent
-          return { x: pos.x, y: (pos as any)._origin?.y ?? pos.y };
+          return { x: pos.x, y: (pos as DragBoundPos)._origin?.y ?? pos.y };
         }}
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}

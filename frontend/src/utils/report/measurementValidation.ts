@@ -158,8 +158,8 @@ export function extractValidatedReadings(
     const peakToPeak = max - min;
 
     // Time-weighted integration (Trapezoidal Rule) for Mean and RMS
-    let average = 0;
-    let rms = 0;
+    let average: number;
+    let rms: number;
 
     if (timeVec && totalDuration > 0 && validPairs.length === simulationBuffer.length) {
       let integralMean = 0;
@@ -183,8 +183,8 @@ export function extractValidatedReadings(
     }
 
     // Behavior Classification
-    let behavior: ValidatedSignalMeasurement['behavior'] = 'STABLE_DC';
-    let behaviorDescription = 'Stable DC Quiescent Bias';
+    let behavior: ValidatedSignalMeasurement['behavior'];
+    let behaviorDescription: string;
 
     const absMax = Math.max(Math.abs(min), Math.abs(max));
     if (absMax < 1e-6) {
@@ -263,7 +263,7 @@ export function cleanEngineeringText(str: string): string {
   if (!str) return '';
   return str
     .replace(/\$\$([\s\S]*?)\$\$/g, '$1')
-    .replace(/\$([^\$\n]+)\$/g, '$1')
+    .replace(/\$([^$\n]+)\$/g, '$1')
     .replace(/\\_/g, '_')
     .replace(/\\times/g, '·')
     .replace(/\\cdot/g, '·')

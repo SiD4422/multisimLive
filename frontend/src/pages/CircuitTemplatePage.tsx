@@ -43,7 +43,11 @@ export default function CircuitTemplatePage() {
   }
 
   const handleLaunch = () => {
-    try { sessionStorage.setItem('nodesim-pending-circuit', JSON.stringify(circuit.data)); } catch {}
+    try {
+      sessionStorage.setItem('nodesim-pending-circuit', JSON.stringify(circuit.data));
+    } catch {
+      // sessionStorage unavailable in private/sandboxed browsers
+    }
     navigate('/simulator');
   };
 
@@ -117,14 +121,14 @@ export default function CircuitTemplatePage() {
             </div>
 
             {/* Optional Video Section */}
-            {(circuit as any).videoUrl && (
+            {circuit.videoUrl && (
               <div style={{ padding: '0 48px 48px', borderTop: `1px solid ${C.border}`, marginTop: -20, paddingTop: 40 }}>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Play size={20} color={C.primary} /> Video Reference
                 </h3>
                 <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}>
                   <iframe 
-                    src={(circuit as any).videoUrl} 
+                    src={circuit.videoUrl} 
                     style={{ width: '100%', aspectRatio: '16/9', border: 'none', display: 'block' }}
                     title={`${circuit.name} Build Tutorial`}
                   />

@@ -15,7 +15,7 @@ export interface ComponentDefinition {
   name: string;
   category: 'Logic Gates' | 'Integrated Circuits' | 'Sources & Switches' | 'Passive Components' | string;
   description: string;
-  defaultProps: Record<string, any>;
+  defaultProps: Record<string, string | number | boolean | undefined>;
   symbol: string;
   pins: ComponentPinDef[];
 }

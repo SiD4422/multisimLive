@@ -8,8 +8,8 @@ Thanks for wanting to contribute! NodeSim is built for students by a student —
 
 ```bash
 git clone https://github.com/SiD4422/multisimLive.git
-cd multisimLive/multisimfree/frontend
-npm install
+cd multisimLive/frontend
+npm install --legacy-peer-deps
 npm run dev
 ```
 
@@ -19,38 +19,45 @@ npm run dev
 
 | What you want to change | File |
 |---|---|
-| Add a new component to the palette | `src/pages/Simulator.tsx` → `COMPONENT_CATEGORIES` |
+| Add a new component to the palette | `src/components/ComponentPalette.tsx` and `src/data/components.ts` |
 | Add pin geometry for a new component | `src/utils/netlister/getComponentPins.ts` |
 | Add SPICE netlist generation for a component | `src/utils/netlister/generateNetlist.ts` |
 | Add/fix the visual schematic symbol | `src/components/symbols/MultisimSymbol.tsx` |
-| Fix a simulation bug | `src/utils/netlister/generateNetlist.ts` or `spiceWorker.ts` |
+| Fix a simulation bug | `src/utils/netlister/generateNetlist.ts` or `src/utils/spiceWorker.ts` |
 | Fix a waveform display bug | `src/components/Grapher.tsx` |
 | Fix a UI layout bug | `src/pages/Simulator.tsx` or the relevant component in `src/components/` |
 | Fix a store/state bug | `src/store/useSchematicStore.ts` |
-| Fix an AI diagnosis bug | `src/lib/aiContext.ts`, `src/lib/geminiClient.ts`, or `src/components/AiExplainerPanel.tsx` |
+| Fix an AI diagnosis bug | `api/gemini.ts` or `src/components/AiExplainerPanel.tsx` |
 
 ---
 
 ## Before You Submit a PR
 
-1. **Run the tests:**
+1. **Run type check & lint:**
+   ```bash
+   npm run typecheck
+   npm run lint -- --max-warnings 0
+   ```
+   No TypeScript errors, ESLint errors, or warnings are allowed (enforced in CI).
+
+2. **Run the tests:**
    ```bash
    npm test
    ```
    All tests must pass. If you add a new component, add a test that verifies its netlist output is correct SPICE syntax.
 
-2. **Run the build:**
+3. **Run the production & SEO SSR build:**
    ```bash
-   npm run build
+   npm run build:seo
    ```
-   No TypeScript errors allowed.
+   Ensure all client, SSR, and prerendered routes build cleanly.
 
-3. **Test manually in the browser:**
+4. **Test manually in the browser:**
    - Place your component on the canvas
    - Wire it up and run a simulation
    - Check the waveform output makes sense
 
-4. **For simulation fixes:** Include the expected vs. actual SPICE output in your PR description.
+5. **For simulation fixes:** Include the expected vs. actual SPICE output in your PR description.
 
 ---
 
@@ -59,7 +66,7 @@ npm run dev
 - [ ] Add pin definitions in `src/utils/netlister/getComponentPins.ts`
 - [ ] Add SPICE netlist generation in `src/utils/netlister/generateNetlist.ts`
 - [ ] Add the visual symbol in `src/components/symbols/MultisimSymbol.tsx`
-- [ ] Add to the component palette in `src/pages/Simulator.tsx` under the right category
+- [ ] Add metadata / palette entry in `src/data/components.ts` and `src/components/ComponentPalette.tsx`
 - [ ] Add a vitest test verifying the generated netlist contains the correct SPICE component lines
 - [ ] Test: place on canvas, wire, simulate, check output
 

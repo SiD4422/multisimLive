@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { getTouchPointer, getPinchState, type PinchState } from '../utils/touchAdapter';
 
+import type Konva from 'konva';
 import { Stage, Layer, Line, Group, Text, Circle, Rect, Path, Arc } from 'react-konva';
 import { useSchematicStore, type Point, type SchematicComponent } from '../store/useSchematicStore';
-import Ground from './symbols/Ground';
 import TextAnnotation from './symbols/TextAnnotation';
 import { VoltageProbe } from './symbols/VoltageProbe';
 import { CurrentProbe } from './symbols/CurrentProbe';
@@ -27,14 +27,23 @@ const isTouchDevice = () => {
   return typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
 };
 
-const isTouchInteraction = (e?: any): boolean => {
-  if (e?.evt?.pointerType === 'mouse' || e?.pointerType === 'mouse') return false;
-  if (e?.evt?.pointerType === 'touch' || e?.pointerType === 'touch') return true;
-  if (e?.evt?.touches && e.evt.touches.length > 0) return true;
+type CanvasInputEvent = Konva.KonvaEventObject<MouseEvent | TouchEvent | PointerEvent | DragEvent>;
+
+function nextWireId(): string {
+  return `W${Date.now()}`;
+}
+
+const isTouchInteraction = (e?: CanvasInputEvent): boolean => {
+  const evt = e?.evt;
+  if (evt && 'pointerType' in evt) {
+    if (evt.pointerType === 'mouse') return false;
+    if (evt.pointerType === 'touch') return true;
+  }
+  if (evt && 'touches' in evt && evt.touches.length > 0) return true;
   return isTouchDevice();
 };
 
-const getSnapRadius = (e?: any): number => {
+const getSnapRadius = (e?: CanvasInputEvent): number => {
   return isTouchInteraction(e) ? PIN_SNAP_RADIUS_TOUCH : PIN_SNAP_RADIUS_DESKTOP;
 };
 
@@ -45,13 +54,13 @@ export default function SchematicEditor() {
     selectedComponentId, setSelectedComponent, pendingComponent, setPendingComponent,
     addWire, scale, setScale, stagePos, setStagePos, setIsConfigOpen,
     selectedWireId, setSelectedWire, clearSelection,
-    deleteComponent, updateComponentRotation, copyComponent, flipComponent,
+    deleteComponent, updateComponentRotation, copyComponent,
     isPlaying, simulationBuffer, playbackTime, opData,
-    selectedComponentIds, setSelectedComponentIds, toggleSelectedComponentId, deleteSelectedComponents
+    selectedComponentIds, setSelectedComponentIds, toggleSelectedComponentId
   } = useSchematicStore();
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [dashOffset, setDashOffset] = useState(0);
-  const stageRef = useRef<any>(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
   
   const dragStateRef = useRef<{ 
     compId: string, 
@@ -63,10 +72,7 @@ export default function SchematicEditor() {
   const [wirePoints, setWirePoints] = useState<Point[] | null>(null);
   const [mousePos, setMousePos] = useState<Point | null>(null);
   const [wireDirOverride, setWireDirOverride] = useState<'auto' | 'h' | 'v'>('auto');
-  
-  const [autoRoutePath, setAutoRoutePath] = useState<Point[] | null>(null);
-  const lastAStarTime = useRef(0);
-  const lastAStarTarget = useRef<{x: number, y: number} | null>(null);
+  const updateComponentValue = useSchematicStore(s => s.updateComponentValue);
 
   const [selectionBox, setSelectionBox] = useState<{sx: number, sy: number, ex: number, ey: number} | null>(null);
   // Right-click context menu for wire deletion
@@ -87,10 +93,7 @@ export default function SchematicEditor() {
 
   // Pulse animation for selected first pin in tap-to-connect mode (scale 1.0 -> 1.4 -> 1.0)
   useEffect(() => {
-    if (!touchWireStart) {
-      setTouchPulseScale(1.0);
-      return;
-    }
+    if (!touchWireStart) return;
     let animId: number;
     const startTime = performance.now();
     const animate = (time: number) => {
@@ -160,7 +163,6 @@ export default function SchematicEditor() {
   useEffect(() => {
     if (!simulationBuffer || simulationBuffer.length === 0) {
       if (dotAnimRef.current) cancelAnimationFrame(dotAnimRef.current);
-      setDotPhase(0);
       return;
     }
     // When SVG overlay (CurrentFlowOverlay) is active, skip the Konva-layer dot animation
@@ -196,10 +198,12 @@ export default function SchematicEditor() {
     const wrapper = document.getElementById('canvas-wrapper');
     if (!wrapper) return;
     
-    // Initial size
+    // Initial size deferred via rAF; ResizeObserver also tracks subsequent sidebar changes
     const initialWidth = wrapper.clientWidth;
     const initialHeight = wrapper.clientHeight;
-    setDimensions({ width: initialWidth, height: initialHeight });
+    const initRaf = requestAnimationFrame(() => {
+      setDimensions({ width: initialWidth, height: initialHeight });
+    });
     
     const currentStagePos = useSchematicStore.getState().stagePos;
     if (currentStagePos.x === 0 && currentStagePos.y === 0) {
@@ -208,7 +212,7 @@ export default function SchematicEditor() {
     
     // Use ResizeObserver to detect when sidebars/flyouts push the width
     const resizeObserver = new ResizeObserver(entries => {
-      for (let entry of entries) {
+      for (const entry of entries) {
         setDimensions({ 
           width: entry.contentRect.width, 
           height: entry.contentRect.height 
@@ -217,7 +221,10 @@ export default function SchematicEditor() {
     });
     
     resizeObserver.observe(wrapper);
-    return () => resizeObserver.disconnect();
+    return () => {
+      cancelAnimationFrame(initRaf);
+      resizeObserver.disconnect();
+    };
   }, []);
 
   // Animation Loop for Current Flow (Cosmetic)
@@ -238,8 +245,6 @@ export default function SchematicEditor() {
     if (isPlaying) {
       lastTime = performance.now();
       animationFrameId = requestAnimationFrame(animate);
-    } else {
-      setDashOffset(0);
     }
 
     return () => {
@@ -256,7 +261,7 @@ export default function SchematicEditor() {
 
       const { components, wires } = useSchematicStore.getState();
 
-      let dataURL = '';
+      let dataURL: string;
 
       if (components.length > 0 || wires.length > 0) {
         let minX = Infinity;
@@ -344,7 +349,6 @@ export default function SchematicEditor() {
         setTouchWireStart(null);
         setPendingComponent(null);
         setMousePos(null);
-        setAutoRoutePath(null);
       }
       if (e.key === ' ') {
         e.preventDefault();
@@ -371,23 +375,25 @@ export default function SchematicEditor() {
     };
   }, [setPendingComponent, wirePoints, addWire]);
 
-  const handleWheel = (e: any) => {
+  const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
     const scaleBy = 1.1;
     const stage = stageRef.current;
     if (!stage) return;
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
     
     const oldScale = stage.scaleX();
     const mousePointTo = {
-      x: stage.getPointerPosition().x / oldScale - stage.x() / oldScale,
-      y: stage.getPointerPosition().y / oldScale - stage.y() / oldScale,
+      x: pointer.x / oldScale - stage.x() / oldScale,
+      y: pointer.y / oldScale - stage.y() / oldScale,
     };
 
     const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
     setScale(newScale);
     setStagePos({
-      x: -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
-      y: -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
+      x: -(mousePointTo.x - pointer.x / newScale) * newScale,
+      y: -(mousePointTo.y - pointer.y / newScale) * newScale,
     });
   };
 
@@ -412,7 +418,7 @@ export default function SchematicEditor() {
     return nearest;
   }, [components]);
 
-  const handleMouseMove = (e: any) => {
+  const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     if (!wirePoints && !pendingComponent) {
       return; 
     }
@@ -437,29 +443,14 @@ export default function SchematicEditor() {
     if (!mousePos || mousePos.x !== targetX || mousePos.y !== targetY) {
       setMousePos({ x: targetX, y: targetY });
       setHoveredPinPos(snapPin);
-      
-      if (wirePoints && wirePoints.length > 0 && wireDirOverride === 'auto') {
-        const now = performance.now();
-        if (now - lastAStarTime.current > 32) { // roughly 30fps throttle
-          const lastWirePoint = wirePoints[wirePoints.length - 1];
-          if (!lastAStarTarget.current || lastAStarTarget.current.x !== targetX || lastAStarTarget.current.y !== targetY) {
-            const path = findOrthogonalPath(lastWirePoint, { x: targetX, y: targetY }, components as SchematicComponent[]);
-            setAutoRoutePath(path);
-            lastAStarTime.current = now;
-            lastAStarTarget.current = { x: targetX, y: targetY };
-          }
-        }
-      } else {
-        setAutoRoutePath(null);
-      }
     }
 
     if (selectionBox) {
       setSelectionBox(prev => prev ? { ...prev, ex: x, ey: y } : null);
     }
-  };
+  }, [wirePoints, pendingComponent, scale, mousePos, findNearestPin, selectionBox]);
 
-  const getPreviewPoints = () => {
+  const getPreviewPoints = useCallback(() => {
     if (!wirePoints || !mousePos) return [];
     const last = wirePoints[wirePoints.length - 1];
     const dx = Math.abs(mousePos.x - last.x);
@@ -472,28 +463,24 @@ export default function SchematicEditor() {
     else if (wireDirOverride === 'v') goHFirst = false;
     else goHFirst = dx >= dy; // auto: go in dominant axis first
     
-    let corner;
-    if (goHFirst) {
-      corner = { x: mousePos.x, y: last.y };
-    } else {
-      corner = { x: last.x, y: mousePos.y };
-    }
+    const corner = goHFirst
+      ? { x: mousePos.x, y: last.y }
+      : { x: last.x, y: mousePos.y };
     // If corner is same as start, just go straight
     if (corner.x === last.x && corner.y === last.y) return [...wirePoints, mousePos];
     // If corner is same as end, just go straight
     if (corner.x === mousePos.x && corner.y === mousePos.y) return [...wirePoints, mousePos];
     return [...wirePoints, corner, mousePos];
-  };
+  }, [wirePoints, mousePos, wireDirOverride]);
 
 
-  const handleStageMouseDown = (e: any) => {
+  const handleStageMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     // Right click cancels everything
-    if (e.evt.button === 2) {
+    if ('button' in e.evt && e.evt.button === 2) {
       setWirePoints(null);
       setTouchWireStart(null);
       setPendingComponent(null);
       setMousePos(null);
-      setAutoRoutePath(null);
       return;
     }
 
@@ -592,7 +579,7 @@ export default function SchematicEditor() {
         cleaned.push(p);
       }
       if (cleaned.length >= 2) {
-        addWire({ id: `W${Date.now()}`, points: cleaned });
+        addWire({ id: nextWireId(), points: cleaned });
       }
       setWirePoints(null);
       setMousePos(null);
@@ -610,11 +597,11 @@ export default function SchematicEditor() {
     } else {
        setWirePoints([...wirePoints, corner, mousePos]);
     }
-  };
+  }, [touchWireStart, setPendingComponent, clearSelection, wirePoints, mousePos, pendingComponent, hoveredPinPos, findNearestPin, getPreviewPoints, addWire, addComponent, components]);
 
-  const handleStageDoubleClick = (e: any) => {
+  const handleStageDoubleClick = (_e: Konva.KonvaEventObject<MouseEvent>) => {
     if (wirePoints && wirePoints.length > 1) {
-      addWire({ id: `W${Date.now()}`, points: wirePoints });
+      addWire({ id: nextWireId(), points: wirePoints });
       setWirePoints(null);
     }
   };
@@ -640,7 +627,7 @@ export default function SchematicEditor() {
   const lastTouchRef = useRef<{ x: number; y: number } | null>(null);
 
   // ── Mobile Edge Auto-Pan ──────────────────────────────────────────────────
-  const applyEdgeAutoPan = useCallback((e: any) => {
+  const applyEdgeAutoPan = useCallback((e: CanvasInputEvent) => {
     if (!stageRef.current) return;
     const isDragging = dragStateRef.current !== null;
     const isDrawingWire = wirePoints !== null || touchWireStart !== null;
@@ -653,8 +640,10 @@ export default function SchematicEditor() {
     const canvasRect = container.getBoundingClientRect();
     const evt = e.evt;
     if (!evt) return;
-    const touch = evt.touches?.[0] ?? evt;
-    if (touch?.clientX === undefined || touch?.clientY === undefined) return;
+    const touch = 'touches' in evt && evt.touches.length > 0
+      ? evt.touches[0]
+      : ('clientX' in evt ? evt : null);
+    if (!touch) return;
     const { clientX, clientY } = touch;
 
     let dx = 0, dy = 0;
@@ -721,7 +710,7 @@ export default function SchematicEditor() {
     }
   }, [pendingComponent, touchWireStart, components, addWire, clearSelection]);
 
-  const handleTouchStart = useCallback((e: any) => {
+  const handleTouchStart = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     const nativeEvt: TouchEvent = e.evt;
     nativeEvt.preventDefault();
     if (nativeEvt.touches.length === 2) {
@@ -756,7 +745,7 @@ export default function SchematicEditor() {
     handleStageMouseDown(e);
   }, [handleStageMouseDown, scale, touchWireStart, findNearestPin, handleTouchTap]);
 
-  const handleTouchMove = useCallback((e: any) => {
+  const handleTouchMove = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     const nativeEvt: TouchEvent = e.evt;
     nativeEvt.preventDefault();
 
@@ -791,7 +780,7 @@ export default function SchematicEditor() {
     handleMouseMove(e);
   }, [scale, setScale, setStagePos, handleMouseMove, applyEdgeAutoPan]);
 
-  const handleTouchEnd = useCallback((e: any) => {
+  const handleTouchEnd = useCallback((_e: Konva.KonvaEventObject<TouchEvent>) => {
     lastPinchRef.current = null;
     lastTouchRef.current = null;
     handleStageMouseUp();
@@ -811,7 +800,7 @@ export default function SchematicEditor() {
     }
   }, [handleStageMouseUp, touchWireStart, scale, findNearestPin, handleTouchTap]);
 
-  const handleNodeClick = (e: any, pos: Point) => {
+  const handleNodeClick = useCallback((e: Konva.KonvaEventObject<MouseEvent | PointerEvent>, pos: Point) => {
     if (pendingComponent) return; // don't start wiring if placing
 
     // Touch tap-to-connect mode
@@ -839,13 +828,13 @@ export default function SchematicEditor() {
       }
       
       addWire({
-        id: `W${Date.now()}`,
+        id: nextWireId(),
         points: cleaned
       });
       setWirePoints(null);
       setMousePos(null);
     }
-  };
+  }, [pendingComponent, wirePoints, handleTouchTap, getPreviewPoints, addWire]);
 
   // Background Grid and Paper limits
   const PAPER_WIDTH = 3000;
@@ -918,119 +907,126 @@ export default function SchematicEditor() {
   // ── Wire Crossing Jump Arcs ────────────────────────────────────────────────
   // Recomputes only when wires or junctions change
   const wireCrossings = React.useMemo(
-    () => computeWireCrossings(wires as any, junctionDots),
+    () => computeWireCrossings(wires, junctionDots),
     [wires, junctionDots]
   );
 
-  const renderComponent = (comp: any, isPreview = false) => {
-    const sharedProps = {
-      component: comp,
-      selected: !isPreview && (selectedComponentId === comp.id || selectedComponentIds.includes(comp.id)),
-      onSelect: () => {
-        if (!isPreview) {
-          if (shiftHeldRef.current) {
-            toggleSelectedComponentId(comp.id);
-          } else {
-            setSelectedComponent(comp.id);
-            setSelectedComponentIds([]);
-            setIsConfigOpen(true);
-          }
-        }
-      },
-      onDragStart: (e: any) => {
-        if (isPreview) return;
-        setSelectedComponent(comp.id);
-        setIsConfigOpen(true);
-
-        const pins = getComponentPins(comp);
-        const attachedWires: { wireId: string, pointIndex: number, startX: number, startY: number }[] = [];
-        
-        const stateWires = useSchematicStore.getState().wires;
-        pins.forEach(pin => {
-          const pinP = pin.p;
-          if (!pinP) return;
-          stateWires.forEach(wire => {
-            if (wire.points.length > 0) {
-              const first = wire.points[0];
-              const last = wire.points[wire.points.length - 1];
-              if (Math.abs(first.x - pinP.x) < 2 && Math.abs(first.y - pinP.y) < 2) {
-                attachedWires.push({ wireId: wire.id, pointIndex: 0, startX: first.x, startY: first.y });
-              }
-              if (Math.abs(last.x - pinP.x) < 2 && Math.abs(last.y - pinP.y) < 2) {
-                attachedWires.push({ wireId: wire.id, pointIndex: wire.points.length - 1, startX: last.x, startY: last.y });
-              }
-            }
-          });
-        });
-        
-        dragStateRef.current = {
-          compId: comp.id,
-          startX: comp.position.x,
-          startY: comp.position.y,
-          attachedWires
-        };
-      },
-      onDragMove: (e: any) => {
-        if (isPreview) return;
-        applyEdgeAutoPan(e);
-        const x = Math.round(e.target.x() / SNAP_GRID) * SNAP_GRID;
-        const y = Math.round(e.target.y() / SNAP_GRID) * SNAP_GRID;
-        e.target.position({ x, y });
-        
-        const dragInfo = dragStateRef.current;
-        if (dragInfo && dragInfo.compId === comp.id) {
-          const dx = x - dragInfo.startX;
-          const dy = y - dragInfo.startY;
-          
-          if (dragInfo.attachedWires.length > 0) {
-            const wireUpdates: { id: string, points: Point[] }[] = [];
-            const stateWires = useSchematicStore.getState().wires;
-            const updatesByWire = new Map<string, { id: string, points: Point[] }>();
-            
-            dragInfo.attachedWires.forEach((aw: any) => {
-              if (!updatesByWire.has(aw.wireId)) {
-                const w = stateWires.find(ws => ws.id === aw.wireId);
-                if (w) updatesByWire.set(aw.wireId, { id: w.id, points: [...w.points] });
-              }
-              const update = updatesByWire.get(aw.wireId);
-              if (update) {
-                update.points[aw.pointIndex] = { x: aw.startX + dx, y: aw.startY + dy };
-              }
-            });
-            
-            useSchematicStore.getState().updateComponentAndWires(comp.id, { x, y }, Array.from(updatesByWire.values()));
-          }
-        }
-      },
-      onDragEnd: (e: any) => {
-        if (isPreview) return;
-        const x = Math.round(e.target.x() / SNAP_GRID) * SNAP_GRID;
-        const y = Math.round(e.target.y() / SNAP_GRID) * SNAP_GRID;
-        e.target.position({ x, y });
-        
-        const dragInfo = dragStateRef.current;
-        if (dragInfo && dragInfo.attachedWires.length > 0) {
-           useSchematicStore.getState().commitDrag();
-        } else {
-           updateComponentPosition(comp.id, { x, y });
-        }
-        dragStateRef.current = null;
-      },
-      onNodeClick: handleNodeClick,
-      isPreview
-    };
-
-    const textAnnotationProps = {
-      ...sharedProps,
-      updateComponentValue: useSchematicStore.getState().updateComponentValue
-    };
-
-    let el = null;
-    if (comp.type === 'TextAnnotation') {
-      el = <TextAnnotation key={comp.id} {...textAnnotationProps} />;
+  const handleCompSelect = useCallback((compId: string) => {
+    if (shiftHeldRef.current) {
+      toggleSelectedComponentId(compId);
     } else {
-      el = <MultisimSymbol key={comp.id} {...sharedProps} updateComponentValue={textAnnotationProps.updateComponentValue} />;
+      setSelectedComponent(compId);
+      setSelectedComponentIds([]);
+      setIsConfigOpen(true);
     }
+  }, [toggleSelectedComponentId, setSelectedComponent, setSelectedComponentIds, setIsConfigOpen]);
+
+  const handleCompDragStart = useCallback((comp: SchematicComponent) => {
+    setSelectedComponent(comp.id);
+    setIsConfigOpen(true);
+
+    const pins = getComponentPins(comp);
+    const attachedWires: { wireId: string; pointIndex: number; startX: number; startY: number }[] = [];
+
+    const stateWires = useSchematicStore.getState().wires;
+    pins.forEach(pin => {
+      const pinP = pin.p;
+      if (!pinP) return;
+      stateWires.forEach(wire => {
+        if (wire.points.length > 0) {
+          const first = wire.points[0];
+          const last = wire.points[wire.points.length - 1];
+          if (Math.abs(first.x - pinP.x) < 2 && Math.abs(first.y - pinP.y) < 2) {
+            attachedWires.push({ wireId: wire.id, pointIndex: 0, startX: first.x, startY: first.y });
+          }
+          if (Math.abs(last.x - pinP.x) < 2 && Math.abs(last.y - pinP.y) < 2) {
+            attachedWires.push({ wireId: wire.id, pointIndex: wire.points.length - 1, startX: last.x, startY: last.y });
+          }
+        }
+      });
+    });
+
+    dragStateRef.current = {
+      compId: comp.id,
+      startX: comp.position.x,
+      startY: comp.position.y,
+      attachedWires,
+    };
+  }, [setSelectedComponent, setIsConfigOpen]);
+
+  const handleCompDragMove = useCallback((comp: SchematicComponent, e: Konva.KonvaEventObject<DragEvent>) => {
+    applyEdgeAutoPan(e);
+    const x = Math.round(e.target.x() / SNAP_GRID) * SNAP_GRID;
+    const y = Math.round(e.target.y() / SNAP_GRID) * SNAP_GRID;
+    e.target.position({ x, y });
+
+    const dragInfo = dragStateRef.current;
+    if (dragInfo && dragInfo.compId === comp.id) {
+      const dx = x - dragInfo.startX;
+      const dy = y - dragInfo.startY;
+
+      if (dragInfo.attachedWires.length > 0) {
+        const stateWires = useSchematicStore.getState().wires;
+        const updatesByWire = new Map<string, { id: string; points: Point[] }>();
+
+        dragInfo.attachedWires.forEach(aw => {
+          if (!updatesByWire.has(aw.wireId)) {
+            const w = stateWires.find(ws => ws.id === aw.wireId);
+            if (w) updatesByWire.set(aw.wireId, { id: w.id, points: [...w.points] });
+          }
+          const update = updatesByWire.get(aw.wireId);
+          if (update) {
+            update.points[aw.pointIndex] = { x: aw.startX + dx, y: aw.startY + dy };
+          }
+        });
+
+        useSchematicStore.getState().updateComponentAndWires(comp.id, { x, y }, Array.from(updatesByWire.values()));
+      }
+    }
+  }, [applyEdgeAutoPan]);
+
+  const handleCompDragEnd = useCallback((comp: SchematicComponent, e: Konva.KonvaEventObject<DragEvent>) => {
+    const x = Math.round(e.target.x() / SNAP_GRID) * SNAP_GRID;
+    const y = Math.round(e.target.y() / SNAP_GRID) * SNAP_GRID;
+    e.target.position({ x, y });
+
+    const dragInfo = dragStateRef.current;
+    if (dragInfo && dragInfo.attachedWires.length > 0) {
+      useSchematicStore.getState().commitDrag();
+    } else {
+      updateComponentPosition(comp.id, { x, y });
+    }
+    dragStateRef.current = null;
+  }, [updateComponentPosition]);
+
+  const noopDrag = useCallback((_e: Konva.KonvaEventObject<DragEvent>) => {}, []);
+  const noopNodeClick = useCallback((_e: Konva.KonvaEventObject<MouseEvent | PointerEvent>, _pos: Point) => {}, []);
+
+  const renderComponent = (comp: SchematicComponent, isPreview = false) => {
+    const isSelected = !isPreview && (selectedComponentId === comp.id || selectedComponentIds.includes(comp.id));
+    const el = comp.type === 'TextAnnotation' ? (
+      <TextAnnotation
+        key={comp.id}
+        component={comp}
+        selected={isSelected}
+        onSelect={isPreview ? undefined : () => handleCompSelect(comp.id)}
+        onDragMove={isPreview ? noopDrag : (e) => handleCompDragMove(comp, e)}
+        onDragEnd={isPreview ? noopDrag : (e) => handleCompDragEnd(comp, e)}
+        updateComponentValue={updateComponentValue}
+      />
+    ) : (
+      <MultisimSymbol
+        key={comp.id}
+        component={comp}
+        selected={isSelected}
+        onSelect={isPreview ? undefined : () => handleCompSelect(comp.id)}
+        onDragStart={isPreview ? undefined : () => handleCompDragStart(comp)}
+        onDragMove={isPreview ? noopDrag : (e) => handleCompDragMove(comp, e)}
+        onDragEnd={isPreview ? noopDrag : (e) => handleCompDragEnd(comp, e)}
+        onNodeClick={isPreview ? noopNodeClick : handleNodeClick}
+        updateComponentValue={updateComponentValue}
+      />
+    );
 
     if (isPreview) {
       return (
@@ -1205,7 +1201,7 @@ export default function SchematicEditor() {
                   stroke={strokeColor}
                   strokeWidth={strokeW}
                   dash={hasSimData && isPlaying ? [5, 10] : undefined}
-                  dashOffset={dashOffset}
+                  dashOffset={isPlaying ? dashOffset : 0}
                   lineCap="round"
                   lineJoin="round"
                   hitStrokeWidth={20}
@@ -1277,7 +1273,8 @@ export default function SchematicEditor() {
                   const voltage = wireVoltageMap.get(wire.id) ?? 0;
                   if (Math.abs(voltage) < 0.01) return null; // no dot on GND/dead nets
                   // Direction: positive voltage → forward, negative → reverse
-                  const phase = voltage < 0 ? 1 - dotPhase : dotPhase;
+                  const activeDotPhase = simulationBuffer && simulationBuffer.length > 0 ? dotPhase : 0;
+                  const phase = voltage < 0 ? 1 - activeDotPhase : activeDotPhase;
                   const pt = getPointAlongPolyline(wire.points, phase);
                   return (
                     <Circle
@@ -1440,8 +1437,8 @@ export default function SchematicEditor() {
                   opacity={0.4}
                   stroke="#65a30d"
                   strokeWidth={2}
-                  scaleX={touchPulseScale}
-                  scaleY={touchPulseScale}
+                  scaleX={touchWireStart ? touchPulseScale : 1.0}
+                  scaleY={touchWireStart ? touchPulseScale : 1.0}
                   listening={false}
                 />
                 <Circle

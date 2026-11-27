@@ -86,10 +86,12 @@ function json(body: unknown, status: number, extra: Record<string, string> = {})
   });
 }
 
+type VercelEdgeRequest = Request & { ip?: string };
+
 function clientIp(req: Request): string {
   // On Vercel Edge, req.ip is injected by the platform (not spoofable by clients)
-  // @ts-ignore — Vercel Edge adds .ip
-  if ((req as any).ip) return (req as any).ip;
+  const edgeIp = (req as VercelEdgeRequest).ip;
+  if (edgeIp) return edgeIp;
 
   // Fallback for local dev: use x-forwarded-for but take LAST address
   // (in a proxy chain, the rightmost is the most-trusted relay)
@@ -203,7 +205,7 @@ export default async function handler(req: Request): Promise<Response> {
 
   let targetModel: string;
   let targetMethod: string;
-  let isStream = false;
+  let isStream: boolean;
   let upstreamBodyJson: string;
 
   if (isSimplePromptMode) {

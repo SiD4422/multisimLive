@@ -1,6 +1,6 @@
 // Curated example circuits shown on /circuits and /circuits/:id.
 
-import { Activity, ArrowUpDown, Cpu, Filter, GitBranch, GitMerge, Radio, RefreshCw, Sliders, ToggleRight, TrendingUp, Triangle, Waves, Zap } from 'lucide-react';
+import { Activity, ArrowUpDown, Cpu, Filter, GitBranch, GitMerge, Radio, RefreshCw, Sliders, ToggleRight, TrendingUp, Triangle, Waves, Zap, type LucideIcon } from 'lucide-react';
 import { C } from './circuitsTheme';
 import lowPassFilter        from '../examples/low_pass_filter.json';
 import rcHighPassFilter     from '../examples/rc_high_pass_filter.json';
@@ -27,7 +27,22 @@ import voltageRegulator5V   from '../examples/voltage_regulator_5v.json';
 import zenerVoltageReg      from '../examples/zener_voltage_regulator.json';
 import seriesResonantConverter from '../examples/series_resonant_converter.json';
 
-export const EXAMPLES = [
+export interface CircuitExampleItem {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  analysis: string;
+  analysisColor: string;
+  difficulty: string;
+  components: string[];
+  Icon: LucideIcon;
+  accent: string;
+  data: unknown;
+  videoUrl?: string;
+}
+
+export const EXAMPLES: CircuitExampleItem[] = [
   // ── FILTERS ────────────────────────────────────────────────────
   { id: 'lpf', name: 'RC Low-Pass Filter', category: 'Filters', description: 'Passes low frequencies, attenuates highs. The foundation of analog signal processing.', analysis: 'AC Sweep', analysisColor: C.acSweep, difficulty: 'Beginner', components: ['Resistor', 'Capacitor', 'AC Source'], Icon: Waves, accent: '#0284c7', data: lowPassFilter },
   { id: 'hpf', name: 'RC High-Pass Filter', category: 'Filters', description: 'Blocks DC and low frequencies, passes high-frequency signals. Coupling & noise removal.', analysis: 'AC Sweep', analysisColor: C.acSweep, difficulty: 'Beginner', components: ['Capacitor', 'Resistor', 'AC Source'], Icon: TrendingUp, accent: '#0891b2', data: rcHighPassFilter },

@@ -1,3 +1,4 @@
+import type Konva from 'konva';
 import { Group, Path, Circle, Line, Text, Rect } from 'react-konva';
 import type { SchematicComponent } from '../../store/useSchematicStore';
 import { useSchematicStore } from '../../store/useSchematicStore';
@@ -293,10 +294,10 @@ interface MultisimSymbolProps {
   component: SchematicComponent;
   selected?: boolean;
   onSelect?: () => void;
-  onDragMove: (e: any) => void;
-  onDragEnd: (e: any) => void;
-  onDragStart?: (e: any) => void;
-  onNodeClick: (e: any, pos: { x: number, y: number }) => void;
+  onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragStart?: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onNodeClick: (e: Konva.KonvaEventObject<MouseEvent | PointerEvent>, pos: { x: number, y: number }) => void;
   updateComponentValue?: (id: string, value: string) => void;
 }
 
@@ -306,12 +307,12 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
   const strokeColor = selected ? "#3b82f6" : "#000000";
   const type = component.type;
   
-  let paths: { data: string, fill?: string, stroke?: string }[] = [];
-  let circles: { x: number, y: number, r: number, fill?: string, stroke?: string }[] = [];
-  let rects: { x: number, y: number, width: number, height: number, stroke?: string, strokeWidth?: number, fill?: string, cornerRadius?: number }[] = [];
-  let lines: { points: number[] }[] = [];
+  const paths: { data: string, fill?: string, stroke?: string }[] = [];
+  const circles: { x: number, y: number, r: number, fill?: string, stroke?: string }[] = [];
+  const rects: { x: number, y: number, width: number, height: number, stroke?: string, strokeWidth?: number, fill?: string, cornerRadius?: number }[] = [];
+  const lines: { points: number[] }[] = [];
   let pins: { x: number, y: number }[] = [];
-  let texts: { text: string, x: number, y: number, size?: number, fill?: string }[] = [];
+  const texts: { text: string, x: number, y: number, size?: number, fill?: string }[] = [];
   let labelOffset = { x: 30, y: -35 };   // above symbol (centered)
   let valueOffset = { x: 30, y: 35 };    // below symbol (centered)
 
@@ -806,8 +807,8 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     }
 
     // Core lines
-    let coreStartY = topY + 5;
-    let coreEndY = (pCount === 2 || sCount === 2) ? (topY + 80 + 55) : (topY + 55);
+    const coreStartY = topY + 5;
+    const coreEndY = (pCount === 2 || sCount === 2) ? (topY + 80 + 55) : (topY + 55);
     paths.push({ data: `M 26 ${coreStartY} L 26 ${coreEndY} M 34 ${coreStartY} L 34 ${coreEndY}`, fill: "transparent" });
 
     labelOffset = { x: 30, y: topY - 20 };
@@ -1279,14 +1280,14 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     paths.push({ data: "M 25 -40 A 5 5 0 0 0 35 -40", fill: "transparent" }); // Notch
     // 7 pins left
     for (let i=0; i<7; i++) {
-      let py = -30 + i * 10;
+      const py = -30 + i * 10;
       lines.push({ points: [0, py, 15, py] });
       texts.push({ text: `${i+1}`, x: 18, y: py - 4, size: 8, fill: '#333' });
       pins.push({ x: 0, y: py });
     }
     // 7 pins right
     for (let i=0; i<7; i++) {
-      let py = 30 - i * 10;
+      const py = 30 - i * 10;
       lines.push({ points: [45, py, 60, py] });
       texts.push({ text: `${i+8}`, x: 36, y: py - 4, size: 8, fill: '#333' });
       pins.push({ x: 60, y: py });
@@ -3570,7 +3571,6 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
       lines.push({ points: [-60,py,-48,py] });
       texts.push({ text: n, x: -44, y: py-4, size: 6 });
     });
-    const rPinsDAC = [['IOUT',0],['VREF+',-30],['VREF-创新',-15],['VCC',-45],['VEE',45],['GND',60]] as [string,number][];
     // Fix label for VREF-
     lines.push({ points: [48,-45,60,-45] }); texts.push({ text: 'VCC', x: 18, y: -49, size: 6 });
     lines.push({ points: [48,-30,60,-30] }); texts.push({ text: 'VREF+', x: 8, y: -34, size: 6 });
@@ -5237,7 +5237,6 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     const title = type === 'ic_uln2004' ? 'ULN2004' : 'CD4511';
     rects.push({ x: -40, y: -70, width: 80, height: 140 });
     circles.push({ x: 0, y: -70, r: 4, stroke: '#64748b' });
-    const yOffsets = [-60, -45, -30, -15, 0, 15, 30, 45];
     // ULN2004 & CD4511 have 8 pins per side (16 pins total)
     // For ULN2004:
     // Left: IN1..IN7, GND (-45, -30, -15, 0, 15, 30, 45, 60)
@@ -5311,12 +5310,9 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
         }
         if (type === 'SwitchSPST' || type === 'PushButton' || type === 'DigitalSwitch') {
           e.cancelBubble = true;
-          let newVal = 'Closed';
-          if (type === 'DigitalSwitch') {
-            newVal = component.value === '1' ? '0' : '1';
-          } else {
-            newVal = component.value !== 'Open' ? 'Open' : 'Closed';
-          }
+          const newVal = type === 'DigitalSwitch'
+            ? (component.value === '1' ? '0' : '1')
+            : (component.value !== 'Open' ? 'Open' : 'Closed');
           if (updateComponentValue) updateComponentValue(component.id, newVal);
           // Auto-rerun simulation silently so graph updates immediately
           setTimeout(() => useSchematicStore.getState().runSimulation(true), 50);
@@ -5381,7 +5377,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
           const scaledX = pin.x * 1.5;
           const scaledY = pin.y * 1.5;
           const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
-          const handlePinHit = (e: any) => {
+          const handlePinHit = (e: Konva.KonvaEventObject<PointerEvent>) => {
             e.cancelBubble = true; 
             const rad = (component.rotation || 0) * Math.PI / 180;
             const rotX = scaledX * Math.cos(rad) - scaledY * Math.sin(rad);
@@ -5394,8 +5390,8 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               key={`pin${i}`}
               x={scaledX} y={scaledY} radius={5} fill="#fff" stroke={strokeColor} strokeWidth={2} hitStrokeWidth={isTouch ? 56 : 15}
               onPointerDown={handlePinHit}
-              onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as any).fill('#e5e7eb'); }}
-              onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as any).fill('#fff'); }}
+              onMouseEnter={(e) => { e.target.getStage()!.container().style.cursor = 'crosshair'; (e.target as Konva.Circle).fill('#e5e7eb'); }}
+              onMouseLeave={(e) => { e.target.getStage()!.container().style.cursor = 'default'; (e.target as Konva.Circle).fill('#fff'); }}
             />
           );
         })}
@@ -5417,7 +5413,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
           const valLocalY = valY;
 
           // Clean reference designator (e.g. R1, C2, U1)
-          const refDes = (component as any).label || formatRefDes(component.id, type);
+          const refDes = component.label || formatRefDes(component.id, type);
           const valText = component.value || '';
 
           // Check LED glow from simulation
@@ -5429,7 +5425,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               k.toLowerCase().includes(`d_${component.id.toLowerCase()}`)
             );
             if (ledCurrentKey) {
-              const avgCurrent = simBuffer.reduce((sum: number, row: any) => sum + Math.abs(row[ledCurrentKey] || 0), 0) / simBuffer.length;
+              const avgCurrent = simBuffer.reduce((sum, row) => sum + Math.abs(row[ledCurrentKey] || 0), 0) / simBuffer.length;
               if (avgCurrent > 0.005) {
                 // Pick color based on value label
                 const v = (component.value || '').toLowerCase();
@@ -5456,7 +5452,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               k.startsWith('v(') && k.toLowerCase().includes(compId)
             );
             if (vKeys.length > 0) {
-              const avgV = simBuffer.reduce((s: number, row: any) => s + Math.abs(row[vKeys[0]] || 0), 0) / simBuffer.length;
+              const avgV = simBuffer.reduce((s, row) => s + Math.abs(row[vKeys[0]] || 0), 0) / simBuffer.length;
               const power = (avgV * avgV) / R;
               if (power > 0.25) overloaded = true;
             }
@@ -5470,7 +5466,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               || k.toLowerCase().includes(`i(v_${component.id.toLowerCase()}`)
             );
             if (coilKey) {
-              const avgI = simBuffer.reduce((s: number, row: any) => s + Math.abs(row[coilKey] || 0), 0) / simBuffer.length;
+              const avgI = simBuffer.reduce((s, row) => s + Math.abs(row[coilKey] || 0), 0) / simBuffer.length;
               if (avgI > 0.01) relayActive = true;
             }
           }
@@ -5637,18 +5633,20 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               })()}
               width={100}
               onChange={(newVal) => {
-                let display = '';
-                if (newVal >= 1e6) display = `${(newVal / 1e6).toPrecision(3)}Meg`;
-                else if (newVal >= 1e3) display = `${(newVal / 1e3).toPrecision(3)}k`;
-                else display = `${newVal.toPrecision(3)}`;
+                const display = newVal >= 1e6
+                  ? `${(newVal / 1e6).toPrecision(3)}Meg`
+                  : newVal >= 1e3
+                    ? `${(newVal / 1e3).toPrecision(3)}k`
+                    : `${newVal.toPrecision(3)}`;
                 useSchematicStore.getState().updateComponentValue(component.id, display);
                 triggerDebouncedSliderSim(component.id); // debounced live simulation while dragging
               }}
               onChangeEnd={(newVal) => {
-                let display = '';
-                if (newVal >= 1e6) display = `${(newVal / 1e6).toPrecision(3)}Meg`;
-                else if (newVal >= 1e3) display = `${(newVal / 1e3).toPrecision(3)}k`;
-                else display = `${newVal.toPrecision(3)}`;
+                const display = newVal >= 1e6
+                  ? `${(newVal / 1e6).toPrecision(3)}Meg`
+                  : newVal >= 1e3
+                    ? `${(newVal / 1e3).toPrecision(3)}k`
+                    : `${newVal.toPrecision(3)}`;
                 useSchematicStore.getState().updateComponentValue(component.id, display);
                 // Immediate final re-run on release
                 const existing = sliderDebounceTimers.get(component.id);

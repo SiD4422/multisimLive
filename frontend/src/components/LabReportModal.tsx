@@ -5,19 +5,10 @@ import {
   Loader2,
   Download,
   Sparkles,
-  LogIn,
-  ShieldCheck,
-  Table as TableIcon,
-  Activity,
-  Layers,
   CheckCircle2,
   AlertCircle,
   AlertTriangle,
   Play,
-  HelpCircle,
-  Cpu,
-  BookOpen,
-  Sliders,
   RefreshCw,
 } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
@@ -30,25 +21,17 @@ import { useActiveExperimentStore } from '../data/universityLabPacks';
 import {
   extractValidatedReadings,
   toDynamicReadingItems,
-  formatEngineeringValue,
   cleanEngineeringText,
-  type ValidatedSignalMeasurement,
-  type DynamicReadingItem,
 } from '../utils/report/measurementValidation';
 
 import {
   analyzeCircuitTopology,
   evaluateTransientCoverage,
-  type TopologyTimingInvariants,
-  type TransientCoverageEvaluation,
 } from '../utils/report/adaptiveTransient';
 
 import {
   evaluateCircuitVerification,
-  evaluateComponentStress,
   type FourPillarEvaluation,
-  type VerificationTestCase,
-  type ComponentStressItem,
 } from '../utils/report/verificationEngine';
 
 interface LabReportModalProps {
@@ -88,7 +71,7 @@ function extractBOM(components: SchematicComponent[]): BomItem[] {
 
   for (const c of physical) {
     const val = (c.value || '').trim() || 'Standard';
-    const explicitRating = (c as any).powerRating || (c as any).voltageRating || (c as any).currentRating;
+    const explicitRating = c.powerRating || c.voltageRating || c.currentRating;
     const key = `${c.type}___${val}___${explicitRating || 'none'}`;
     if (!groups[key]) {
       groups[key] = { type: c.type, value: val, ids: [], explicitRating };
@@ -283,10 +266,12 @@ function generateWaveformCanvasSnapshot(
     ctx.lineTo(x, padTop + plotH);
     ctx.stroke();
 
-    let tStr = '';
-    if (tRange < 1e-3) tStr = `${(tVal * 1e6).toFixed(1)} µs`;
-    else if (tRange < 1) tStr = `${(tVal * 1e3).toFixed(2)} ms`;
-    else tStr = `${tVal.toFixed(2)} s`;
+    const tStr =
+      tRange < 1e-3
+        ? `${(tVal * 1e6).toFixed(1)} µs`
+        : tRange < 1
+          ? `${(tVal * 1e3).toFixed(2)} ms`
+          : `${tVal.toFixed(2)} s`;
 
     ctx.fillText(tStr, x, padTop + plotH + 8);
   }
@@ -348,7 +333,16 @@ function generateWaveformCanvasSnapshot(
   return canvas.toDataURL('image/png');
 }
 
-export function LabReportModal({
+function buildReportDocId(isDiagnosticMode: boolean, docMode: ReportDocMode): string {
+  return `NS-${isDiagnosticMode ? 'DIAGNOSTIC' : docMode}-${Date.now().toString(36).toUpperCase()}`;
+}
+
+export function LabReportModal(props: LabReportModalProps) {
+  if (!props.isOpen) return null;
+  return <LabReportModalInner {...props} />;
+}
+
+function LabReportModalInner({
   isOpen,
   onClose,
   schematicDataUrl,
@@ -379,15 +373,29 @@ export function LabReportModal({
   const [errorMsg, setErrorMsg] = useState('');
 
   // Actual ngspice runtime version (Requirement 5)
-  const engineVersion = (simulationBuffer as any)?.__engineVersion || 'ngspice (WebAssembly build)';
+  const engineVersion = simulationBuffer?.__engineVersion || 'ngspice (WebAssembly build)';
 
-  // Metadata form
-  const [formData, setFormData] = useState({
-    title: '',
-    engineerName: '',
-    organization: 'Hardware Systems R&D Workspace',
-    docRevision: 'REV 1.0',
-    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+  // Metadata form (initialized cleanly on modal open)
+  const [formData, setFormData] = useState(() => {
+    const profileName = user?.displayName || user?.email?.split('@')[0] || '';
+    const defaultName = profileName || 'NodeSim Hardware Engineer';
+    const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    if (activeExperiment) {
+      return {
+        title: `Experiment ${activeExperiment.experimentNo}: ${activeExperiment.title}`,
+        engineerName: defaultName,
+        organization: activeExperiment.university || 'Department of Electrical & Electronic Engineering',
+        docRevision: 'REV 1.0',
+        date,
+      };
+    }
+    return {
+      title: 'Mixed-Signal Hardware Design Verification',
+      engineerName: defaultName,
+      organization: 'Hardware Systems R&D Workspace',
+      docRevision: 'REV 1.0',
+      date,
+    };
   });
 
   const [reportContent, setReportContent] = useState<{
@@ -397,31 +405,6 @@ export function LabReportModal({
     dynamicPerformance: string;
     signOff: string;
   } | null>(null);
-
-  // Auto-fill defaults based on authenticated user or active lab experiment (Requirement 10)
-  useEffect(() => {
-    if (isOpen) {
-      setStep('form');
-      setIsDiagnosticMode(false);
-      const profileName = user?.displayName || user?.email?.split('@')[0] || '';
-      const defaultName = profileName || 'NodeSim Hardware Engineer';
-      if (activeExperiment) {
-        setFormData(prev => ({
-          ...prev,
-          title: `Experiment ${activeExperiment.experimentNo}: ${activeExperiment.title}`,
-          organization: activeExperiment.university || 'Department of Electrical & Electronic Engineering',
-          engineerName: (!prev.engineerName || prev.engineerName === 'NodeSim Hardware Engineer') ? defaultName : prev.engineerName,
-        }));
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          title: prev.title || 'Mixed-Signal Hardware Design Verification',
-          organization: prev.organization || 'Hardware Systems R&D Workspace',
-          engineerName: (!prev.engineerName || prev.engineerName === 'NodeSim Hardware Engineer') ? defaultName : prev.engineerName,
-        }));
-      }
-    }
-  }, [isOpen, activeExperiment, user]);
 
   // Escape key handler to close modal
   useEffect(() => {
@@ -479,8 +462,6 @@ export function LabReportModal({
     coverage.isAdequate &&
     verificationEvaluation.qualifiedSignOffAvailable
   );
-
-  if (!isOpen) return null;
 
   const bomEntries = extractBOM(components);
   const effectiveGraphSnapshot = graphDataUrl || generateWaveformCanvasSnapshot(simulationBuffer);
@@ -699,7 +680,7 @@ CRITICAL ENGINEERING INTEGRITY RULES:
       const contentW = pageW - margin * 2;
       let y = margin;
 
-      const docId = `NS-${isDiagnosticMode ? 'DIAGNOSTIC' : docMode}-${Date.now().toString(36).toUpperCase()}`;
+      const docId = buildReportDocId(isDiagnosticMode, docMode);
 
       const ensureSpace = (neededH: number): boolean => {
         if (y + neededH > pageH - 22) {
@@ -1051,7 +1032,9 @@ CRITICAL ENGINEERING INTEGRITY RULES:
           doc.rect(margin, y + 5.5, figW, figH - 5.5);
           try {
             doc.addImage(schematicDataUrl, 'PNG', margin + 0.5, y + 6, figW - 1, figH - 6.5);
-          } catch {}
+          } catch (err) {
+            console.warn('Skipping invalid schematic snapshot image in PDF:', err);
+          }
         }
 
         if (effectiveGraphSnapshot && hasSimulated) {
@@ -1067,7 +1050,9 @@ CRITICAL ENGINEERING INTEGRITY RULES:
           doc.rect(fx2, y + 5.5, figW, figH - 5.5);
           try {
             doc.addImage(effectiveGraphSnapshot, 'PNG', fx2 + 0.5, y + 6, figW - 1, figH - 6.5);
-          } catch {}
+          } catch (err) {
+            console.warn('Skipping invalid graph snapshot image in PDF:', err);
+          }
         }
         y += figH + 6;
       }

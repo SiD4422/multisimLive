@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Save, FolderOpen, Trash2, Clock, CircuitBoard } from 'lucide-react';
 import LZString from 'lz-string';
 import { useSchematicStore } from '../store/useSchematicStore';
@@ -34,17 +34,15 @@ interface Props {
 }
 
 export function SavedCircuitsModal({ isOpen, onClose, circuitName, onNameChange }: Props) {
+  if (!isOpen) return null;
+  return <SavedCircuitsModalInner onClose={onClose} circuitName={circuitName} onNameChange={onNameChange} />;
+}
+
+function SavedCircuitsModalInner({ onClose, circuitName, onNameChange }: Omit<Props, 'isOpen'>) {
   const { exportState, importState, components } = useSchematicStore();
-  const [saves, setSaves] = useState<SavedCircuit[]>([]);
+  const [saves, setSaves] = useState<SavedCircuit[]>(loadSaves);
   const [saveName, setSaveName] = useState(circuitName || 'Untitled Circuit');
   const [toast, setToast] = useState('');
-
-  useEffect(() => {
-    if (isOpen) {
-      setSaves(loadSaves());
-      setSaveName(circuitName || 'Untitled Circuit');
-    }
-  }, [isOpen, circuitName]);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -96,8 +94,6 @@ export function SavedCircuitsModal({ isOpen, onClose, circuitName, onNameChange 
     writeSaves(next);
     setSaves(next);
   };
-
-  if (!isOpen) return null;
 
   const fmtDate = (ts: number) => {
     const d = new Date(ts);

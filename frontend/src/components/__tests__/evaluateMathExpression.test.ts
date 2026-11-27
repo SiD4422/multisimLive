@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { evaluateMathExpression } from '../Grapher';
+import { evaluateMathExpression } from '../../utils/evaluateMathExpression';
 
 describe('evaluateMathExpression', () => {
   const probeMap: Record<string, string> = {

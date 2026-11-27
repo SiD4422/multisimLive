@@ -64,24 +64,11 @@ const KICAD_REF_MAP: Record<string, { prefix: string; lib: string; part: string;
   Ammeter:                { prefix: 'M',  lib: 'Device', part: 'Ammeter', desc: 'Ammeter' },
 };
 
-function getKiCadRef(type: string, index: number): string {
-  const map = KICAD_REF_MAP[type];
-  const prefix = map?.prefix ?? 'U';
-  return `${prefix}${index + 1}`;
-}
-
-function getNodeName(nodeId: string): string {
-  if (nodeId === '0' || nodeId === 'gnd') return 'GND';
-  return `Net-${nodeId}`;
-}
-
 export function exportToKiCad(components: SchematicComponent[], wires: Wire[]): string {
   // Step 1: Build node map (same as netlister does)
   // For simplicity, reuse the node-id approach: assign sequential node IDs to connected wire endpoints
   // We'll use a union-find approach to find connected nodes
 
-  const nodeMap = new Map<string, string>(); // point key → node name
-  
   // Find Ground nodes and assign '0'
   const groundComps = components.filter(c => c.type === 'Ground');
   
@@ -236,7 +223,7 @@ export function exportToKiCad(components: SchematicComponent[], wires: Wire[]): 
   };
 
   // Generate components section
-  const compLines = simComponents.map((comp, i) => {
+  const compLines = simComponents.map((comp) => {
     const ref = compRefs.get(comp.id)!;
     const value = comp.value || comp.type;
     const kicad = KICAD_REF_MAP[comp.type] ?? { lib: 'Device', part: comp.type, desc: comp.type };

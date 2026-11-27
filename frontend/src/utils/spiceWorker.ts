@@ -1,15 +1,33 @@
 // spiceWorker.ts
 
+interface WorkerGlobalShim {
+  window?: unknown;
+  document?: { createElement: () => Record<string, never> };
+}
+
 // Global shim for ngspice-wasm inside a Web Worker.
 // Emscripten generated modules often check for window or document.
-if (typeof self !== 'undefined' && typeof (self as any).window === 'undefined') {
-  (self as any).window = self;
-  (self as any).document = { createElement: () => ({}) };
+if (typeof self !== 'undefined') {
+  const workerSelf = self as unknown as WorkerGlobalShim;
+  if (typeof workerSelf.window === 'undefined') {
+    workerSelf.window = self;
+    workerSelf.document = { createElement: () => ({}) };
+  }
 }
 
 import createNgspiceModule from '@o.z/ngspice-wasm';
+import type { NgspiceModule, OpDataPoint, SpiceDataRow, SpiceParsedOutput } from './spiceTypes';
 
-let ngspiceInstance: any = null;
+interface RawParserRow extends SpiceDataRow {
+  __parsedVars?: number;
+}
+
+interface EmscriptenExitStatus {
+  name?: string;
+  status?: number;
+}
+
+let ngspiceInstance: NgspiceModule | null = null;
 let isInitializing = false;
 let initPromise: Promise<void> | null = null;
 let detectedNgspiceVersion = 'ngspice (WebAssembly build)';
@@ -22,9 +40,9 @@ async function initNgspice() {
   }
 
   isInitializing = true;
-  initPromise = new Promise(async (resolve, reject) => {
+  initPromise = (async () => {
     try {
-      ngspiceInstance = await createNgspiceModule({
+      const mod = await createNgspiceModule({
         locateFile: (file: string) => `/${file}`,
         print: (text: string) => {
           console.log('[SPICE Worker]', text);
@@ -42,27 +60,27 @@ async function initNgspice() {
         },
         noExitRuntime: false
       });
-      resolve();
+      ngspiceInstance = mod as unknown as NgspiceModule;
     } catch (err) {
-      console.error("Failed to initialize ngspice-wasm in worker:", err);
-      reject(err);
+      console.error('Failed to initialize ngspice-wasm in worker:', err);
+      throw err;
     } finally {
       isInitializing = false;
     }
-  });
+  })();
 
   await initPromise;
 }
 
 // Ensure the parser logic from the original engine is preserved exactly
-function parseRawFile(rawStr: string): any[] {
+function parseRawFile(rawStr: string): SpiceParsedOutput {
   const lines = rawStr.split('\n').map(l => l.trim());
   const variables: { name: string; type: string }[] = [];
-  const data: any[] = [];
+  const data: RawParserRow[] = [];
 
-  let mode = "header";
+  let mode = 'header';
   let isComplex = false;
-  let plotType = "transient";
+  let plotType: 'transient' | 'ac' | 'dc' | 'op' = 'transient';
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -80,15 +98,15 @@ function parseRawFile(rawStr: string): any[] {
       else plotType = 'transient';
     }
 
-    if (line === 'Variables:') { mode = "vars"; continue; }
-    if (line === 'Values:') { mode = "values"; continue; }
+    if (line === 'Variables:') { mode = 'vars'; continue; }
+    if (line === 'Values:') { mode = 'values'; continue; }
 
-    if (mode === "vars") {
+    if (mode === 'vars') {
       const parts = line.split(/\s+/);
       if (parts.length >= 3) {
         variables.push({ name: parts[1], type: parts[2] });
       }
-    } else if (mode === "values") {
+    } else if (mode === 'values') {
       const parts = line.split(/\s+/);
 
       const isNewPoint = parts.length >= 2
@@ -97,7 +115,7 @@ function parseRawFile(rawStr: string): any[] {
         && /^\d+$/.test(parts[0]);
 
       if (isNewPoint) {
-        const pointData: any = {};
+        const pointData: RawParserRow = {};
         const valStr = parts[1];
         const xVarName = variables[0]?.name || (plotType === 'ac' ? 'frequency' : 'time');
 
@@ -130,7 +148,7 @@ function parseRawFile(rawStr: string): any[] {
             currentData[`${safeName}_db`] = db;
             currentData[`${safeName}_phase`] = phase;
             currentData[`${safeName}_mag`] = magnitude;
-            currentData.__parsedVars++;
+            currentData.__parsedVars = currentVarIndex + 1;
           }
         } else {
           parts.forEach((val) => {
@@ -148,7 +166,7 @@ function parseRawFile(rawStr: string): any[] {
   // If this was an operating point (.op), data[0] contains all the static values as keys
   if (plotType === 'op' && data.length > 0) {
     const opValues = data[0];
-    const formattedData = Object.keys(opValues)
+    const formattedData: OpDataPoint[] & { __plotType?: 'op' } = Object.keys(opValues)
       .filter(key => !key.startsWith('__'))
       .map(key => {
         // Determine unit based on key format (e.g. i(v1) -> A, v(1) -> V)
@@ -156,15 +174,15 @@ function parseRawFile(rawStr: string): any[] {
         if (key.toLowerCase().startsWith('i(')) unit = 'A';
         else if (key.toLowerCase().startsWith('v(') || key.toLowerCase() === 'v') unit = 'V';
         else if (key.toLowerCase() === 'time') unit = 's';
-        
+
         return {
           node: key,
-          value: opValues[key],
-          unit: unit
+          value: opValues[key] ?? 0,
+          unit
         };
       });
-    
-    (formattedData as any).__plotType = plotType;
+
+    formattedData.__plotType = plotType;
     return formattedData;
   }
 
@@ -177,13 +195,14 @@ function parseRawFile(rawStr: string): any[] {
     }
   }
 
-  if (data.length > 0) {
-    (data as any).__plotType = plotType;
-    (data as any).__isComplex = isComplex;
-    (data as any).__variables = variables.map(v => v.name);
+  const result = data as SpiceParsedOutput;
+  if (result.length > 0) {
+    result.__plotType = plotType;
+    result.__isComplex = isComplex;
+    result.__variables = variables.map(v => v.name);
   }
 
-  return data;
+  return result;
 }
 
 // ── Friendly Error Translator ───────────────────────────────────────────
@@ -245,90 +264,98 @@ function injectRelaxedOptions(netlist: string): string {
 
 // Core: run ngspice on the given full netlist string and return parsed data.
 // Throws on any failure.
-async function runNgspice(fullNetlist: string): Promise<any[]> {
-  ngspiceInstance.FS.writeFile("/circuit.cir", fullNetlist);
-  try { ngspiceInstance.FS.mkdir("/proc"); } catch(e){}
-  ngspiceInstance.FS.writeFile("/proc/meminfo", "MemTotal:       16384000 kB\nMemFree:         8192000 kB\nMemAvailable:    8192000 kB\n");
+async function runNgspice(fullNetlist: string): Promise<SpiceParsedOutput> {
+  if (!ngspiceInstance) {
+    throw new Error('ngspice instance is not initialized.');
+  }
+  const instance = ngspiceInstance;
 
-  const args = ["ngspice", "-b", "/circuit.cir"];
-  const stack = ngspiceInstance.__emscripten_stack_get_current
-    ? ngspiceInstance.__emscripten_stack_get_current()
-    : ngspiceInstance.stackSave();
+  instance.FS.writeFile('/circuit.cir', fullNetlist);
+  try {
+    instance.FS.mkdir('/proc');
+  } catch {
+    // /proc may already exist in the Emscripten VFS across runs
+  }
+  instance.FS.writeFile('/proc/meminfo', 'MemTotal:       16384000 kB\nMemFree:         8192000 kB\nMemAvailable:    8192000 kB\n');
+
+  const args = ['ngspice', '-b', '/circuit.cir'];
+  const stack = instance.__emscripten_stack_get_current
+    ? instance.__emscripten_stack_get_current()
+    : (instance.stackSave ? instance.stackSave() : 0);
 
   try {
     const ptrs: number[] = [];
     for (const arg of args) {
-      const strPtr = ngspiceInstance.__emscripten_stack_alloc(arg.length + 1);
-      ngspiceInstance.stringToUTF8(arg, strPtr, arg.length + 1);
+      const strPtr = instance.__emscripten_stack_alloc(arg.length + 1);
+      instance.stringToUTF8(arg, strPtr, arg.length + 1);
       ptrs.push(strPtr);
     }
-    const argv = ngspiceInstance.__emscripten_stack_alloc(args.length * 4);
+    const argv = instance.__emscripten_stack_alloc(args.length * 4);
     for (let i = 0; i < args.length; i++) {
-      ngspiceInstance.HEAP32[(argv >> 2) + i] = ptrs[i];
+      instance.HEAP32[(argv >> 2) + i] = ptrs[i];
     }
-    ngspiceInstance._main(args.length, argv);
-  } catch(err: any) {
-    if (err.name === "ExitStatus" && err.status === 0) {
+    instance._main(args.length, argv);
+  } catch (err: unknown) {
+    const exit = err as EmscriptenExitStatus | null;
+    if (exit && exit.name === 'ExitStatus' && exit.status === 0) {
       // success path
     } else {
       throw err;
     }
   } finally {
-    if (ngspiceInstance.__emscripten_stack_restore) {
-      ngspiceInstance.__emscripten_stack_restore(stack);
-    } else if (ngspiceInstance.stackRestore) {
-      ngspiceInstance.stackRestore(stack);
+    if (instance.__emscripten_stack_restore) {
+      instance.__emscripten_stack_restore(stack);
+    } else if (instance.stackRestore) {
+      instance.stackRestore(stack);
     }
   }
 
   let outputRaw: string;
   try {
-    outputRaw = ngspiceInstance.FS.readFile("/output.raw", { encoding: "utf8" });
-  } catch(err) {
-    throw new Error("No output.raw found. Simulation may have failed or singular matrix encountered.");
+    outputRaw = instance.FS.readFile('/output.raw', { encoding: 'utf8' });
+  } catch (err) {
+    throw new Error('No output.raw found. Simulation may have failed or singular matrix encountered.', { cause: err });
   }
 
   const data = parseRawFile(outputRaw);
   if (data.length === 0) {
-    throw new Error("Simulation produced no data points. The circuit might have a floating node, missing Ground, or a singular matrix.");
+    throw new Error('Simulation produced no data points. The circuit might have a floating node, missing Ground, or a singular matrix.');
   }
   return data;
 }
 
-self.addEventListener('message', async (e: MessageEvent) => {
+self.addEventListener('message', async (e: MessageEvent<{ id?: number; netlist?: string }>) => {
   const { id, netlist } = e.data;
   if (!id || !netlist) return;
-
-  let originalError: string | null = null;
 
   try {
     await initNgspice();
 
     let fullNetlist = netlist.trim();
-    if (!fullNetlist.startsWith("Circuit") && !fullNetlist.startsWith("*")) {
-      fullNetlist = "Circuit\n" + fullNetlist;
+    if (!fullNetlist.startsWith('Circuit') && !fullNetlist.startsWith('*')) {
+      fullNetlist = 'Circuit\n' + fullNetlist;
     }
-    fullNetlist += `\n.control\nrun\nset filetype=ascii\nwrite /output.raw\n.endc\n`;
+    fullNetlist += '\n.control\nrun\nset filetype=ascii\nwrite /output.raw\n.endc\n';
 
     // ── Attempt 1: standard simulation ──────────────────────────────────
-    let data: any[];
+    let originalError: string;
     try {
-      data = await runNgspice(fullNetlist);
+      const data = await runNgspice(fullNetlist);
       // Success — send result normally
       self.postMessage({
         id,
         type: 'SUCCESS',
         data,
-        __plotType: (data as any).__plotType,
-        __isComplex: (data as any).__isComplex,
-        __variables: (data as any).__variables,
+        __plotType: data.__plotType,
+        __isComplex: data.__isComplex,
+        __variables: data.__variables,
         engineVersion: detectedNgspiceVersion,
       });
       return;
-    } catch (err1: any) {
-      originalError = err1.message || String(err1);
+    } catch (err1: unknown) {
+      originalError = err1 instanceof Error ? err1.message : String(err1);
       // Only retry on convergence-class errors
-      if (!isConvergenceError(originalError!)) {
+      if (!isConvergenceError(originalError)) {
         throw err1;
       }
       console.warn('[SPICE Worker] Convergence failure detected — retrying with relaxed tolerances…');
@@ -341,27 +368,28 @@ self.addEventListener('message', async (e: MessageEvent) => {
 
     const relaxedNetlist = injectRelaxedOptions(fullNetlist);
     try {
-      data = await runNgspice(relaxedNetlist);
+      const data = await runNgspice(relaxedNetlist);
       // Retry success — send with warning
       self.postMessage({
         id,
         type: 'SUCCESS',
         data,
-        __plotType: (data as any).__plotType,
-        __isComplex: (data as any).__isComplex,
-        __variables: (data as any).__variables,
+        __plotType: data.__plotType,
+        __isComplex: data.__isComplex,
+        __variables: data.__variables,
         __warning: 'Simulation converged with relaxed tolerances. Results may be slightly less accurate.',
         engineVersion: detectedNgspiceVersion,
       });
-    } catch (err2: any) {
+    } catch {
       // Both attempts failed — report original error with hint
       const hint = '\n\nTip: Try adding a small resistor (1 ohm-10 ohm) in series with voltage sources, or check for floating nodes.';
-      self.postMessage({ id, type: 'ERROR', error: translateSpiceError(originalError!) + hint });
+      self.postMessage({ id, type: 'ERROR', error: translateSpiceError(originalError) + hint });
     }
-  } catch (error: any) {
-    self.postMessage({ id, type: 'ERROR', error: translateSpiceError(error.message || String(error)) });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    self.postMessage({ id, type: 'ERROR', error: translateSpiceError(msg) });
   } finally {
-    // CRITICAL: Force ngspice to re-initialize on the next run. 
+    // CRITICAL: Force ngspice to re-initialize on the next run.
     // Calling _main() multiple times on the same instance causes C-state memory corruption and exit(1) crashes.
     ngspiceInstance = null;
   }

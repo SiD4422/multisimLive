@@ -651,7 +651,7 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     const rad = (comp.rotation || 0) * Math.PI / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
-    const rawPins: any[] = [];
+    const rawPins: { x: number; y: number; id: string }[] = [];
     for (let i=0; i<7; i++) rawPins.push({ x: 0, y: -30 + i * 10, id: `${i+1}` });
     for (let i=0; i<7; i++) rawPins.push({ x: 60, y: 30 - i * 10, id: `${i+8}` });
     return rawPins.map(pin => {

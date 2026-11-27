@@ -3,15 +3,24 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { componentDescriptions } from '../src/utils/ComponentDescriptions.js';
 import { generateNetlist, getComponentPins } from '../src/utils/netlister.js';
+import type { SchematicComponent, Wire } from '../src/store/useSchematicStore.js';
 // Use the Node.js-compatible WASM runner instead of the browser Web Worker runner
 import { runSpiceSimulationNode as runSpiceSimulation } from './nodeSpiceRunner.mjs';
+
+interface ComponentTestResult {
+  compType: string;
+  spiceGenerated: 'Yes' | 'No';
+  engineResult: 'Pass' | 'Fail';
+  error: string;
+  spiceSnippet: string;
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function runTests() {
   console.log('Starting automated component tests...');
-  const results: any[] = [];
+  const results: ComponentTestResult[] = [];
   
   for (const compType of Object.keys(componentDescriptions)) {
     if (compType === 'Default') continue;
@@ -19,7 +28,7 @@ async function runTests() {
     console.log(`Testing ${compType}...`);
 
     // Create the test component
-    const comp = { id: 'TEST1', type: compType, position: {x: 100, y: 100}, rotation: 0, value: '' };
+    const comp: SchematicComponent = { id: 'TEST1', type: compType, position: {x: 100, y: 100}, rotation: 0, value: '' };
     
     // Some components need special default values to parse correctly in netlister
     if (compType === 'PulseVoltage') comp.value = '0 5 0 1n 1n 1m 2m';
@@ -30,14 +39,15 @@ async function runTests() {
     if (compType === 'Potentiometer') comp.value = '10k 50';
 
     try {
-      const pins = getComponentPins(comp as any);
+      const pins = getComponentPins(comp);
       
-      const components: any[] = [comp];
-      const wires: any[] = [];
+      const components: SchematicComponent[] = [comp];
+      const wires: Wire[] = [];
       
       // Build the Universal Smoke Test Jig
       // For each pin, we create a Ground, a Resistor to Ground, and a wire.
       pins.forEach((pin, index) => {
+        if (!pin.p) return;
         const rPos = { x: 100 + index*50, y: 200 };
         const gPos = { x: 100 + index*50, y: 250 };
         
@@ -71,14 +81,14 @@ async function runTests() {
         }
       });
 
-      const spice = generateNetlist(components as any, wires as any, []);
+      const spice = generateNetlist(components, wires, []);
       
       // Run in engine
-      let engineError = null;
+      let engineError: string | null = null;
       try {
          await runSpiceSimulation(spice);
-      } catch (e: any) {
-         engineError = e.message || String(e);
+      } catch (e: unknown) {
+         engineError = e instanceof Error ? e.message : String(e);
       }
       
       const spiceSnippet = spice.split('\n').find(l => l.includes('TEST1')) || '-';
@@ -91,12 +101,12 @@ async function runTests() {
         spiceSnippet: spiceSnippet.replace(/\|/g, '\\|')
       });
       
-    } catch (e: any) {
+    } catch (e: unknown) {
       results.push({
         compType,
         spiceGenerated: 'No',
         engineResult: 'Fail',
-        error: e.message || String(e),
+        error: e instanceof Error ? e.message : String(e),
         spiceSnippet: '-'
       });
     }

@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Play, MousePointer2, Settings, ArrowRight } from 'lucide-react';
 
-export function WelcomeTour() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState(1);
+function shouldShowTourOnMount(): boolean {
+  if (typeof window === 'undefined') return false;
+  const seen = localStorage.getItem('nodesim_tour_seen');
+  const params = new URLSearchParams(window.location.search);
+  const isEmbed = params.get('embed') === 'true';
+  const noTour = params.get('notour') === '1';
+  return !seen && !isEmbed && !noTour;
+}
 
-  useEffect(() => {
-    // Only show once; suppressed by ?embed=true or ?notour=1
-    const seen = localStorage.getItem('nodesim_tour_seen');
-    const params = new URLSearchParams(window.location.search);
-    const isEmbed = params.get('embed') === 'true';
-    const noTour = params.get('notour') === '1';
-    if (!seen && !isEmbed && !noTour) {
-      setIsOpen(true);
-    }
-  }, []);
+export function WelcomeTour() {
+  const [isOpen, setIsOpen] = useState<boolean>(shouldShowTourOnMount);
+  const [step, setStep] = useState(1);
 
   const closeTour = () => {
     localStorage.setItem('nodesim_tour_seen', 'true');

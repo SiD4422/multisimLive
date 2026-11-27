@@ -20,17 +20,6 @@ export const COMPONENT_UNITS: Record<string, string> = {
   Fuse: 'A',
 };
 
-// Suffixes recognized in user input
-const SUFFIX_MAP: Record<string, number> = {
-  T: 1e12, G: 1e9, MEG: 1e6, M: 1e-3,
-  K: 1e3,  k: 1e3,
-  u: 1e-6, U: 1e-6, µ: 1e-6,
-  n: 1e-9, N: 1e-9,
-  p: 1e-12, P: 1e-12,
-  f: 1e-15, F_: 1e-15, // F_ used internally to avoid clash with Farad unit
-  m: 1e-3,
-};
-
 /**
  * Parses an engineering-notation string to a number.
  * Handles: 1k, 4.7u, 2.2M, 100n, 1meg, 10e3, etc.
@@ -42,11 +31,11 @@ export function parseEngineeringValue(str: string): number {
 
   // Pure number
   const pure = parseFloat(s);
-  if (!isNaN(pure) && /^[\d.e+\-]+$/i.test(s)) return pure;
+  if (!isNaN(pure) && /^[\d.e+-]+$/i.test(s)) return pure;
 
   // Strip trailing unit letters (V, A, Ω, H, F) then parse suffix
   // Match: optional sign, digits, optional decimal, optional suffix
-  const match = s.match(/^([+\-]?\d+\.?\d*)\s*(MEG|[TGKMUNPF]|µ)?(V|A|Ω|OHM|HZ|H)?$/i);
+  const match = s.match(/^([+-]?\d+\.?\d*)\s*(MEG|[TGKMUNPF]|µ)?(V|A|Ω|OHM|HZ|H)?$/i);
   if (!match) return NaN;
 
   const num = parseFloat(match[1]);

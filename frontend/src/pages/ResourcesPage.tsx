@@ -1,7 +1,7 @@
 import React from 'react';
-import { BookOpen, FileText, PlayCircle, Code, ChevronRight, Download } from 'lucide-react';
+import { BookOpen, FileText, PlayCircle, Code, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 import SEO from '../components/SEO';
 
 export default function ResourcesPage() {

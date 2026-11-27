@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { track } from '@vercel/analytics';
-import type { SimulationData } from '../utils/spiceTypes';
+import type { OpDataPoint, SimulationData } from '../utils/spiceTypes';
 import { generateNetlist, parseSpiceToFloat } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
 
@@ -13,15 +13,32 @@ export interface Point {
   y: number;
 }
 
+export interface ComponentCustomProps {
+  wiper_position?: number;
+  total_resistance?: number;
+  closed?: boolean;
+  r_on?: number;
+  r_off?: number;
+  [key: string]: string | number | boolean | undefined;
+}
+
 export interface SchematicComponent {
   id: string;
   type: string;
   position: Point;
   value?: string;
   rotation?: number;
+  flipped?: boolean;
+  label?: string;
   symbolName?: string;
   metadata?: Record<string, string>;
-  props?: Record<string, any>;
+  props?: ComponentCustomProps;
+  powerRating?: string;
+  maxPower?: string;
+  voltageRating?: string;
+  maxVoltage?: string;
+  currentRating?: string;
+  maxCurrent?: string;
 }
 
 export interface Wire {
@@ -115,7 +132,7 @@ interface SchematicState {
   editingComponentId: string | null;
   setEditingComponentId: (id: string | null) => void;
   updateComponentProperties: (id: string, newProps: Partial<SchematicComponent>) => void;
-  updateComponentProp: (id: string, key: string, value: any) => void;
+  updateComponentProp: (id: string, key: string, value: string | number | boolean | undefined) => void;
   
   exportState: () => string;
   importState: (jsonStr: string) => void;
@@ -372,7 +389,7 @@ export const useSchematicStore = create<SchematicState>()(
       : [...state.selectedComponentIds, id]
   })),
   deleteSelectedComponents: () => {
-    const { components, wires, probes, selectedComponentIds } = get();
+    const { components, wires, probes } = get();
     const hist = { components, wires, probes };
     set(state => ({
       past: [...state.past, hist].slice(-50),
@@ -448,7 +465,7 @@ export const useSchematicStore = create<SchematicState>()(
   }),
 
   flipComponent: (id) => set((state) => ({
-    components: state.components.map(c => c.id === id ? { ...c, flipped: !(c as any).flipped } : c),
+    components: state.components.map(c => c.id === id ? { ...c, flipped: !c.flipped } : c),
     past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
     future: []
   })),
@@ -568,7 +585,7 @@ export const useSchematicStore = create<SchematicState>()(
       const data = await runSpiceSimulation(netlist, isSilent);
 
       const isAcOrDc = analysisMode === 'ac' || analysisMode === 'dc';
-      set(state => {
+      set(() => {
         // Feature 4: User fix 2 - clear on switch flip atomic check
         let finalData = data;
         if (shouldClearRef.current) {
@@ -577,11 +594,10 @@ export const useSchematicStore = create<SchematicState>()(
         }
 
         // If it was an .op analysis, data is an array of op value objects. 
-        if (analysisMode === 'op' || (data as any).__plotType === 'op') {
+        if (analysisMode === 'op' || data.__plotType === 'op') {
           if (!isSilent) track('Simulation_Success', { mode: analysisMode });
           return {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            opData: finalData as any,
+            opData: finalData as unknown as OpDataPoint[],
             isSimulating: false,
             isPlaying: false
           };
@@ -598,12 +614,13 @@ export const useSchematicStore = create<SchematicState>()(
           playbackTime: isSilent ? Infinity : 0
         };
       });
-    } catch (e: any) {
-      if (e.message === "CANCELLED_BY_NEW_JOB" || e.message === "ALREADY_SIMULATING") {
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg === "CANCELLED_BY_NEW_JOB" || msg === "ALREADY_SIMULATING") {
         return; // Silently ignore cancelled jobs or double-clicks
       }
       console.error("Simulation failed:", e);
-      let errorMsg = e.message || "Simulation failed. See console for details.";
+      let errorMsg = msg || "Simulation failed. See console for details.";
       if (errorMsg.includes("singular matrix")) {
         errorMsg += "\n(Hint: Your circuit might be missing a Ground component. SPICE requires a reference ground node to simulate.)";
         if (!isSilent) track('Simulation_Error', { type: 'SPICE', details: 'singular matrix' });

@@ -140,7 +140,7 @@ export function importSpiceNetlist(netlistText: string): ImportResult {
     }
 
     let compType: string;
-    let value = '';
+    let value: string;
 
     if (prefix === 'X') {
       // Subcircuit: last token is the model/subckt name
@@ -160,7 +160,7 @@ export function importSpiceNetlist(netlistText: string): ImportResult {
       const valueParts = parts.slice(3);
       compType = refineVSourceType(valueParts);
       // Extract DC value
-      const dcMatch = line.match(/DC\s+([\d.e+\-]+)/i);
+      const dcMatch = line.match(/DC\s+([\d.e+-]+)/i);
       value = dcMatch ? dcMatch[1] + 'V' : valueParts[0] || '5V';
     } else if (prefix === 'I') {
       const valueParts = parts.slice(3);

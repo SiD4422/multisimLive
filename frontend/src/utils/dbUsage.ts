@@ -18,7 +18,8 @@ export async function checkAndIncrementUsage(userId: string): Promise<{ allowed:
   }
 
   const data = userSnap.data();
-  let { labReportsUsed, lastResetMonth, isPro } = data;
+  const { isPro } = data;
+  let { labReportsUsed, lastResetMonth } = data;
 
   if (isPro) {
     return { allowed: true, remaining: 999 }; // Unlimited for pro

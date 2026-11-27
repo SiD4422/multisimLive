@@ -1,9 +1,8 @@
 ﻿import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import SEO from '../components/SEO';
 
-import { Link } from 'react-router-dom';
 import LZString from 'lz-string';
-import { Play, MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, LayoutGrid, HelpCircle, Share, Maximize, Activity, PanelLeftClose, PanelLeftOpen, FileCode, Zap, CircleDot, ChevronRight, X, Search, FolderOpen, Save, CheckCircle2, AlertTriangle, BookOpen, Camera, Sparkles, Upload, Download, Copy, Code, Globe } from 'lucide-react';
+import { MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, PanelLeftClose, PanelLeftOpen, FileCode, X, FolderOpen, CheckCircle2, AlertTriangle, BookOpen, Globe } from 'lucide-react';
 import { importSpiceNetlist, looksLikeSpiceNetlist } from '../utils/spiceImporter';
 import SchematicEditor from '../components/SchematicEditor';
 import { useSchematicStore } from '../store/useSchematicStore';
@@ -19,7 +18,6 @@ import { StatusBar } from '../components/StatusBar';
 const Grapher = React.lazy(() => import('../components/Grapher'));
 const ComponentInspectorPanel = React.lazy(() => import('../components/ComponentInspectorPanel').then(m => ({ default: m.ComponentInspectorPanel })));
 const SimulationControls = React.lazy(() => import('../components/SimulationControls').then(m => ({ default: m.SimulationControls })));
-const AnalysisSettings = React.lazy(() => import('../components/AnalysisSettings').then(m => ({ default: m.AnalysisSettings })));
 const ExampleLibraryModal = React.lazy(() => import('../components/ExampleLibraryModal').then(m => ({ default: m.ExampleLibraryModal })));
 const AiExplainerPanel = React.lazy(() => import('../components/AiExplainerPanel'));
 const OpPointTable = React.lazy(() => import('../components/OpPointTable').then(m => ({ default: m.OpPointTable })));
@@ -35,12 +33,12 @@ import '../index.css';
 
 // Error boundary to prevent Grapher crashes from blanking the whole screen
 class GrapherErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: string}> {
-  constructor(props: any) {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: '' };
   }
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true, error: error?.message || String(error) };
+  static getDerivedStateFromError(error: unknown) {
+    return { hasError: true, error: error instanceof Error ? error.message : String(error) };
   }
   render() {
     if (this.state.hasError) {
@@ -65,11 +63,10 @@ class GrapherErrorBoundary extends React.Component<{children: React.ReactNode}, 
 
 function Simulator() {
   const { 
-    addComponent, components, wires, probes, undo, redo, past, future, scale, setScale,
-    selectedComponentId, selectedWireId, selectedProbeId,
-    updateComponentValue, updateComponentRotation, setPendingComponent,
+    components, wires, probes, undo, redo, past, future, scale, setScale,
+    setPendingComponent,
     runSimulation, isSimulating, exportState, importState,
-    deleteComponent, deleteWire, deleteProbe, isConfigOpen, setIsConfigOpen,
+    isConfigOpen, setIsConfigOpen,
     simulationError, analysisMode
   } = useSchematicStore();
 
@@ -94,10 +91,12 @@ function Simulator() {
   const [isLabReportModalOpen, setIsLabReportModalOpen] = useState(false);
   const [schematicSnapshot, setSchematicSnapshot] = useState<string | undefined>();
   const [graphSnapshot, setGraphSnapshot] = useState<string | undefined>();
-  const stageRef = useRef<any>(null);
 
   useEffect(() => {
-    (window as any).useSchematicStore = useSchematicStore;
+    interface WindowWithStore extends Window {
+      useSchematicStore?: typeof useSchematicStore;
+    }
+    (window as WindowWithStore).useSchematicStore = useSchematicStore;
   }, []);
 
   // ── Circuit DRC ────────────────────────────────────────────────────────────────
@@ -167,25 +166,26 @@ function Simulator() {
     return issues;
   }, [components, wires, probes]);
 
-  const showToast = (message: string, type: 'success' | 'warning' = 'success') => {
+  const showToast = useCallback((message: string, type: 'success' | 'warning' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
-  };
+  }, []);
 
-  const handleRunSimulation = () => {
+  const handleRunSimulation = useCallback(() => {
     const { components } = useSchematicStore.getState();
     if (components.length === 0) {
       showToast('Add components to the canvas before running simulation.', 'warning');
       return;
     }
     runSimulation();
-  };
+  }, [runSimulation, showToast]);
 
   // Listen for toast notifications dispatched from anywhere
   useEffect(() => {
-    const handleToastEvent = (e: any) => {
-      if (e?.detail?.message) {
-        showToast(e.detail.message, e.detail.type || 'warning');
+    const handleToastEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ message?: string; type?: 'success' | 'warning' }>;
+      if (customEvent.detail?.message) {
+        showToast(customEvent.detail.message, customEvent.detail.type || 'warning');
       }
     };
     window.addEventListener('nodesim-toast', handleToastEvent);
@@ -195,7 +195,7 @@ function Simulator() {
       window.removeEventListener('nodesim-toast', handleToastEvent);
       window.removeEventListener('run-simulation', handleRunSimEvent);
     };
-  }, []);
+  }, [handleRunSimulation, showToast]);
 
   const bootSource = useCircuitBoot();
   // Load circuit from share URL hash: /simulator#circuit=<lz-encoded>
@@ -219,7 +219,9 @@ function Simulator() {
         const state = JSON.parse(pending);
         useSchematicStore.getState().importState(JSON.stringify(state));
       }
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to restore pending circuit from sessionStorage:', err);
+    }
   }, []);
 
 
@@ -293,7 +295,7 @@ function Simulator() {
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [handleRunSimulation, showToast]);
 
   // Prevent accidental refresh if there are components placed
   useEffect(() => {

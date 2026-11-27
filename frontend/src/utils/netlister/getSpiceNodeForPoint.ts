@@ -1,6 +1,6 @@
 ﻿import type { SchematicComponent, Wire, Point } from '../../store/useSchematicStore';
 import { getComponentPins } from './getComponentPins';
-import { toGridNode, isPointOnSegment, PIN_TOLERANCE } from './utils';
+import { toGridNode, isPointOnSegment, PIN_TOLERANCE, type NetlistPoint } from './utils';
 export function getSpiceNodeForPoint(p: Point, components: SchematicComponent[], wires: Wire[]): string {
   // This function MUST mirror the exact same net-building logic as generateNetlist so that
   // VoltageProbe node IDs match what was written into the SPICE netlist.
@@ -28,7 +28,7 @@ export function getSpiceNodeForPoint(p: Point, components: SchematicComponent[],
       wires.forEach(otherWire => {
         if (otherWire === wire) return;
         otherWire.points.forEach(otherPt => {
-          if ((otherPt as any)._isFake) return;
+          if ((otherPt as NetlistPoint)._isFake) return;
           if (isPointOnSegment(otherPt, p1, p2, PIN_TOLERANCE)) gridPoints.push(toGridNode(otherPt));
         });
       });
@@ -36,7 +36,7 @@ export function getSpiceNodeForPoint(p: Point, components: SchematicComponent[],
       if (isPointOnSegment(p, p1, p2)) gridPoints.push(gridNode);
     }
 
-    let connectedNetIndices: number[] = [];
+    const connectedNetIndices: number[] = [];
     gridPoints.forEach(gp => {
       nets.forEach((net, idx) => {
         if (net.has(gp) && !connectedNetIndices.includes(idx)) connectedNetIndices.push(idx);
@@ -94,7 +94,6 @@ export function getSpiceNodeForPoint(p: Point, components: SchematicComponent[],
   });
   if (!hasGroundComponents && groundNetIndex === -1 && finalNets.length > 0) {
     netIdMap.set(0, "0");
-    groundNetIndex = 0;
   }
   finalNets.forEach((_, idx) => {
     if (!netIdMap.has(idx)) netIdMap.set(idx, `${nodeCounter++}`);

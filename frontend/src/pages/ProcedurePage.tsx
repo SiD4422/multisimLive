@@ -1,6 +1,6 @@
 import { CheckCircle2, MousePointerClick, Play, Search, Crosshair } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 import SEO from '../components/SEO';
 
 export default function ProcedurePage() {

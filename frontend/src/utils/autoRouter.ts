@@ -5,7 +5,6 @@ interface Point { x: number; y: number; }
 const ROUTING_GRID = 20; // Coarse grid for routing performance
 const CLEARANCE = 10;    // Padding around components
 const HIGH_COST = 1000;  // Penalty for crossing a component
-const INF_COST = 1000000;
 
 interface Node {
   x: number;

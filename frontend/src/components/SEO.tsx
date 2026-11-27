@@ -24,7 +24,7 @@ export interface SEOProps {
   noindex?: boolean;
   breadcrumbs?: BreadcrumbItem[];
   faqs?: FAQItem[];
-  schema?: Record<string, any> | Array<Record<string, any>>;
+  schema?: Record<string, unknown> | Array<Record<string, unknown>>;
   publishedTime?: string;
   modifiedTime?: string;
   author?: string;

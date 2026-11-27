@@ -15,6 +15,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { generateNetlist } from '../utils/netlister';
+import type { Probe, SchematicComponent, Wire } from '../store/useSchematicStore';
 
 // ── Example JSONs ──────────────────────────────────────────────────────────────
 import astable555          from '../examples/astable_555.json';
@@ -40,17 +41,17 @@ import zenerClipper        from '../examples/zener_clipper.json';
 
 // ── Helper ─────────────────────────────────────────────────────────────────────
 type ExampleData = {
-  components: any[];
-  wires: any[];
-  probes?: any[];
+  components: SchematicComponent[];
+  wires: Wire[];
+  probes?: Probe[];
 };
 
 /** Build netlist from a raw example JSON, passing its own probes array */
 function netlist(data: ExampleData): string {
   return generateNetlist(
-    data.components as any,
-    data.wires as any,
-    (data.probes ?? []) as any,
+    data.components,
+    data.wires,
+    data.probes ?? [],
   );
 }
 
@@ -63,7 +64,7 @@ function assertNoInternalMetadata(nl: string, label: string) {
 // ── AC filter circuits ─────────────────────────────────────────────────────────
 describe('AC filter circuits — netlist contracts', () => {
   it('RC Low-Pass Filter: ACSource emits "AC <amp> SINE" token (Phase 1A fix)', () => {
-    const nl = netlist(lowPassFilter as any);
+    const nl = netlist(lowPassFilter);
     // Phase 1A fix: V_id node1 node2 AC <amp> SINE(0 <amp> <freq>)
     expect(nl).toMatch(/AC\s+[\d.]+\s+SINE\(/i);
     expect(nl).toMatch(/^R_/im);
@@ -72,7 +73,7 @@ describe('AC filter circuits — netlist contracts', () => {
   });
 
   it('RC High-Pass Filter: ACSource emits "AC <amp> SINE" token', () => {
-    const nl = netlist(rcHighPass as any);
+    const nl = netlist(rcHighPass);
     expect(nl).toMatch(/AC\s+[\d.]+\s+SINE\(/i);
     expect(nl).toMatch(/^R_/im);
     expect(nl).toMatch(/^C_/im);
@@ -80,20 +81,20 @@ describe('AC filter circuits — netlist contracts', () => {
   });
 
   it('LC Bandpass Filter: emits inductor (L_) and capacitor (C_)', () => {
-    const nl = netlist(lcBandpass as any);
+    const nl = netlist(lcBandpass);
     expect(nl).toMatch(/^L_/im);
     expect(nl).toMatch(/^C_/im);
     assertNoInternalMetadata(nl, 'LC Bandpass');
   });
 
   it('RC Integrator: generates netlist without throwing', () => {
-    const nl = netlist(rcIntegrator as any);
+    const nl = netlist(rcIntegrator);
     expect(nl.length).toBeGreaterThan(30);
     assertNoInternalMetadata(nl, 'RC Integrator');
   });
 
   it('RL Low-Pass: emits inductor token (L_)', () => {
-    const nl = netlist(rlLowPass as any);
+    const nl = netlist(rlLowPass);
     expect(nl).toMatch(/^L_/im);
     assertNoInternalMetadata(nl, 'RL Low-Pass');
   });
@@ -102,14 +103,14 @@ describe('AC filter circuits — netlist contracts', () => {
 // ── Rectifier / Power circuits ─────────────────────────────────────────────────
 describe('Rectifier and power circuits — netlist contracts', () => {
   it('Half-Wave Rectifier: emits diode (D_) and voltage source (V_)', () => {
-    const nl = netlist(halfWaveRectifier as any);
+    const nl = netlist(halfWaveRectifier);
     expect(nl).toMatch(/^D_/im);
     expect(nl).toMatch(/^V_/im);
     assertNoInternalMetadata(nl, 'Half-Wave Rectifier');
   });
 
   it('Bridge Rectifier: BridgeRectifier component emits 4 internal diodes and D_1N4007 model', () => {
-    const nl = netlist(bridgeRectifier as any);
+    const nl = netlist(bridgeRectifier);
     // BridgeRectifier emits D1_BR1, D2_BR1, D3_BR1, D4_BR1 (prefixed, not plain D_)
     const diodeCount = (nl.match(/^D[1-4]_/gim) ?? []).length;
     expect(diodeCount).toBeGreaterThanOrEqual(4);
@@ -118,7 +119,7 @@ describe('Rectifier and power circuits — netlist contracts', () => {
   });
 
   it('Voltage Divider: emits 2+ resistors and a voltage source', () => {
-    const nl = netlist(voltageDivider as any);
+    const nl = netlist(voltageDivider);
     const rCount = (nl.match(/^R_/gim) ?? []).length;
     expect(rCount).toBeGreaterThanOrEqual(2);
     expect(nl).toMatch(/^V_/im);
@@ -126,7 +127,7 @@ describe('Rectifier and power circuits — netlist contracts', () => {
   });
 
   it('5V Voltage Regulator: emits B-source behavioral model — NOT broken PSpice E_reg VALUE= (Phase 1B fix)', () => {
-    const nl = netlist(voltageRegulator5V as any);
+    const nl = netlist(voltageRegulator5V);
     // Phase 1B fix: replaced E_reg VALUE={IF(...)} with B_reg V=(cond)?then:else
     expect(nl).toMatch(/^B_/im);
     expect(nl).not.toMatch(/E_reg\s+VALUE=/i);
@@ -134,7 +135,7 @@ describe('Rectifier and power circuits — netlist contracts', () => {
   });
 
   it('Transformer Stepdown: generates netlist without throwing', () => {
-    const nl = netlist(transformerStepdown as any);
+    const nl = netlist(transformerStepdown);
     expect(nl.length).toBeGreaterThan(30);
     assertNoInternalMetadata(nl, 'Transformer Stepdown');
   });
@@ -143,33 +144,33 @@ describe('Rectifier and power circuits — netlist contracts', () => {
 // ── Amplifier circuits ─────────────────────────────────────────────────────────
 describe('Amplifier circuits — netlist contracts', () => {
   it('NPN Common-Emitter Amplifier: emits transistor (Q_) and bias resistors', () => {
-    const nl = netlist(npnAmplifier as any);
+    const nl = netlist(npnAmplifier);
     expect(nl).toMatch(/^Q_/im);
     expect(nl).toMatch(/^R_/im);
     assertNoInternalMetadata(nl, 'NPN Amplifier');
   });
 
   it('PNP Amplifier: emits PNP transistor token (Q_)', () => {
-    const nl = netlist(pnpAmplifier as any);
+    const nl = netlist(pnpAmplifier);
     expect(nl).toMatch(/^Q_/im);
     assertNoInternalMetadata(nl, 'PNP Amplifier');
   });
 
   it('Common Emitter: emits transistor and coupling capacitor', () => {
-    const nl = netlist(commonEmitter as any);
+    const nl = netlist(commonEmitter);
     expect(nl).toMatch(/^Q_/im);
     expect(nl).toMatch(/^C_/im);
     assertNoInternalMetadata(nl, 'Common Emitter');
   });
 
   it('Inverting Op-Amp: emits op-amp subcircuit call (X_)', () => {
-    const nl = netlist(invertingOpamp as any);
+    const nl = netlist(invertingOpamp);
     expect(nl).toMatch(/^X_/im);
     assertNoInternalMetadata(nl, 'Inverting Op-Amp');
   });
 
   it('Comparator Circuit: emits op-amp subcircuit (X_)', () => {
-    const nl = netlist(comparatorCircuit as any);
+    const nl = netlist(comparatorCircuit);
     expect(nl).toMatch(/^X_/im);
     assertNoInternalMetadata(nl, 'Comparator');
   });
@@ -178,7 +179,7 @@ describe('Amplifier circuits — netlist contracts', () => {
 // ── Oscillator circuits — Phase 1B.2–4 fixes ──────────────────────────────────
 describe('Oscillator circuits — no floating NC_* nodes (Phase 1B.2-4 fixes)', () => {
   it('Schmitt Trigger Oscillator: has subcircuit + RC timing, zero NC_* nodes', () => {
-    const nl = netlist(schmittOscillator as any);
+    const nl = netlist(schmittOscillator);
     expect(nl).toMatch(/^X_/im);  // Schmitt trigger subcircuit
     expect(nl).toMatch(/^R_/im);  // timing resistor
     expect(nl).toMatch(/^C_/im);  // timing capacitor
@@ -188,7 +189,7 @@ describe('Oscillator circuits — no floating NC_* nodes (Phase 1B.2-4 fixes)', 
   });
 
   it('Wien Bridge Oscillator: op-amp powered + RC feedback, zero NC_* nodes', () => {
-    const nl = netlist(wienBridge as any);
+    const nl = netlist(wienBridge);
     expect(nl).toMatch(/^X_/im);
     expect(nl).toMatch(/^R_/im);
     expect(nl).toMatch(/^C_/im);
@@ -198,7 +199,7 @@ describe('Oscillator circuits — no floating NC_* nodes (Phase 1B.2-4 fixes)', 
   });
 
   it('555 Astable Oscillator: 555 subcircuit + timing RC, zero NC_* nodes', () => {
-    const nl = netlist(astable555 as any);
+    const nl = netlist(astable555);
     expect(nl).toMatch(/^X_/im);  // 555 timer subcircuit
     expect(nl).toMatch(/^R_/im);
     expect(nl).toMatch(/^C_/im);
@@ -211,13 +212,13 @@ describe('Oscillator circuits — no floating NC_* nodes (Phase 1B.2-4 fixes)', 
 // ── Switching circuits ─────────────────────────────────────────────────────────
 describe('Switching circuits — netlist contracts', () => {
   it('MOSFET Switch: emits MOSFET token (M_)', () => {
-    const nl = netlist(mosfetSwitch as any);
+    const nl = netlist(mosfetSwitch);
     expect(nl).toMatch(/^M_/im);
     assertNoInternalMetadata(nl, 'MOSFET Switch');
   });
 
   it('Zener Clipper: emits zener diode (D_)', () => {
-    const nl = netlist(zenerClipper as any);
+    const nl = netlist(zenerClipper);
     expect(nl).toMatch(/^D_/im);
     assertNoInternalMetadata(nl, 'Zener Clipper');
   });
@@ -226,19 +227,19 @@ describe('Switching circuits — netlist contracts', () => {
 // ── AC source regression guard (Phase 1A) ─────────────────────────────────────
 describe('ACSource regression guard — "AC <amp> SINE" token present', () => {
   it('low-pass filter ACSource: emits AC token before SINE (not SINE-only)', () => {
-    const nl = netlist(lowPassFilter as any);
+    const nl = netlist(lowPassFilter);
     // Old broken format: V_V1 n1 n2 SINE(0 1 1000)
     // Fixed format:      V_V1 n1 n2 AC 1 SINE(0 1 1000)
-    expect(nl).toMatch(/AC\s+[\d.eE+\-]+\s+SINE\(/i);
+    expect(nl).toMatch(/AC\s+[\d.eE+-]+\s+SINE\(/i);
   });
 
   it('high-pass filter ACSource: emits AC token before SINE', () => {
-    const nl = netlist(rcHighPass as any);
-    expect(nl).toMatch(/AC\s+[\d.eE+\-]+\s+SINE\(/i);
+    const nl = netlist(rcHighPass);
+    expect(nl).toMatch(/AC\s+[\d.eE+-]+\s+SINE\(/i);
   });
 
   it('LC bandpass ACSource: emits AC token before SINE', () => {
-    const nl = netlist(lcBandpass as any);
-    expect(nl).toMatch(/AC\s+[\d.eE+\-]+\s+SINE\(/i);
+    const nl = netlist(lcBandpass);
+    expect(nl).toMatch(/AC\s+[\d.eE+-]+\s+SINE\(/i);
   });
 });

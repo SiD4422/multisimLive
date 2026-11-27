@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import type Konva from 'konva';
 import { Group, Text } from 'react-konva';
 import { Html } from 'react-konva-utils';
 import type { SchematicComponent } from '../../store/useSchematicStore';
@@ -7,8 +8,8 @@ interface TextAnnotationProps {
   component: SchematicComponent;
   selected?: boolean;
   onSelect?: () => void;
-  onDragMove: (e: any) => void;
-  onDragEnd: (e: any) => void;
+  onDragMove: (e: Konva.KonvaEventObject<DragEvent>) => void;
+  onDragEnd: (e: Konva.KonvaEventObject<DragEvent>) => void;
   updateComponentValue: (id: string, value: string) => void;
 }
 
@@ -56,7 +57,7 @@ export default function TextAnnotation({
       onDragMove={onDragMove}
       onDragEnd={onDragEnd}
       rotation={component.rotation || 0}
-      onMouseDown={(e) => {
+      onMouseDown={() => {
         if (!isEditing && onSelect) onSelect();
       }}
       onDblClick={handleDoubleClick}

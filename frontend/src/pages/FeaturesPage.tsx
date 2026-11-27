@@ -1,7 +1,7 @@
-import { Zap, Activity, Waves, LineChart, Code, Layers, MousePointer2, Check, X as XIcon, Sparkles, Globe, Share2, Cpu, Users, FileCode } from 'lucide-react';
+import { Zap, Activity, Waves, LineChart, Layers, MousePointer2, Check, X as XIcon, Sparkles, Share2, Cpu, Users, FileCode } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../contexts/useTheme';
 
 const COMPARISON = [
   { feature: 'Price',                   us: 'Free forever',                     them: '~$79/yr (CircuitLab)',      usWin: true },

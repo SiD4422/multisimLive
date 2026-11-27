@@ -1,9 +1,11 @@
 import type { Point } from '../../store/useSchematicStore';
 
+export type NetlistPoint = Point & { _isFake?: boolean; _probeId?: string };
+
 export const GRID_SIZE = 10;
 
 // Grid-based matching robustly handles floating point errors from rotations
-export const toGridNode = (p: Point & { _isFake?: boolean, _probeId?: string }): string => {
+export const toGridNode = (p: NetlistPoint): string => {
   if (p._isFake) return `FAKE_${p._probeId}`;
   return `${Math.round(p.x / GRID_SIZE)},${Math.round(p.y / GRID_SIZE)}`;
 };

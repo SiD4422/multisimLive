@@ -2,13 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   isValidElectricalSignalKey,
   extractValidatedReadings,
-  formatEngineeringValue,
 } from '../report/measurementValidation';
 import {
   analyzeCircuitTopology,
-  getRecommendedTransientSettings,
   evaluateTransientCoverage,
-  parseTimeString,
   validateTimestepConvergence,
 } from '../report/adaptiveTransient';
 import {
@@ -295,8 +292,8 @@ describe('NodeSim Verification Engine: Unit & Regression Tests', () => {
 
     it('evaluates stress when explicit ratings are provided without inventing specs', () => {
       const components: SchematicComponent[] = [
-        { id: 'R1', type: 'Resistor', value: '10k', position: { x: 0, y: 0 }, powerRating: '0.25W' } as any,
-        { id: 'C1', type: 'Capacitor', value: '10u', position: { x: 0, y: 50 }, voltageRating: '25V' } as any,
+        { id: 'R1', type: 'Resistor', value: '10k', position: { x: 0, y: 0 }, powerRating: '0.25W' },
+        { id: 'C1', type: 'Capacitor', value: '10u', position: { x: 0, y: 50 }, voltageRating: '25V' },
       ];
 
       const stressItems = evaluateComponentStress(components, []);

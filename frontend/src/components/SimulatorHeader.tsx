@@ -2,12 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   BookOpen, FolderOpen, Save, Share, Code, 
-  Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles, FileText,
-  Play, Trash2, Undo2, Redo2, Trash, Layers, FileCheck2
+  Camera, Upload, Download, Copy, Maximize, HelpCircle, Sparkles,
+  Trash2, Undo2, Redo2, Trash, Layers, FileCheck2
 } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { downloadBOMCsv } from '../utils/bomExport';
-import { Logo } from './icons/Logo';
 
 export interface SimulatorHeaderProps {
   circuitName: string;
@@ -39,7 +38,7 @@ export function SimulatorHeader({
   onEditName,
   onNameChange,
   onNameBlur,
-  isEmbed,
+  isEmbed: _isEmbed,
   onShare,
   onSave,
   onLoadClick,
@@ -47,8 +46,8 @@ export function SimulatorHeader({
   onCopyNetlist,
   onImportCir,
   onToggleFullscreen,
-  isSimulating,
-  lastSimMs,
+  isSimulating: _isSimulating,
+  lastSimMs: _lastSimMs,
   setIsLibraryOpen,
   setIsEmbedModalOpen,
   setIsShortcutModalOpen,
