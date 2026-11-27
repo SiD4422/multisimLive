@@ -24,6 +24,14 @@ jobs:
       working-directory: ./frontend
       run: npm ci --legacy-peer-deps
 
+    - name: Type check
+      working-directory: ./frontend
+      run: npx tsc -b --noEmit
+
+    - name: Build and SSR prerender
+      working-directory: ./frontend
+      run: npm run build:seo
+
     - name: Run vitest correctness suite
       working-directory: ./frontend
       run: npx vitest run

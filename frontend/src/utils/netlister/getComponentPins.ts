@@ -1,5 +1,4 @@
 import type { SchematicComponent, Point } from '../../store/useSchematicStore';
-import symbolsData from '../kicad_symbols.json';
 import { toGridNode } from './utils';
 import { standardICLibrary } from '../../data/components';
 export function getComponentPins(comp: SchematicComponent): { id: string, name?: string, gridNode: string, p?: Point }[] {
@@ -943,40 +942,5 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     });
   }
 
-  // Use KiCad symbol data for accurate multi-pin resolution fallback
-  const symbolName = 
-    comp.type === 'Transformer' ? 'Transformer_1P_1S' :
-    null;
-
-  if (!symbolName) return [];
-
-  // @ts-ignore
-  const symDef = symbolsData[symbolName];
-  if (!symDef || !symDef.pins) return [];
-
-  const SCALE = 0.3; // 0.2 original * 1.5 UI scale
-  return symDef.pins.map((pin: any, i: number) => {
-    const px = pin.x * SCALE;
-    const py = -pin.y * SCALE;
-    const len = pin.length * SCALE;
-    let nodeX = px;
-    let nodeY = py;
-
-    if (pin.orientation === 'U') nodeY = py - len;
-    else if (pin.orientation === 'D') nodeY = py + len;
-    else if (pin.orientation === 'L') nodeX = px - len;
-    else if (pin.orientation === 'R') nodeX = px + len;
-
-    const rad = (comp.rotation || 0) * Math.PI / 180;
-    const rotX = nodeX * Math.cos(rad) - nodeY * Math.sin(rad);
-    const rotY = nodeX * Math.sin(rad) + nodeY * Math.cos(rad);
-    const absX = comp.position.x + rotX;
-    const absY = comp.position.y + rotY;
-
-    return {
-      id: pin.name || `${i + 1}`,
-      gridNode: toGridNode({ x: absX, y: absY }),
-      p: { x: absX, y: absY }
-    };
-  });
+  return [];
 }

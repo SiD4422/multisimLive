@@ -19,12 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-Note on the AI Proxy:
-The file `frontend/api/gemini.ts` implements a Vercel Edge Function that proxies
-requests to the Google Gemini API. This file is open source under MIT, but it
-requires a valid GEMINI_API_KEY environment variable to function. Forks and
-self-hosted deployments must supply their own API key. NodeSim's hosted instance
-at nodesimapp.com uses a private key — this key is NOT included in this repository.

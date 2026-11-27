@@ -170,7 +170,11 @@ multisimfree/
 
 ## License
 
-MIT — see [LICENSE](LICENSE). The AI proxy requires a private `GEMINI_API_KEY` not included in this repo.
+MIT — see [LICENSE](LICENSE).
+
+### Note on the AI Proxy
+
+The file `frontend/api/gemini.ts` implements a Vercel Edge Function that proxies requests to the Google Gemini API. It is open source under MIT, but requires a valid `GEMINI_API_KEY` environment variable to function. Forks and self-hosted deployments must supply their own API key — NodeSim's hosted instance at [nodesimapp.com](https://www.nodesimapp.com) uses a private key that is NOT included in this repository.
 
 ## Contributing
 

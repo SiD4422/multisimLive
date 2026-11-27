@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build & toolchains
+emsdk/
+ngspice/
+dist/
+dist-ssr/
+
+# Local scratch & environment secrets
+frontend/scratch/
+puppeteer_result.png
+.env
+.env.*
+!.env.example
+
+# Python & OS artifacts
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
