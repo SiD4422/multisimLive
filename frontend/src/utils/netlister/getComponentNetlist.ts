@@ -7,73 +7,86 @@ export interface ComponentNetlistResult {
 
 export const SUBCKT_DEFINITIONS: Record<string, string> = {
   NAND2: `.subckt NAND2 A B Y GND
-E1 Y GND VALUE = { (V(A) > 1.5 && V(B) > 1.5) ? 0 : 5 }
+B_E1 Y GND V = (V(A) > 1.5 && V(B) > 1.5) ? 0 : 5
 Rout Y GND 10Meg
 .ends NAND2`,
 
   NOR2: `.subckt NOR2 A B Y GND
-E1 Y GND VALUE = { (V(A) > 1.5 || V(B) > 1.5) ? 0 : 5 }
+B_E1 Y GND V = (V(A) > 1.5 || V(B) > 1.5) ? 0 : 5
 Rout Y GND 10Meg
 .ends NOR2`,
 
   NOT1: `.subckt NOT1 A Y GND
-E1 Y GND VALUE = { (V(A) > 1.5) ? 0 : 5 }
+B_E1 Y GND V = (V(A) > 1.5) ? 0 : 5
 Rout Y GND 10Meg
 .ends NOT1`,
 
   AND2: `.subckt AND2 A B Y GND
-E1 Y GND VALUE = { (V(A) > 1.5 && V(B) > 1.5) ? 5 : 0 }
+B_E1 Y GND V = (V(A) > 1.5 && V(B) > 1.5) ? 5 : 0
 Rout Y GND 10Meg
 .ends AND2`,
 
   OR2: `.subckt OR2 A B Y GND
-E1 Y GND VALUE = { (V(A) > 1.5 || V(B) > 1.5) ? 5 : 0 }
+B_E1 Y GND V = (V(A) > 1.5 || V(B) > 1.5) ? 5 : 0
 Rout Y GND 10Meg
 .ends OR2`,
 
   XOR2: `.subckt XOR2 A B Y GND
-E1 Y GND VALUE = { ((V(A) > 1.5) != (V(B) > 1.5)) ? 5 : 0 }
+B_E1 Y GND V = ((V(A) > 1.5) != (V(B) > 1.5)) ? 5 : 0
 Rout Y GND 10Meg
 .ends XOR2`,
 
   UA741_SUB: `.subckt UA741_SUB INP INM VCC VEE OUT
 Rin INP INM 2Meg
-B1 OUT GND V = (V(VCC)-V(VEE)-1.5)*tanh((V(INP)-V(INM))*200000)+(V(VCC)+V(VEE))/2
-Rout OUT GND 10Meg
+B1 out_int 0 V = max(0, (V(VCC)-V(VEE))/2 - 1.5)*tanh((V(INP)-V(INM))*20000) + (V(VCC)+V(VEE))/2
+R_out out_int OUT 50
+Rvcc VCC 0 100Meg
+Rvee VEE 0 100Meg
 .ends UA741_SUB`,
 
   LM358: `.subckt LM358 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC GND
-XOP1 IN1P IN1M VCC GND OUT1 UA741_SUB
-XOP2 IN2P IN2M VCC GND OUT2 UA741_SUB
+* LM358 Dual Single-Supply Op-Amp (swings VEE+0.05V to VCC-1.5V)
+Rin1 IN1P IN1M 2Meg
+Rin2 IN2P IN2M 2Meg
+B1 o1_i 0 V = (V(VCC,GND) > 1.5) ? (((max(V(GND), V(VCC)-1.5) - min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2)*tanh((V(IN1P)-V(IN1M))*20000) + (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2) : V(GND)
+B2 o2_i 0 V = (V(VCC,GND) > 1.5) ? (((max(V(GND), V(VCC)-1.5) - min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2)*tanh((V(IN2P)-V(IN2M))*20000) + (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2) : V(GND)
+R_o1 o1_i OUT1 50
+R_o2 o2_i OUT2 50
+Rvcc VCC GND 100Meg
 .ends LM358`,
 
   LM555_BEHAVIORAL: `.subckt LM555_BEHAVIORAL GND TRIG OUT RESET VCC DIS THR CTRL
 R_d1 VCC CTRL 5k
 R_d2 CTRL ref_lo 5k
 R_d3 ref_lo GND 5k
-C_latch latch GND 100p
-R_leak latch GND 1G
-B_set set_drv GND V = (V(RESET) < 0.8) ? -5 : ((V(TRIG) < V(ref_lo)) ? 5 : -5)
-R_set set_drv set_mid 1k
+C_latch latch GND 10p
+B_hold latch_hold GND V = 4 * tanh(V(latch,GND) * 50)
+R_hold latch_hold latch 100k
+B_set set_drv GND V = (V(RESET,GND) < 0.8) ? -5 : 5 * tanh((V(ref_lo,GND) - V(TRIG,GND)) * 50000)
+R_set set_drv set_mid 200
 D_set set_mid latch DMOD555
-B_rst rst_drv GND V = (V(RESET) < 0.8) ? 5 : ((V(THR) > V(CTRL)) ? 5 : -5)
-R_rst rst_drv rst_mid 1k
-D_rst rst_mid latch DMOD555
-B_out OUT GND V = (V(RESET) < 0.8) ? 0 : ((V(latch) > 2.5) ? (V(VCC)-1.5) : 0)
-B_dis_gate dis_gate GND V = (V(latch) > 2.5) ? 0 : 5
+B_rst rst_drv GND V = (V(RESET,GND) < 0.8) ? -5 : 5 * tanh((V(CTRL,GND) - V(THR,GND)) * 50000)
+R_rst rst_drv rst_mid 200
+D_rst latch rst_mid DMOD555
+B_out out_i GND V = (V(RESET,GND) < 0.8) ? 0 : ((V(latch,GND) > 0) ? max(0, V(VCC,GND)-1.2) : 0)
+R_out_drv out_i OUT 10
+C_out_filt OUT GND 10p
+B_dis_gate dis_gate GND V = (V(RESET,GND) < 0.8) ? 5 : ((V(latch,GND) > 0) ? 0 : 5)
 S_dis DIS GND dis_gate GND SMOD555
-.model SMOD555 SW(VT=2.5 VH=0.1 RON=10 ROFF=10Meg)
-.model DMOD555 D(IS=1e-14)
+.model SMOD555 SW(VT=2.5 VH=0.5 RON=10 ROFF=10Meg)
+.model DMOD555 D(IS=1e-14 RS=1)
 .ends LM555_BEHAVIORAL`,
 
   LM317_REG: `.subckt LM317_REG ADJ OUT IN
-B_reg OUT IN V = min(V(IN)-2, V(ADJ) + 1.25)
-I_adj ADJ IN 50u
-R_out OUT IN 10Meg
+R_in IN 0 100Meg
+B_reg out_i 0 V = min(max(0, V(IN)-1.8), max(0, V(ADJ) + 1.25))
+R_ser out_i OUT 0.05
+I_adj IN ADJ 50u
+R_out OUT 0 10Meg
 .ends LM317_REG`,
 
   TL431_REF: `.subckt TL431_REF REF CATHODE ANODE
-B_shunt CATHODE ANODE I = 0.1 * tanh((V(REF,ANODE) - 2.5) * 50)
+B_shunt CATHODE ANODE I = (V(REF,ANODE) > 2.495 && V(CATHODE,ANODE) > 1.5) ? min(0.15, 100*(V(REF,ANODE) - 2.495)) : 0
 R_leak CATHODE ANODE 10Meg
 R_in REF ANODE 100Meg
 .ends TL431_REF`,
@@ -82,34 +95,30 @@ R_in REF ANODE 100Meg
 
   // NPN BJT â€” Ebers-Moll behavioural model (IS=1e-14, BF=200)
   BJT_NPN: `.subckt BJT_NPN B C E
-* Ebers-Moll large-signal model (forward active)
-B_be ic_be B E I = 1e-14*(exp(V(B,E)/0.02585)-1)
-B_ice C E I = 200*I(B_be)
-Rb B E 1G
+Q1 C B E QN_STD
+.model QN_STD NPN(IS=1e-14 BF=200 VAF=100)
 .ends BJT_NPN`,
 
   // PNP BJT â€” Ebers-Moll behavioural model (IS=1e-14, BF=150)
   BJT_PNP: `.subckt BJT_PNP B C E
-* PNP Ebers-Moll: currents flow opposite convention
-B_be ic_be E B I = 1e-14*(exp(V(E,B)/0.02585)-1)
-B_ice E C I = 150*I(B_be)
-Rb B E 1G
+Q1 C B E QP_STD
+.model QP_STD PNP(IS=1e-14 BF=150 VAF=80)
 .ends BJT_PNP`,
 
   // N-Channel Enhancement MOSFET (Vth=2V, Kp=0.5A/VÂ²)
   MOSFET_N: `.subckt MOSFET_N G D S
-* Quadratic NMOS model: Id = Kp/2*(Vgs-Vth)^2 in saturation
-B_id D S I = {max(0, (V(G,S)>2) ? 0.5/2*(V(G,S)-2)^2 : 0)}
+* Level-1 NMOS transistor (Vth = 2.0V, Kp = 0.5)
+M1 D G S S NM_STD
 Rgs G S 100Meg
-Rds D S 1G
+.model NM_STD NMOS(LEVEL=1 VTO=2.0 KP=0.5 LAMBDA=0.02 RD=0.05 RS=0.05)
 .ends MOSFET_N`,
 
   // P-Channel Enhancement MOSFET (Vth=-4V, Kp=0.5A/VÂ²)
   MOSFET_P: `.subckt MOSFET_P G D S
-* Quadratic PMOS model: Id flows from S to D when Vgs < Vth
-B_id S D I = {max(0, (V(S,G)>4) ? 0.5/2*(V(S,G)-4)^2 : 0)}
+* Level-1 PMOS transistor (Vth = -4.0V, Kp = 0.5)
+M1 D G S S PM_STD
 Rgs G S 100Meg
-Rds D S 1G
+.model PM_STD PMOS(LEVEL=1 VTO=-4.0 KP=0.5 LAMBDA=0.02 RD=0.05 RS=0.05)
 .ends MOSFET_P`,
 
   // Schottky Diode â€” low Vf (IS=1e-8, N=1.05) approximating 1N5819
@@ -127,8 +136,14 @@ X1 INP INM VCC VEE OUT UA741_SUB
 
   // LM324 Quad Op-Amp â€” exposed as dual (same behavioural core as LM358)
   LM324: `.subckt LM324 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC GND
-XOP1 IN1P IN1M VCC GND OUT1 UA741_SUB
-XOP2 IN2P IN2M VCC GND OUT2 UA741_SUB
+* LM324 Single-Supply Op-Amp (dual channel section, VEE+0.05V to VCC-1.5V)
+Rin1 IN1P IN1M 2Meg
+Rin2 IN2P IN2M 2Meg
+B1 o1_i 0 V = (V(VCC,GND) > 1.5) ? (((max(V(GND), V(VCC)-1.5) - min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2)*tanh((V(IN1P)-V(IN1M))*20000) + (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2) : V(GND)
+B2 o2_i 0 V = (V(VCC,GND) > 1.5) ? (((max(V(GND), V(VCC)-1.5) - min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2)*tanh((V(IN2P)-V(IN2M))*20000) + (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2) : V(GND)
+R_o1 o1_i OUT1 50
+R_o2 o2_i OUT2 50
+Rvcc VCC GND 100Meg
 .ends LM324`,
 
   // NE5532 Dual Low-Noise Op-Amp (same topology as LM358, tighter noise model)
@@ -197,14 +212,14 @@ C1 P1 P2 30p
 * Coil: 70Î© resistance
 R_coil COIL_P COIL_N 70
 * Energise detect: latch voltage proportional to coil current
-B_energised energised GND V = (V(COIL_P,COIL_N)>3.5) ? 5 : 0
-R_e energised GND 1Meg
+B_energised energised 0 V = (V(COIL_P,COIL_N)>3.5) ? 5 : 0
+R_e energised 0 1Meg
 * COM-NO contact: closed when energised
-S_no COM NO energised GND SW_NO
+S_no COM NO energised 0 SW_NO
 * COM-NC contact: closed when NOT energised (inverted control)
-B_nc_ctrl nc_ctrl GND V = (V(energised)>2.5) ? 0 : 5
-R_nc nc_ctrl GND 1Meg
-S_nc COM NC nc_ctrl GND SW_NC
+B_nc_ctrl nc_ctrl 0 V = (V(energised)>2.5) ? 0 : 5
+R_nc nc_ctrl 0 1Meg
+S_nc COM NC nc_ctrl 0 SW_NC
 .model SW_NO SW(VT=2.5 VH=0.5 RON=0.1 ROFF=100Meg)
 .model SW_NC SW(VT=2.5 VH=0.5 RON=0.1 ROFF=100Meg)
 .ends RELAY_SPDT`,
@@ -221,24 +236,29 @@ Rout OUT GND 8
 
   // LM393 Dual Comparator â€” open-collector output (requires external pull-up)
   LM393: `.subckt LM393 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC GND
-* Output is open-collector: LOW when INP<INM, else Hi-Z (simulated as 1G)
-B_out1 OUT1 GND V = (V(IN1P)>V(IN1M)) ? 0 : V(VCC)
-B_out2 OUT2 GND V = (V(IN2P)>V(IN2M)) ? 0 : V(VCC)
+* Open-collector comparator: sinks to GND (15 ohm) when INP < INM, Hi-Z when INP >= INM
+B_out1 OUT1 GND I = (V(IN1P,GND) < V(IN1M,GND)) ? (V(OUT1,GND)/15) : (V(OUT1,GND)/1e8)
+B_out2 OUT2 GND I = (V(IN2P,GND) < V(IN2M,GND)) ? (V(OUT2,GND)/15) : (V(OUT2,GND)/1e8)
 Ri1 IN1P IN1M 1Meg
 Ri2 IN2P IN2M 1Meg
+R_oc1 OUT1 GND 100Meg
+R_oc2 OUT2 GND 100Meg
+Rvcc VCC GND 100Meg
 .ends LM393`,
 
   // 7490 Decade Counter â€” behavioural BCD counter (clocked on CLKA negedge)
   CTR_7490: `.subckt CTR_7490 CLKA CLKB R01 R02 QA QB QC QD VCC GND
-* Simplified behavioural: counts mod-10 on CLKA falling edge
-* State stored in capacitor node; reset forces 0
+* Simplified behavioural: resets when R01 & R02 high, extracts BCD bits from cnt
 C_cnt cnt GND 1p
 R_cnt cnt GND 1G
 B_cnt cnt GND V = (V(R01)>2.5 && V(R02)>2.5) ? 0 : V(cnt)
-B_qa QA GND V = (int(V(cnt)*10) & 1) ? 5 : 0
-B_qb QB GND V = ((int(V(cnt)*10) >> 1) & 1) ? 5 : 0
-B_qc QC GND V = ((int(V(cnt)*10) >> 2) & 1) ? 5 : 0
-B_qd QD GND V = ((int(V(cnt)*10) >> 3) & 1) ? 5 : 0
+B_qa QA GND V = (floor(V(cnt)*10+0.5) - 2*floor(floor(V(cnt)*10+0.5)/2)) > 0.5 ? 5 : 0
+B_qb QB GND V = (floor(floor(V(cnt)*10+0.5)/2) - 2*floor(floor(V(cnt)*10+0.5)/4)) > 0.5 ? 5 : 0
+B_qc QC GND V = (floor(floor(V(cnt)*10+0.5)/4) - 2*floor(floor(V(cnt)*10+0.5)/8)) > 0.5 ? 5 : 0
+B_qd QD GND V = (floor(floor(V(cnt)*10+0.5)/8) - 2*floor(floor(V(cnt)*10+0.5)/16)) > 0.5 ? 5 : 0
+R_clka CLKA GND 10Meg
+R_clkb CLKB GND 10Meg
+R_vcc VCC GND 100Meg
 .ends CTR_7490`,
 
   // ULN2003 â€” 4-channel Darlington sink driver (open-collector, 500mA/ch)
@@ -265,13 +285,13 @@ B_q7s Q7S GND V = (V(OE)<1) ? V(sr_node) : 0
 
   // 7805 â€” behavioural fixed +5V regulator
   REG_7805: `.subckt REG_7805 IN GND OUT
-B_reg OUT GND V = min(V(IN)-2, 5)
+B_reg OUT GND V = (V(IN,GND) >= 7.0) ? 5.0 : max(0, V(IN,GND) - 2.0)
 R_load OUT GND 10Meg
 .ends REG_7805`,
 
   // 7812 â€” behavioural fixed +12V regulator
   REG_7812: `.subckt REG_7812 IN GND OUT
-B_reg OUT GND V = min(V(IN)-2, 12)
+B_reg OUT GND V = (V(IN,GND) >= 14.0) ? 12.0 : max(0, V(IN,GND) - 2.0)
 R_load OUT GND 10Meg
 .ends REG_7812`,
 
@@ -287,16 +307,16 @@ R_ntc P1 P2 10k
 
   // 7447 BCD-to-7-Segment Decoder â€” behavioural active-low outputs
   DEC_7447: `.subckt DEC_7447 A B C D oa ob oc od oe of og VCC GND
-* BCD input â†’ segment outputs (active LOW, common-anode display)
-* Decode integer value N = D*8 + C*4 + B*2 + A
-B_n n GND V = {(V(D)>2.5)*8 + (V(C)>2.5)*4 + (V(B)>2.5)*2 + (V(A)>2.5)}
-B_a oa GND V = {(int(V(n))==1||int(V(n))==4) ? 5 : 0}
-B_b ob GND V = {(int(V(n))==5||int(V(n))==6) ? 5 : 0}
-B_c oc GND V = {(int(V(n))==2) ? 5 : 0}
-B_d od GND V = {(int(V(n))==1||int(V(n))==4||int(V(n))==7) ? 5 : 0}
-B_e oe GND V = {(int(V(n))==1||int(V(n))==3||int(V(n))==4||int(V(n))==5||int(V(n))==7||int(V(n))==9) ? 5 : 0}
-B_f of GND V = {(int(V(n))==1||int(V(n))==2||int(V(n))==3||int(V(n))==7) ? 5 : 0}
-B_g og GND V = {(int(V(n))==0) ? 5 : 0}
+* BCD input -> segment outputs (active LOW, common-anode display)
+B_n n GND V = (V(D)>2.5)*8 + (V(C)>2.5)*4 + (V(B)>2.5)*2 + (V(A)>2.5)
+B_a oa GND V = (floor(V(n)+0.5)==1||floor(V(n)+0.5)==4) ? 5 : 0
+B_b ob GND V = (floor(V(n)+0.5)==5||floor(V(n)+0.5)==6) ? 5 : 0
+B_c oc GND V = (floor(V(n)+0.5)==2) ? 5 : 0
+B_d od GND V = (floor(V(n)+0.5)==1||floor(V(n)+0.5)==4||floor(V(n)+0.5)==7) ? 5 : 0
+B_e oe GND V = (floor(V(n)+0.5)==1||floor(V(n)+0.5)==3||floor(V(n)+0.5)==4||floor(V(n)+0.5)==5||floor(V(n)+0.5)==7||floor(V(n)+0.5)==9) ? 5 : 0
+B_f of GND V = (floor(V(n)+0.5)==1||floor(V(n)+0.5)==2||floor(V(n)+0.5)==3||floor(V(n)+0.5)==7) ? 5 : 0
+B_g og GND V = (floor(V(n)+0.5)==0||floor(V(n)+0.5)==1||floor(V(n)+0.5)==7) ? 5 : 0
+R_vcc VCC GND 100Meg
 .ends DEC_7447`,
 
   // 74HC245 Octal Bus Transceiver â€” DIR-controlled bidirectional buffer
@@ -340,8 +360,8 @@ Rin INP INM 1Meg
 B_freq f_node GND V = max(100, 2*(V(VCC)-V(MODV))/(10k*100n*V(VCC)+1e-9))
 C_int tri_node GND 1p
 R_int tri_node GND 1Meg
-B_tri TRIOUT GND V = sin(2*3.14159*V(f_node)*TIME)*V(VCC)/2 + V(VCC)/2
-B_sq  SQOUT  GND V = (V(TRIOUT)>V(VCC)/2) ? V(VCC)-1 : 1
+B_tri TRIOUT GND V = sin(2*3.14159*V(f_node)*time)*V(VCC)/2 + V(VCC)/2
+B_sq SQOUT GND V = (V(TRIOUT)>V(VCC)/2) ? V(VCC)-1 : 1
 .ends NE566`,
 
   // CD4017 Johnson Decade Counter â€” 10 decoded outputs Q0â€“Q4 + carry-out
@@ -350,11 +370,11 @@ B_sq  SQOUT  GND V = (V(TRIOUT)>V(VCC)/2) ? V(VCC)-1 : 1
 C_cnt cnt VSS 1p
 R_cnt cnt VSS 1G
 B_cnt cnt VSS V = (V(RST)>2.5) ? 0 : V(cnt)
-B_q0 Q0 VSS V = (int(V(cnt)*10)==0) ? V(VDD) : 0
-B_q1 Q1 VSS V = (int(V(cnt)*10)==1) ? V(VDD) : 0
-B_q2 Q2 VSS V = (int(V(cnt)*10)==2) ? V(VDD) : 0
-B_q3 Q3 VSS V = (int(V(cnt)*10)==3) ? V(VDD) : 0
-B_q4 Q4 VSS V = (int(V(cnt)*10)==4) ? V(VDD) : 0
+B_q0 Q0 VSS V = (floor(V(cnt)*10)==0) ? V(VDD) : 0
+B_q1 Q1 VSS V = (floor(V(cnt)*10)==1) ? V(VDD) : 0
+B_q2 Q2 VSS V = (floor(V(cnt)*10)==2) ? V(VDD) : 0
+B_q3 Q3 VSS V = (floor(V(cnt)*10)==3) ? V(VDD) : 0
+B_q4 Q4 VSS V = (floor(V(cnt)*10)==4) ? V(VDD) : 0
 B_co CO VSS V = (V(cnt)>0.5) ? V(VDD) : 0
 .ends CD4017`,
 
@@ -363,11 +383,13 @@ B_co CO VSS V = (V(cnt)>0.5) ? V(VDD) : 0
   // 4N35 Optocoupler â€” LED + phototransistor behavioural
   OC_4N35: `.subckt OC_4N35 A K C E
 * LED input: diode forward-biased above 1.2V
-D_led A K DLED4N35
-.model DLED4N35 D(IS=1e-15 N=1.8)
-* Phototransistor: collector current proportional to LED current (CTRâ‰ˆ100%)
-B_led i_led GND V = max(0, (V(A)-V(K)-1.2)/100)
-B_xtr C E I = V(i_led) * 1.0
+V_sense A a_i 0
+D_led a_i K DLED4N35
+.model DLED4N35 D(IS=1e-15 N=1.8 RS=2)
+F_phot E base V_sense 0.01
+R_be base E 100k
+Q_out C base E QOPTO
+.model QOPTO NPN(IS=1e-14 BF=100 VAF=80)
 R_ce C E 100Meg
 .ends OC_4N35`,
 
@@ -380,10 +402,10 @@ R_bleed P1 P2 10Meg
 
   // LM2596 Buck Converter â€” behavioural step-down
   LM2596: `.subckt LM2596 VIN VOUT FB ON_OFF GND
-* Output regulated by FB; default Vout = 5V (FB sets ratio via external divider)
-* Simplified: Vout = VIN * min(1, (Vtarget/VIN)) with efficiency â‰ˆ 85%
-B_out VOUT GND V = min(V(VIN)*0.85, 5.0)
+* LM2596 buck converter: active when ON_OFF < 1.3V and VIN >= 4.5V (default 5V regulated output)
+B_out VOUT GND V = (V(ON_OFF,GND) > 1.3 || V(VIN,GND) < 4.5) ? 0 : min(max(0, V(VIN,GND)*0.85), 5.0)
 R_fb FB GND 1Meg
+R_on ON_OFF GND 100k
 R_load VOUT GND 10Meg
 .ends LM2596`,
 
@@ -415,17 +437,24 @@ R_load OUT GND 1Meg
 
   // CD4051 8-Ch Mux â€” channel selected by 3-bit ABC address
   CD4051: `.subckt CD4051 A B C INH Z Y0 Y1 Y2 Y3 VDD VSS
-* Select channel N = C*4+B*2+A; connect Z to YN
-B_n ch_n VSS V = {(V(C)>2.5)*4+(V(B)>2.5)*2+(V(A)>2.5)}
-B_y0 Z VSS V = (V(INH)<1 && int(V(ch_n))==0) ? V(Y0) : V(Z)
-B_y1 Z VSS V = (V(INH)<1 && int(V(ch_n))==1) ? V(Y1) : V(Z)
-B_y2 Z VSS V = (V(INH)<1 && int(V(ch_n))==2) ? V(Y2) : V(Z)
-B_y3 Z VSS V = (V(INH)<1 && int(V(ch_n))==3) ? V(Y3) : V(Z)
+* 4-of-8 analog mux: bilateral 120 ohm transmission switches from Z to Y0..Y3
+B_n ch_n VSS V = (V(C,VSS)>2.5)*4 + (V(B,VSS)>2.5)*2 + (V(A,VSS)>2.5)
+B_y0 Z Y0 I = V(Z,Y0) / ((V(INH,VSS)<1.5 && floor(V(ch_n,VSS)+0.5)==0) ? 120 : 1e8)
+B_y1 Z Y1 I = V(Z,Y1) / ((V(INH,VSS)<1.5 && floor(V(ch_n,VSS)+0.5)==1) ? 120 : 1e8)
+B_y2 Z Y2 I = V(Z,Y2) / ((V(INH,VSS)<1.5 && floor(V(ch_n,VSS)+0.5)==2) ? 120 : 1e8)
+B_y3 Z Y3 I = V(Z,Y3) / ((V(INH,VSS)<1.5 && floor(V(ch_n,VSS)+0.5)==3) ? 120 : 1e8)
+R_z Z VSS 100Meg
+R_y0 Y0 VSS 100Meg
+R_y1 Y1 VSS 100Meg
+R_y2 Y2 VSS 100Meg
+R_y3 Y3 VSS 100Meg
+R_inh INH VSS 100Meg
+R_pwr VDD VSS 100k
 .ends CD4051`,
 
   // 74HC32 Quad OR Gate â€” same topology as OR2 but packaged as IC
   HC32: `.subckt HC32 A B Y GND
-E1 Y GND VALUE = { (V(A) > 1.5 || V(B) > 1.5) ? 5 : 0 }
+B_E1 Y GND V = (V(A) > 1.5 || V(B) > 1.5) ? 5 : 0
 Rout Y GND 10Meg
 .ends HC32`,
 
@@ -453,10 +482,10 @@ R_scl SCL GND 100Meg
   TRIAC: `.subckt TRIAC MT1 MT2 G
 * Simplified TRIAC: back-to-back SCR model with behavioural gate control
 * Forward path (MT2+ â†’ MT1): conducts when gate triggered and MT2 > MT1
-B_fwd MT2_int MT1 I = { (V(G,MT1) > 0.7 && V(MT2,MT1) > 0) ? V(MT2,MT1)/0.02 : 0 }
+B_fwd MT2_int MT1 I = (V(G,MT1) > 0.7 && V(MT2,MT1) > 0) ? V(MT2,MT1)/0.02 : 0
 R_fwd MT2 MT2_int 0.02
 * Reverse path (MT1+ â†’ MT2): conducts when gate triggered and MT1 > MT2
-B_rev MT1_int MT2 I = { (V(G,MT1) > 0.7 && V(MT1,MT2) > 0) ? V(MT1,MT2)/0.02 : 0 }
+B_rev MT1_int MT2 I = (V(G,MT1) > 0.7 && V(MT1,MT2) > 0) ? V(MT1,MT2)/0.02 : 0
 R_rev MT1 MT1_int 0.02
 R_gate G MT1 10k
 .ends TRIAC`,
@@ -473,7 +502,7 @@ Rrev A2 A2_i 1
   IGBT_N: `.subckt IGBT_N G C E
 * N-Channel IGBT: MOSFET-style gate, BJT-style output, body diode included
 M_ch G_int E E E IGBT_MOS L=2u W=10m
-E_gate G_int E VALUE = { LIMIT(V(G,E), 0, 15) }
+B_E_gate G_int E V = min(max((V(G,E)), (0)), (15))
 Q_bjt C E_int E IGBT_BJT
 R_ce E_int C 0.05
 D_body E C IGBT_BODY
@@ -489,15 +518,15 @@ R_ldr P1 P2 10k
 .ends PHOTO_RESISTOR`,
 
   LM311: `.subckt LM311 INP INN OUT VCC VEE GND
-* LM311 Voltage Comparator â€” open-collector output
-* Op-amp core drives BJT open-collector output stage
-Bcomp comp_int GND VALUE = { (V(INP) > V(INN)) ? 1 : 0 }
+* LM311 Voltage Comparator — open-collector output (sinks low when INP < INN)
+Bcomp comp_int GND V = (V(INP) < V(INN)) ? 1 : 0
 Rcomp comp_int GND 10Meg
 Q_oc OUT col_b GND NPN311
-Vcoll col_b comp_int DC 0
+R_coll comp_int col_b 1k
 .model NPN311 NPN (Is=1e-14 Bf=200 Vaf=100)
 Rin_p INP GND 1Meg
 Rin_n INN GND 1Meg
+R_out OUT GND 100Meg
 Rvcc VCC GND 100Meg
 Rvee VEE GND 100Meg
 .ends LM311`,
@@ -505,29 +534,29 @@ Rvee VEE GND 100Meg
   L298N: `.subckt L298N IN1 IN2 ENA IN3 IN4 ENB OUT1 OUT2 OUT3 OUT4 VCC VSS GND
 * L298N Dual H-Bridge â€” behavioural model
 * Bridge A: controlled by IN1, IN2 when ENA high
-Bout1 OUT1 GND VALUE = { (V(ENA) > 2.5 && V(IN1) > 2.5) ? V(VCC,GND)*0.95 : (V(ENA) > 2.5 && V(IN2) > 2.5) ? 0 : 0 }
-Bout2 OUT2 GND VALUE = { (V(ENA) > 2.5 && V(IN2) > 2.5) ? V(VCC,GND)*0.95 : (V(ENA) > 2.5 && V(IN1) > 2.5) ? 0 : 0 }
+Bout1 OUT1 GND V = (V(ENA) > 2.5 && V(IN1) > 2.5) ? V(VCC,GND)*0.95 : (V(ENA) > 2.5 && V(IN2) > 2.5) ? 0 : 0
+Bout2 OUT2 GND V = (V(ENA) > 2.5 && V(IN2) > 2.5) ? V(VCC,GND)*0.95 : (V(ENA) > 2.5 && V(IN1) > 2.5) ? 0 : 0
 * Bridge B: controlled by IN3, IN4 when ENB high
-Bout3 OUT3 GND VALUE = { (V(ENB) > 2.5 && V(IN3) > 2.5) ? V(VSS,GND)*0.95 : (V(ENB) > 2.5 && V(IN4) > 2.5) ? 0 : 0 }
-Bout4 OUT4 GND VALUE = { (V(ENB) > 2.5 && V(IN4) > 2.5) ? V(VSS,GND)*0.95 : (V(ENB) > 2.5 && V(IN3) > 2.5) ? 0 : 0 }
+Bout3 OUT3 GND V = (V(ENB) > 2.5 && V(IN3) > 2.5) ? V(VSS,GND)*0.95 : (V(ENB) > 2.5 && V(IN4) > 2.5) ? 0 : 0
+Bout4 OUT4 GND V = (V(ENB) > 2.5 && V(IN4) > 2.5) ? V(VSS,GND)*0.95 : (V(ENB) > 2.5 && V(IN3) > 2.5) ? 0 : 0
 Rvcc VCC GND 100Meg
 Rvss VSS GND 100Meg
 .ends L298N`,
 
   HC08: `.subckt HC08 A B Y GND
-E1 Y GND VALUE = { (V(A) > 1.5 && V(B) > 1.5) ? 5 : 0 }
+B_E1 Y GND V = (V(A) > 1.5 && V(B) > 1.5) ? 5 : 0
 Rout Y GND 10Meg
 .ends HC08`,
 
   HC00: `.subckt HC00 A B Y GND
-E1 Y GND VALUE = { (V(A) > 1.5 && V(B) > 1.5) ? 0 : 5 }
+B_E1 Y GND V = (V(A) > 1.5 && V(B) > 1.5) ? 0 : 5
 Rout Y GND 10Meg
 .ends HC00`,
 
   DS18B20: `.subckt DS18B20 GND DQ VDD
 * DS18B20 1-Wire Temp Sensor â€” outputs ~0.5V per Â°C on DQ (25Â°C default â†’ 12.5V clip)
 * Representative: 10mV/Â°C at 25Â°C baseline, pulled to ~250mV
-Btemp DQ GND VALUE = { 0.25 }
+Btemp DQ GND V = 0.25
 Rpull VDD DQ 4.7k
 Rvdd VDD GND 100Meg
 .ends DS18B20`,
@@ -535,64 +564,61 @@ Rvdd VDD GND 100Meg
   SG3525: `.subckt SG3525 INV NINV SYNC OSC SD SS OUTA OUTB VCC GND VREF
 * SG3525 PWM Controller â€” simplified behavioural model
 * Internal 5.1V reference
-Eref VREF GND VALUE = { 5.1 }
+B_Eref VREF GND V = 5.1
 Rref VREF GND 100
 * Error amp: NINV is typically tied to VREF/2 setpoint
-Berr err_n GND VALUE = { LIMIT(V(NINV) - V(INV), -5, 5) }
+Berr err_n GND V = min(max((V(NINV) - V(INV)), (-5)), (5))
 Rerr err_n GND 10k
 * Oscillator â€” fixed 50kHz with SYNC input
-Bosc osc_n GND VALUE = { (V(SYNC) > 1) ? 0 : ( sin(2*3.14159*50000*time) > 0 ? 1 : 0 ) }
+Bosc osc_n GND V = (V(SYNC) > 1) ? 0 : ( sin(2*3.14159*50000*time) > 0 ? 1 : 0 )
 * Output A / B â€” push-pull, 180Â° phase
-Bouta OUTA GND VALUE = { (V(SD) > 1 || V(SS) < 0.5) ? 0 : (V(osc_n) > 0.5 && V(err_n,GND) > 0) ? V(VCC,GND)*0.9 : 0 }
-Boutb OUTB GND VALUE = { (V(SD) > 1 || V(SS) < 0.5) ? 0 : (V(osc_n) < 0.5 && V(err_n,GND) > 0) ? V(VCC,GND)*0.9 : 0 }
+Bouta OUTA GND V = (V(SD) > 1 || V(SS) < 0.5) ? 0 : (V(osc_n) > 0.5 && V(err_n,GND) > 0) ? V(VCC,GND)*0.9 : 0
+Boutb OUTB GND V = (V(SD) > 1 || V(SS) < 0.5) ? 0 : (V(osc_n) < 0.5 && V(err_n,GND) > 0) ? V(VCC,GND)*0.9 : 0
 Rvcc VCC GND 100Meg
 .ends SG3525`,
 
   TUNNEL_DIODE: `.subckt TUNNEL_DIODE A K
-* Tunnel diode: NDR modelled with piecewise behavioural current
-* Peak ~1mA at 0.1V, valley ~0.1mA at 0.4V, then rises again
-B_td A K I = { (V(A,K) < 0.1) ? V(A,K)/100 :
-+              (V(A,K) < 0.4) ? 0.001*(1 - (V(A,K)-0.1)/0.3*0.9) :
-+              0.0001 + V(A,K)/500 }
+* Tunnel diode: smooth Esaki NDR curve (peak ~1mA at 0.1V, valley ~0.2mA around 0.4V)
+B_td A K I = 0.001*(V(A,K)/0.1)*exp(1 - min(max(V(A,K)/0.1, -5), 20)) + 1e-11*(exp(min(max(V(A,K), -5), 0.9)/0.03) - 1) + V(A,K)/10000
 R_leak A K 10Meg
 .ends TUNNEL_DIODE`,
 
   HC04: `.subckt HC04 A Y GND
-E1 Y GND VALUE = { (V(A) > 1.5) ? 0 : 5 }
+B_E1 Y GND V = (V(A) > 1.5) ? 0 : 5
 Rout Y GND 10Meg
 .ends HC04`,
 
   HC138: `.subckt HC138 A B C G1 G2A G2B Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 VCC GND
 * 3-to-8 decoder: active-low outputs, enabled when G1=1, G2A=0, G2B=0
 * sel = binary value of C,B,A (0-7)
-E_en en_n GND VALUE = { (V(G1)>1.5 && V(G2A)<1.5 && V(G2B)<1.5) ? 1 : 0 }
-B0 Y0 GND VALUE = { (V(en_n)>0.5 && V(C)<1.5 && V(B)<1.5 && V(A)<1.5) ? 0 : 5 }
-B1 Y1 GND VALUE = { (V(en_n)>0.5 && V(C)<1.5 && V(B)<1.5 && V(A)>1.5) ? 0 : 5 }
-B2 Y2 GND VALUE = { (V(en_n)>0.5 && V(C)<1.5 && V(B)>1.5 && V(A)<1.5) ? 0 : 5 }
-B3 Y3 GND VALUE = { (V(en_n)>0.5 && V(C)<1.5 && V(B)>1.5 && V(A)>1.5) ? 0 : 5 }
-B4 Y4 GND VALUE = { (V(en_n)>0.5 && V(C)>1.5 && V(B)<1.5 && V(A)<1.5) ? 0 : 5 }
-B5 Y5 GND VALUE = { (V(en_n)>0.5 && V(C)>1.5 && V(B)<1.5 && V(A)>1.5) ? 0 : 5 }
-B6 Y6 GND VALUE = { (V(en_n)>0.5 && V(C)>1.5 && V(B)>1.5 && V(A)<1.5) ? 0 : 5 }
-B7 Y7 GND VALUE = { (V(en_n)>0.5 && V(C)>1.5 && V(B)>1.5 && V(A)>1.5) ? 0 : 5 }
+B_E_en en_n GND V = (V(G1)>1.5 && V(G2A)<1.5 && V(G2B)<1.5) ? 1 : 0
+B0 Y0 GND V = (V(en_n)>0.5 && V(C)<1.5 && V(B)<1.5 && V(A)<1.5) ? 0 : 5
+B1 Y1 GND V = (V(en_n)>0.5 && V(C)<1.5 && V(B)<1.5 && V(A)>1.5) ? 0 : 5
+B2 Y2 GND V = (V(en_n)>0.5 && V(C)<1.5 && V(B)>1.5 && V(A)<1.5) ? 0 : 5
+B3 Y3 GND V = (V(en_n)>0.5 && V(C)<1.5 && V(B)>1.5 && V(A)>1.5) ? 0 : 5
+B4 Y4 GND V = (V(en_n)>0.5 && V(C)>1.5 && V(B)<1.5 && V(A)<1.5) ? 0 : 5
+B5 Y5 GND V = (V(en_n)>0.5 && V(C)>1.5 && V(B)<1.5 && V(A)>1.5) ? 0 : 5
+B6 Y6 GND V = (V(en_n)>0.5 && V(C)>1.5 && V(B)>1.5 && V(A)<1.5) ? 0 : 5
+B7 Y7 GND V = (V(en_n)>0.5 && V(C)>1.5 && V(B)>1.5 && V(A)>1.5) ? 0 : 5
 Rvcc VCC GND 100Meg
 .ends HC138`,
 
   HC148: `.subckt HC148 I0 I1 I2 I3 I4 I5 I6 I7 EI A0 A1 A2 GS EO VCC GND
 * 8-to-3 priority encoder (active-low I/O)
 * Highest priority = I7 (if active-low and EI active-low)
-E_en en_n GND VALUE = { (V(EI)<1.5) ? 1 : 0 }
-Ba0 A0 GND VALUE = { (V(en_n)<0.5) ? 5 : (V(I7)<1.5||V(I5)<1.5||V(I3)<1.5||V(I1)<1.5) ? 0 : 5 }
-Ba1 A1 GND VALUE = { (V(en_n)<0.5) ? 5 : (V(I7)<1.5||V(I6)<1.5||V(I3)<1.5||V(I2)<1.5) ? 0 : 5 }
-Ba2 A2 GND VALUE = { (V(en_n)<0.5) ? 5 : (V(I7)<1.5||V(I6)<1.5||V(I5)<1.5||V(I4)<1.5) ? 0 : 5 }
-Bgs GS GND VALUE = { (V(en_n)<0.5) ? 5 : (V(I0)<1.5||V(I1)<1.5||V(I2)<1.5||V(I3)<1.5||V(I4)<1.5||V(I5)<1.5||V(I6)<1.5||V(I7)<1.5) ? 0 : 5 }
-Beo EO GND VALUE = { (V(en_n)<0.5 || V(I0)<1.5||V(I1)<1.5||V(I2)<1.5||V(I3)<1.5||V(I4)<1.5||V(I5)<1.5||V(I6)<1.5||V(I7)<1.5) ? 5 : 0 }
+B_E_en en_n GND V = (V(EI)<1.5) ? 1 : 0
+Ba0 A0 GND V = (V(en_n)<0.5) ? 5 : (V(I7)<1.5||V(I5)<1.5||V(I3)<1.5||V(I1)<1.5) ? 0 : 5
+Ba1 A1 GND V = (V(en_n)<0.5) ? 5 : (V(I7)<1.5||V(I6)<1.5||V(I3)<1.5||V(I2)<1.5) ? 0 : 5
+Ba2 A2 GND V = (V(en_n)<0.5) ? 5 : (V(I7)<1.5||V(I6)<1.5||V(I5)<1.5||V(I4)<1.5) ? 0 : 5
+Bgs GS GND V = (V(en_n)<0.5) ? 5 : (V(I0)<1.5||V(I1)<1.5||V(I2)<1.5||V(I3)<1.5||V(I4)<1.5||V(I5)<1.5||V(I6)<1.5||V(I7)<1.5) ? 0 : 5
+Beo EO GND V = (V(en_n)<0.5 || V(I0)<1.5||V(I1)<1.5||V(I2)<1.5||V(I3)<1.5||V(I4)<1.5||V(I5)<1.5||V(I6)<1.5||V(I7)<1.5) ? 5 : 0
 Rvcc VCC GND 100Meg
 .ends HC148`,
 
   NE5534: `.subckt NE5534 INP INN OUTP VCC VEE COMP
 * NE5534 low-noise op-amp -- flat model
-Ediff diff_n 0 VALUE = { V(INP) - V(INN) }
-Egain OUTP 0 VALUE = { LIMIT(100000*V(diff_n), V(VEE)+0.015, V(VCC)-0.015) }
+B_Ediff diff_n 0 V = V(INP) - V(INN)
+B_Egain OUTP 0 V = min(max((100000*V(diff_n)), (V(VEE)+0.015)), (V(VCC)-0.015))
 Rin INP INN 1Meg
 Rvcc VCC 0 100Meg
 Rvee VEE 0 100Meg
@@ -600,18 +626,18 @@ Rcomp COMP OUTP 10k
 .ends NE5534`,
 
   LM337: `.subckt LM337 IN OUT ADJ
-* LM337 adjustable negative regulator
-* Vout = -1.25 * (1 + R2/R1) â€” R2/R1 set by user externally
-* Model: holds OUT at IN - 1.5V (dropout); real Vout depends on ADJ divider
-Ereg OUT ADJ VALUE = { LIMIT(V(IN,ADJ) - 1.5, V(IN) - 40, -1.2) }
-Radj ADJ IN 10Meg
-Rin IN ADJ 0.1
+* LM337 adjustable negative regulator: Vout = -1.25 * (1 + R2/R1) - I_adj*R2
+R_in IN 0 100Meg
+B_reg out_i 0 V = max(min(0, V(IN) + 1.5), min(0, V(ADJ) - 1.25))
+R_ser out_i OUT 0.05
+I_adj ADJ IN 50u
+R_out OUT 0 10Meg
 .ends LM337`,
 
   MAX7219: `.subckt MAX7219 DIN CLK CS DOUT VCC GND
 * MAX7219 SPI LED driver â€” pass-through model
 * DOUT mirrors DIN after one SPI cycle (simplified)
-Bdout DOUT GND VALUE = { V(DIN) }
+Bdout DOUT GND V = V(DIN)
 Rvcc VCC GND 100Meg
 Rcs CS GND 10Meg
 .ends MAX7219`,
@@ -620,23 +646,23 @@ Rcs CS GND 10Meg
 * CD4060 oscillator + 14-stage counter
 * Oscillator drives internal chain; outputs are /2^n of osc freq
 * Simplified: outputs toggle based on time (100kHz osc)
-Bosc osc_int VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000*time)>0 ? V(VDD,VSS)*0.9 : 0) }
+Bosc osc_int VSS V = (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000*time)>0 ? V(VDD,VSS)*0.9 : 0)
 * Each Q output is successive divide-by-2 of the oscillator
-Bq4  Q4  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/16*time)>0  ? V(VDD,VSS)*0.9 : 0) }
-Bq5  Q5  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/32*time)>0  ? V(VDD,VSS)*0.9 : 0) }
-Bq6  Q6  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/64*time)>0  ? V(VDD,VSS)*0.9 : 0) }
-Bq7  Q7  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/128*time)>0 ? V(VDD,VSS)*0.9 : 0) }
-Bq8  Q8  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/256*time)>0 ? V(VDD,VSS)*0.9 : 0) }
-Bq9  Q9  VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/512*time)>0 ? V(VDD,VSS)*0.9 : 0) }
-Bq10 Q10 VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/1024*time)>0? V(VDD,VSS)*0.9 : 0) }
-Bq14 Q14 VSS VALUE = { (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/16384*time)>0?V(VDD,VSS)*0.9 : 0) }
+Bq4 Q4 VSS V = (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/16*time)>0 ? V(VDD,VSS)*0.9 : 0)
+Bq5 Q5 VSS V = (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/32*time)>0 ? V(VDD,VSS)*0.9 : 0)
+Bq6 Q6 VSS V = (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/64*time)>0 ? V(VDD,VSS)*0.9 : 0)
+Bq7 Q7 VSS V = (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/128*time)>0 ? V(VDD,VSS)*0.9 : 0)
+Bq8 Q8 VSS V = (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/256*time)>0 ? V(VDD,VSS)*0.9 : 0)
+Bq9 Q9 VSS V = (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/512*time)>0 ? V(VDD,VSS)*0.9 : 0)
+Bq10 Q10 VSS V = (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/1024*time)>0? V(VDD,VSS)*0.9 : 0)
+Bq14 Q14 VSS V = (V(RST,VSS)>1) ? 0 : (sin(2*3.14159*100000/16384*time)>0?V(VDD,VSS)*0.9 : 0)
 Rvdd VDD VSS 100Meg
 .ends CD4060`,
 
   MCP3208: `.subckt MCP3208 CH0 CH1 CH2 CH3 CH4 CH5 CH6 CH7 CS DIN DOUT CLK VREF VDD AGND DGND
 * MCP3208 SPI ADC â€” simplified: DOUT mirrors selected channel voltage as digital-ish
 * Real SPI encoding requires firmware; model returns analog proportional value
-Bdout DOUT DGND VALUE = { V(CS,DGND)>1.5 ? 0 : V(CH0,AGND)/V(VREF,AGND)*3.3 }
+Bdout DOUT DGND V = V(CS,DGND)>1.5 ? 0 : V(CH0,AGND)/V(VREF,AGND)*3.3
 Rvdd VDD AGND 100Meg
 Rcs  CS  DGND 10Meg
 .ends MCP3208`,
@@ -658,7 +684,7 @@ R_be B E 10k
 
   LM35: `.subckt LM35 VCC OUTP GND
 * LM35: 10mV/degC, baseline 25degC -> 250mV output
-Bout OUTP GND VALUE = { 0.25 }
+Bout OUTP GND V = 0.25
 Rvcc VCC GND 100Meg
 .ends LM35`,
 
@@ -666,29 +692,29 @@ Rvcc VCC GND 100Meg
 * A3144 Hall sensor: open-collector, active LOW when B-field present
 * Default: output pulled high through external resistor (modelled here)
 Rpull VCC OUTP 10k
-Bout OUTP GND VALUE = { 0 }
+Bout OUTP GND V = 0
 Rvcc VCC GND 100Meg
 .ends HALL_A3144`,
 
   HC573: `.subckt HC573 D0 D1 D2 D3 D4 D5 D6 D7 LE OE Q0 Q1 Q2 Q3 Q4 Q5 Q6 Q7 VCC GND
 * 74HC573 Octal Transparent Latch -- when LE high outputs follow inputs; when LOW latched
 * OE active low enables outputs
-E0 Q0 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D0) : (V(OE)<1.5) ? V(Q0) : 0 }
-E1 Q1 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D1) : (V(OE)<1.5) ? V(Q1) : 0 }
-E2 Q2 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D2) : (V(OE)<1.5) ? V(Q2) : 0 }
-E3 Q3 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D3) : (V(OE)<1.5) ? V(Q3) : 0 }
-E4 Q4 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D4) : (V(OE)<1.5) ? V(Q4) : 0 }
-E5 Q5 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D5) : (V(OE)<1.5) ? V(Q5) : 0 }
-E6 Q6 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D6) : (V(OE)<1.5) ? V(Q6) : 0 }
-E7 Q7 GND VALUE = { (V(OE)<1.5 && V(LE)>1.5) ? V(D7) : (V(OE)<1.5) ? V(Q7) : 0 }
+B_E0 Q0 GND V = (V(OE)<1.5 && V(LE)>1.5) ? V(D0) : (V(OE)<1.5) ? V(Q0) : 0
+B_E1 Q1 GND V = (V(OE)<1.5 && V(LE)>1.5) ? V(D1) : (V(OE)<1.5) ? V(Q1) : 0
+B_E2 Q2 GND V = (V(OE)<1.5 && V(LE)>1.5) ? V(D2) : (V(OE)<1.5) ? V(Q2) : 0
+B_E3 Q3 GND V = (V(OE)<1.5 && V(LE)>1.5) ? V(D3) : (V(OE)<1.5) ? V(Q3) : 0
+B_E4 Q4 GND V = (V(OE)<1.5 && V(LE)>1.5) ? V(D4) : (V(OE)<1.5) ? V(Q4) : 0
+B_E5 Q5 GND V = (V(OE)<1.5 && V(LE)>1.5) ? V(D5) : (V(OE)<1.5) ? V(Q5) : 0
+B_E6 Q6 GND V = (V(OE)<1.5 && V(LE)>1.5) ? V(D6) : (V(OE)<1.5) ? V(Q6) : 0
+B_E7 Q7 GND V = (V(OE)<1.5 && V(LE)>1.5) ? V(D7) : (V(OE)<1.5) ? V(Q7) : 0
 Rvcc VCC GND 100Meg
 .ends HC573`,
 
   HC165: `.subckt HC165 PL CLK CE SER A B C D E F G H QH QHN VCC GND
 * 74HC165 PISO shift register -- simplified: loads D7=H on PL low, shifts on CLK
 * Behavioural: QH outputs parallel input H when loaded (simplified single-stage)
-Bqh  QH  GND VALUE = { (V(PL)<1.5) ? V(H) : (V(CE)<1.5 && V(CLK)>1.5) ? V(SER) : V(H) }
-Bqhn QHN GND VALUE = { 5 - V(QH,GND) }
+Bqh QH GND V = (V(PL)<1.5) ? V(H) : (V(CE)<1.5 && V(CLK)>1.5) ? V(SER) : V(H)
+Bqhn QHN GND V = 5 - V(QH,GND)
 Rvcc VCC GND 100Meg
 .ends HC165`,
 
@@ -709,25 +735,25 @@ Rvcc VCC GND 100Meg
 
   ESP8266: `.subckt ESP8266 TX RX RST EN GPIO0 GPIO2 ADC VCC GND
 * ESP8266 WiFi SoC -- passthrough UART model
-Btx TX GND VALUE = { 3.3 }
+Btx TX GND V = 3.3
 Rrx RX GND 10Meg
 Rvcc VCC GND 100Meg
 Radc ADC GND 10Meg
 .ends ESP8266`,
 
   HC86: `.subckt HC86 A B Y GND
-E1 Y GND VALUE = { ((V(A)>1.5) != (V(B)>1.5)) ? 5 : 0 }
+B_E1 Y GND V = ((V(A)>1.5) != (V(B)>1.5)) ? 5 : 0
 Rout Y GND 10Meg
 .ends HC86`,
 
   UC3842: `.subckt UC3842 COMP FB ISNS RT GND OUTP VCC VREF
 * UC3842 current-mode PWM controller
-Eref VREF GND VALUE = { 5.0 }
+B_Eref VREF GND V = 5.0
 Rref VREF GND 100
-Berr err_n GND VALUE = { LIMIT(V(VREF)*0.5 - V(FB), -5, 5) }
+Berr err_n GND V = min(max((V(VREF)*0.5 - V(FB)), (-5)), (5))
 Rerr err_n GND 10k
-Bosc osc_n GND VALUE = { (sin(2*3.14159*50000*time)>0 ? 1 : 0) }
-Bout OUTP GND VALUE = { (V(VCC,GND)<10) ? 0 : (V(ISNS)>1) ? 0 : (V(osc_n)>0.5 && V(err_n,GND)>0) ? V(VCC,GND)*0.9 : 0 }
+Bosc osc_n GND V = (sin(2*3.14159*50000*time)>0 ? 1 : 0)
+Bout OUTP GND V = (V(VCC,GND)<10) ? 0 : (V(ISNS)>1) ? 0 : (V(osc_n)>0.5 && V(err_n,GND)>0) ? V(VCC,GND)*0.9 : 0
 Rvcc VCC GND 100Meg
 .ends UC3842`,
 
@@ -742,78 +768,68 @@ R_gate G K 10k
 .ends SCR`,
 
   JFET_N: `.subckt JFET_N G D S
-* N-Channel JFET depletion model
-* Vp=-2V, Idss=5mA
-Bids D S I = { MAX(0, 5m*(1 - V(G,S)/(-2))^2 * (V(D,S) > 0 ? 1 : 0)) }
+* N-Channel JFET depletion model (Vp = -2V, Idss = Beta*Vto^2 = 1.25m*4 = 5mA)
+J1 D G S NJ_STD
 Rgs G S 1000Meg
+.model NJ_STD NJF(VTO=-2.0 BETA=1.25m LAMBDA=0.01)
 .ends JFET_N`,
 
   JFET_P: `.subckt JFET_P G D S
-* P-Channel JFET depletion model
-* Vp=+2V, Idss=5mA
-Bids S D I = { MAX(0, 5m*(1 - V(G,S)/2)^2 * (V(S,D) > 0 ? 1 : 0)) }
+* P-Channel JFET depletion model (Vp = +2V, Idss = Beta*Vto^2 = 5mA)
+J1 D G S PJ_STD
 Rgs G S 1000Meg
+.model PJ_STD PJF(VTO=-2.0 BETA=1.25m LAMBDA=0.01)
 .ends JFET_P`,
 
   HC244: `.subckt HC244 A1 A2 A3 A4 A5 A6 A7 A8 OE1 Y1 Y2 Y3 Y4 Y5 Y6 Y7 Y8 VCC GND
 * 74HC244 Octal Buffer -- non-inverting, 3-state
-E1 Y1 GND VALUE = { (V(OE1)<1.5) ? V(A1) : 0 }
-E2 Y2 GND VALUE = { (V(OE1)<1.5) ? V(A2) : 0 }
-E3 Y3 GND VALUE = { (V(OE1)<1.5) ? V(A3) : 0 }
-E4 Y4 GND VALUE = { (V(OE1)<1.5) ? V(A4) : 0 }
-E5 Y5 GND VALUE = { (V(OE1)<1.5) ? V(A5) : 0 }
-E6 Y6 GND VALUE = { (V(OE1)<1.5) ? V(A6) : 0 }
-E7 Y7 GND VALUE = { (V(OE1)<1.5) ? V(A7) : 0 }
-E8 Y8 GND VALUE = { (V(OE1)<1.5) ? V(A8) : 0 }
+B_E1 Y1 GND V = (V(OE1)<1.5) ? V(A1) : 0
+B_E2 Y2 GND V = (V(OE1)<1.5) ? V(A2) : 0
+B_E3 Y3 GND V = (V(OE1)<1.5) ? V(A3) : 0
+B_E4 Y4 GND V = (V(OE1)<1.5) ? V(A4) : 0
+B_E5 Y5 GND V = (V(OE1)<1.5) ? V(A5) : 0
+B_E6 Y6 GND V = (V(OE1)<1.5) ? V(A6) : 0
+B_E7 Y7 GND V = (V(OE1)<1.5) ? V(A7) : 0
+B_E8 Y8 GND V = (V(OE1)<1.5) ? V(A8) : 0
 Rvcc VCC GND 100Meg
 .ends HC244`,
 
   HC374: `.subckt HC374 D1 D2 D3 D4 D5 D6 D7 D8 CLK OE Q1 Q2 Q3 Q4 Q5 Q6 Q7 Q8 VCC GND
 * 74HC374 Octal D Flip-Flop edge-triggered -- simplified level model
-E1 Q1 GND VALUE = { (V(OE)<1.5) ? V(D1) : 0 }
-E2 Q2 GND VALUE = { (V(OE)<1.5) ? V(D2) : 0 }
-E3 Q3 GND VALUE = { (V(OE)<1.5) ? V(D3) : 0 }
-E4 Q4 GND VALUE = { (V(OE)<1.5) ? V(D4) : 0 }
-E5 Q5 GND VALUE = { (V(OE)<1.5) ? V(D5) : 0 }
-E6 Q6 GND VALUE = { (V(OE)<1.5) ? V(D6) : 0 }
-E7 Q7 GND VALUE = { (V(OE)<1.5) ? V(D7) : 0 }
-E8 Q8 GND VALUE = { (V(OE)<1.5) ? V(D8) : 0 }
+B_E1 Q1 GND V = (V(OE)<1.5) ? V(D1) : 0
+B_E2 Q2 GND V = (V(OE)<1.5) ? V(D2) : 0
+B_E3 Q3 GND V = (V(OE)<1.5) ? V(D3) : 0
+B_E4 Q4 GND V = (V(OE)<1.5) ? V(D4) : 0
+B_E5 Q5 GND V = (V(OE)<1.5) ? V(D5) : 0
+B_E6 Q6 GND V = (V(OE)<1.5) ? V(D6) : 0
+B_E7 Q7 GND V = (V(OE)<1.5) ? V(D7) : 0
+B_E8 Q8 GND V = (V(OE)<1.5) ? V(D8) : 0
 Rvcc VCC GND 100Meg
 .ends HC374`,
 
   HC151: `.subckt HC151 D0 D1 D2 D3 D4 D5 D6 D7 S0 S1 S2 EN Y W VCC GND
 * 74HC151 8-to-1 MUX
 * sel = 4*S2 + 2*S1 + S0
-Bsel sel_n GND VALUE = { (V(S2)>1.5 ? 4 : 0) + (V(S1)>1.5 ? 2 : 0) + (V(S0)>1.5 ? 1 : 0) }
-By Y GND VALUE = { (V(EN)>1.5) ? 0 :
-+ (V(sel_n)<0.5) ? V(D0) :
-+ (V(sel_n)<1.5) ? V(D1) :
-+ (V(sel_n)<2.5) ? V(D2) :
-+ (V(sel_n)<3.5) ? V(D3) :
-+ (V(sel_n)<4.5) ? V(D4) :
-+ (V(sel_n)<5.5) ? V(D5) :
-+ (V(sel_n)<6.5) ? V(D6) : V(D7) }
-Bw W GND VALUE = { 5 - V(Y,GND) }
+Bsel sel_n GND V = (V(S2)>1.5 ? 4 : 0) + (V(S1)>1.5 ? 2 : 0) + (V(S0)>1.5 ? 1 : 0)
+By Y GND V = (V(EN)>1.5) ? 0 : (V(sel_n)<0.5) ? V(D0) : (V(sel_n)<1.5) ? V(D1) : (V(sel_n)<2.5) ? V(D2) : (V(sel_n)<3.5) ? V(D3) : (V(sel_n)<4.5) ? V(D4) : (V(sel_n)<5.5) ? V(D5) : (V(sel_n)<6.5) ? V(D6) : V(D7)
+Bw W GND V = 5 - V(Y,GND)
 Rvcc VCC GND 100Meg
 .ends HC151`,
 
   HC283: `.subckt HC283 A1 A2 A3 A4 B1 B2 B3 B4 C0 S1 S2 S3 S4 C4 VCC GND
-* 74HC283 4-bit binary adder
-Bsum sum_n GND VALUE = {
-+ (V(A1)>1.5 ? 1 : 0) + (V(A2)>1.5 ? 2 : 0) + (V(A3)>1.5 ? 4 : 0) + (V(A4)>1.5 ? 8 : 0) +
-+ (V(B1)>1.5 ? 1 : 0) + (V(B2)>1.5 ? 2 : 0) + (V(B3)>1.5 ? 4 : 0) + (V(B4)>1.5 ? 8 : 0) +
-+ (V(C0)>1.5 ? 1 : 0) }
-BS1 S1 GND VALUE = { (int(V(sum_n)+0.5) & 1) ? 5 : 0 }
-BS2 S2 GND VALUE = { (int(V(sum_n)+0.5) & 2) ? 5 : 0 }
-BS3 S3 GND VALUE = { (int(V(sum_n)+0.5) & 4) ? 5 : 0 }
-BS4 S4 GND VALUE = { (int(V(sum_n)+0.5) & 8) ? 5 : 0 }
-BC4 C4 GND VALUE = { (V(sum_n) >= 16) ? 5 : 0 }
+* 74HC283 4-bit binary full adder
+Bsum sum_n GND V = (V(A1)>1.5 ? 1 : 0) + (V(A2)>1.5 ? 2 : 0) + (V(A3)>1.5 ? 4 : 0) + (V(A4)>1.5 ? 8 : 0) + (V(B1)>1.5 ? 1 : 0) + (V(B2)>1.5 ? 2 : 0) + (V(B3)>1.5 ? 4 : 0) + (V(B4)>1.5 ? 8 : 0) + (V(C0)>1.5 ? 1 : 0)
+BS1 S1 GND V = (floor(V(sum_n)+0.5) - 2*floor(floor(V(sum_n)+0.5)/2)) > 0.5 ? 5 : 0
+BS2 S2 GND V = (floor(floor(V(sum_n)+0.5)/2) - 2*floor(floor(V(sum_n)+0.5)/4)) > 0.5 ? 5 : 0
+BS3 S3 GND V = (floor(floor(V(sum_n)+0.5)/4) - 2*floor(floor(V(sum_n)+0.5)/8)) > 0.5 ? 5 : 0
+BS4 S4 GND V = (floor(floor(V(sum_n)+0.5)/8) - 2*floor(floor(V(sum_n)+0.5)/16)) > 0.5 ? 5 : 0
+BC4 C4 GND V = (floor(V(sum_n)+0.5) >= 16) ? 5 : 0
 Rvcc VCC GND 100Meg
 .ends HC283`,
 
   MCP4725: `.subckt MCP4725 SDA SCL A0 VOUT VCC GND
 * MCP4725 I2C 12-bit DAC -- simplified: VOUT = VCC * 0.5 (mid-scale default)
-Bvout VOUT GND VALUE = { V(VCC,GND) * 0.5 }
+Bvout VOUT GND V = V(VCC,GND) * 0.5
 Rsda SDA GND 10Meg
 Rscl SCL GND 10Meg
 Rvcc VCC GND 100Meg
@@ -830,21 +846,23 @@ Rvcc VCC GND 100Meg
 
   NRF24L01: `.subckt NRF24L01 CE CSN SCK MOSI MISO IRQ VCC GND
 * nRF24L01 RF transceiver -- SPI passthrough model
-Bmiso MISO GND VALUE = { V(MOSI) }
+Bmiso MISO GND V = V(MOSI)
 Rce   CE   GND 10Meg
 Rcsn  CSN  GND 10Meg
 Rvcc  VCC  GND 100Meg
 .ends NRF24L01`,
   TL431_SUB: `.subckt TL431_SUB A K R
-* TL431 behavioural shunt reference: conducts when V(R,K) >= 2.5V
-B1 K A VALUE = { IF(V(R,K)>=2.495, 1000*(V(R,K)-2.495), 0) }
+* TL431 behavioural shunt reference: conducts cathode->anode when V(R,A) >= 2.495V
+B1 K A I = (V(R,A) >= 2.495 && V(K,A) > 1.5) ? min(0.15, 100*(V(R,A) - 2.495)) : 0
+R_ka K A 100Meg
+R_ra R A 100Meg
 .ends TL431_SUB`,
 
   MAX485_SUB: `.subckt MAX485_SUB RO RE DE DI GND A B VCC
 * MAX485 stub: pass differential signal A-B to RO when RE=0; drive A-B from DI when DE=1
-B1 RO GND VALUE = { IF(V(RE,GND)<0.8, V(A,B), 0) }
-B2 A GND VALUE = { IF(V(DE,GND)>2.0, V(DI,GND), 0) }
-B3 B GND VALUE = { IF(V(DE,GND)>2.0, 1-V(DI,GND), 0) }
+B1 RO GND V = ((V(RE,GND)<0.8) ? (V(A,B)) : (0))
+B2 A GND V = ((V(DE,GND)>2.0) ? (V(DI,GND)) : (0))
+B3 B GND V = ((V(DE,GND)>2.0) ? (1-V(DI,GND)) : (0))
 .ends MAX485_SUB`,
 
   SI7021_SUB: `.subckt SI7021_SUB GND VDD SDA SCL
@@ -868,12 +886,10 @@ R1 VDD GND 50
 .ends WS2812B_SUB`,
 
   UJT_SUB: `.subckt UJT_SUB E B1 B2
-* 2N2646 UJT behavioural model
-* Intrinsic standoff ratio eta = 0.65; Vp = eta*Vbb + 0.7
-* RBB (interbase resistance) ~ 5k-10k
+* 2N2646 UJT behavioural model: intrinsic standoff ratio eta = 0.65; RBB = 6.8k
 R_BB1 B1 B2 6800
-* Emitter junction: fires when V(E,B1) > eta*V(B2,B1)+0.7
-B1 E B1 VALUE = { IF(V(E,B1) > 0.65*V(B2,B1)+0.7, (V(E,B1)-0.65*V(B2,B1)-0.7)*50, 0) }
+B1 E B1 I = (V(E,B1) > 0.65*V(B2,B1)+0.7) ? ((V(E,B1)-0.65*V(B2,B1)-0.7)*50) : 0
+R_eb E B1 100Meg
 .ends UJT_SUB`,
 
   VARACTOR_SUB: `.subckt VARACTOR_SUB A K
@@ -886,120 +902,134 @@ D1 A K DVARACT
 .ends VARACTOR_SUB`,
 
   TLC555_SUB: `.subckt TLC555_SUB GND TRIG OUT RESET VCC DISCH THR CTRL
-* TLC555 CMOS 555 timer behavioural model (same topology as NE555)
-* Internal comparators
-B_COMP1 N001 GND VALUE = { IF(V(THR,GND) > 0.667*V(VCC,GND), 5, 0) }
-B_COMP2 N002 GND VALUE = { IF(V(TRIG,GND) < 0.333*V(VCC,GND), 5, 0) }
-* SR Latch
-B_SR OUTN GND VALUE = { IF(V(N001,GND)>2.5, 0, IF(V(N002,GND)>2.5, 5, V(OUTN,GND))) }
-B_OUT OUT GND VALUE = { IF(V(RESET,GND)<0.7, 0, IF(V(OUTN,GND)>2.5, 0, V(VCC,GND))) }
-* Discharge transistor
-B_DISC DISCH GND VALUE = { IF(V(RESET,GND)<0.7, 0, IF(V(OUTN,GND)>2.5, 0.01, 1e6)) }
+* TLC555 CMOS 555 timer behavioural model (100k internal divider, rail-to-rail output)
+R_d1 VCC CTRL 100k
+R_d2 CTRL ref_lo 100k
+R_d3 ref_lo GND 100k
+C_latch latch GND 10p
+B_hold latch_hold GND V = 4 * tanh(V(latch,GND) * 50)
+R_hold latch_hold latch 100k
+B_set set_drv GND V = (V(RESET,GND) < 0.7) ? -5 : 5 * tanh((V(ref_lo,GND) - V(TRIG,GND)) * 50000)
+R_set set_drv set_mid 200
+D_set set_mid latch DMODTLC
+B_rst rst_drv GND V = (V(RESET,GND) < 0.7) ? -5 : 5 * tanh((V(CTRL,GND) - V(THR,GND)) * 50000)
+R_rst rst_drv rst_mid 200
+D_rst latch rst_mid DMODTLC
+B_out out_i GND V = (V(RESET,GND) < 0.7) ? 0 : ((V(latch,GND) > 0) ? max(0, V(VCC,GND)) : 0)
+R_out_drv out_i OUT 10
+C_out_filt OUT GND 10p
+B_dis_gate dis_gate GND V = (V(RESET,GND) < 0.7) ? 5 : ((V(latch,GND) > 0) ? 0 : 5)
+S_dis DISCH GND dis_gate GND SMODTLC
+.model SMODTLC SW(VT=2.5 VH=0.5 RON=15 ROFF=10Meg)
+.model DMODTLC D(IS=1e-14 RS=1)
 .ends TLC555_SUB`,
 
   HC590_SUB: `.subckt HC590_SUB QA QB QC QD QE QF QG QH RCO CCLK RCLK OE MR VCC GND
 * 74HC590 stub: 8-bit counter with output register
 R1 VCC GND 10k
 * Outputs stub low
-B1 QA GND VALUE={0}
-B2 QB GND VALUE={0}
-B3 QC GND VALUE={0}
-B4 QD GND VALUE={0}
-B5 QE GND VALUE={0}
-B6 QF GND VALUE={0}
-B7 QG GND VALUE={0}
-B8 QH GND VALUE={0}
-B9 RCO GND VALUE={0}
+B1 QA GND V = 0
+B2 QB GND V = 0
+B3 QC GND V = 0
+B4 QD GND V = 0
+B5 QE GND V = 0
+B6 QF GND V = 0
+B7 QG GND V = 0
+B8 QH GND V = 0
+B9 RCO GND V = 0
 .ends HC590_SUB`,
 
   ADS1115_SUB: `.subckt ADS1115_SUB VDD GND SCL SDA ADDR ALRT AIN0 AIN1
 * ADS1115 16-bit ADC stub with I2C interface
 R1 VDD GND 100k
 * Differential input model (simplified)
-B1 SDA GND VALUE={0}
+B1 SDA GND V = 0
 .ends ADS1115_SUB`,
 
   MPU6050_SUB: `.subckt MPU6050_SUB VCC GND SCL SDA AD0 INT
 * MPU-6050 6-axis IMU stub
 R1 VCC GND 100k
-B1 INT GND VALUE={0}
+B1 INT GND V = 0
 .ends MPU6050_SUB`,
 
   HC05_SUB: `.subckt HC05_SUB VCC GND TXD RXD EN STATE
 * HC-05 Bluetooth module stub
 R1 VCC GND 1k
-B1 TXD GND VALUE={V(RXD,GND)}
-B2 STATE GND VALUE={IF(V(EN,GND)>1.8, V(VCC,GND), 0)}
+B1 TXD GND V = V(RXD,GND)
+B2 STATE GND V = ((V(EN,GND)>1.8) ? (V(VCC,GND)) : (0))
 .ends HC05_SUB`,
 
   HC21_SUB: `.subckt HC21_SUB A1 B1 C1 D1 Y1 VCC GND
 * 74HC21 dual 4-input AND gate (one gate modelled)
-B1 Y1 GND VALUE={IF(V(A1,GND)>2.0 & V(B1,GND)>2.0 & V(C1,GND)>2.0 & V(D1,GND)>2.0, V(VCC,GND), 0)}
+B1 Y1 GND V = ((V(A1,GND)>2.0 && V(B1,GND)>2.0 && V(C1,GND)>2.0 && V(D1,GND)>2.0) ? (V(VCC,GND)) : (0))
 .ends HC21_SUB`,
 
   LM2575_SUB: `.subckt LM2575_SUB VIN VOUT GND FB ONB
 * LM2575-5 simple switcher buck converter (behavioural 5V fixed)
-B1 VOUT GND VALUE={IF(V(ONB,GND)<0.8 & V(VIN,GND)>6.0, 5.0, 0)}
+B1 VOUT GND V = ((V(ONB,GND)<0.8 && V(VIN,GND)>6.0) ? (5.0) : (0))
 R1 VOUT GND 100k
 .ends LM2575_SUB`,
 
   TPS61023_SUB: `.subckt TPS61023_SUB VIN VOUT GND EN FB
 * TPS61023 boost converter stub (fixed 5V out)
-B1 VOUT GND VALUE={IF(V(EN,GND)>0.8 & V(VIN,GND)>0.5, 5.0, 0)}
+B1 VOUT GND V = ((V(EN,GND)>0.8 && V(VIN,GND)>0.5) ? (5.0) : (0))
 R1 VOUT GND 100k
 .ends TPS61023_SUB`,
 
   PUT_SUB: `.subckt PUT_SUB A K G
 * 2N6027 PUT behavioural model
-* Fires when V(A,G) exceeds ~0.7V forward drop (emitter fires)
-B1 A K VALUE={IF(V(A,G) > 0.7, (V(A,G)-0.7)*100, 0)}
+B1 A K I = (V(A,G) > 0.7) ? ((V(A,G)-0.7)*100) : 0
+R_ak A K 100Meg
 R1 G K 100k
 .ends PUT_SUB`,
 
   HC30_SUB: `.subckt HC30_SUB A B C D E F G H Y VCC GND
 * 74HC30 8-input NAND gate
-B1 Y GND VALUE={IF(V(A,GND)>2 & V(B,GND)>2 & V(C,GND)>2 & V(D,GND)>2 & V(E,GND)>2 & V(F,GND)>2 & V(G,GND)>2 & V(H,GND)>2, 0, V(VCC,GND))}
+B1 Y GND V = ((V(A,GND)>2 && V(B,GND)>2 && V(C,GND)>2 && V(D,GND)>2 && V(E,GND)>2 && V(F,GND)>2 && V(G,GND)>2 && V(H,GND)>2) ? (0) : (V(VCC,GND)))
 .ends HC30_SUB`,
 
   CD4040_SUB: `.subckt CD4040_SUB CLK RST VDD VSS Q1 Q2 Q3 Q4 Q5 Q6 Q7 Q8
 * CD4040 12-stage ripple counter stub
 R1 VDD VSS 100k
-B1 Q1 VSS VALUE={0}
-B2 Q2 VSS VALUE={0}
-B3 Q3 VSS VALUE={0}
-B4 Q4 VSS VALUE={0}
-B5 Q5 VSS VALUE={0}
-B6 Q6 VSS VALUE={0}
-B7 Q7 VSS VALUE={0}
-B8 Q8 VSS VALUE={0}
+B1 Q1 VSS V = 0
+B2 Q2 VSS V = 0
+B3 Q3 VSS V = 0
+B4 Q4 VSS V = 0
+B5 Q5 VSS V = 0
+B6 Q6 VSS V = 0
+B7 Q7 VSS V = 0
+B8 Q8 VSS V = 0
 .ends CD4040_SUB`,
 
   OPA2134_SUB: `.subckt OPA2134_SUB IN1N IN1P OUT1 IN2P IN2N OUT2 VCC VEE
 * OPA2134 dual audio op-amp: two independent op-amp cores (high-fidelity)
 * Channel 1
-E1 OUT1 GND VALUE={LIMIT(100000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+0.1, V(VCC,GND)-0.1)}
+B_E1 OUT1 0 V = min(max((100000*(V(IN1P)-V(IN1N))), (V(VEE)+0.1)), (V(VCC)-0.1))
 * Channel 2
-E2 OUT2 GND VALUE={LIMIT(100000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+0.1, V(VCC,GND)-0.1)}
+B_E2 OUT2 0 V = min(max((100000*(V(IN2P)-V(IN2N))), (V(VEE)+0.1)), (V(VCC)-0.1))
 .ends OPA2134_SUB`,
 
   CD4066_SUB: `.subckt CD4066_SUB IN1 OUT1 CTL1 IN2 OUT2 CTL2 VDD VSS
 * CD4066 quad bilateral switch (channels 1 & 2 modeled)
-* Conductance is high (R_on=80) when CTL > 2.5V, else 10Meg
-B1 IN1 OUT1 VALUE = { (V(IN1,OUT1) / IF(V(CTL1,VSS) > 2.5, 80, 1e7)) }
-B2 IN2 OUT2 VALUE = { (V(IN2,OUT2) / IF(V(CTL2,VSS) > 2.5, 80, 1e7)) }
+B1 IN1 OUT1 I = V(IN1,OUT1) / ((V(CTL1,VSS) > 2.5) ? 80 : 1e7)
+B2 IN2 OUT2 I = V(IN2,OUT2) / ((V(CTL2,VSS) > 2.5) ? 80 : 1e7)
+R_c1 CTL1 VSS 100Meg
+R_c2 CTL2 VSS 100Meg
+R_o1 OUT1 VSS 100Meg
+R_o2 OUT2 VSS 100Meg
 R_LEAK VDD VSS 10Meg
 .ends CD4066_SUB`,
 
   HC14_SUB: `.subckt HC14_SUB A Y VCC GND
 * 74HC14 hex Schmitt trigger inverter: VT+ = 0.6*VCC, VT- = 0.4*VCC
-B_SCHMITT Y_INT GND VALUE = { IF(V(A,GND) > 0.6*V(VCC,GND), 0, IF(V(A,GND) < 0.4*V(VCC,GND), V(VCC,GND), V(Y_INT,GND))) }
-B_OUT Y GND VALUE = { V(Y_INT,GND) }
+B_SCHMITT Y_INT GND V = ((V(A,GND) > 0.6*V(VCC,GND)) ? (0) : (((V(A,GND) < 0.4*V(VCC,GND)) ? (V(VCC,GND)) : (V(Y_INT,GND)))))
+B_OUT Y GND V = V(Y_INT,GND)
 R_OUT Y GND 1k
 .ends HC14_SUB`,
 
   HC153_SUB: `.subckt HC153_SUB I0 I1 I2 I3 S0 S1 E Y VCC GND
 * 74HC153 4-to-1 multiplexer: S1,S0 binary select, active-low enable E
-B_OUT Y GND VALUE = { IF(V(E,GND) > 1.5, 0, IF(V(S1,GND)<1.5 & V(S0,GND)<1.5, V(I0,GND), IF(V(S1,GND)<1.5 & V(S0,GND)>1.5, V(I1,GND), IF(V(S1,GND)>1.5 & V(S0,GND)<1.5, V(I2,GND), V(I3,GND))))) }
+B_OUT Y GND V = ((V(E,GND) > 1.5) ? (0) : (((V(S1,GND)<1.5 && V(S0,GND)<1.5) ? (V(I0,GND)) : (((V(S1,GND)<1.5 && V(S0,GND)>1.5) ? (V(I1,GND)) : (((V(S1,GND)>1.5 && V(S0,GND)<1.5) ? (V(I2,GND)) : (V(I3,GND)))))))))
 R_PWR VCC GND 100k
 .ends HC153_SUB`,
 
@@ -1007,53 +1037,53 @@ R_PWR VCC GND 100k
 * DS1307 I2C RTC stub with 1Hz square wave output model
 R_PWR VCC GND 100k
 R_BAT VBAT GND 1Meg
-B_SQW SQW GND VALUE = { IF(V(VCC,GND)>4.0, 2.5 + 2.5*SGN(SIN(6.28318*1*TIME)), 0) }
+B_SQW SQW GND V = ((V(VCC,GND)>4.0) ? (2.5 + 2.5*sgn(sin(6.28318*1*time))) : (0))
 .ends DS1307_SUB`,
 
   MCP3008_SUB: `.subckt MCP3008_SUB CH0 CH1 CH2 CH3 CH4 CH5 VDD VREF CLK DOUT DIN CS GND
 * MCP3008 10-bit SPI ADC behavioral stub
 R_IN CH0 GND 10Meg
 R_PWR VDD GND 100k
-B_DOUT DOUT GND VALUE = { IF(V(CS,GND)<0.8, V(DIN,GND), 0) }
+B_DOUT DOUT GND V = ((V(CS,GND)<0.8) ? (V(DIN,GND)) : (0))
 .ends MCP3008_SUB`,
 
   HC164_SUB: `.subckt HC164_SUB DSA DSB CP CLR Q0 Q1 Q2 Q3 Q4 Q5 Q6 Q7 VCC GND
 * 74HC164 8-bit shift register stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE = { IF(V(CLR,GND)<0.8, 0, V(DSA,GND)*V(DSB,GND)/V(VCC,GND)) }
-B1 Q1 GND VALUE = { 0 }
-B2 Q2 GND VALUE = { 0 }
-B3 Q3 GND VALUE = { 0 }
-B4 Q4 GND VALUE = { 0 }
-B5 Q5 GND VALUE = { 0 }
-B6 Q6 GND VALUE = { 0 }
-B7 Q7 GND VALUE = { 0 }
+B0 Q0 GND V = ((V(CLR,GND)<0.8) ? (0) : (V(DSA,GND)*V(DSB,GND)/V(VCC,GND)))
+B1 Q1 GND V = 0
+B2 Q2 GND V = 0
+B3 Q3 GND V = 0
+B4 Q4 GND V = 0
+B5 Q5 GND V = 0
+B6 Q6 GND V = 0
+B7 Q7 GND V = 0
 .ends HC164_SUB`,
 
   LM3914_SUB: `.subckt LM3914_SUB SIG RLO RHI MODE L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 VCC GND
 * LM3914 10-step comparator ladder (step = (RHI-RLO)/10)
-B1 L1 GND VALUE = { IF(V(SIG,RLO) > 0.1*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
-B2 L2 GND VALUE = { IF(V(SIG,RLO) > 0.2*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
-B3 L3 GND VALUE = { IF(V(SIG,RLO) > 0.3*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
-B4 L4 GND VALUE = { IF(V(SIG,RLO) > 0.4*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
-B5 L5 GND VALUE = { IF(V(SIG,RLO) > 0.5*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
-B6 L6 GND VALUE = { IF(V(SIG,RLO) > 0.6*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
-B7 L7 GND VALUE = { IF(V(SIG,RLO) > 0.7*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
-B8 L8 GND VALUE = { IF(V(SIG,RLO) > 0.8*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
-B9 L9 GND VALUE = { IF(V(SIG,RLO) > 0.9*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
-B10 L10 GND VALUE = { IF(V(SIG,RLO) > 1.0*(V(RHI,RLO)+0.01), 0.2, V(VCC,GND)) }
+B1 L1 GND V = ((V(SIG,RLO) > 0.1*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
+B2 L2 GND V = ((V(SIG,RLO) > 0.2*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
+B3 L3 GND V = ((V(SIG,RLO) > 0.3*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
+B4 L4 GND V = ((V(SIG,RLO) > 0.4*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
+B5 L5 GND V = ((V(SIG,RLO) > 0.5*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
+B6 L6 GND V = ((V(SIG,RLO) > 0.6*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
+B7 L7 GND V = ((V(SIG,RLO) > 0.7*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
+B8 L8 GND V = ((V(SIG,RLO) > 0.8*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
+B9 L9 GND V = ((V(SIG,RLO) > 0.9*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
+B10 L10 GND V = ((V(SIG,RLO) > 1.0*(V(RHI,RLO)+0.01)) ? (0.2) : (V(VCC,GND)))
 .ends LM3914_SUB`,
 
   TDA2030_SUB: `.subckt TDA2030_SUB INP INN OUT VSP VSN
 * TDA2030 class-AB audio amplifier
 R_IN INP INN 5Meg
-E_AMP OUT_INT GND VALUE = { LIMIT(80000*(V(INP,GND)-V(INN,GND)), V(VSN,GND)+1.5, V(VSP,GND)-1.5) }
+B_E_AMP OUT_INT 0 V = min(max((80000*(V(INP)-V(INN))), (V(VSN)+1.5)), (V(VSP)-1.5))
 R_OUT OUT_INT OUT 0.2
 .ends TDA2030_SUB`,
 
   DAC0808_SUB: `.subckt DAC0808_SUB A1 A2 A3 A4 A5 A6 A7 A8 IOUT VREFP VREFN VCC VEE GND
 * DAC0808 8-bit multiplying DAC behavioral model
-B_DAC IOUT GND VALUE = { ((V(VREFP,VREFN)/2000) * ( (V(A1,GND)>2?128:0) + (V(A2,GND)>2?64:0) + (V(A3,GND)>2?32:0) + (V(A4,GND)>2?16:0) + (V(A5,GND)>2?8:0) + (V(A6,GND)>2?4:0) + (V(A7,GND)>2?2:0) + (V(A8,GND)>2?1:0) ) / 256) * 1000 }
+B_DAC IOUT GND V = ((V(VREFP,VREFN)/2000) * ( (V(A1,GND)>2?128:0) + (V(A2,GND)>2?64:0) + (V(A3,GND)>2?32:0) + (V(A4,GND)>2?16:0) + (V(A5,GND)>2?8:0) + (V(A6,GND)>2?4:0) + (V(A7,GND)>2?2:0) + (V(A8,GND)>2?1:0) ) / 256) * 1000
 R_PWR VCC GND 100k
 R_NEG VEE GND 100k
 .ends DAC0808_SUB`,
@@ -1066,26 +1096,53 @@ I_PHOTO C B 50u
 .ends PHOTOTRANS_SUB`,
 
   NE556_SUB: `.subckt NE556_SUB DIS1 THR1 CV1 RST1 TRG1 OUT1 OUT2 TRG2 RST2 CV2 THR2 DIS2 VCC GND
-* Dual 555 timer subcircuit
+* Dual 555 timer subcircuit with regenerative SR latches and open-collector discharge
 * Timer 1
-B_C11 N11 GND VALUE = { IF(V(THR1,GND) > 0.667*V(VCC,GND), 5, 0) }
-B_C12 N12 GND VALUE = { IF(V(TRG1,GND) < 0.333*V(VCC,GND), 5, 0) }
-B_SR1 Q1N GND VALUE = { IF(V(N11,GND)>2.5, 0, IF(V(N12,GND)>2.5, 5, V(Q1N,GND))) }
-B_O1 OUT1 GND VALUE = { IF(V(RST1,GND)<0.7, 0, IF(V(Q1N,GND)>2.5, 0, V(VCC,GND))) }
-B_D1 DIS1 GND VALUE = { IF(V(RST1,GND)<0.7, 0, IF(V(Q1N,GND)>2.5, 0.01, 1e6)) }
+R_1a VCC CV1 5k
+R_1b CV1 ref_lo1 5k
+R_1c ref_lo1 GND 5k
+C_l1 latch1 GND 10p
+B_h1 h1 GND V = 4 * tanh(V(latch1,GND) * 50)
+R_h1 h1 latch1 100k
+B_s1 s1d GND V = (V(RST1,GND) < 0.8) ? -5 : 5 * tanh((V(ref_lo1,GND) - V(TRG1,GND)) * 50000)
+R_s1 s1d s1m 200
+D_s1 s1m latch1 DMOD556
+B_r1 r1d GND V = (V(RST1,GND) < 0.8) ? -5 : 5 * tanh((V(CV1,GND) - V(THR1,GND)) * 50000)
+R_r1 r1d r1m 200
+D_r1 latch1 r1m DMOD556
+B_O1 o1_i GND V = (V(RST1,GND) < 0.8) ? 0 : ((V(latch1,GND) > 0) ? max(0, V(VCC,GND)-1.2) : 0)
+R_o1drv o1_i OUT1 10
+C_o1f OUT1 GND 10p
+B_dg1 dg1 GND V = (V(RST1,GND) < 0.8) ? 5 : ((V(latch1,GND) > 0) ? 0 : 5)
+S_D1 DIS1 GND dg1 GND SMOD556
 * Timer 2
-B_C21 N21 GND VALUE = { IF(V(THR2,GND) > 0.667*V(VCC,GND), 5, 0) }
-B_C22 N22 GND VALUE = { IF(V(TRG2,GND) < 0.333*V(VCC,GND), 5, 0) }
-B_SR2 Q2N GND VALUE = { IF(V(N21,GND)>2.5, 0, IF(V(N22,GND)>2.5, 5, V(Q2N,GND))) }
-B_O2 OUT2 GND VALUE = { IF(V(RST2,GND)<0.7, 0, IF(V(Q2N,GND)>2.5, 0, V(VCC,GND))) }
-B_D2 DIS2 GND VALUE = { IF(V(RST2,GND)<0.7, 0, IF(V(Q2N,GND)>2.5, 0.01, 1e6)) }
+R_2a VCC CV2 5k
+R_2b CV2 ref_lo2 5k
+R_2c ref_lo2 GND 5k
+C_l2 latch2 GND 10p
+B_h2 h2 GND V = 4 * tanh(V(latch2,GND) * 50)
+R_h2 h2 latch2 100k
+B_s2 s2d GND V = (V(RST2,GND) < 0.8) ? -5 : 5 * tanh((V(ref_lo2,GND) - V(TRG2,GND)) * 50000)
+R_s2 s2d s2m 200
+D_s2 s2m latch2 DMOD556
+B_r2 r2d GND V = (V(RST2,GND) < 0.8) ? -5 : 5 * tanh((V(CV2,GND) - V(THR2,GND)) * 50000)
+R_r2 r2d r2m 200
+D_r2 latch2 r2m DMOD556
+B_O2 o2_i GND V = (V(RST2,GND) < 0.8) ? 0 : ((V(latch2,GND) > 0) ? max(0, V(VCC,GND)-1.2) : 0)
+R_o2drv o2_i OUT2 10
+C_o2f OUT2 GND 10p
+B_dg2 dg2 GND V = (V(RST2,GND) < 0.8) ? 5 : ((V(latch2,GND) > 0) ? 0 : 5)
+S_D2 DIS2 GND dg2 GND SMOD556
+.model SMOD556 SW(VT=2.5 VH=0.5 RON=10 ROFF=10Meg)
+.model DMOD556 D(IS=1e-14 RS=1)
 .ends NE556_SUB`,
 
   LM339_SUB: `.subckt LM339_SUB IN1P IN1N OUT1 IN2P IN2N OUT2 VCC GND
 * LM339 quad comparator with open-collector outputs (channels 1 & 2 modeled)
-* When IN- > IN+, sink current through low resistance
-B1 OUT1 GND VALUE = { IF(V(IN1P,IN1N) < 0, V(OUT1,GND)/15, 0) }
-B2 OUT2 GND VALUE = { IF(V(IN2P,IN2N) < 0, V(OUT2,GND)/15, 0) }
+B1 OUT1 GND I = (V(IN1P,IN1N) < 0) ? (V(OUT1,GND)/15) : (V(OUT1,GND)/1e8)
+B2 OUT2 GND I = (V(IN2P,IN2N) < 0) ? (V(OUT2,GND)/15) : (V(OUT2,GND)/1e8)
+R_oc1 OUT1 GND 100Meg
+R_oc2 OUT2 GND 100Meg
 R_PWR VCC GND 100k
 .ends LM339_SUB`,
 
@@ -1093,54 +1150,54 @@ R_PWR VCC GND 100k
 * 74HC85 4-bit magnitude comparator
 * Word A = A0 + 2*A1 + 4*A2 + 8*A3
 * Word B = B0 + 2*B1 + 4*B2 + 8*B3
-B_AGT AGT GND VALUE = { IF( ( (V(A0,GND)>2?1:0) + (V(A1,GND)>2?2:0) + (V(A2,GND)>2?4:0) + (V(A3,GND)>2?8:0) ) > ( (V(B0,GND)>2?1:0) + (V(B1,GND)>2?2:0) + (V(B2,GND)>2?4:0) + (V(B3,GND)>2?8:0) ), V(VCC,GND), 0) }
-B_AEQ AEQ GND VALUE = { IF( ( (V(A0,GND)>2?1:0) + (V(A1,GND)>2?2:0) + (V(A2,GND)>2?4:0) + (V(A3,GND)>2?8:0) ) == ( (V(B0,GND)>2?1:0) + (V(B1,GND)>2?2:0) + (V(B2,GND)>2?4:0) + (V(B3,GND)>2?8:0) ), V(VCC,GND), 0) }
-B_ALT ALT GND VALUE = { IF( ( (V(A0,GND)>2?1:0) + (V(A1,GND)>2?2:0) + (V(A2,GND)>2?4:0) + (V(A3,GND)>2?8:0) ) < ( (V(B0,GND)>2?1:0) + (V(B1,GND)>2?2:0) + (V(B2,GND)>2?4:0) + (V(B3,GND)>2?8:0) ), V(VCC,GND), 0) }
+B_AGT AGT GND V = ((( (V(A0,GND)>2?1:0) + (V(A1,GND)>2?2:0) + (V(A2,GND)>2?4:0) + (V(A3,GND)>2?8:0) ) > ( (V(B0,GND)>2?1:0) + (V(B1,GND)>2?2:0) + (V(B2,GND)>2?4:0) + (V(B3,GND)>2?8:0) )) ? (V(VCC,GND)) : (0))
+B_AEQ AEQ GND V = ((( (V(A0,GND)>2?1:0) + (V(A1,GND)>2?2:0) + (V(A2,GND)>2?4:0) + (V(A3,GND)>2?8:0) ) == ( (V(B0,GND)>2?1:0) + (V(B1,GND)>2?2:0) + (V(B2,GND)>2?4:0) + (V(B3,GND)>2?8:0) )) ? (V(VCC,GND)) : (0))
+B_ALT ALT GND V = ((( (V(A0,GND)>2?1:0) + (V(A1,GND)>2?2:0) + (V(A2,GND)>2?4:0) + (V(A3,GND)>2?8:0) ) < ( (V(B0,GND)>2?1:0) + (V(B1,GND)>2?2:0) + (V(B2,GND)>2?4:0) + (V(B3,GND)>2?8:0) )) ? (V(VCC,GND)) : (0))
 R_PWR VCC GND 100k
 .ends HC85_SUB`,
 
   HC193_SUB: `.subckt HC193_SUB CPU CPD MR PL P0 P1 P2 P3 Q0 Q1 Q2 Q3 TCU TCD VCC GND
 * 74HC193 4-bit synchronous up/down counter stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE = { IF(V(MR,GND)>2, 0, IF(V(PL,GND)<0.8, V(P0,GND), 0)) }
-B1 Q1 GND VALUE = { IF(V(MR,GND)>2, 0, IF(V(PL,GND)<0.8, V(P1,GND), 0)) }
-B2 Q2 GND VALUE = { IF(V(MR,GND)>2, 0, IF(V(PL,GND)<0.8, V(P2,GND), 0)) }
-B3 Q3 GND VALUE = { IF(V(MR,GND)>2, 0, IF(V(PL,GND)<0.8, V(P3,GND), 0)) }
-B_TCU TCU GND VALUE = { V(VCC,GND) }
-B_TCD TCD GND VALUE = { V(VCC,GND) }
+B0 Q0 GND V = ((V(MR,GND)>2) ? (0) : (((V(PL,GND)<0.8) ? (V(P0,GND)) : (0))))
+B1 Q1 GND V = ((V(MR,GND)>2) ? (0) : (((V(PL,GND)<0.8) ? (V(P1,GND)) : (0))))
+B2 Q2 GND V = ((V(MR,GND)>2) ? (0) : (((V(PL,GND)<0.8) ? (V(P2,GND)) : (0))))
+B3 Q3 GND V = ((V(MR,GND)>2) ? (0) : (((V(PL,GND)<0.8) ? (V(P3,GND)) : (0))))
+B_TCU TCU GND V = V(VCC,GND)
+B_TCD TCD GND V = V(VCC,GND)
 .ends HC193_SUB`,
 
   MAX6675_SUB: `.subckt MAX6675_SUB GND T_NEG T_POS VCC SCK CS SO
 * MAX6675 thermocouple ADC stub with SPI serial output
 R_TC T_POS T_NEG 100
 R_PWR VCC GND 100k
-B_SO SO GND VALUE = { IF(V(CS,GND)<0.8, V(T_POS,T_NEG)*100, 0) }
+B_SO SO GND V = ((V(CS,GND)<0.8) ? (V(T_POS,T_NEG)*100) : (0))
 .ends MAX6675_SUB`,
 
   HX711_SUB: `.subckt HX711_SUB AVDD INAP INAN INBP INBN AGND VCC DOUT SCK DGND
 * HX711 24-bit load cell ADC stub
 R_INA INAP INAN 10Meg
 R_PWR VCC DGND 100k
-B_DOUT DOUT DGND VALUE = { IF(V(SCK,DGND)<0.8, V(INAP,INAN)*1000, 0) }
+B_DOUT DOUT DGND V = ((V(SCK,DGND)<0.8) ? (V(INAP,INAN)*1000) : (0))
 .ends HX711_SUB`,
 
   TDA7294_SUB: `.subckt TDA7294_SUB INP INN MUTE OUT VSP VSN GND
 * TDA7294 100W audio power amplifier
 R_IN INP INN 10Meg
-E_AMP OUT_INT GND VALUE = { IF(V(MUTE,GND)>1.5, LIMIT(100000*(V(INP,GND)-V(INN,GND)), V(VSN,GND)+2, V(VSP,GND)-2), 0) }
+B_E_AMP OUT_INT GND V = ((V(MUTE,GND)>1.5) ? (min(max((100000*(V(INP,GND)-V(INN,GND))), (V(VSN,GND)+2)), (V(VSP,GND)-2))) : (0))
 R_OUT OUT_INT OUT 0.1
 .ends TDA7294_SUB`,
 
   CD4013_SUB: `.subckt CD4013_SUB D1 CLK1 SET1 RST1 Q1 Q1_BAR VDD VSS
 * CD4013 dual D-type flip-flop (channel 1 modeled)
-B_Q1 Q1 VSS VALUE = { IF(V(SET1,VSS)>2.5, V(VDD,VSS), IF(V(RST1,VSS)>2.5, 0, V(D1,VSS))) }
-B_Q1B Q1_BAR VSS VALUE = { IF(V(SET1,VSS)>2.5, 0, IF(V(RST1,VSS)>2.5, V(VDD,VSS), V(VDD,VSS)-V(D1,VSS))) }
+B_Q1 Q1 VSS V = ((V(SET1,VSS)>2.5) ? (V(VDD,VSS)) : (((V(RST1,VSS)>2.5) ? (0) : (V(D1,VSS)))))
+B_Q1B Q1_BAR VSS V = ((V(SET1,VSS)>2.5) ? (0) : (((V(RST1,VSS)>2.5) ? (V(VDD,VSS)) : (V(VDD,VSS)-V(D1,VSS)))))
 R_PWR VDD VSS 100k
 .ends CD4013_SUB`,
 
   HC125_SUB: `.subckt HC125_SUB A OE Y VCC GND
 * 74HC125 quad 3-state buffer (1 gate modeled)
-B_OUT Y GND VALUE = { IF(V(OE,GND)<0.8, V(A,GND), 0) }
+B_OUT Y GND V = ((V(OE,GND)<0.8) ? (V(A,GND)) : (0))
 R_OUT Y GND 1k
 R_PWR VCC GND 100k
 .ends HC125_SUB`,
@@ -1154,455 +1211,458 @@ I_PH K A 25u
 
   TL082_SUB: `.subckt TL082_SUB IN1N IN1P OUT1 IN2P IN2N OUT2 VCC VEE
 * TL082 dual JFET op-amp
-E1 OUT1 GND VALUE={LIMIT(100000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
-E2 OUT2 GND VALUE={LIMIT(100000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+B_E1 OUT1 0 V = min(max((100000*(V(IN1P)-V(IN1N))), (V(VEE)+1.5)), (V(VCC)-1.5))
+B_E2 OUT2 0 V = min(max((100000*(V(IN2P)-V(IN2N))), (V(VEE)+1.5)), (V(VCC)-1.5))
 .ends TL082_SUB`,
 
   TL084_SUB: `.subckt TL084_SUB OUT1 IN1N IN1P VCC IN2P IN2N OUT2 OUT3 IN3N IN3P VEE IN4P IN4N OUT4
 * TL084 quad JFET op-amp
-E1 OUT1 GND VALUE={LIMIT(100000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
-E2 OUT2 GND VALUE={LIMIT(100000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
-E3 OUT3 GND VALUE={LIMIT(100000*(V(IN3P,GND)-V(IN3N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
-E4 OUT4 GND VALUE={LIMIT(100000*(V(IN4P,GND)-V(IN4N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+B_E1 OUT1 0 V = min(max((100000*(V(IN1P)-V(IN1N))), (V(VEE)+1.5)), (V(VCC)-1.5))
+B_E2 OUT2 0 V = min(max((100000*(V(IN2P)-V(IN2N))), (V(VEE)+1.5)), (V(VCC)-1.5))
+B_E3 OUT3 0 V = min(max((100000*(V(IN3P)-V(IN3N))), (V(VEE)+1.5)), (V(VCC)-1.5))
+B_E4 OUT4 0 V = min(max((100000*(V(IN4P)-V(IN4N))), (V(VEE)+1.5)), (V(VCC)-1.5))
 .ends TL084_SUB`,
 
   LM833_SUB: `.subckt LM833_SUB IN1N IN1P OUT1 IN2P IN2N OUT2 VCC VEE
 * LM833 dual audio op-amp
-E1 OUT1 GND VALUE={LIMIT(120000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+1.0, V(VCC,GND)-1.0)}
-E2 OUT2 GND VALUE={LIMIT(120000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+1.0, V(VCC,GND)-1.0)}
+B_E1 OUT1 0 V = min(max((120000*(V(IN1P)-V(IN1N))), (V(VEE)+1.0)), (V(VCC)-1.0))
+B_E2 OUT2 0 V = min(max((120000*(V(IN2P)-V(IN2N))), (V(VEE)+1.0)), (V(VCC)-1.0))
 .ends LM833_SUB`,
 
   OP07_SUB: `.subckt OP07_SUB INN INP OUT VCC VEE
 * OP07 ultralow offset op-amp
-E1 OUT GND VALUE={LIMIT(300000*(V(INP,GND)-V(INN,GND)), V(VEE,GND)+1.0, V(VCC,GND)-1.0)}
+B_E1 OUT 0 V = min(max((300000*(V(INP)-V(INN))), (V(VEE)+1.0)), (V(VCC)-1.0))
 .ends OP07_SUB`,
 
   CA3140_SUB: `.subckt CA3140_SUB INN INP OUT VCC VEE
 * CA3140 BiMOS op-amp
-E1 OUT GND VALUE={LIMIT(100000*(V(INP,GND)-V(INN,GND)), V(VEE,GND)+0.2, V(VCC,GND)-1.2)}
+B_E1 OUT 0 V = min(max((100000*(V(INP)-V(INN))), (V(VEE)+0.2)), (V(VCC)-1.2))
 .ends CA3140_SUB`,
 
   LF353_SUB: `.subckt LF353_SUB IN1N IN1P OUT1 IN2P IN2N OUT2 VCC VEE
 * LF353 dual JFET op-amp
-E1 OUT1 GND VALUE={LIMIT(100000*(V(IN1P,GND)-V(IN1N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
-E2 OUT2 GND VALUE={LIMIT(100000*(V(IN2P,GND)-V(IN2N,GND)), V(VEE,GND)+1.5, V(VCC,GND)-1.5)}
+B_E1 OUT1 0 V = min(max((100000*(V(IN1P)-V(IN1N))), (V(VEE)+1.5)), (V(VCC)-1.5))
+B_E2 OUT2 0 V = min(max((100000*(V(IN2P)-V(IN2N))), (V(VEE)+1.5)), (V(VCC)-1.5))
 .ends LF353_SUB`,
 
   INA128_SUB: `.subckt INA128_SUB RG1 VINM VINP RG2 VEE REF VOUT VCC
 * INA128 precision instrumentation amp: G = 1 + 50k/R_G (default G=10 if RG open)
-E1 VOUT GND VALUE={LIMIT(10*(V(VINP,GND)-V(VINM,GND)) + V(REF,GND), V(VEE,GND)+1.4, V(VCC,GND)-1.4)}
+B_E1 VOUT 0 V = min(max((10*(V(VINP)-V(VINM)) + V(REF)), (V(VEE)+1.4)), (V(VCC)-1.4))
 R_IN VINP VINM 100Meg
 .ends INA128_SUB`,
 
   AD623_SUB: `.subckt AD623_SUB RG1 VINM VINP RG2 VEE REF VOUT VCC
 * AD623 rail-to-rail in-amp
-E1 VOUT GND VALUE={LIMIT(10*(V(VINP,GND)-V(VINM,GND)) + V(REF,GND), V(VEE,GND)+0.1, V(VCC,GND)-0.1)}
+B_E1 VOUT 0 V = min(max((10*(V(VINP)-V(VINM)) + V(REF)), (V(VEE)+0.1)), (V(VCC)-0.1))
 R_IN VINP VINM 100Meg
 .ends AD623_SUB`,
 
   LM385_SUB: `.subckt LM385_SUB A K
 * LM385 2.5V precision voltage reference diode
 D1 A K DLM385
-B1 K A VALUE={IF(V(K,A)>=2.5, (V(K,A)-2.5)*100, 0)}
+B1 K A I = (V(K,A) >= 2.5) ? ((V(K,A) - 2.5) * 100) : 0
 .model DLM385 D(Is=1e-14 Bv=2.5 Ibv=1m)
 .ends LM385_SUB`,
 
   REF02_SUB: `.subckt REF02_SUB VIN GND VOUT TRIM
 * REF02 precision +5V voltage reference
-B1 VOUT GND VALUE={IF(V(VIN,GND)>=7.0, 5.0, V(VIN,GND)-2.0)}
+B1 VOUT GND V = ((V(VIN,GND)>=7.0) ? (5.0) : (V(VIN,GND)-2.0))
 R_IN VIN GND 1Meg
 .ends REF02_SUB`,
 
   REG78L05_SUB: `.subckt REG78L05_SUB VIN VOUT GND
 * 78L05 5V 100mA regulator
-B1 VOUT GND VALUE={IF(V(VIN,GND)>=7.0, 5.0, MAX(0, V(VIN,GND)-2.0))}
+B1 VOUT GND V = ((V(VIN,GND)>=7.0) ? (5.0) : (max(0, V(VIN,GND)-2.0)))
 R_L VOUT GND 100k
 .ends REG78L05_SUB`,
 
   REG7809_SUB: `.subckt REG7809_SUB VIN VOUT GND
 * 7809 9V 1A regulator
-B1 VOUT GND VALUE={IF(V(VIN,GND)>=11.5, 9.0, MAX(0, V(VIN,GND)-2.5))}
+B1 VOUT GND V = ((V(VIN,GND)>=11.5) ? (9.0) : (max(0, V(VIN,GND)-2.5)))
 R_L VOUT GND 100k
 .ends REG7809_SUB`,
 
   REG7815_SUB: `.subckt REG7815_SUB VIN VOUT GND
 * 7815 15V 1A regulator
-B1 VOUT GND VALUE={IF(V(VIN,GND)>=17.5, 15.0, MAX(0, V(VIN,GND)-2.5))}
+B1 VOUT GND V = ((V(VIN,GND)>=17.5) ? (15.0) : (max(0, V(VIN,GND)-2.5)))
 R_L VOUT GND 100k
 .ends REG7815_SUB`,
 
   REG7824_SUB: `.subckt REG7824_SUB VIN VOUT GND
 * 7824 24V 1A regulator
-B1 VOUT GND VALUE={IF(V(VIN,GND)>=27.0, 24.0, MAX(0, V(VIN,GND)-3.0))}
+B1 VOUT GND V = ((V(VIN,GND)>=27.0) ? (24.0) : (max(0, V(VIN,GND)-3.0)))
 R_L VOUT GND 100k
 .ends REG7824_SUB`,
 
   REG7905_SUB: `.subckt REG7905_SUB GND VIN VOUT
 * 7905 -5V 1A negative regulator
-B1 VOUT GND VALUE={IF(V(VIN,GND)<=-7.0, -5.0, MIN(0, V(VIN,GND)+2.0))}
+B1 VOUT GND V = ((V(VIN,GND)<=-7.0) ? (-5.0) : (min(0, V(VIN,GND)+2.0)))
 R_L VOUT GND 100k
 .ends REG7905_SUB`,
 
   REG7912_SUB: `.subckt REG7912_SUB GND VIN VOUT
 * 7912 -12V 1A negative regulator
-B1 VOUT GND VALUE={IF(V(VIN,GND)<=-14.5, -12.0, MIN(0, V(VIN,GND)+2.5))}
+B1 VOUT GND V = ((V(VIN,GND)<=-14.5) ? (-12.0) : (min(0, V(VIN,GND)+2.5)))
 R_L VOUT GND 100k
 .ends REG7912_SUB`,
 
   REG7915_SUB: `.subckt REG7915_SUB GND VIN VOUT
 * 7915 -15V 1A negative regulator
-B1 VOUT GND VALUE={IF(V(VIN,GND)<=-17.5, -15.0, MIN(0, V(VIN,GND)+2.5))}
+B1 VOUT GND V = ((V(VIN,GND)<=-17.5) ? (-15.0) : (min(0, V(VIN,GND)+2.5)))
 R_L VOUT GND 100k
 .ends REG7915_SUB`,
 
   AMS1117_ADJ_SUB: `.subckt AMS1117_ADJ_SUB ADJ VIN VOUT
-* AMS1117 adjustable LDO: VOUT = V(ADJ) + 1.25V
-B1 VOUT ADJ VALUE={IF(V(VIN,ADJ)>=2.5, 1.25, MAX(0, V(VIN,ADJ)-1.25))}
-R_L VOUT ADJ 100k
+* AMS1117 adjustable LDO: VOUT = V(ADJ) + 1.25V (1.1V typical dropout)
+R_in VIN 0 100Meg
+B1 out_i 0 V = min(max(0, V(VIN) - 1.1), max(0, V(ADJ) + 1.25))
+R_ser out_i VOUT 0.05
+I_adj VIN ADJ 50u
+R_L VOUT 0 10Meg
 .ends AMS1117_ADJ_SUB`,
 
   LP2950_SUB: `.subckt LP2950_SUB VIN VOUT GND
 * LP2950 5V 100mA micropower LDO (dropout 0.38V)
-B1 VOUT GND VALUE={IF(V(VIN,GND)>=5.38, 5.0, MAX(0, V(VIN,GND)-0.38))}
+B1 VOUT GND V = ((V(VIN,GND)>=5.38) ? (5.0) : (max(0, V(VIN,GND)-0.38)))
 R_L VOUT GND 100k
 .ends LP2950_SUB`,
 
   ICL8038_SUB: `.subckt ICL8038_SUB VCC RA RB CAP FM VEE SINE TRI SQR
 * ICL8038 waveform generator behavioural model (1kHz nominal)
-B_SQR SQR GND VALUE={IF(SIN(6.28318*1000*TIME)>0, V(VCC,GND), V(VEE,GND))}
-B_SIN SINE GND VALUE={2.0*SIN(6.28318*1000*TIME)}
-B_TRI TRI GND VALUE={2.0*ASIN(SIN(6.28318*1000*TIME))/(1.570796)}
+B_SQR SQR 0 V = ((sin(6.28318*1000*time)>0) ? (V(VCC)) : (V(VEE)))
+B_SIN SINE 0 V = 2.0*sin(6.28318*1000*time)
+B_TRI TRI 0 V = 2.0*asin(sin(6.28318*1000*time))/(1.570796)
 R_PWR VCC VEE 100k
 .ends ICL8038_SUB`,
 
   XR2206_SUB: `.subckt XR2206_SUB VCC TC1 TC2 TR1 GND OUT SYNC BYP
 * XR2206 function generator model (1kHz sine + square)
-B_OUT OUT GND VALUE={2.0*SIN(6.28318*1000*TIME) + 2.5}
-B_SYNC SYNC GND VALUE={IF(SIN(6.28318*1000*TIME)>0, V(VCC,GND), 0)}
+B_OUT OUT GND V = 2.0*sin(6.28318*1000*time) + 2.5
+B_SYNC SYNC GND V = ((sin(6.28318*1000*time)>0) ? (V(VCC,GND)) : (0))
 R_PWR VCC GND 100k
 .ends XR2206_SUB`,
 
   CD4046_SUB: `.subckt CD4046_SUB SIG COMP VCO INH VSS VDD PC1 PC2 VCO_O DEM
 * CD4046 PLL model
 R_PWR VDD VSS 100k
-B_VCO VCO_O VSS VALUE={IF(SIN(6.28318*(10000*V(VCO,VSS)+100)*TIME)>0, V(VDD,VSS), 0)}
-B_PC1 PC1 VSS VALUE={IF( (V(SIG,VSS)>2.5 & V(COMP,VSS)<2.5) | (V(SIG,VSS)<2.5 & V(COMP,VSS)>2.5), V(VDD,VSS), 0)}
+B_VCO VCO_O VSS V = ((sin(6.28318*(10000*V(VCO,VSS)+100)*time)>0) ? (V(VDD,VSS)) : (0))
+B_PC1 PC1 VSS V = (((V(SIG,VSS)>2.5 && V(COMP,VSS)<2.5) || (V(SIG,VSS)<2.5 && V(COMP,VSS)>2.5)) ? (V(VDD,VSS)) : (0))
 .ends CD4046_SUB`,
 
   CD4047_SUB: `.subckt CD4047_SUB C R RC AST VSS VDD Q QBAR OSC RST
 * CD4047 multivibrator model (astable 1kHz default)
 R_PWR VDD VSS 100k
-B_Q Q VSS VALUE={IF(SIN(6.28318*1000*TIME)>0, V(VDD,VSS), 0)}
-B_QB QBAR VSS VALUE={IF(SIN(6.28318*1000*TIME)>0, 0, V(VDD,VSS))}
-B_OSC OSC VSS VALUE={IF(SIN(6.28318*2000*TIME)>0, V(VDD,VSS), 0)}
+B_Q Q VSS V = ((sin(6.28318*1000*time)>0) ? (V(VDD,VSS)) : (0))
+B_QB QBAR VSS V = ((sin(6.28318*1000*time)>0) ? (0) : (V(VDD,VSS)))
+B_OSC OSC VSS V = ((sin(6.28318*2000*time)>0) ? (V(VDD,VSS)) : (0))
 .ends CD4047_SUB`,
 
   CD4069_SUB: `.subckt CD4069_SUB A Y VDD VSS
 * CD4069 CMOS hex inverter
-B_OUT Y VSS VALUE={IF(V(A,VSS)>0.5*V(VDD,VSS), 0, V(VDD,VSS))}
+B_OUT Y VSS V = ((V(A,VSS)>0.5*V(VDD,VSS)) ? (0) : (V(VDD,VSS)))
 R_PWR VDD VSS 100k
 .ends CD4069_SUB`,
 
   HC02_SUB: `.subckt HC02_SUB A B Y VCC GND
 * 74HC02 2-input NOR gate
-B_OUT Y GND VALUE={IF(V(A,GND)<1.5 & V(B,GND)<1.5, V(VCC,GND), 0)}
+B_OUT Y GND V = ((V(A,GND)<1.5 && V(B,GND)<1.5) ? (V(VCC,GND)) : (0))
 .ends HC02_SUB`,
 
   HC10_SUB: `.subckt HC10_SUB A B C Y VCC GND
 * 74HC10 3-input NAND gate
-B_OUT Y GND VALUE={IF(V(A,GND)>2.0 & V(B,GND)>2.0 & V(C,GND)>2.0, 0, V(VCC,GND))}
+B_OUT Y GND V = ((V(A,GND)>2.0 && V(B,GND)>2.0 && V(C,GND)>2.0) ? (0) : (V(VCC,GND)))
 .ends HC10_SUB`,
 
   HC11_SUB: `.subckt HC11_SUB A B C Y VCC GND
 * 74HC11 3-input AND gate
-B_OUT Y GND VALUE={IF(V(A,GND)>2.0 & V(B,GND)>2.0 & V(C,GND)>2.0, V(VCC,GND), 0)}
+B_OUT Y GND V = ((V(A,GND)>2.0 && V(B,GND)>2.0 && V(C,GND)>2.0) ? (V(VCC,GND)) : (0))
 .ends HC11_SUB`,
 
   HC20_SUB: `.subckt HC20_SUB A B C D Y VCC GND
 * 74HC20 4-input NAND gate
-B_OUT Y GND VALUE={IF(V(A,GND)>2.0 & V(B,GND)>2.0 & V(C,GND)>2.0 & V(D,GND)>2.0, 0, V(VCC,GND))}
+B_OUT Y GND V = ((V(A,GND)>2.0 && V(B,GND)>2.0 && V(C,GND)>2.0 && V(D,GND)>2.0) ? (0) : (V(VCC,GND)))
 .ends HC20_SUB`,
 
   HC27_SUB: `.subckt HC27_SUB A B C Y VCC GND
 * 74HC27 3-input NOR gate
-B_OUT Y GND VALUE={IF(V(A,GND)<1.5 & V(B,GND)<1.5 & V(C,GND)<1.5, V(VCC,GND), 0)}
+B_OUT Y GND V = ((V(A,GND)<1.5 && V(B,GND)<1.5 && V(C,GND)<1.5) ? (V(VCC,GND)) : (0))
 .ends HC27_SUB`,
 
   HC132_SUB: `.subckt HC132_SUB A B Y VCC GND
 * 74HC132 2-input Schmitt trigger NAND gate
-B_OUT Y GND VALUE={IF(V(A,GND)>3.0 & V(B,GND)>3.0, 0, IF(V(A,GND)<2.0 | V(B,GND)<2.0, V(VCC,GND), V(Y,GND)))}
+B_OUT Y GND V = ((V(A,GND)>3.0 && V(B,GND)>3.0) ? (0) : (((V(A,GND)<2.0 || V(B,GND)<2.0) ? (V(VCC,GND)) : (V(Y,GND)))))
 .ends HC132_SUB`,
 
   HC139_SUB: `.subckt HC139_SUB E A0 A1 Y0 Y1 Y2 Y3 VCC GND
 * 74HC139 2-to-4 decoder (active-low outputs and enable)
-B0 Y0 GND VALUE={IF(V(E,GND)<1.5 & V(A0,GND)<1.5 & V(A1,GND)<1.5, 0, V(VCC,GND))}
-B1 Y1 GND VALUE={IF(V(E,GND)<1.5 & V(A0,GND)>1.5 & V(A1,GND)<1.5, 0, V(VCC,GND))}
-B2 Y2 GND VALUE={IF(V(E,GND)<1.5 & V(A0,GND)<1.5 & V(A1,GND)>1.5, 0, V(VCC,GND))}
-B3 Y3 GND VALUE={IF(V(E,GND)<1.5 & V(A0,GND)>1.5 & V(A1,GND)>1.5, 0, V(VCC,GND))}
+B0 Y0 GND V = ((V(E,GND)<1.5 && V(A0,GND)<1.5 && V(A1,GND)<1.5) ? (0) : (V(VCC,GND)))
+B1 Y1 GND V = ((V(E,GND)<1.5 && V(A0,GND)>1.5 && V(A1,GND)<1.5) ? (0) : (V(VCC,GND)))
+B2 Y2 GND V = ((V(E,GND)<1.5 && V(A0,GND)<1.5 && V(A1,GND)>1.5) ? (0) : (V(VCC,GND)))
+B3 Y3 GND V = ((V(E,GND)<1.5 && V(A0,GND)>1.5 && V(A1,GND)>1.5) ? (0) : (V(VCC,GND)))
 R_PWR VCC GND 100k
 .ends HC139_SUB`,
 
   HC154_SUB: `.subckt HC154_SUB A0 A1 A2 A3 E1 E2 Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 VCC GND
 * 74HC154 4-to-16 decoder stub
 R_PWR VCC GND 100k
-B0 Y0 GND VALUE={IF(V(E1,GND)<1.5 & V(E2,GND)<1.5 & V(A0,GND)<1.5 & V(A1,GND)<1.5 & V(A2,GND)<1.5 & V(A3,GND)<1.5, 0, V(VCC,GND))}
-B1 Y1 GND VALUE={V(VCC,GND)}
-B2 Y2 GND VALUE={V(VCC,GND)}
-B3 Y3 GND VALUE={V(VCC,GND)}
-B4 Y4 GND VALUE={V(VCC,GND)}
-B5 Y5 GND VALUE={V(VCC,GND)}
-B6 Y6 GND VALUE={V(VCC,GND)}
-B7 Y7 GND VALUE={V(VCC,GND)}
+B0 Y0 GND V = ((V(E1,GND)<1.5 && V(E2,GND)<1.5 && V(A0,GND)<1.5 && V(A1,GND)<1.5 && V(A2,GND)<1.5 && V(A3,GND)<1.5) ? (0) : (V(VCC,GND)))
+B1 Y1 GND V = V(VCC,GND)
+B2 Y2 GND V = V(VCC,GND)
+B3 Y3 GND V = V(VCC,GND)
+B4 Y4 GND V = V(VCC,GND)
+B5 Y5 GND V = V(VCC,GND)
+B6 Y6 GND V = V(VCC,GND)
+B7 Y7 GND V = V(VCC,GND)
 .ends HC154_SUB`,
 
   HC42_SUB: `.subckt HC42_SUB A B C D Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 Y8 Y9 VCC GND
 * 74HC42 BCD to decimal decoder
 R_PWR VCC GND 100k
-B0 Y0 GND VALUE={IF(V(A,GND)<1.5 & V(B,GND)<1.5 & V(C,GND)<1.5 & V(D,GND)<1.5, 0, V(VCC,GND))}
-B1 Y1 GND VALUE={V(VCC,GND)}
-B2 Y2 GND VALUE={V(VCC,GND)}
-B3 Y3 GND VALUE={V(VCC,GND)}
-B4 Y4 GND VALUE={V(VCC,GND)}
-B5 Y5 GND VALUE={V(VCC,GND)}
-B6 Y6 GND VALUE={V(VCC,GND)}
-B7 Y7 GND VALUE={V(VCC,GND)}
-B8 Y8 GND VALUE={V(VCC,GND)}
-B9 Y9 GND VALUE={V(VCC,GND)}
+B0 Y0 GND V = ((V(A,GND)<1.5 && V(B,GND)<1.5 && V(C,GND)<1.5 && V(D,GND)<1.5) ? (0) : (V(VCC,GND)))
+B1 Y1 GND V = V(VCC,GND)
+B2 Y2 GND V = V(VCC,GND)
+B3 Y3 GND V = V(VCC,GND)
+B4 Y4 GND V = V(VCC,GND)
+B5 Y5 GND V = V(VCC,GND)
+B6 Y6 GND V = V(VCC,GND)
+B7 Y7 GND V = V(VCC,GND)
+B8 Y8 GND V = V(VCC,GND)
+B9 Y9 GND V = V(VCC,GND)
 .ends HC42_SUB`,
 
   HC238_SUB: `.subckt HC238_SUB A0 A1 A2 E1 E2 Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 VCC GND
 * 74HC238 3-to-8 decoder (active high outputs)
 R_PWR VCC GND 100k
-B0 Y0 GND VALUE={IF(V(E1,GND)>2.0 & V(E2,GND)<1.5 & V(A0,GND)<1.5 & V(A1,GND)<1.5 & V(A2,GND)<1.5, V(VCC,GND), 0)}
-B1 Y1 GND VALUE={0}
-B2 Y2 GND VALUE={0}
-B3 Y3 GND VALUE={0}
-B4 Y4 GND VALUE={0}
-B5 Y5 GND VALUE={0}
-B6 Y6 GND VALUE={0}
-B7 Y7 GND VALUE={0}
+B0 Y0 GND V = ((V(E1,GND)>2.0 && V(E2,GND)<1.5 && V(A0,GND)<1.5 && V(A1,GND)<1.5 && V(A2,GND)<1.5) ? (V(VCC,GND)) : (0))
+B1 Y1 GND V = 0
+B2 Y2 GND V = 0
+B3 Y3 GND V = 0
+B4 Y4 GND V = 0
+B5 Y5 GND V = 0
+B6 Y6 GND V = 0
+B7 Y7 GND V = 0
 .ends HC238_SUB`,
 
   HC73_SUB: `.subckt HC73_SUB CLK CLR J K Q QBAR VCC GND
 * 74HC73 JK flip-flop
 R_PWR VCC GND 100k
-B_Q Q GND VALUE={IF(V(CLR,GND)<0.8, 0, V(J,GND))}
-B_QB QBAR GND VALUE={IF(V(CLR,GND)<0.8, V(VCC,GND), V(VCC,GND)-V(J,GND))}
+B_Q Q GND V = ((V(CLR,GND)<0.8) ? (0) : (V(J,GND)))
+B_QB QBAR GND V = ((V(CLR,GND)<0.8) ? (V(VCC,GND)) : (V(VCC,GND)-V(J,GND)))
 .ends HC73_SUB`,
 
   HC76_SUB: `.subckt HC76_SUB CLK PRE CLR J K Q QBAR VCC GND
 * 74HC76 JK flip-flop with preset and clear
 R_PWR VCC GND 100k
-B_Q Q GND VALUE={IF(V(PRE,GND)<0.8, V(VCC,GND), IF(V(CLR,GND)<0.8, 0, V(J,GND)))}
-B_QB QBAR GND VALUE={IF(V(CLR,GND)<0.8, V(VCC,GND), IF(V(PRE,GND)<0.8, 0, V(VCC,GND)-V(J,GND)))}
+B_Q Q GND V = ((V(PRE,GND)<0.8) ? (V(VCC,GND)) : (((V(CLR,GND)<0.8) ? (0) : (V(J,GND)))))
+B_QB QBAR GND V = ((V(CLR,GND)<0.8) ? (V(VCC,GND)) : (((V(PRE,GND)<0.8) ? (0) : (V(VCC,GND)-V(J,GND)))))
 .ends HC76_SUB`,
 
   HC174_SUB: `.subckt HC174_SUB MR CP D0 D1 D2 D3 D4 D5 Q0 Q1 Q2 Q3 Q4 Q5 VCC GND
 * 74HC174 hex D-FF stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D0,GND))}
-B1 Q1 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D1,GND))}
-B2 Q2 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D2,GND))}
-B3 Q3 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D3,GND))}
-B4 Q4 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D4,GND))}
-B5 Q5 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D5,GND))}
+B0 Q0 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D0,GND)))
+B1 Q1 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D1,GND)))
+B2 Q2 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D2,GND)))
+B3 Q3 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D3,GND)))
+B4 Q4 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D4,GND)))
+B5 Q5 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D5,GND)))
 .ends HC174_SUB`,
 
   HC175_SUB: `.subckt HC175_SUB MR CP D0 D1 D2 D3 Q0 Q0B Q1 Q1B VCC GND
 * 74HC175 quad D-FF stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D0,GND))}
-B0B Q0B GND VALUE={IF(V(MR,GND)<0.8, V(VCC,GND), V(VCC,GND)-V(D0,GND))}
-B1 Q1 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D1,GND))}
-B1B Q1B GND VALUE={IF(V(MR,GND)<0.8, V(VCC,GND), V(VCC,GND)-V(D1,GND))}
+B0 Q0 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D0,GND)))
+B0B Q0B GND V = ((V(MR,GND)<0.8) ? (V(VCC,GND)) : (V(VCC,GND)-V(D0,GND)))
+B1 Q1 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D1,GND)))
+B1B Q1B GND V = ((V(MR,GND)<0.8) ? (V(VCC,GND)) : (V(VCC,GND)-V(D1,GND)))
 .ends HC175_SUB`,
 
   HC273_SUB: `.subckt HC273_SUB MR CP D0 D1 D2 D3 D4 D5 D6 D7 Q0 Q1 Q2 Q3 Q4 Q5 VCC GND
 * 74HC273 octal D-FF stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D0,GND))}
-B1 Q1 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D1,GND))}
-B2 Q2 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D2,GND))}
-B3 Q3 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D3,GND))}
-B4 Q4 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D4,GND))}
-B5 Q5 GND VALUE={IF(V(MR,GND)<0.8, 0, V(D5,GND))}
+B0 Q0 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D0,GND)))
+B1 Q1 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D1,GND)))
+B2 Q2 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D2,GND)))
+B3 Q3 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D3,GND)))
+B4 Q4 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D4,GND)))
+B5 Q5 GND V = ((V(MR,GND)<0.8) ? (0) : (V(D5,GND)))
 .ends HC273_SUB`,
 
   HC373_SUB: `.subckt HC373_SUB OE LE D0 D1 D2 D3 D4 D5 Q0 Q1 Q2 Q3 Q4 VCC GND
 * 74HC373 octal transparent latch stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(OE,GND)<0.8, V(D0,GND), 0)}
-B1 Q1 GND VALUE={IF(V(OE,GND)<0.8, V(D1,GND), 0)}
-B2 Q2 GND VALUE={IF(V(OE,GND)<0.8, V(D2,GND), 0)}
-B3 Q3 GND VALUE={IF(V(OE,GND)<0.8, V(D3,GND), 0)}
-B4 Q4 GND VALUE={IF(V(OE,GND)<0.8, V(D4,GND), 0)}
+B0 Q0 GND V = ((V(OE,GND)<0.8) ? (V(D0,GND)) : (0))
+B1 Q1 GND V = ((V(OE,GND)<0.8) ? (V(D1,GND)) : (0))
+B2 Q2 GND V = ((V(OE,GND)<0.8) ? (V(D2,GND)) : (0))
+B3 Q3 GND V = ((V(OE,GND)<0.8) ? (V(D3,GND)) : (0))
+B4 Q4 GND V = ((V(OE,GND)<0.8) ? (V(D4,GND)) : (0))
 .ends HC373_SUB`,
 
   HC574_SUB: `.subckt HC574_SUB OE CP D0 D1 D2 D3 D4 D5 Q0 Q1 Q2 Q3 Q4 VCC GND
 * 74HC574 octal D-FF stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(OE,GND)<0.8, V(D0,GND), 0)}
-B1 Q1 GND VALUE={IF(V(OE,GND)<0.8, V(D1,GND), 0)}
-B2 Q2 GND VALUE={IF(V(OE,GND)<0.8, V(D2,GND), 0)}
-B3 Q3 GND VALUE={IF(V(OE,GND)<0.8, V(D3,GND), 0)}
-B4 Q4 GND VALUE={IF(V(OE,GND)<0.8, V(D4,GND), 0)}
+B0 Q0 GND V = ((V(OE,GND)<0.8) ? (V(D0,GND)) : (0))
+B1 Q1 GND V = ((V(OE,GND)<0.8) ? (V(D1,GND)) : (0))
+B2 Q2 GND V = ((V(OE,GND)<0.8) ? (V(D2,GND)) : (0))
+B3 Q3 GND V = ((V(OE,GND)<0.8) ? (V(D3,GND)) : (0))
+B4 Q4 GND V = ((V(OE,GND)<0.8) ? (V(D4,GND)) : (0))
 .ends HC574_SUB`,
 
   HC93_SUB: `.subckt HC93_SUB CP0 CP1 MR1 MR2 Q0 Q1 Q2 Q3 VCC GND
 * 74HC93 4-bit binary counter stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(MR1,GND)>2.0 & V(MR2,GND)>2.0, 0, 0)}
-B1 Q1 GND VALUE={0}
-B2 Q2 GND VALUE={0}
-B3 Q3 GND VALUE={0}
+B0 Q0 GND V = ((V(MR1,GND)>2.0 && V(MR2,GND)>2.0) ? (0) : (0))
+B1 Q1 GND V = 0
+B2 Q2 GND V = 0
+B3 Q3 GND V = 0
 .ends HC93_SUB`,
 
   HC160_SUB: `.subckt HC160_SUB CP MR PE CEP CET D0 Q0 Q1 Q2 Q3 TC VCC GND
 * 74HC160 sync BCD counter stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, 0)}
-B1 Q1 GND VALUE={0}
-B2 Q2 GND VALUE={0}
-B3 Q3 GND VALUE={0}
-B_TC TC GND VALUE={0}
+B0 Q0 GND V = ((V(MR,GND)<0.8) ? (0) : (0))
+B1 Q1 GND V = 0
+B2 Q2 GND V = 0
+B3 Q3 GND V = 0
+B_TC TC GND V = 0
 .ends HC160_SUB`,
 
   HC161_SUB: `.subckt HC161_SUB CP MR PE CEP CET D0 Q0 Q1 Q2 Q3 TC VCC GND
 * 74HC161 sync binary counter stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, 0)}
-B1 Q1 GND VALUE={0}
-B2 Q2 GND VALUE={0}
-B3 Q3 GND VALUE={0}
-B_TC TC GND VALUE={0}
+B0 Q0 GND V = ((V(MR,GND)<0.8) ? (0) : (0))
+B1 Q1 GND V = 0
+B2 Q2 GND V = 0
+B3 Q3 GND V = 0
+B_TC TC GND V = 0
 .ends HC161_SUB`,
 
   HC163_SUB: `.subckt HC163_SUB CP SR PE CEP CET D0 Q0 Q1 Q2 Q3 TC VCC GND
 * 74HC163 sync binary counter stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={0}
-B1 Q1 GND VALUE={0}
-B2 Q2 GND VALUE={0}
-B3 Q3 GND VALUE={0}
-B_TC TC GND VALUE={0}
+B0 Q0 GND V = 0
+B1 Q1 GND V = 0
+B2 Q2 GND V = 0
+B3 Q3 GND V = 0
+B_TC TC GND V = 0
 .ends HC163_SUB`,
 
   HC166_SUB: `.subckt HC166_SUB CP CE PE MR DS D0 Q7 VCC GND
 * 74HC166 8-bit PISO shift register stub
 R_PWR VCC GND 100k
-B_Q7 Q7 GND VALUE={IF(V(MR,GND)<0.8, 0, V(DS,GND))}
+B_Q7 Q7 GND V = ((V(MR,GND)<0.8) ? (0) : (V(DS,GND)))
 .ends HC166_SUB`,
 
   HC191_SUB: `.subckt HC191_SUB CP UD CE PL D0 Q0 Q1 Q2 Q3 TC VCC GND
 * 74HC191 sync up/down counter stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(PL,GND)<0.8, V(D0,GND), 0)}
-B1 Q1 GND VALUE={0}
-B2 Q2 GND VALUE={0}
-B3 Q3 GND VALUE={0}
-B_TC TC GND VALUE={0}
+B0 Q0 GND V = ((V(PL,GND)<0.8) ? (V(D0,GND)) : (0))
+B1 Q1 GND V = 0
+B2 Q2 GND V = 0
+B3 Q3 GND V = 0
+B_TC TC GND V = 0
 .ends HC191_SUB`,
 
   HC192_SUB: `.subckt HC192_SUB CPU CPD MR PL D0 Q0 Q1 Q2 Q3 TCU TCD VCC GND
 * 74HC192 sync BCD up/down counter stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(MR,GND)>2.0, 0, IF(V(PL,GND)<0.8, V(D0,GND), 0))}
-B1 Q1 GND VALUE={0}
-B2 Q2 GND VALUE={0}
-B3 Q3 GND VALUE={0}
-B_TCU TCU GND VALUE={V(VCC,GND)}
-B_TCD TCD GND VALUE={V(VCC,GND)}
+B0 Q0 GND V = ((V(MR,GND)>2.0) ? (0) : (((V(PL,GND)<0.8) ? (V(D0,GND)) : (0))))
+B1 Q1 GND V = 0
+B2 Q2 GND V = 0
+B3 Q3 GND V = 0
+B_TCU TCU GND V = V(VCC,GND)
+B_TCD TCD GND V = V(VCC,GND)
 .ends HC192_SUB`,
 
   HC299_SUB: `.subckt HC299_SUB CP MR S0 S1 OE1 OE2 Q0 Q7 VCC GND
 * 74HC299 universal shift register stub
 R_PWR VCC GND 100k
-B0 Q0 GND VALUE={IF(V(MR,GND)<0.8, 0, 0)}
-B7 Q7 GND VALUE={0}
+B0 Q0 GND V = ((V(MR,GND)<0.8) ? (0) : (0))
+B7 Q7 GND V = 0
 .ends HC299_SUB`,
 
   HC181_SUB: `.subckt HC181_SUB A0 A1 A2 A3 B0 B1 B2 B3 M F0 F1 F2 F3 AEQB VCC GND
 * 74HC181 4-bit ALU model (logic AND/OR mode demo)
 R_PWR VCC GND 100k
-B0 F0 GND VALUE={IF(V(M,GND)>2.0, V(A0,GND)*V(B0,GND)/V(VCC,GND), V(A0,GND))}
-B1 F1 GND VALUE={IF(V(M,GND)>2.0, V(A1,GND)*V(B1,GND)/V(VCC,GND), V(A1,GND))}
-B2 F2 GND VALUE={IF(V(M,GND)>2.0, V(A2,GND)*V(B2,GND)/V(VCC,GND), V(A2,GND))}
-B3 F3 GND VALUE={IF(V(M,GND)>2.0, V(A3,GND)*V(B3,GND)/V(VCC,GND), V(A3,GND))}
-B_AEQB AEQB GND VALUE={V(VCC,GND)}
+B0 F0 GND V = ((V(M,GND)>2.0) ? (V(A0,GND)*V(B0,GND)/V(VCC,GND)) : (V(A0,GND)))
+B1 F1 GND V = ((V(M,GND)>2.0) ? (V(A1,GND)*V(B1,GND)/V(VCC,GND)) : (V(A1,GND)))
+B2 F2 GND V = ((V(M,GND)>2.0) ? (V(A2,GND)*V(B2,GND)/V(VCC,GND)) : (V(A2,GND)))
+B3 F3 GND V = ((V(M,GND)>2.0) ? (V(A3,GND)*V(B3,GND)/V(VCC,GND)) : (V(A3,GND)))
+B_AEQB AEQB GND V = V(VCC,GND)
 .ends HC181_SUB`,
 
   HC280_SUB: `.subckt HC280_SUB I0 I1 I2 I3 I4 I5 I6 I7 PEVEN PODD VCC GND
 * 74HC280 9-bit parity generator model
 R_PWR VCC GND 100k
-B_EVEN PEVEN GND VALUE={V(VCC,GND)}
-B_ODD  PODD  GND VALUE={0}
+B_EVEN PEVEN GND V = V(VCC,GND)
+B_ODD PODD GND V = 0
 .ends HC280_SUB`,
 
   HC688_SUB: `.subckt HC688_SUB G P0 P1 Q0 Q1 PEQ VCC GND
 * 74HC688 8-bit identity comparator
 R_PWR VCC GND 100k
-B_PEQ PEQ GND VALUE={IF(V(G,GND)<0.8 & V(P0,GND)==V(Q0,GND) & V(P1,GND)==V(Q1,GND), 0, V(VCC,GND))}
+B_PEQ PEQ GND V = ((V(G,GND)<0.8 && V(P0,GND)==V(Q0,GND) && V(P1,GND)==V(Q1,GND)) ? (0) : (V(VCC,GND)))
 .ends HC688_SUB`,
 
   HC126_SUB: `.subckt HC126_SUB A OE Y VCC GND
 * 74HC126 quad 3-state buffer (active-high OE)
-B_OUT Y GND VALUE={IF(V(OE,GND)>2.0, V(A,GND), 0)}
+B_OUT Y GND V = ((V(OE,GND)>2.0) ? (V(A,GND)) : (0))
 R_PWR VCC GND 100k
 .ends HC126_SUB`,
 
   HC541_SUB: `.subckt HC541_SUB OE1 OE2 A0 A1 A2 A3 Y0 Y1 Y2 Y3 VCC GND
 * 74HC541 octal buffer stub
 R_PWR VCC GND 100k
-B0 Y0 GND VALUE={IF(V(OE1,GND)<0.8 & V(OE2,GND)<0.8, V(A0,GND), 0)}
-B1 Y1 GND VALUE={IF(V(OE1,GND)<0.8 & V(OE2,GND)<0.8, V(A1,GND), 0)}
-B2 Y2 GND VALUE={IF(V(OE1,GND)<0.8 & V(OE2,GND)<0.8, V(A2,GND), 0)}
-B3 Y3 GND VALUE={IF(V(OE1,GND)<0.8 & V(OE2,GND)<0.8, V(A3,GND), 0)}
+B0 Y0 GND V = ((V(OE1,GND)<0.8 && V(OE2,GND)<0.8) ? (V(A0,GND)) : (0))
+B1 Y1 GND V = ((V(OE1,GND)<0.8 && V(OE2,GND)<0.8) ? (V(A1,GND)) : (0))
+B2 Y2 GND V = ((V(OE1,GND)<0.8 && V(OE2,GND)<0.8) ? (V(A2,GND)) : (0))
+B3 Y3 GND V = ((V(OE1,GND)<0.8 && V(OE2,GND)<0.8) ? (V(A3,GND)) : (0))
 .ends HC541_SUB`,
 
   CD4001_SUB: `.subckt CD4001_SUB A B Y VDD VSS
 * CD4001 CMOS quad 2-input NOR gate
-B_OUT Y VSS VALUE={IF(V(A,VSS)<0.3*V(VDD,VSS) & V(B,VSS)<0.3*V(VDD,VSS), V(VDD,VSS), 0)}
+B_OUT Y VSS V = ((V(A,VSS)<0.3*V(VDD,VSS) && V(B,VSS)<0.3*V(VDD,VSS)) ? (V(VDD,VSS)) : (0))
 R_PWR VDD VSS 100k
 .ends CD4001_SUB`,
 
   CD4011_SUB: `.subckt CD4011_SUB A B Y VDD VSS
 * CD4011 CMOS quad 2-input NAND gate
-B_OUT Y VSS VALUE={IF(V(A,VSS)>0.7*V(VDD,VSS) & V(B,VSS)>0.7*V(VDD,VSS), 0, V(VDD,VSS))}
+B_OUT Y VSS V = ((V(A,VSS)>0.7*V(VDD,VSS) && V(B,VSS)>0.7*V(VDD,VSS)) ? (0) : (V(VDD,VSS)))
 R_PWR VDD VSS 100k
 .ends CD4011_SUB`,
 
   CD4012_SUB: `.subckt CD4012_SUB A B C D Y VDD VSS
 * CD4012 CMOS dual 4-input NAND gate
-B_OUT Y VSS VALUE={IF(V(A,VSS)>0.7*V(VDD,VSS) & V(B,VSS)>0.7*V(VDD,VSS) & V(C,VSS)>0.7*V(VDD,VSS) & V(D,VSS)>0.7*V(VDD,VSS), 0, V(VDD,VSS))}
+B_OUT Y VSS V = ((V(A,VSS)>0.7*V(VDD,VSS) && V(B,VSS)>0.7*V(VDD,VSS) && V(C,VSS)>0.7*V(VDD,VSS) && V(D,VSS)>0.7*V(VDD,VSS)) ? (0) : (V(VDD,VSS)))
 R_PWR VDD VSS 100k
 .ends CD4012_SUB`,
 
   CD4023_SUB: `.subckt CD4023_SUB A B C Y VDD VSS
 * CD4023 CMOS triple 3-input NAND gate
-B_OUT Y VSS VALUE={IF(V(A,VSS)>0.7*V(VDD,VSS) & V(B,VSS)>0.7*V(VDD,VSS) & V(C,VSS)>0.7*V(VDD,VSS), 0, V(VDD,VSS))}
+B_OUT Y VSS V = ((V(A,VSS)>0.7*V(VDD,VSS) && V(B,VSS)>0.7*V(VDD,VSS) && V(C,VSS)>0.7*V(VDD,VSS)) ? (0) : (V(VDD,VSS)))
 R_PWR VDD VSS 100k
 .ends CD4023_SUB`,
 
   CD4027_SUB: `.subckt CD4027_SUB J CLK K SET RST Q QBAR VDD VSS
 * CD4027 CMOS dual JK flip-flop
 R_PWR VDD VSS 100k
-B_Q Q VSS VALUE={IF(V(SET,VSS)>0.7*V(VDD,VSS), V(VDD,VSS), IF(V(RST,VSS)>0.7*V(VDD,VSS), 0, V(J,VSS)))}
-B_QB QBAR VSS VALUE={IF(V(RST,VSS)>0.7*V(VDD,VSS), V(VDD,VSS), IF(V(SET,VSS)>0.7*V(VDD,VSS), 0, V(VDD,VSS)-V(J,VSS)))}
+B_Q Q VSS V = ((V(SET,VSS)>0.7*V(VDD,VSS)) ? (V(VDD,VSS)) : (((V(RST,VSS)>0.7*V(VDD,VSS)) ? (0) : (V(J,VSS)))))
+B_QB QBAR VSS V = ((V(RST,VSS)>0.7*V(VDD,VSS)) ? (V(VDD,VSS)) : (((V(SET,VSS)>0.7*V(VDD,VSS)) ? (0) : (V(VDD,VSS)-V(J,VSS)))))
 .ends CD4027_SUB`,
 
   CD4028_SUB: `.subckt CD4028_SUB A B C D Y0 Y1 Y2 Y3 Y4 Y5 Y6 Y7 Y8 Y9 VDD VSS
 * CD4028 CMOS BCD-to-decimal decoder
 R_PWR VDD VSS 100k
-B0 Y0 VSS VALUE={IF(V(A,VSS)<1.5 & V(B,VSS)<1.5 & V(C,VSS)<1.5 & V(D,VSS)<1.5, V(VDD,VSS), 0)}
-B1 Y1 VSS VALUE={0}
-B2 Y2 VSS VALUE={0}
-B3 Y3 VSS VALUE={0}
-B4 Y4 VSS VALUE={0}
-B5 Y5 VSS VALUE={0}
-B6 Y6 VSS VALUE={0}
-B7 Y7 VSS VALUE={0}
-B8 Y8 VSS VALUE={0}
-B9 Y9 VSS VALUE={0}
+B0 Y0 VSS V = ((V(A,VSS)<1.5 && V(B,VSS)<1.5 && V(C,VSS)<1.5 && V(D,VSS)<1.5) ? (V(VDD,VSS)) : (0))
+B1 Y1 VSS V = 0
+B2 Y2 VSS V = 0
+B3 Y3 VSS V = 0
+B4 Y4 VSS V = 0
+B5 Y5 VSS V = 0
+B6 Y6 VSS V = 0
+B7 Y7 VSS V = 0
+B8 Y8 VSS V = 0
+B9 Y9 VSS V = 0
 .ends CD4028_SUB`,
 
   ADC0804_SUB: `* ADC0804 8-Bit SAR ADC Model
@@ -1610,13 +1670,13 @@ B9 Y9 VSS VALUE={0}
 R_in vinp vinm 10Meg
 E_diff diff 0 vinp vinm 1.0
 B_d7 db7 gnd V = (V(diff) >= 2.5) ? 5 : 0
-B_d6 db6 gnd V = (mod(V(diff), 2.5) >= 1.25) ? 5 : 0
-B_d5 db5 gnd V = (mod(V(diff), 1.25) >= 0.625) ? 5 : 0
-B_d4 db4 gnd V = (mod(V(diff), 0.625) >= 0.312) ? 5 : 0
-B_d3 db3 gnd V = (mod(V(diff), 0.312) >= 0.156) ? 5 : 0
-B_d2 db2 gnd V = (mod(V(diff), 0.156) >= 0.078) ? 5 : 0
-B_d1 db1 gnd V = (mod(V(diff), 0.078) >= 0.039) ? 5 : 0
-B_d0 db0 gnd V = (mod(V(diff), 0.039) >= 0.019) ? 5 : 0
+B_d6 db6 gnd V = (((V(diff)) - (2.5) * floor((V(diff)) / (2.5))) >= 1.25) ? 5 : 0
+B_d5 db5 gnd V = (((V(diff)) - (1.25) * floor((V(diff)) / (1.25))) >= 0.625) ? 5 : 0
+B_d4 db4 gnd V = (((V(diff)) - (0.625) * floor((V(diff)) / (0.625))) >= 0.312) ? 5 : 0
+B_d3 db3 gnd V = (((V(diff)) - (0.312) * floor((V(diff)) / (0.312))) >= 0.156) ? 5 : 0
+B_d2 db2 gnd V = (((V(diff)) - (0.156) * floor((V(diff)) / (0.156))) >= 0.078) ? 5 : 0
+B_d1 db1 gnd V = (((V(diff)) - (0.078) * floor((V(diff)) / (0.078))) >= 0.039) ? 5 : 0
+B_d0 db0 gnd V = (((V(diff)) - (0.039) * floor((V(diff)) / (0.039))) >= 0.019) ? 5 : 0
 R_cs cs gnd 1Meg
 R_rd rd gnd 1Meg
 R_wr wr gnd 1Meg
@@ -1633,13 +1693,13 @@ R_in2 in2 gnd 10Meg
 R_in3 in3 gnd 10Meg
 B_eoc eoc gnd V = 5.0
 B_d7 db7 gnd V = (V(in0) >= 2.5) ? 5 : 0
-B_d6 db6 gnd V = (mod(V(in0), 2.5) >= 1.25) ? 5 : 0
-B_d5 db5 gnd V = (mod(V(in0), 1.25) >= 0.625) ? 5 : 0
-B_d4 db4 gnd V = (mod(V(in0), 0.625) >= 0.312) ? 5 : 0
-B_d3 db3 gnd V = (mod(V(in0), 0.312) >= 0.156) ? 5 : 0
-B_d2 db2 gnd V = (mod(V(in0), 0.156) >= 0.078) ? 5 : 0
-B_d1 db1 gnd V = (mod(V(in0), 0.078) >= 0.039) ? 5 : 0
-B_d0 db0 gnd V = (mod(V(in0), 0.039) >= 0.019) ? 5 : 0
+B_d6 db6 gnd V = (((V(in0)) - (2.5) * floor((V(in0)) / (2.5))) >= 1.25) ? 5 : 0
+B_d5 db5 gnd V = (((V(in0)) - (1.25) * floor((V(in0)) / (1.25))) >= 0.625) ? 5 : 0
+B_d4 db4 gnd V = (((V(in0)) - (0.625) * floor((V(in0)) / (0.625))) >= 0.312) ? 5 : 0
+B_d3 db3 gnd V = (((V(in0)) - (0.312) * floor((V(in0)) / (0.312))) >= 0.156) ? 5 : 0
+B_d2 db2 gnd V = (((V(in0)) - (0.156) * floor((V(in0)) / (0.156))) >= 0.078) ? 5 : 0
+B_d1 db1 gnd V = (((V(in0)) - (0.078) * floor((V(in0)) / (0.078))) >= 0.039) ? 5 : 0
+B_d0 db0 gnd V = (((V(in0)) - (0.039) * floor((V(in0)) / (0.039))) >= 0.019) ? 5 : 0
 R_ale ale gnd 1Meg
 R_start start gnd 1Meg
 R_oe oe gnd 1Meg
@@ -2341,8 +2401,8 @@ R_a1 a1 vss 1Meg
 R_b1 b1 vss 1Meg
 R_a2 a2 vss 1Meg
 R_b2 b2 vss 1Meg
-B_y1 y1 vss V = ((V(a1) > 2.5) ^ (V(b1) > 2.5)) ? V(vdd) : 0.0
-B_y2 y2 vss V = ((V(a2) > 2.5) ^ (V(b2) > 2.5)) ? V(vdd) : 0.0
+B_y1 y1 vss V = ((V(a1,vss) > 2.5) != (V(b1,vss) > 2.5)) ? V(vdd,vss) : 0.0
+B_y2 y2 vss V = ((V(a2,vss) > 2.5) != (V(b2,vss) > 2.5)) ? V(vdd,vss) : 0.0
 R_pwr vdd vss 10Meg
 .ends CD4070_SUB`,
 
@@ -2352,8 +2412,8 @@ R_a1 a1 vss 1Meg
 R_b1 b1 vss 1Meg
 R_a2 a2 vss 1Meg
 R_b2 b2 vss 1Meg
-B_y1 y1 vss V = ((V(a1) > 2.5) || (V(b1) > 2.5)) ? V(vdd) : 0.0
-B_y2 y2 vss V = ((V(a2) > 2.5) || (V(b2) > 2.5)) ? V(vdd) : 0.0
+B_y1 y1 vss V = ((V(a1,vss) > 2.5) || (V(b1,vss) > 2.5)) ? V(vdd,vss) : 0.0
+B_y2 y2 vss V = ((V(a2,vss) > 2.5) || (V(b2,vss) > 2.5)) ? V(vdd,vss) : 0.0
 R_pwr vdd vss 10Meg
 .ends CD4071_SUB`,
 
@@ -2365,8 +2425,8 @@ R_c1 c1 vss 1Meg
 R_a2 a2 vss 1Meg
 R_b2 b2 vss 1Meg
 R_c2 c2 vss 1Meg
-B_y1 y1 vss V = ((V(a1) > 2.5) && (V(b1) > 2.5) && (V(c1) > 2.5)) ? V(vdd) : 0.0
-B_y2 y2 vss V = ((V(a2) > 2.5) && (V(b2) > 2.5) && (V(c2) > 2.5)) ? V(vdd) : 0.0
+B_y1 y1 vss V = ((V(a1,vss) > 2.5) && (V(b1,vss) > 2.5) && (V(c1,vss) > 2.5)) ? V(vdd,vss) : 0.0
+B_y2 y2 vss V = ((V(a2,vss) > 2.5) && (V(b2,vss) > 2.5) && (V(c2,vss) > 2.5)) ? V(vdd,vss) : 0.0
 R_pwr vdd vss 10Meg
 .ends CD4073_SUB`,
 
@@ -2376,8 +2436,8 @@ R_a1 a1 vss 1Meg
 R_b1 b1 vss 1Meg
 R_a2 a2 vss 1Meg
 R_b2 b2 vss 1Meg
-B_y1 y1 vss V = (!((V(a1) > 2.5) ^ (V(b1) > 2.5))) ? V(vdd) : 0.0
-B_y2 y2 vss V = (!((V(a2) > 2.5) ^ (V(b2) > 2.5))) ? V(vdd) : 0.0
+B_y1 y1 vss V = ((V(a1,vss) > 2.5) == (V(b1,vss) > 2.5)) ? V(vdd,vss) : 0.0
+B_y2 y2 vss V = ((V(a2,vss) > 2.5) == (V(b2,vss) > 2.5)) ? V(vdd,vss) : 0.0
 R_pwr vdd vss 10Meg
 .ends CD4077_SUB`,
 
@@ -2387,8 +2447,8 @@ R_a1 a1 vss 1Meg
 R_b1 b1 vss 1Meg
 R_a2 a2 vss 1Meg
 R_b2 b2 vss 1Meg
-B_y1 y1 vss V = ((V(a1) > 2.5) && (V(b1) > 2.5)) ? V(vdd) : 0.0
-B_y2 y2 vss V = ((V(a2) > 2.5) && (V(b2) > 2.5)) ? V(vdd) : 0.0
+B_y1 y1 vss V = ((V(a1,vss) > 2.5) && (V(b1,vss) > 2.5)) ? V(vdd,vss) : 0.0
+B_y2 y2 vss V = ((V(a2,vss) > 2.5) && (V(b2,vss) > 2.5)) ? V(vdd,vss) : 0.0
 R_pwr vdd vss 10Meg
 .ends CD4081_SUB`,
 
@@ -2398,8 +2458,8 @@ R_a1 a1 vss 1Meg
 R_b1 b1 vss 1Meg
 R_a2 a2 vss 1Meg
 R_b2 b2 vss 1Meg
-B_y1 y1 vss V = (!((V(a1) > 2.7) && (V(b1) > 2.7))) ? V(vdd) : 0.0
-B_y2 y2 vss V = (!((V(a2) > 2.7) && (V(b2) > 2.7))) ? V(vdd) : 0.0
+B_y1 y1 vss V = ((V(a1,vss) > 2.7) && (V(b1,vss) > 2.7)) ? 0.0 : V(vdd,vss)
+B_y2 y2 vss V = ((V(a2,vss) > 2.7) && (V(b2,vss) > 2.7)) ? 0.0 : V(vdd,vss)
 R_pwr vdd vss 10Meg
 .ends CD4093_SUB`,
 
@@ -2445,95 +2505,77 @@ D1 a k DBZX55C5V1_MOD
 .model DBZX55C5V1_MOD D(Is=1e-14 Bv=5.1 Ibv=1m Rs=2.0)
 .ends DBZX55C5V1_SUB`,
 
-  BJT_2N2222A_SUB: `* 2N2222A NPN BJT Model
-.subckt BJT_2N2222A_SUB b c e
-B_be ic_be b e I = 14.34f*(exp(V(b,e)/0.02585)-1)
-B_ice c e I = 250*I(B_be)
-Rb b e 1G
+  BJT_2N2222A_SUB: `.subckt BJT_2N2222A_SUB b c e
+Q1 c b e Q2N2222A
+.model Q2N2222A NPN(IS=14.34f BF=255.9 VAF=74.03 IKF=0.2847 NE=1.307 ISE=14.34f)
 .ends BJT_2N2222A_SUB`,
 
-  BJT_2N2907A_SUB: `* 2N2907A PNP BJT Model
-.subckt BJT_2N2907A_SUB b c e
-B_eb ic_eb e b I = 14.34f*(exp(V(e,b)/0.02585)-1)
-B_iec e c I = 200*I(B_eb)
-Rb e b 1G
+  BJT_2N2907A_SUB: `.subckt BJT_2N2907A_SUB b c e
+Q1 c b e Q2N2907A
+.model Q2N2907A PNP(IS=650.6e-18 BF=231.7 VAF=115.7 IKF=1.079)
 .ends BJT_2N2907A_SUB`,
 
-  BJT_2N3904_SUB: `* 2N3904 NPN BJT Model
-.subckt BJT_2N3904_SUB b c e
-B_be ic_be b e I = 1e-14*(exp(V(b,e)/0.02585)-1)
-B_ice c e I = 300*I(B_be)
-Rb b e 1G
+  BJT_2N3904_SUB: `.subckt BJT_2N3904_SUB b c e
+Q1 c b e Q2N3904
+.model Q2N3904 NPN(IS=6.734f BF=416.4 VAF=74.03 IKF=0.06678)
 .ends BJT_2N3904_SUB`,
 
-  BJT_2N3906_SUB: `* 2N3906 PNP BJT Model
-.subckt BJT_2N3906_SUB b c e
-B_eb ic_eb e b I = 1e-14*(exp(V(e,b)/0.02585)-1)
-B_iec e c I = 200*I(B_eb)
-Rb e b 1G
+  BJT_2N3906_SUB: `.subckt BJT_2N3906_SUB b c e
+Q1 c b e Q2N3906
+.model Q2N3906 PNP(IS=1.41f BF=180.7 VAF=18.7 IKF=0.08)
 .ends BJT_2N3906_SUB`,
 
-  BJT_BC547_SUB: `* BC547 NPN BJT Model
-.subckt BJT_BC547_SUB b c e
-B_be ic_be b e I = 1e-14*(exp(V(b,e)/0.02585)-1)
-B_ice c e I = 350*I(B_be)
-Rb b e 1G
+  BJT_BC547_SUB: `.subckt BJT_BC547_SUB b c e
+Q1 c b e QBC547
+.model QBC547 NPN(IS=7.049f BF=294.3 VAF=63.2 IKF=0.149)
 .ends BJT_BC547_SUB`,
 
-  BJT_BC557_SUB: `* BC557 PNP BJT Model
-.subckt BJT_BC557_SUB b c e
-B_eb ic_eb e b I = 1e-14*(exp(V(e,b)/0.02585)-1)
-B_iec e c I = 250*I(B_eb)
-Rb e b 1G
+  BJT_BC557_SUB: `.subckt BJT_BC557_SUB b c e
+Q1 c b e QBC557
+.model QBC557 PNP(IS=2.06e-14 BF=270 VAF=45)
 .ends BJT_BC557_SUB`,
 
-  BJT_BD139_SUB: `* BD139 NPN Power BJT Model
-.subckt BJT_BD139_SUB b c e
-B_be ic_be b e I = 1e-13*(exp(V(b,e)/0.02585)-1)
-B_ice c e I = 160*I(B_be)
-Rb b e 1G
+  BJT_BD139_SUB: `.subckt BJT_BD139_SUB b c e
+Q1 c b e QBD139
+.model QBD139 NPN(IS=2.3e-13 BF=115 VAF=80 RC=0.15)
 .ends BJT_BD139_SUB`,
 
-  BJT_BD140_SUB: `* BD140 PNP Power BJT Model
-.subckt BJT_BD140_SUB b c e
-B_eb ic_eb e b I = 1e-13*(exp(V(e,b)/0.02585)-1)
-B_iec e c I = 160*I(B_eb)
-Rb e b 1G
+  BJT_BD140_SUB: `.subckt BJT_BD140_SUB b c e
+Q1 c b e QBD140
+.model QBD140 PNP(IS=2.3e-13 BF=115 VAF=80 RC=0.15)
 .ends BJT_BD140_SUB`,
 
-  BJT_2N3055_SUB: `* 2N3055 15A Power NPN Model
-.subckt BJT_2N3055_SUB b c e
-B_be ic_be b e I = 1e-11*(exp(V(b,e)/0.02585)-1)
-B_ice c e I = 70*I(B_be)
-Rb b e 1G
+  BJT_2N3055_SUB: `.subckt BJT_2N3055_SUB b c e
+Q1 c b e Q2N3055
+.model Q2N3055 NPN(IS=9.74e-13 BF=73 VAF=50 IKF=2.5 RC=0.05)
 .ends BJT_2N3055_SUB`,
 
-  BJT_TIP31C_SUB: `* TIP31C 3A NPN BJT Model
-.subckt BJT_TIP31C_SUB b c e
-B_be ic_be b e I = 1e-12*(exp(V(b,e)/0.02585)-1)
-B_ice c e I = 50*I(B_be)
-Rb b e 1G
+  BJT_TIP31C_SUB: `.subckt BJT_TIP31C_SUB b c e
+Q1 c b e QTIP31C
+.model QTIP31C NPN(IS=1e-12 BF=65 VAF=60 IKF=1.2 RC=0.08)
 .ends BJT_TIP31C_SUB`,
 
-  BJT_TIP32C_SUB: `* TIP32C 3A PNP BJT Model
-.subckt BJT_TIP32C_SUB b c e
-B_eb ic_eb e b I = 1e-12*(exp(V(e,b)/0.02585)-1)
-B_iec e c I = 50*I(B_eb)
-Rb e b 1G
+  BJT_TIP32C_SUB: `.subckt BJT_TIP32C_SUB b c e
+Q1 c b e QTIP32C
+.model QTIP32C PNP(IS=1e-12 BF=65 VAF=60 IKF=1.2 RC=0.08)
 .ends BJT_TIP32C_SUB`,
 
-  BJT_TIP122_SUB: `* TIP122 NPN Darlington Model
-.subckt BJT_TIP122_SUB b c e
-B_be ic_be b e I = 1e-14*(exp(V(b,e)/0.0517)-1)
-B_ice c e I = 1000*I(B_be)
-Rb b e 1G
+  BJT_TIP122_SUB: `.subckt BJT_TIP122_SUB b c e
+Q1 c b b_mid QTIP122_DRV
+Q2 c b_mid e QTIP122_OUT
+R_be1 b b_mid 8k
+R_be2 b_mid e 120
+.model QTIP122_DRV NPN(IS=1e-14 BF=40 VAF=80)
+.model QTIP122_OUT NPN(IS=1e-14 BF=40 VAF=80 RC=0.05)
 .ends BJT_TIP122_SUB`,
 
-  BJT_TIP127_SUB: `* TIP127 PNP Darlington Model
-.subckt BJT_TIP127_SUB b c e
-B_eb ic_eb e b I = 1e-14*(exp(V(e,b)/0.0517)-1)
-B_iec e c I = 1000*I(B_eb)
-Rb e b 1G
+  BJT_TIP127_SUB: `.subckt BJT_TIP127_SUB b c e
+Q1 c b b_mid QTIP127_DRV
+Q2 c b_mid e QTIP127_OUT
+R_be1 b b_mid 8k
+R_be2 b_mid e 120
+.model QTIP127_DRV PNP(IS=1e-14 BF=40 VAF=80)
+.model QTIP127_OUT PNP(IS=1e-14 BF=40 VAF=80 RC=0.05)
 .ends BJT_TIP127_SUB`,
 
 

@@ -467,7 +467,7 @@ S_dis DIS GND dis_gate GND SMOD555
         const targetModel = customModels[modelName] ? modelName : 'LM358_MDL';
         netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} ${targetModel}\n`;
         if (targetModel === 'LM358_MDL') {
-          models.add(`.subckt LM358_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1Meg\nB1 OUT 0 V=(V(VCC)-V(VEE)-1.5)*tanh((V(IN+)-V(IN-))*200000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends LM358_MDL`);
+          models.add(`.subckt LM358_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1Meg\nB1 OUT 0 V=max(0,(V(VCC)-V(VEE))/2-1.5)*tanh((V(IN+)-V(IN-))*20000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends LM358_MDL`);
         }
       }
     }
@@ -495,7 +495,7 @@ S_dis DIS GND dis_gate GND SMOD555
         const targetModel = customModels[modelName] ? modelName : 'TL071_MDL';
         netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} ${targetModel}\n`;
         if (targetModel === 'TL071_MDL') {
-          models.add(`.subckt TL071_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1T\nB1 OUT 0 V=(V(VCC)-V(VEE)-2.5)*tanh((V(IN+)-V(IN-))*500000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends TL071_MDL`);
+          models.add(`.subckt TL071_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1T\nB1 OUT 0 V=max(0,(V(VCC)-V(VEE))/2-2.5)*tanh((V(IN+)-V(IN-))*50000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends TL071_MDL`);
         }
       }
     }
@@ -815,19 +815,19 @@ S_dis DIS GND dis_gate GND SMOD555
       
       if (val === 'VoltageRegulator7805') {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM7805_MODEL\n`;
-        models.add(`.SUBCKT LM7805_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>7) ? 5 : (V(IN,GND)-2)\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT LM7805_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>7) ? 5 : max(0, V(IN,GND)-2)\nR_out OUT 0 10Meg\n.ENDS`);
       } else if (val === 'VoltageRegulator7812') {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM7812_MODEL\n`;
-        models.add(`.SUBCKT LM7812_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>14) ? 12 : (V(IN,GND)-2)\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT LM7812_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>14) ? 12 : max(0, V(IN,GND)-2)\nR_out OUT 0 10Meg\n.ENDS`);
       } else if (val === 'VoltageRegulator7809') {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM7809_MODEL\n`;
-        models.add(`.SUBCKT LM7809_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>11) ? 9 : (V(IN,GND)-2)\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT LM7809_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>11) ? 9 : max(0, V(IN,GND)-2)\nR_out OUT 0 10Meg\n.ENDS`);
       } else if (val === 'VoltageRegulatorAMS1117') {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} AMS1117_MODEL\n`;
-        models.add(`.SUBCKT AMS1117_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>4.3) ? 3.3 : (V(IN,GND)-1)\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT AMS1117_MODEL IN OUT GND\nB_reg OUT GND V=(V(IN,GND)>4.3) ? 3.3 : max(0, V(IN,GND)-1)\nR_out OUT 0 10Meg\n.ENDS`);
       } else {
         netlist += `X_${comp.id} ${inNode} ${outNode} ${gndNode} LM317_MODEL\n`;
-        models.add(`.SUBCKT LM317_MODEL IN OUT ADJ\nB_reg OUT ADJ V=(V(IN,ADJ)>3) ? 1.25 : (V(IN,ADJ)*0.4)\nR_out OUT 0 10Meg\n.ENDS`);
+        models.add(`.SUBCKT LM317_MODEL IN OUT ADJ\nR_in IN 0 100Meg\nB_reg out_i 0 V=min(max(0,V(IN)-1.8),max(0,V(ADJ)+1.25))\nR_ser out_i OUT 0.05\nI_adj IN ADJ 50u\nR_out OUT 0 10Meg\n.ENDS`);
       }
     }
     else if (comp.type === 'BuckConverter') {
@@ -1073,7 +1073,7 @@ S_dis DIS GND dis_gate GND SMOD555
     }
     else if (comp.type === 'IC74HC86') {
       // 2-input XOR behavioral model
-      netlist += `B_${comp.id} ${nodes[2]} 0 V = ((V(${nodes[0]}) > 2.5) ^ (V(${nodes[1]}) > 2.5)) ? 5 : 0\n`;
+      netlist += `B_${comp.id} ${nodes[2]} 0 V = ((V(${nodes[0]}) > 2.5) != (V(${nodes[1]}) > 2.5)) ? 5 : 0\n`;
       netlist += `R_bias_${comp.id} ${nodes[2]} 0 1G\n`;
     }
     else if (comp.type === 'IC74HC138') {
@@ -1101,14 +1101,14 @@ S_dis DIS GND dis_gate GND SMOD555
       // Note: True edge-triggered behavior requires XSPICE A-devices not available in WASM ngspice.
       // This model approximates: Q follows D with a small RC delay, gated by CLK level.
       const qint = `qint_${comp.id}`;
-      models.add(`.subckt DFF D CLK Q QBAR\nRin D ${qint} 1k\nCdel ${qint} 0 1n\nBQ Q 0 V=limit(V(${qint})*10,0,5)\nBQB QBAR 0 V=5-limit(V(${qint})*10,0,5)\n.ends`);
+      models.add(`.subckt DFF D CLK Q QBAR\nRin D ${qint} 1k\nCdel ${qint} 0 1n\nBQ Q 0 V=min(max(V(${qint})*10,0),5)\nBQB QBAR 0 V=5-min(max(V(${qint})*10,0),5)\n.ends`);
       netlist += `X_${comp.id} ${d} ${clk} ${q} ${qbar} DFF\n`;
     }
     else if (comp.type === 'JKFlipFlop') {
       const j = nodes[0] || '0', clk = nodes[1] || '0', k = nodes[2] || '0', q = nodes[3] || '0', qbar = nodes[4] || '0';
       // Behavioral JK flip-flop approximation (continuous-time; not true edge-triggered)
       const qjk = `qjk_${comp.id}`;
-      models.add(`.subckt JKFF J CLK K Q QBAR\nRj J ${qjk} 1k\nCj ${qjk} 0 1n\nBQ Q 0 V=limit(V(${qjk})*10,0,5)\nBQB QBAR 0 V=5-limit(V(${qjk})*10,0,5)\n.ends`);
+      models.add(`.subckt JKFF J CLK K Q QBAR\nRj J ${qjk} 1k\nCj ${qjk} 0 1n\nBQ Q 0 V=min(max(V(${qjk})*10,0),5)\nBQB QBAR 0 V=5-min(max(V(${qjk})*10,0),5)\n.ends`);
       netlist += `X_${comp.id} ${j} ${clk} ${k} ${q} ${qbar} JKFF\n`;
     }
     else if (comp.type === 'SRFlipFlop') {
@@ -1118,13 +1118,13 @@ S_dis DIS GND dis_gate GND SMOD555
     }
     else if (comp.type === 'TFlipFlop') {
       const t = nodes[0] || '0', clk = nodes[1] || '0', q = nodes[2] || '0', qbar = nodes[3] || '0';
-      models.add(`.subckt DFF D CLK Q QBAR\nRin D qint 1k\nCdel qint 0 1n\nBQ Q 0 V=limit(V(qint)*10,0,5)\nBQB QBAR 0 V=5-limit(V(qint)*10,0,5)\n.ends`);
+      models.add(`.subckt DFF D CLK Q QBAR\nRin D qint 1k\nCdel qint 0 1n\nBQ Q 0 V=min(max(V(qint)*10,0),5)\nBQB QBAR 0 V=5-min(max(V(qint)*10,0),5)\n.ends`);
       models.add(`.subckt T_FF T CLK Q QBAR\nXdff D_int CLK Q QBAR DFF\nB_D D_int 0 V = V(T)>2.5 ? V(QBAR) : V(Q)\n.ends`);
       netlist += `X_${comp.id} ${t} ${clk} ${q} ${qbar} T_FF\n`;
     }
     else if (comp.type === 'IC74HC595') {
       const ser = nodes[0] || '0', srclk = nodes[1] || '0', rclk = nodes[2] || '0', qa = nodes[3] || '0';
-      models.add(`.subckt DFF D CLK Q QBAR\nRin D qint 1k\nCdel qint 0 1n\nBQ Q 0 V=limit(V(qint)*10,0,5)\nBQB QBAR 0 V=5-limit(V(qint)*10,0,5)\n.ends`);
+      models.add(`.subckt DFF D CLK Q QBAR\nRin D qint 1k\nCdel qint 0 1n\nBQ Q 0 V=min(max(V(qint)*10,0),5)\nBQB QBAR 0 V=5-min(max(V(qint)*10,0),5)\n.ends`);
       models.add(`.subckt IC74HC595_SIM SER SRCLK RCLK QA\nXdff SER SRCLK Q_sr Qbar_sr DFF\nXdff_out Q_sr RCLK QA Qbar_out DFF\n.ends`);
       netlist += `X_${comp.id} ${ser} ${srclk} ${rclk} ${qa} IC74HC595_SIM\n`;
     }

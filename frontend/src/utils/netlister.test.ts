@@ -154,7 +154,7 @@ describe('Netlister semantic correctness', () => {
     // Must NOT contain PSpice-only syntax
     expect(netlist).not.toContain('VALUE={IF(');
     // Must contain ngspice B-source ternary
-    expect(netlist).toMatch(/B_reg OUT GND V=\(V\(IN,GND\)>7\) \? 5 : \(V\(IN,GND\)-2\)/);
+    expect(netlist).toMatch(/B_reg OUT GND V=\(V\(IN,GND\)>7\) \? 5 : max\(0,\s*V\(IN,GND\)-2\)/);
   });
 
   it('ACCurrent already correctly emits AC token (regression guard)', () => {
