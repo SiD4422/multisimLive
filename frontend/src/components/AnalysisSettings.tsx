@@ -1,6 +1,11 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, GitCompare, Play } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
+import {
+  expandParametricSweep,
+  getDefaultSweepConfigForComponent,
+  isSweepableComponent,
+} from '../utils/parametricSweep';
 
 interface AnalysisSettingsProps {
   isOpen?: boolean;
@@ -21,6 +26,8 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
     acSettings, setAcSettings,
     dcSettings, setDcSettings,
     transientSettings, setTransientSettings,
+    parametricSweep, setParametricSweep,
+    runSimulation, isSimulating,
     components
   } = useSchematicStore();
 
@@ -29,6 +36,25 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
       .filter(c => c.type === 'ACSource' || c.type === 'DCSource')
       .map(c => c.id);
   }, [components]);
+
+  const sweepableComponents = React.useMemo(
+    () => components.filter((c) => isSweepableComponent(c)),
+    [components],
+  );
+
+  const selectedSweepComp = React.useMemo(
+    () => sweepableComponents.find((c) => c.id === parametricSweep.componentId) ?? sweepableComponents[0] ?? null,
+    [sweepableComponents, parametricSweep.componentId],
+  );
+
+  const sweepPreview = React.useMemo(() => {
+    if (!parametricSweep.enabled || !selectedSweepComp) return null;
+    const effectiveCfg =
+      parametricSweep.componentId === selectedSweepComp.id
+        ? parametricSweep
+        : { ...parametricSweep, componentId: selectedSweepComp.id };
+    return expandParametricSweep(effectiveCfg, selectedSweepComp.type);
+  }, [parametricSweep, selectedSweepComp]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', backgroundColor: '#fff' }}>
@@ -187,6 +213,146 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
                 placeholder="5"
               />
             </div>
+          </div>
+        )}
+
+        {/* Parametric Sweep (.step) Section */}
+        {analysisMode !== 'op' && (
+          <div style={{ marginBottom: '16px', padding: '12px', borderRadius: 10, border: `1px solid ${parametricSweep.enabled ? '#7dd3fc' : '#e5e7eb'}`, background: parametricSweep.enabled ? '#f0f9ff' : '#f9fafb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: parametricSweep.enabled ? 10 : 0 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#0f172a' }}>
+                <input
+                  type="checkbox"
+                  checked={parametricSweep.enabled}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    if (checked && selectedSweepComp && !parametricSweep.componentId) {
+                      setParametricSweep(getDefaultSweepConfigForComponent(selectedSweepComp));
+                    } else {
+                      setParametricSweep({ enabled: checked });
+                    }
+                  }}
+                />
+                <GitCompare size={14} style={{ color: '#0284c7' }} />
+                <span>Parametric Sweep (.step)</span>
+              </label>
+              {parametricSweep.enabled && sweepPreview && !sweepPreview.error && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#0369a1' }}>
+                  {sweepPreview.steps.length} step{sweepPreview.steps.length === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
+
+            {parametricSweep.enabled && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {sweepableComponents.length === 0 ? (
+                  <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>
+                    Place a resistor, capacitor, inductor, potentiometer, or source on the canvas to sweep its parameter.
+                  </p>
+                ) : (
+                  <>
+                    <div>
+                      <label className="input-label">Component</label>
+                      <select
+                        className="input-field"
+                        value={selectedSweepComp?.id || ''}
+                        onChange={(e) => {
+                          const target = sweepableComponents.find((c) => c.id === e.target.value);
+                          if (target) {
+                            setParametricSweep(getDefaultSweepConfigForComponent(target));
+                          }
+                        }}
+                      >
+                        {sweepableComponents.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.id} ({c.type}{c.value ? ` · ${c.value}` : ''})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {selectedSweepComp?.type === 'potentiometer' && (
+                      <div>
+                        <label className="input-label">Parameter</label>
+                        <select
+                          className="input-field"
+                          value={parametricSweep.parameter}
+                          onChange={(e) => {
+                            const param = e.target.value as 'value' | 'wiper_position';
+                            setParametricSweep(
+                              param === 'wiper_position'
+                                ? { parameter: 'wiper_position', start: '10', stop: '90', step: '20' }
+                                : { parameter: 'value', start: '5k', stop: '20k', step: '5k' },
+                            );
+                          }}
+                        >
+                          <option value="wiper_position">Wiper Position (%)</option>
+                          <option value="value">Total Resistance (Ω)</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ flex: 1 }}>
+                        <label className="input-label">Start</label>
+                        <input
+                          className="input-field"
+                          aria-label="Sweep Start"
+                          value={parametricSweep.start}
+                          onChange={(e) => setParametricSweep({ start: e.target.value })}
+                          placeholder="1k"
+                        />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label className="input-label">Stop</label>
+                        <input
+                          className="input-field"
+                          aria-label="Sweep Stop"
+                          value={parametricSweep.stop}
+                          onChange={(e) => setParametricSweep({ stop: e.target.value })}
+                          placeholder="10k"
+                        />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label className="input-label">Step</label>
+                        <input
+                          className="input-field"
+                          aria-label="Sweep Step"
+                          value={parametricSweep.step}
+                          onChange={(e) => setParametricSweep({ step: e.target.value })}
+                          placeholder="2k"
+                        />
+                      </div>
+                    </div>
+
+                    {sweepPreview?.error ? (
+                      <div style={{ fontSize: 11, color: '#dc2626', fontWeight: 600 }}>
+                        {sweepPreview.error}
+                      </div>
+                    ) : sweepPreview && sweepPreview.steps.length > 0 ? (
+                      <div style={{ fontSize: 11, color: '#0369a1', fontFamily: 'monospace', wordBreak: 'break-word' }}>
+                        Steps: {sweepPreview.steps.map((s) => s.label).join(', ')}
+                      </div>
+                    ) : null}
+
+                    <button
+                      type="button"
+                      disabled={isSimulating || Boolean(sweepPreview?.error)}
+                      onClick={() => void runSimulation(false)}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        padding: '8px 12px', borderRadius: 6, border: 'none',
+                        background: '#0284c7', color: '#fff', fontSize: 12, fontWeight: 700,
+                        cursor: isSimulating ? 'not-allowed' : 'pointer', opacity: isSimulating || sweepPreview?.error ? 0.65 : 1,
+                      }}
+                    >
+                      <Play size={13} fill="currentColor" />
+                      Run Parametric Sweep
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 

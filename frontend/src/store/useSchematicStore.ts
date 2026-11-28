@@ -1,10 +1,15 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { track } from '@vercel/analytics';
-import type { OpDataPoint, SimulationData, SpiceProgress } from '../utils/spiceTypes';
+import type { OpDataPoint, SimulationData, SpiceProgress, SweepMetadata } from '../utils/spiceTypes';
 import { generateNetlist, parseSpiceToFloat } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
 import { bindLiveSimulationStore, cancelLiveResimulation, scheduleLiveResimulation } from '../utils/liveSimulation';
+import {
+  getDefaultSweepConfigForComponent,
+  prepareParametricSweepNetlist,
+  type ParametricSweepConfig,
+} from '../utils/parametricSweep';
 
 export interface Point {
   x: number;
@@ -104,10 +109,15 @@ interface SchematicState {
   acSettings: { fStart: string; fStop: string; points: string };
   dcSettings: { source: string; start: string; stop: string; step: string };
   transientSettings: { endTime: string; step: string };
+  parametricSweep: ParametricSweepConfig;
+  configActiveTab: 'properties' | 'simulation';
   setAnalysisMode: (mode: 'transient' | 'ac' | 'dc' | 'op') => void;
   setAcSettings: (s: Partial<{ fStart: string; fStop: string; points: string }>) => void;
   setDcSettings: (s: Partial<{ source: string; start: string; stop: string; step: string }>) => void;
   setTransientSettings: (s: Partial<{ endTime: string; step: string }>) => void;
+  setParametricSweep: (s: Partial<ParametricSweepConfig>) => void;
+  setConfigActiveTab: (tab: 'properties' | 'simulation') => void;
+  openParametricSweepForComponent: (componentId: string) => void;
 
   addComponent: (comp: SchematicComponent) => void;
   updateComponentPosition: (id: string, pos: Point) => void;
@@ -216,6 +226,8 @@ export const useSchematicStore = create<SchematicState>()(
       acSettings: { fStart: '1', fStop: '1Meg', points: '100' },
       dcSettings: { source: 'V1', start: '0', stop: '5', step: '0.1' },
       transientSettings: { endTime: '10ms', step: '0.01ms' },
+      parametricSweep: { enabled: false, componentId: '', parameter: 'value', start: '1k', stop: '10k', step: '2k' },
+      configActiveTab: 'properties',
 
       customModels: {},
       customModelPorts: {},
@@ -367,6 +379,7 @@ export const useSchematicStore = create<SchematicState>()(
         ...(data.acSettings ? { acSettings: data.acSettings } : {}),
         ...(data.dcSettings ? { dcSettings: data.dcSettings } : {}),
         ...(data.transientSettings ? { transientSettings: data.transientSettings } : {}),
+        parametricSweep: { enabled: false, componentId: '', parameter: 'value', start: '1k', stop: '10k', step: '2k' },
       });
     } catch (e) {
       console.error("Failed to import state", e);
@@ -419,7 +432,7 @@ export const useSchematicStore = create<SchematicState>()(
   setIsConfigOpen: (isOpen) => set({ isConfigOpen: isOpen }),
   setAiDiagnosis: (d) => set({ aiDiagnosis: d }),
   setHighlightedComponentIds: (ids) => set({ highlightedComponentIds: ids }),
-  setSelectedComponent: (id) => set({ selectedComponentId: id, selectedWireId: null, selectedProbeId: null }),
+  setSelectedComponent: (id) => set({ selectedComponentId: id, selectedWireId: null, selectedProbeId: null, configActiveTab: 'properties' }),
   setSelectedWire: (id) => set({ selectedWireId: id, selectedComponentId: null, selectedProbeId: null }),
   setSelectedProbe: (id) => set({ selectedProbeId: id, selectedComponentId: null, selectedWireId: null }),
   setEditingComponentId: (id) => set({ editingComponentId: id }),
@@ -486,9 +499,24 @@ export const useSchematicStore = create<SchematicState>()(
   setAcSettings: (s) => set((state) => ({ acSettings: { ...state.acSettings, ...s } })),
   setDcSettings: (s) => set((state) => ({ dcSettings: { ...state.dcSettings, ...s } })),
   setTransientSettings: (s) => set((state) => ({ transientSettings: { ...state.transientSettings, ...s } })),
+  setParametricSweep: (s) => set((state) => ({ parametricSweep: { ...state.parametricSweep, ...s } })),
+  setConfigActiveTab: (tab) => set({ configActiveTab: tab }),
+  openParametricSweepForComponent: (componentId) => {
+    const comp = get().components.find((c) => c.id === componentId);
+    if (!comp) return;
+    const defaults = getDefaultSweepConfigForComponent(comp);
+    set({
+      selectedComponentId: componentId,
+      selectedWireId: null,
+      selectedProbeId: null,
+      parametricSweep: defaults,
+      isConfigOpen: true,
+      configActiveTab: 'simulation',
+    });
+  },
 
   runSimulation: async (isSilent = false) => {
-    const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings } = get();
+    const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings, parametricSweep } = get();
     
     if (!isSilent) track('Simulation_Run', { mode: analysisMode });
 
@@ -603,11 +631,21 @@ export const useSchematicStore = create<SchematicState>()(
         netlist = netlist.replace(/\.end\s*$/, `${analysisCmd}\n.end`);
       }
 
+      let sweepMeta: SweepMetadata | undefined;
+      if (parametricSweep.enabled && parametricSweep.componentId) {
+        if (analysisMode === 'op') {
+          throw new Error('Parametric Sweep (.step) requires Transient, AC Sweep, or DC Sweep analysis (switch away from .op).');
+        }
+        const prepared = prepareParametricSweepNetlist(netlist, components, parametricSweep);
+        netlist = prepared.netlist;
+        sweepMeta = prepared.sweepMeta;
+      }
+
       const data = await runSpiceSimulation(netlist, isSilent, (progress) => {
         if (!isSilent) {
           set({ simulationProgress: progress });
         }
-      });
+      }, sweepMeta);
 
       const isAcOrDc = analysisMode === 'ac' || analysisMode === 'dc';
       set((state) => {
@@ -625,6 +663,7 @@ export const useSchematicStore = create<SchematicState>()(
 
         const prevBuffer = state.simulationBuffer;
         const canKeepPrev =
+          !data.__sweepMeta &&
           prevBuffer &&
           prevBuffer.length > 0 &&
           data.length > 0 &&

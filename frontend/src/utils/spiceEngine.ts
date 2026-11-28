@@ -1,5 +1,5 @@
 // spiceEngine.ts
-import type { SpiceJob, SpiceProgress, SpiceResult } from './spiceTypes';
+import type { SpiceJob, SpiceProgress, SpiceResult, SweepMetadata } from './spiceTypes';
 
 let currentJobId = 0;
 let pendingJob: SpiceJob | null = null;
@@ -16,6 +16,7 @@ interface WorkerResponsePayload {
   __plotType?: string;
   __isComplex?: boolean;
   __variables?: unknown[];
+  __sweepMeta?: SweepMetadata;
   engineVersion?: string;
 }
 
@@ -29,7 +30,7 @@ function resetPersistentWorker(): void {
 }
 
 function handleWorkerMessage(e: MessageEvent): void {
-  const { id: incomingId, type, progress, data, error, __plotType, __isComplex, __variables, engineVersion } =
+  const { id: incomingId, type, progress, data, error, __plotType, __isComplex, __variables, __sweepMeta, engineVersion } =
     e.data as WorkerResponsePayload;
 
   if (!pendingJob || pendingJob.id !== incomingId) return;
@@ -48,6 +49,7 @@ function handleWorkerMessage(e: MessageEvent): void {
     if (__plotType) (data as SpiceResult).__plotType = __plotType as SpiceResult['__plotType'];
     if (__isComplex !== undefined) (data as SpiceResult).__isComplex = __isComplex;
     if (__variables) (data as SpiceResult).__variables = __variables as SpiceResult['__variables'];
+    if (__sweepMeta) (data as SpiceResult).__sweepMeta = __sweepMeta;
     if (engineVersion) (data as SpiceResult).__engineVersion = engineVersion;
 
     completedJob.resolve(data);
@@ -113,6 +115,7 @@ export async function runSpiceSimulation(
   netlist: string,
   isSilent = false,
   onProgress?: (progress: SpiceProgress) => void,
+  sweep?: SweepMetadata,
 ): Promise<SpiceResult> {
   // Pre-flight DRC: detect netlists that contain only voltage/current sources with no load.
   // Parse actual SPICE component lines (non-comment, non-directive lines starting with component letters).
@@ -161,6 +164,6 @@ export async function runSpiceSimulation(
 
     pendingJob = { id, resolve, reject, worker, timeoutId, onProgress };
     warmUpPosted = true;
-    worker.postMessage({ id, type: 'RUN', netlist });
+    worker.postMessage({ id, type: 'RUN', netlist, ...(sweep ? { sweep } : {}) });
   });
 }

@@ -47,6 +47,7 @@ import {
   getVoltageOrCurrentSliderSpec,
   scheduleLiveResimulation,
 } from '../utils/liveSimulation';
+import { isSweepableComponent } from '../utils/parametricSweep';
 
 function parseValueWithUnit(raw: string): { num: string; unit: string } {
   const m = raw.trim().match(/^([+-]?[\d.]+)\s*([kKmMuU\u00b5nNpP]?)(\u03a9|F|H|ohm|ohms?)?$/i);
@@ -186,18 +187,17 @@ const InputGroup = ({ label, value, onChange, placeholder, icon: Icon, type = 't
 // ── Main Merged Panel ─────────────────────────────────────────────────────────
 
 export const ComponentInspectorPanel: React.FC = () => {
-  const { components, selectedComponentId, isConfigOpen, setIsConfigOpen, updateComponentProperties, deleteComponent } = useSchematicStore();
-  const [activeTab, setActiveTab] = useState<'properties' | 'simulation'>('properties');
+  const {
+    components,
+    selectedComponentId,
+    isConfigOpen,
+    setIsConfigOpen,
+    updateComponentProperties,
+    deleteComponent,
+    configActiveTab: activeTab,
+    setConfigActiveTab: setActiveTab,
+  } = useSchematicStore();
   const activeComponent = components.find(c => c.id === selectedComponentId);
-
-  // Switch back to properties tab when a new component is selected via external store subscription
-  useEffect(() => {
-    return useSchematicStore.subscribe((state, prev) => {
-      if (state.selectedComponentId && state.selectedComponentId !== prev.selectedComponentId) {
-        setActiveTab('properties');
-      }
-    });
-  }, []);
 
   if (!isConfigOpen) return null;
 
@@ -853,6 +853,16 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
                     onMouseLeave={e => { (e.target as HTMLElement).style.backgroundColor = '#f9fafb'; (e.target as HTMLElement).style.color = '#6b7280'; }}
                   >
                     ⚡ Set Default Value ({DEFAULT_VALUES[activeComponent.type]})
+                  </button>
+                )}
+
+                {isSweepableComponent(activeComponent) && (
+                  <button
+                    type="button"
+                    onClick={() => useSchematicStore.getState().openParametricSweepForComponent(activeComponent.id)}
+                    style={{ marginTop: '8px', width: '100%', padding: '8px', fontSize: '12px', fontWeight: 700, border: '1px solid #bae6fd', borderRadius: '8px', cursor: 'pointer', backgroundColor: '#f0f9ff', color: '#0369a1', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  >
+                    Parametric Sweep (.step)
                   </button>
                 )}
               </div>

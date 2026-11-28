@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { getTouchPointer, getPinchState, computePinchTransform, type PinchState } from '../utils/touchAdapter';
 import { isEditableEventTarget } from '../utils/keyboardShortcuts';
+import { isSweepableComponent } from '../utils/parametricSweep';
 
 import type Konva from 'konva';
 import { Stage, Layer, Line, Group, Text, Circle, Rect, Path, Arc } from 'react-konva';
@@ -78,8 +79,9 @@ export default function SchematicEditor() {
   const updateComponentValue = useSchematicStore(s => s.updateComponentValue);
 
   const [selectionBox, setSelectionBox] = useState<{sx: number, sy: number, ex: number, ey: number} | null>(null);
-  // Right-click context menu for wire deletion
+  // Right-click context menu for wire deletion and component actions
   const [wireContextMenu, setWireContextMenu] = useState<{ wireId: string; x: number; y: number } | null>(null);
+  const [compContextMenu, setCompContextMenu] = useState<{ compId: string; x: number; y: number } | null>(null);
   // Hovered wire DC voltage tooltip
   const [hoveredWireInfo, setHoveredWireInfo] = useState<{
     wireId: string;
@@ -365,6 +367,8 @@ export default function SchematicEditor() {
         setTouchWireStart(null);
         setPendingComponent(null);
         setWireMode(false);
+        setWireContextMenu(null);
+        setCompContextMenu(null);
         setMousePos(null);
       }
       if (e.key === ' ') {
@@ -587,6 +591,7 @@ export default function SchematicEditor() {
     if (isBackground && !wirePoints) {
       clearSelection();
       setWireContextMenu(null); // dismiss context menu on background click
+      setCompContextMenu(null);
       if (touchWireStart) setTouchWireStart(null);
     }
     
@@ -1132,6 +1137,15 @@ export default function SchematicEditor() {
           }
         }}
         onDblClick={() => { setSelectedComponent(comp.id); setIsConfigOpen(true); }}
+        onContextMenu={(e) => {
+          e.evt.preventDefault();
+          e.cancelBubble = true;
+          const pos = e.target.getStage()?.getPointerPosition();
+          if (!pos) return;
+          setSelectedComponent(comp.id);
+          setWireContextMenu(null);
+          setCompContextMenu({ compId: comp.id, x: pos.x, y: pos.y });
+        }}
       >
         {el}
       </Group>
@@ -1781,6 +1795,102 @@ export default function SchematicEditor() {
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                 </svg>
               </button>
+            </div>
+          );
+        })()}
+
+        {/* Component right-click context menu */}
+        {compContextMenu && (() => {
+          const targetComp = components.find((c) => c.id === compContextMenu.compId);
+          if (!targetComp) return null;
+          const sweepable = isSweepableComponent(targetComp);
+          return (
+            <div
+              role="menu"
+              aria-label="Component context menu"
+              style={{
+                position: 'absolute',
+                left: compContextMenu.x,
+                top: compContextMenu.y,
+                background: '#fff',
+                border: '1px solid #e5e7eb',
+                borderRadius: 8,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.16)',
+                zIndex: 1000,
+                minWidth: 195,
+                overflow: 'hidden',
+              }}
+              onMouseLeave={() => setCompContextMenu(null)}
+            >
+              <div style={{ padding: '6px 0', fontSize: 13 }}>
+                <div style={{ padding: '4px 14px 6px', fontSize: 11, fontWeight: 700, color: '#64748b', borderBottom: '1px solid #f1f5f9' }}>
+                  {targetComp.id} ({targetComp.type})
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedComponent(targetComp.id);
+                    setIsConfigOpen(true);
+                    setCompContextMenu(null);
+                  }}
+                  style={{ width: '100%', textAlign: 'left', padding: '8px 14px', background: 'none', border: 'none', cursor: 'pointer', color: '#1e293b', fontWeight: 500 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f4f6')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                >
+                  Edit Properties
+                </button>
+                {sweepable && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      useSchematicStore.getState().openParametricSweepForComponent(targetComp.id);
+                      setCompContextMenu(null);
+                    }}
+                    style={{ width: '100%', textAlign: 'left', padding: '8px 14px', background: 'none', border: 'none', cursor: 'pointer', color: '#0284c7', fontWeight: 700 }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f9ff')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                  >
+                    Parametric Sweep (.step)
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateComponentRotation(targetComp.id, ((targetComp.rotation || 0) + 90) % 360);
+                    setCompContextMenu(null);
+                  }}
+                  style={{ width: '100%', textAlign: 'left', padding: '8px 14px', background: 'none', border: 'none', cursor: 'pointer', color: '#374151' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f4f6')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                >
+                  Rotate 90° (R)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    copyComponent(targetComp.id);
+                    setCompContextMenu(null);
+                  }}
+                  style={{ width: '100%', textAlign: 'left', padding: '8px 14px', background: 'none', border: 'none', cursor: 'pointer', color: '#374151' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f4f6')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                >
+                  Duplicate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    deleteComponent(targetComp.id);
+                    clearSelection();
+                    setCompContextMenu(null);
+                  }}
+                  style={{ width: '100%', textAlign: 'left', padding: '8px 14px', background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', fontWeight: 600 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           );
         })()}

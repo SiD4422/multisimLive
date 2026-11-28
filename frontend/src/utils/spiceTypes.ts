@@ -25,11 +25,24 @@ export interface OpDataPoint {
 /**
  * The result of a SPICE simulation � either transient/AC/DC data rows or OP data.
  */
+export interface SweepStepDescriptor {
+  stepIndex: number;
+  value: number;
+  label: string;
+}
+
+export interface SweepMetadata {
+  componentId: string;
+  parameter: string;
+  steps: SweepStepDescriptor[];
+}
+
 export type SpiceParsedOutput = (SpiceDataRow[] | OpDataPoint[]) & {
   __plotType?: 'transient' | 'ac' | 'dc' | 'op';
   __isComplex?: boolean;
   __variables?: string[];
   __engineVersion?: string;
+  __sweepMeta?: SweepMetadata;
 };
 
 export type SpiceResult = SpiceDataRow[] & {
@@ -37,6 +50,7 @@ export type SpiceResult = SpiceDataRow[] & {
   __isComplex?: boolean;
   __variables?: string[];
   __engineVersion?: string;
+  __sweepMeta?: SweepMetadata;
 };
 
 /**
@@ -104,5 +118,6 @@ export interface SimulationRow {
 export interface SimulationData extends Array<SimulationRow> {
   __plotType?: 'transient' | 'ac' | 'dc' | 'op';
   __engineVersion?: string;
+  __sweepMeta?: SweepMetadata;
 }
 

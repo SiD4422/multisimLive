@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import type { SimulationData, SimulationRow } from '../utils/spiceTypes';
+import type { SimulationData, SimulationRow, SweepMetadata } from '../utils/spiceTypes';
+import { getSweepTraceKey } from '../utils/parametricSweep';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { getSpiceNodeForPoint } from '../utils/netlister';
 import { computeFFT } from '../utils/fftAnalyzer';
@@ -528,13 +529,40 @@ function rowFromChartEvent(
   return Number.isFinite(idx) ? rows[idx] ?? null : null;
 }
 
+function expandRenderTraces(
+  traceList: string[],
+  sweepMeta: SweepMetadata | undefined,
+  colors: string[],
+  getLabel: (trace: string) => string,
+): Array<{ dataKey: string; name: string; color: string }> {
+  if (!sweepMeta || sweepMeta.steps.length === 0) {
+    return traceList.map((t, i) => ({
+      dataKey: t,
+      name: getLabel(t),
+      color: colors[i % colors.length],
+    }));
+  }
+  const expanded: Array<{ dataKey: string; name: string; color: string }> = [];
+  traceList.forEach((t, ti) => {
+    const baseLabel = getLabel(t);
+    sweepMeta.steps.forEach((step, si) => {
+      expanded.push({
+        dataKey: getSweepTraceKey(t, step.stepIndex),
+        name: `${baseLabel} (${sweepMeta.componentId}=${step.label})`,
+        color: colors[(ti * sweepMeta.steps.length + si) % colors.length],
+      });
+    });
+  });
+  return expanded;
+}
+
 function BodePlot({
-  data, traces, ghostTraces = [], probeMap, isOscilloscope,
+  data, traces, ghostTraces = [], sweepMeta, probeMap, isOscilloscope,
   isCursorMode, cursorA, cursorB, hoverRow,
   onChartClick, onChartMouseMove, onChartMouseLeave,
   isDigitalMode
 }: { 
-  data: SimulationData; traces: string[]; ghostTraces?: string[]; probeMap: Record<string, string>; isOscilloscope: boolean;
+  data: SimulationData; traces: string[]; ghostTraces?: string[]; sweepMeta?: SweepMetadata; probeMap: Record<string, string>; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
   setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
   onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
@@ -610,13 +638,13 @@ function BodePlot({
                 />
               );
             })()}
-            {dbTraces.filter((t) => ghostTraces.includes(t)).map((t, i) => (
+            {dbTraces.filter((t) => !sweepMeta && ghostTraces.includes(t)).map((t, i) => (
               <Line key={getGhostDataKey(t)} name={`${getDisplayName(t)} (prev)`} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={getGhostDataKey(t)}
                 stroke={colors[i % colors.length]} strokeOpacity={0.35} strokeDasharray="4 4" dot={false} strokeWidth={1.75} isAnimationActive={false} connectNulls />
             ))}
-            {dbTraces.map((t, i) => (
-              <Line key={t} name={getDisplayName(t)} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
-                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
+            {expandRenderTraces(dbTraces, sweepMeta, colors, getDisplayName).map((item) => (
+              <Line key={item.dataKey} name={item.name} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={item.dataKey}
+                stroke={item.color} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} />
             ))}
           </LineChart>
         </ResponsiveContainer>
@@ -641,13 +669,13 @@ function BodePlot({
             {isCursorMode && cursorA && Number.isFinite(cursorA.frequency as number) && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && Number.isFinite(cursorB.frequency as number) && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow.frequency as number) && <ReferenceLine x={hoverRow.frequency} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
-            {phaseTraces.filter((t) => ghostTraces.includes(t)).map((t, i) => (
+            {phaseTraces.filter((t) => !sweepMeta && ghostTraces.includes(t)).map((t, i) => (
               <Line key={getGhostDataKey(t)} name={`${getDisplayName(t)} phase (prev)`} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={getGhostDataKey(t)}
                 stroke={colors[i % colors.length]} strokeOpacity={0.3} strokeDasharray="3 5" dot={false} strokeWidth={1.5} isAnimationActive={false} connectNulls />
             ))}
-            {phaseTraces.map((t, i) => (
-              <Line key={t} name={getDisplayName(t) + ' phase'} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
-                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} strokeDasharray="5 3" isAnimationActive={false}  />
+            {expandRenderTraces(phaseTraces, sweepMeta, colors, (t) => `${getDisplayName(t)} phase`).map((item) => (
+              <Line key={item.dataKey} name={item.name} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={item.dataKey}
+                stroke={item.color} dot={false} strokeWidth={isOscilloscope ? 3 : 2} strokeDasharray="5 3" isAnimationActive={false} />
             ))}
           </LineChart>
         </ResponsiveContainer>
@@ -660,14 +688,14 @@ function BodePlot({
 // âš¡âš¡ DC Sweep Plot âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡Ã¢â€â‚¬
 
 function DcSweepPlot({
-  data, traces, ghostTraces = [], sweepKey, probeMap, isOscilloscope,
+  data, traces, ghostTraces = [], sweepMeta, sweepKey, probeMap, isOscilloscope,
   isCursorMode, cursorA, cursorB, hoverRow,
   onChartClick, onChartMouseMove, onChartMouseLeave,
   isDigitalMode,
   mathExpressions,
   onRemoveExpression
 }: { 
-  data: SimulationData; traces: string[]; ghostTraces?: string[]; sweepKey: string; probeMap: Record<string, string>; isOscilloscope: boolean;
+  data: SimulationData; traces: string[]; ghostTraces?: string[]; sweepMeta?: SweepMetadata; sweepKey: string; probeMap: Record<string, string>; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
   setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
   onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
@@ -744,20 +772,17 @@ function DcSweepPlot({
             {isCursorMode && cursorA && Number.isFinite(cursorA[sweepKey] as number) && <ReferenceLine x={cursorA[sweepKey]} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && Number.isFinite(cursorB[sweepKey] as number) && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow[sweepKey] as number) && <ReferenceLine x={hoverRow[sweepKey]} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
-            {traces.filter((t) => ghostTraces.includes(t)).map((t, i) => {
+            {traces.filter((t) => !sweepMeta && ghostTraces.includes(t)).map((t, i) => {
               const displayName = probeMap[t] || probeMap[t.toLowerCase()] || formatTraceName(t);
               return (
               <Line key={getGhostDataKey(t)} name={`${displayName} (prev)`} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={getGhostDataKey(t)}
                 stroke={colors[i % colors.length]} strokeOpacity={0.35} strokeDasharray="4 4" dot={false} strokeWidth={1.75} isAnimationActive={false} connectNulls />
               );
             })}
-            {traces.map((t, i) => {
-              const displayName = probeMap[t] || probeMap[t.toLowerCase()] || formatTraceName(t);
-              return (
-              <Line key={t} name={displayName} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
-                stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
-              );
-            })}
+            {expandRenderTraces(traces, sweepMeta, colors, (t) => probeMap[t] || probeMap[t.toLowerCase()] || formatTraceName(t)).map((item) => (
+              <Line key={item.dataKey} name={item.name} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={item.dataKey}
+                stroke={item.color} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} />
+            ))}
             {mathExpressions?.map((expr) => (
               <Line
                 key={expr.id}
@@ -793,14 +818,14 @@ function DcSweepPlot({
 // âš¡âš¡ Transient Plot âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡
 
 function TransientPlot({
-  data, traces, ghostTraces = [], probeMap, playbackTime, isOscilloscope,
+  data, traces, ghostTraces = [], sweepMeta, probeMap, playbackTime, isOscilloscope,
   isCursorMode, cursorA, cursorB, hoverRow,
   onChartClick, onChartMouseMove, onChartMouseLeave,
   isDigitalMode,
   mathExpressions,
   onRemoveExpression
 }: {
-  data: SimulationData; traces: string[]; ghostTraces?: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
+  data: SimulationData; traces: string[]; ghostTraces?: string[]; sweepMeta?: SweepMetadata; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
   setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
   onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
@@ -927,20 +952,17 @@ function TransientPlot({
               {isCursorMode && cursorA && Number.isFinite(cursorA.time as number) && <ReferenceLine x={cursorA.time} stroke="#ff0000" strokeWidth={2} />}
               {isCursorMode && cursorB && Number.isFinite(cursorB.time as number) && <ReferenceLine x={cursorB.time} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
               {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow.time as number) && <ReferenceLine x={hoverRow.time} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
-              {traces.filter((traceName) => ghostTraces.includes(traceName)).map((traceName, idx) => {
+              {traces.filter((traceName) => !sweepMeta && ghostTraces.includes(traceName)).map((traceName, idx) => {
                 const displayName = probeMap[traceName] || probeMap[traceName.toLowerCase()] || formatTraceName(traceName);
                 return (
                   <Line key={getGhostDataKey(traceName)} name={`${displayName} (prev)`} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={getGhostDataKey(traceName)}
                     stroke={colors[idx % colors.length]} strokeOpacity={0.35} strokeDasharray="4 4" dot={false} strokeWidth={1.75} isAnimationActive={false} connectNulls />
                 );
               })}
-              {traces.map((traceName, idx) => {
-                const displayName = probeMap[traceName] || probeMap[traceName.toLowerCase()] || formatTraceName(traceName);
-                return (
-                  <Line key={traceName} name={displayName} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={traceName}
-                    stroke={colors[idx % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} filter={isOscilloscope ? 'url(#glow)' : undefined} />
-                );
-              })}
+              {expandRenderTraces(traces, sweepMeta, colors, (traceName) => probeMap[traceName] || probeMap[traceName.toLowerCase()] || formatTraceName(traceName)).map((item) => (
+                <Line key={item.dataKey} name={item.name} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={item.dataKey}
+                  stroke={item.color} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false} filter={isOscilloscope ? 'url(#glow)' : undefined} />
+              ))}
               {mathExpressions?.map((expr) => (
                 <Line
                   key={expr.id}
@@ -1348,10 +1370,12 @@ export default function Grapher() {
     return { traces: [], sweepKey: timeKey };
   }, [displayData, probes, probeMap, simulationBuffer]);
 
-  const { rows: displayDataWithGhost, ghostTraces } = useMemo(
-    () => mergeGhostTraces(displayDataWithExpr, displayPrevData, sweepKey, traces),
-    [displayDataWithExpr, displayPrevData, sweepKey, traces],
-  );
+  const { rows: displayDataWithGhost, ghostTraces } = useMemo(() => {
+    if (simulationBuffer?.__sweepMeta) {
+      return { rows: displayDataWithExpr, ghostTraces: [] as string[] };
+    }
+    return mergeGhostTraces(displayDataWithExpr, displayPrevData, sweepKey, traces);
+  }, [simulationBuffer, displayDataWithExpr, displayPrevData, sweepKey, traces]);
 
   // ⚡⚡ Render ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
 
@@ -1397,20 +1421,23 @@ export default function Grapher() {
   };
 
   // FFT view overrides the normal plot for transient mode
+  const sweepMeta = simulationBuffer?.__sweepMeta;
+
   if (showFft && plotType === 'transient') {
     PlotComponent = (
       <FftPlot simulationBuffer={simulationBuffer!} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} />
     );
   } else if (plotType === 'ac') {
-    PlotComponent = <BodePlot data={displayDataWithGhost} traces={traces} ghostTraces={ghostTraces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
+    PlotComponent = <BodePlot data={displayDataWithGhost} traces={traces} ghostTraces={ghostTraces} sweepMeta={sweepMeta} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
   } else if (plotType === 'dc') {
-    PlotComponent = <DcSweepPlot data={displayDataWithGhost} traces={traces} ghostTraces={ghostTraces} sweepKey={sweepKey} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} mathExpressions={mathExpressions} onRemoveExpression={handleRemoveExpression} {...cursorProps} />;
+    PlotComponent = <DcSweepPlot data={displayDataWithGhost} traces={traces} ghostTraces={ghostTraces} sweepMeta={sweepMeta} sweepKey={sweepKey} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} mathExpressions={mathExpressions} onRemoveExpression={handleRemoveExpression} {...cursorProps} />;
   } else {
     PlotComponent = (
       <TransientPlot
         data={displayDataWithGhost}
         traces={traces}
         ghostTraces={ghostTraces}
+        sweepMeta={sweepMeta}
         probeMap={probeMap}
         playbackTime={playbackTime}
         isOscilloscope={isOscilloscope}
@@ -1764,6 +1791,20 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
               ×
             </button>
           </div>
+        )}
+
+        {sweepMeta && (
+          <span
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              padding: '3px 9px', borderRadius: 6,
+              background: '#f0f9ff', border: '1px solid #bae6fd',
+              color: '#0369a1', fontSize: 11, fontWeight: 700,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            .step {sweepMeta.componentId} ({sweepMeta.steps.length} steps)
+          </span>
         )}
 
         {isLiveUpdating && (

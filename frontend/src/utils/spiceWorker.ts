@@ -15,8 +15,9 @@ if (typeof self !== 'undefined') {
   }
 }
 
-import type { NgspiceModule, OpDataPoint, SpiceDataRow, SpiceParsedOutput } from './spiceTypes';
+import type { NgspiceModule, OpDataPoint, SpiceDataRow, SpiceParsedOutput, SweepMetadata } from './spiceTypes';
 import { createNgspiceInstancePool, type ProgressReporter } from './spiceInstancePool';
+import { mergeParametricSweepOutputs } from './parametricSweep';
 
 interface RawParserRow extends SpiceDataRow {
   __parsedVars?: number;
@@ -279,7 +280,11 @@ function injectRelaxedOptions(netlist: string): string {
 
 // Core: run ngspice on an isolated one-shot module instance and return parsed data.
 // Throws on any failure.
-async function runNgspice(instance: NgspiceModule, fullNetlist: string): Promise<SpiceParsedOutput> {
+async function runNgspiceInternal(
+  instance: NgspiceModule,
+  fullNetlist: string,
+  sweep?: SweepMetadata,
+): Promise<SpiceParsedOutput> {
   instance.FS.writeFile('/circuit.cir', fullNetlist);
   try {
     instance.FS.mkdir('/proc');
@@ -320,22 +325,67 @@ async function runNgspice(instance: NgspiceModule, fullNetlist: string): Promise
     }
   }
 
-  let outputRaw: string;
-  try {
-    outputRaw = instance.FS.readFile('/output.raw', { encoding: 'utf8' });
-  } catch (err) {
-    throw new Error('No output.raw found. Simulation may have failed or singular matrix encountered.', { cause: err });
+  let outputFilesData: SpiceParsedOutput;
+  if (!sweep || sweep.steps.length === 0) {
+    let outputRaw: string;
+    try {
+      outputRaw = instance.FS.readFile('/output.raw', { encoding: 'utf8' });
+    } catch (err) {
+      throw new Error('No output.raw found. Simulation may have failed or singular matrix encountered.', { cause: err });
+    }
+
+    outputFilesData = parseRawFile(outputRaw);
+    if (outputFilesData.length === 0) {
+      throw new Error('Simulation produced no data points. The circuit might have a floating node, missing Ground, or a singular matrix.');
+    }
+    return outputFilesData;
   }
 
-  const data = parseRawFile(outputRaw);
-  if (data.length === 0) {
-    throw new Error('Simulation produced no data points. The circuit might have a floating node, missing Ground, or a singular matrix.');
+  const stepOutputs: SpiceParsedOutput[] = [];
+  for (const step of sweep.steps) {
+    let stepRaw: string;
+    try {
+      stepRaw = instance.FS.readFile(`/step_${step.stepIndex}.raw`, { encoding: 'utf8' });
+    } catch (err) {
+      throw new Error(`Parametric sweep failed at step ${step.label}. No raw output produced.`, { cause: err });
+    }
+    const parsedStep = parseRawFile(stepRaw);
+    if (parsedStep.length === 0) {
+      throw new Error(`Parametric sweep step ${step.label} produced no data points.`);
+    }
+    stepOutputs.push(parsedStep);
   }
-  return data;
+  return mergeParametricSweepOutputs(stepOutputs, sweep);
 }
 
-self.addEventListener('message', async (e: MessageEvent<{ id?: number; type?: 'WARMUP' | 'RUN'; netlist?: string }>) => {
-  const { id, type, netlist } = e.data;
+function buildSweepControlBlock(sweep: SweepMetadata): string {
+  const stepCmds = sweep.steps
+    .map(
+      (step) =>
+        `alterparam SWEEP_VAL=${step.value}\nreset\nrun\nwrite /step_${step.stepIndex}.raw`,
+    )
+    .join('\n');
+  return `.control\nset filetype=ascii\n${stepCmds}\n.endc`;
+}
+
+function appendControlBlock(netlist: string, sweep?: SweepMetadata): string {
+  const control = sweep && sweep.steps.length > 0
+    ? buildSweepControlBlock(sweep)
+    : '.control\nrun\nset filetype=ascii\nwrite /output.raw\n.endc';
+  const trimmed = netlist.trim().replace(/^\.end\b\s*$/im, '').trimEnd();
+  return `${trimmed}\n${control}\n.end\n`;
+}
+
+async function runNgspiceWithSweep(
+  instance: NgspiceModule,
+  fullNetlist: string,
+  sweep?: SweepMetadata,
+): Promise<SpiceParsedOutput> {
+  return runNgspiceInternal(instance, fullNetlist, sweep);
+}
+
+self.addEventListener('message', async (e: MessageEvent<{ id?: number; type?: 'WARMUP' | 'RUN'; netlist?: string; sweep?: SweepMetadata }>) => {
+  const { id, type, netlist, sweep } = e.data;
   if (type === 'WARMUP') {
     ngspicePool.prewarm();
     return;
@@ -351,17 +401,17 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; type?: 'W
     const { instance: firstInstance } = await ngspicePool.acquire(reportProgress);
     acquiredAttempt1 = true;
 
-    let fullNetlist = netlist.trim();
-    if (!fullNetlist.startsWith('Circuit') && !fullNetlist.startsWith('*')) {
-      fullNetlist = 'Circuit\n' + fullNetlist;
+    let baseNetlist = netlist.trim();
+    if (!baseNetlist.startsWith('Circuit') && !baseNetlist.startsWith('*')) {
+      baseNetlist = 'Circuit\n' + baseNetlist;
     }
-    fullNetlist += '\n.control\nrun\nset filetype=ascii\nwrite /output.raw\n.endc\n';
+    const fullNetlist = appendControlBlock(baseNetlist, sweep);
 
     // ── Attempt 1: standard simulation ──────────────────────────────────
     let originalError: string;
     try {
-      reportProgress('solving', 75, 'Solving circuit MNA matrix...');
-      const data = await runNgspice(firstInstance, fullNetlist);
+      reportProgress('solving', 75, sweep ? `Running ${sweep.steps.length}-step parametric sweep...` : 'Solving circuit MNA matrix...');
+      const data = await runNgspiceWithSweep(firstInstance, fullNetlist, sweep);
       reportProgress('parsing', 95, 'Finalizing waveforms...');
       // Success — send result immediately
       self.postMessage({
@@ -371,6 +421,7 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; type?: 'W
         __plotType: data.__plotType,
         __isComplex: data.__isComplex,
         __variables: data.__variables,
+        __sweepMeta: data.__sweepMeta,
         engineVersion: detectedNgspiceVersion,
       });
       return;
@@ -390,7 +441,7 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; type?: 'W
 
     const relaxedNetlist = injectRelaxedOptions(fullNetlist);
     try {
-      const data = await runNgspice(retryInstance, relaxedNetlist);
+      const data = await runNgspiceWithSweep(retryInstance, relaxedNetlist, sweep);
       reportProgress('parsing', 95, 'Finalizing waveforms...');
       // Retry success — send with warning
       self.postMessage({
@@ -400,6 +451,7 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; type?: 'W
         __plotType: data.__plotType,
         __isComplex: data.__isComplex,
         __variables: data.__variables,
+        __sweepMeta: data.__sweepMeta,
         __warning: 'Simulation converged with relaxed tolerances. Results may be slightly less accurate.',
         engineVersion: detectedNgspiceVersion,
       });

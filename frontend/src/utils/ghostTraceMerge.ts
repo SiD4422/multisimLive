@@ -11,7 +11,7 @@ export function getGhostDataKey(traceKey: string): string {
  * Returns `undefined` when `targetX` is outside the previous run's domain or data is missing.
  */
 export function interpolateTraceAtX(
-  sortedRows: SimulationRow[],
+  sortedRows: ReadonlyArray<Record<string, number | undefined>>,
   xKey: string,
   traceKey: string,
   targetX: number,
@@ -22,7 +22,7 @@ export function interpolateTraceAtX(
 
   const minX = sortedRows[0]?.[xKey];
   const maxX = sortedRows[sortedRows.length - 1]?.[xKey];
-  if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
+  if (typeof minX !== 'number' || !Number.isFinite(minX) || typeof maxX !== 'number' || !Number.isFinite(maxX)) {
     return undefined;
   }
 
@@ -35,7 +35,7 @@ export function interpolateTraceAtX(
 
   if (sortedRows.length === 1) {
     const singleVal = sortedRows[0][traceKey];
-    return Number.isFinite(singleVal) ? singleVal : undefined;
+    return typeof singleVal === 'number' && Number.isFinite(singleVal) ? singleVal : undefined;
   }
 
   let lo = 0;
@@ -43,7 +43,7 @@ export function interpolateTraceAtX(
   while (hi - lo > 1) {
     const mid = (lo + hi) >> 1;
     const midX = sortedRows[mid]?.[xKey];
-    if (!Number.isFinite(midX)) break;
+    if (typeof midX !== 'number' || !Number.isFinite(midX)) break;
     if ((ascending && midX <= targetX) || (!ascending && midX >= targetX)) {
       lo = mid;
     } else {
@@ -58,8 +58,15 @@ export function interpolateTraceAtX(
   const y0 = r0?.[traceKey];
   const y1 = r1?.[traceKey];
 
-  if (!Number.isFinite(x0) || !Number.isFinite(x1) || !Number.isFinite(y0) || !Number.isFinite(y1)) {
-    return Number.isFinite(y0) ? y0 : Number.isFinite(y1) ? y1 : undefined;
+  if (
+    typeof x0 !== 'number' || !Number.isFinite(x0) ||
+    typeof x1 !== 'number' || !Number.isFinite(x1) ||
+    typeof y0 !== 'number' || !Number.isFinite(y0) ||
+    typeof y1 !== 'number' || !Number.isFinite(y1)
+  ) {
+    if (typeof y0 === 'number' && Number.isFinite(y0)) return y0;
+    if (typeof y1 === 'number' && Number.isFinite(y1)) return y1;
+    return undefined;
   }
 
   const span = x1 - x0;
