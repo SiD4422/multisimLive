@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, ChevronRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Search, ChevronRight, X } from 'lucide-react';
 import { 
   IconProbeVoltage, IconProbeCurrent,
   IconGround, IconConnector, IconJunction,
@@ -310,10 +310,24 @@ const renderIcon = (type: string, sizeOverride?: { width?: number; height?: numb
   }
 };
 
-export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbed: _isEmbed }: ComponentPaletteProps) {
+export function ComponentPalette({ isOpen, onToggle, onSelect, isEmbed: _isEmbed }: ComponentPaletteProps) {
   const [activeTab, setActiveTab] = useState<TabType>('Basic');
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [longPressedKey, setLongPressedKey] = useState<string | null>(null);
+  const touchGestureRef = useRef<{ x: number; y: number; timerId: ReturnType<typeof setTimeout> | null; handledLongPress: boolean }>({
+    x: 0,
+    y: 0,
+    timerId: null,
+    handledLongPress: false,
+  });
+
+  useEffect(() => {
+    const gesture = touchGestureRef.current;
+    return () => {
+      if (gesture.timerId) clearTimeout(gesture.timerId);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -329,6 +343,14 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
 
   const handleSelectComponent = (type: string, value: string) => {
     onSelect(type, value);
+  };
+
+  const clearLongPressTimer = () => {
+    if (touchGestureRef.current.timerId) {
+      clearTimeout(touchGestureRef.current.timerId);
+      touchGestureRef.current.timerId = null;
+    }
+    setLongPressedKey(null);
   };
 
   const cleanQuery = searchQuery.trim().toLowerCase();
@@ -396,8 +418,29 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
       }}
     >
       <div style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f8fafc' }}>
-        <div style={{ fontWeight: 600, fontSize: 14, color: '#1e293b', marginBottom: 12 }}>
-          Component Library
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ fontWeight: 600, fontSize: 14, color: '#1e293b' }}>
+            Component Library
+          </div>
+          <button
+            type="button"
+            onClick={onToggle}
+            className="mobile-drawer-close"
+            aria-label="Close Component Library"
+            style={{
+              background: '#e2e8f0',
+              border: 'none',
+              borderRadius: 6,
+              width: 30,
+              height: 30,
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#334155',
+            }}
+          >
+            <X size={16} />
+          </button>
         </div>
         
         <div style={{ position: 'relative', marginBottom: 12 }}>
@@ -445,7 +488,7 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
         )}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }} className="custom-scrollbar">
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px', touchAction: 'pan-y' }} className="custom-scrollbar">
         {displaySections.map(section => {
           const collapsed = collapsedSections[section.category];
           return (
@@ -503,16 +546,49 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
                     const stubNote = getPinoutStubNote(comp.type);
                     const baseBg = isStub ? '#fffbeb' : '#f8fafc';
                     const baseBorder = isStub ? '#fde68a' : '#e2e8f0';
+                    const cardKey = comp.type + comp.label;
+                    const isLongPressed = longPressedKey === cardKey;
                     return (
                     <div
-                      key={comp.type + comp.label}
+                      key={cardKey}
                       draggable
                       onDragStart={(e) => handleDragStart(e, comp.type, comp.value)}
-                      onClick={() => handleSelectComponent(comp.type, comp.value)}
-                      onTouchStart={(e) => {
-                        e.preventDefault();
+                      onClick={() => {
+                        if (touchGestureRef.current.handledLongPress) {
+                          touchGestureRef.current.handledLongPress = false;
+                          return;
+                        }
                         handleSelectComponent(comp.type, comp.value);
                       }}
+                      onTouchStart={(e) => {
+                        const touch = e.touches[0];
+                        if (!touch) return;
+                        clearLongPressTimer();
+                        touchGestureRef.current.x = touch.clientX;
+                        touchGestureRef.current.y = touch.clientY;
+                        touchGestureRef.current.handledLongPress = false;
+                        touchGestureRef.current.timerId = setTimeout(() => {
+                          touchGestureRef.current.handledLongPress = true;
+                          touchGestureRef.current.timerId = null;
+                          setLongPressedKey(cardKey);
+                          if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                            navigator.vibrate(15);
+                          }
+                          handleSelectComponent(comp.type, comp.value);
+                        }, 280);
+                      }}
+                      onTouchMove={(e) => {
+                        const touch = e.touches[0];
+                        if (!touch) return;
+                        if (
+                          Math.abs(touch.clientX - touchGestureRef.current.x) > 8 ||
+                          Math.abs(touch.clientY - touchGestureRef.current.y) > 8
+                        ) {
+                          clearLongPressTimer();
+                        }
+                      }}
+                      onTouchEnd={() => clearLongPressTimer()}
+                      onTouchCancel={() => clearLongPressTimer()}
                       style={{
                         position: 'relative',
                         display: 'flex',
@@ -522,12 +598,13 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
                         gap: 5,
                         padding: '10px 4px 8px',
                         borderRadius: 8,
-                        background: baseBg,
-                        border: `1px solid ${baseBorder}`,
+                        background: isLongPressed ? '#dcfce7' : baseBg,
+                        border: `1px solid ${isLongPressed ? '#16a34a' : baseBorder}`,
                         cursor: 'pointer',
                         fontSize: 11,
                         textAlign: 'center',
                         userSelect: 'none',
+                        touchAction: 'pan-y',
                         transition: 'all 0.15s',
                         minHeight: '78px',
                       }}

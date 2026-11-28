@@ -64,20 +64,20 @@ export function StatusBar({ onShare }: { onShare?: () => void }) {
             </span>
           )}
         </div>
-        <span style={{ color: '#1e293b' }}>|</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span className="statusbar-desktop-only" style={{ color: '#1e293b' }}>|</span>
+        <div className="statusbar-desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <Zap size={10} style={{ color: '#4ade80' }} />
           <span style={{ color: '#4ade80' }}>ngspice (WASM)</span>
         </div>
-        <span style={{ color: '#1e293b' }}>|</span>
-        <span>Components: <span style={{ color: '#94a3b8' }}>{components.length}</span></span>
-        <span>Wires: <span style={{ color: '#94a3b8' }}>{wires.length}</span></span>
+        <span className="statusbar-desktop-only" style={{ color: '#1e293b' }}>|</span>
+        <span className="statusbar-desktop-only">Components: <span style={{ color: '#94a3b8' }}>{components.length}</span></span>
+        <span className="statusbar-desktop-only">Wires: <span style={{ color: '#94a3b8' }}>{wires.length}</span></span>
       </div>
 
       {/* Right */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#64748b' }}>
         {status === 'done' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#22c55e' }}>
+          <div className="statusbar-desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#22c55e' }}>
             <CheckCircle2 size={10} />
             <span>Simulation completed</span>
           </div>

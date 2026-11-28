@@ -2,7 +2,7 @@
 import SEO from '../components/SEO';
 
 import LZString from 'lz-string';
-import { MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, PanelLeftClose, PanelLeftOpen, FileCode, X, FolderOpen, CheckCircle2, AlertTriangle, BookOpen, Globe } from 'lucide-react';
+import { MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, PanelLeftClose, PanelLeftOpen, FileCode, X, FolderOpen, CheckCircle2, AlertTriangle, BookOpen, Globe, Play, Square, RotateCw, Activity, Loader2 } from 'lucide-react';
 import { importSpiceNetlist, looksLikeSpiceNetlist } from '../utils/spiceImporter';
 import SchematicEditor from '../components/SchematicEditor';
 import { useSchematicStore } from '../store/useSchematicStore';
@@ -63,9 +63,9 @@ class GrapherErrorBoundary extends React.Component<{children: React.ReactNode}, 
 
 function Simulator() {
   const { 
-    components, wires, probes, undo, redo, past, future, scale, setScale,
-    setPendingComponent,
-    runSimulation, isSimulating, simulationProgress, exportState, importState,
+    components, wires, probes, undo, redo, past, future, scale, setScale, setStagePos,
+    setPendingComponent, selectedComponentId, updateComponentRotation,
+    runSimulation, stopSimulation, isSimulating, isPlaying, simulationProgress, exportState, importState,
     isConfigOpen, setIsConfigOpen,
     simulationError, analysisMode
   } = useSchematicStore();
@@ -77,7 +77,7 @@ function Simulator() {
   const [isEmbedModalOpen, setIsEmbedModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const isEmbed = new URLSearchParams(window.location.search).get('embed') === 'true';
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth > 640);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth > 768);
   const [activeView, setActiveView] = useState<'schematic' | 'grapher' | 'split'>('schematic');
   const [toast, setToast] = useState<{message: string, type: 'success' | 'warning'} | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
@@ -389,7 +389,10 @@ function Simulator() {
 
   const handleSelectComponent = (type: string, value: string) => {
     setPendingComponent({ type, value });
-    
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      setIsSidebarOpen(false);
+      setActiveView('schematic');
+    }
   };
 
   const handleSave = () => {
@@ -605,10 +608,12 @@ function Simulator() {
         {/* Toggle sidebar */}
         <button
           title="Toggle Component Palette"
+          aria-label="Toggle Component Library"
+          aria-expanded={isSidebarOpen}
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: '32px', height: '32px', background: 'transparent',
+            width: '34px', height: '34px', background: 'transparent',
             border: '1px solid transparent', borderRadius: '6px',
             cursor: 'pointer', color: 'rgba(255,255,255,0.7)', flexShrink: 0,
             transition: 'all 0.12s ease', marginRight: '8px',
@@ -620,7 +625,7 @@ function Simulator() {
         </button>
 
         {/* Mode badge */}
-        <div style={{
+        <div className="sim-desktop-only" style={{
           display: 'flex', alignItems: 'center', gap: '4px',
           padding: '3px 10px', borderRadius: '4px',
           background: 'rgba(255,255,255,0.08)',
@@ -632,7 +637,9 @@ function Simulator() {
           Interactive
         </div>
 
-        <React.Suspense fallback={null}><SimulationControls drcIssues={drcIssues} onRun={handleRunSimulation} /></React.Suspense>
+        <div className="sim-desktop-only" style={{ display: 'flex', alignItems: 'center' }}>
+          <React.Suspense fallback={null}><SimulationControls drcIssues={drcIssues} onRun={handleRunSimulation} /></React.Suspense>
+        </div>
 
         {/* View tabs */}
         <div style={{ display: 'flex', marginLeft: '8px', gap: '2px' }}>
@@ -642,7 +649,7 @@ function Simulator() {
           <div className={`tab ${activeView === 'grapher' ? 'active' : ''}`} onClick={() => setActiveView('grapher')}>
             Grapher
           </div>
-          <div className={`tab ${activeView === 'split' ? 'active' : ''}`} onClick={() => setActiveView('split')}>
+          <div className={`tab sim-split-tab ${activeView === 'split' ? 'active' : ''}`} onClick={() => setActiveView('split')}>
             Split
           </div>
         </div>
@@ -836,6 +843,97 @@ function Simulator() {
 
       {/* Status Bar */}
       <StatusBar onShare={handleShare} />
+
+      {/* Mobile Bottom Action Toolbar (≤ 768px) */}
+      <nav className="mobile-bottom-bar" aria-label="Mobile Simulator Actions">
+        <button
+          type="button"
+          className={`mobile-bar-btn ${isSidebarOpen ? 'active' : ''}`}
+          aria-label="Parts"
+          onClick={() => {
+            setIsSidebarOpen(o => !o);
+            setActiveView('schematic');
+          }}
+        >
+          {isSidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+          <span>Parts</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-bar-btn mobile-bar-primary ${isPlaying ? 'stop' : 'run'}`}
+          aria-label={isPlaying ? 'Stop Simulation' : 'Run Simulation'}
+          disabled={isSimulating}
+          onClick={() => {
+            if (isPlaying) {
+              stopSimulation();
+            } else {
+              handleRunSimulation();
+            }
+          }}
+        >
+          {isSimulating ? (
+            <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+          ) : isPlaying ? (
+            <Square size={16} fill="currentColor" />
+          ) : (
+            <Play size={16} fill="currentColor" />
+          )}
+          <span>{isSimulating ? 'Running' : isPlaying ? 'Stop' : 'Run'}</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-bar-btn ${activeView === 'grapher' ? 'active' : ''}`}
+          aria-label={activeView === 'grapher' ? 'Switch to Schematic' : 'Switch to Grapher'}
+          onClick={() => setActiveView(activeView === 'grapher' ? 'schematic' : 'grapher')}
+        >
+          {activeView === 'grapher' ? <MousePointer2 size={18} /> : <Activity size={18} />}
+          <span>{activeView === 'grapher' ? 'Circuit' : 'Grapher'}</span>
+        </button>
+
+        <button
+          type="button"
+          className="mobile-bar-btn"
+          aria-label={selectedComponentId ? 'Rotate selected component' : 'Reset canvas zoom'}
+          onClick={() => {
+            if (selectedComponentId) {
+              const sel = components.find(c => c.id === selectedComponentId);
+              if (sel) {
+                updateComponentRotation(sel.id, ((sel.rotation || 0) + 90) % 360);
+              }
+            } else {
+              setScale(0.9);
+              setStagePos({ x: 0, y: 0 });
+            }
+          }}
+        >
+          {selectedComponentId ? <RotateCw size={18} /> : <ZoomIn size={18} />}
+          <span>{selectedComponentId ? 'Rotate' : 'Fit View'}</span>
+        </button>
+
+        <button
+          type="button"
+          className="mobile-bar-btn"
+          aria-label="Undo last action"
+          disabled={past.length === 0}
+          style={{ opacity: past.length > 0 ? 1 : 0.4 }}
+          onClick={undo}
+        >
+          <Undo size={18} />
+          <span>Undo</span>
+        </button>
+
+        <button
+          type="button"
+          className={`mobile-bar-btn ${isConfigOpen ? 'active' : ''}`}
+          aria-label="Settings and Inspector"
+          onClick={() => setIsConfigOpen(!isConfigOpen)}
+        >
+          <Settings size={18} />
+          <span>Settings</span>
+        </button>
+      </nav>
 
       {/* Keyboard Shortcuts Modal */}
       {isShortcutModalOpen && (

@@ -967,8 +967,73 @@ body {
   }
 }
 
-/* ── Mobile Responsive Overrides (≤ 640px) ────────────────────── */
-@media (max-width: 640px) {
+/* ── Mobile Responsive Overrides (≤ 768px) ────────────────────── */
+.mobile-drawer-close,
+.mobile-bottom-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sim-desktop-only,
+  .sim-split-tab,
+  .statusbar-desktop-only,
+  .floating-toolbar {
+    display: none !important;
+  }
+
+  .mobile-drawer-close {
+    display: flex !important;
+  }
+
+  .mobile-bottom-bar {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px));
+    background: #0f172a;
+    border-top: 1px solid #1e293b;
+    min-height: 54px;
+    flex-shrink: 0;
+    z-index: 45;
+  }
+
+  .mobile-bar-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 2px;
+    transition: all 0.12s ease;
+  }
+
+  .mobile-bar-btn.active {
+    background: rgba(34, 197, 94, 0.14);
+    border-color: rgba(34, 197, 94, 0.35);
+    color: #4ade80;
+  }
+
+  .mobile-bar-primary.run {
+    background: #16a34a;
+    color: #ffffff;
+    border-color: #22c55e;
+  }
+
+  .mobile-bar-primary.stop {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #ef4444;
+  }
+
   /* Header: clean single-row horizontal scrolling on mobile (no vertical viewport crush) */
   .header-top {
     height: 44px;
@@ -1031,15 +1096,16 @@ body {
     left: 0;
     bottom: 0;
     height: 100% !important;
-    width: 260px;
-    max-width: 82vw;
+    width: 280px;
+    max-width: 85vw;
     z-index: 40;
     box-shadow: 4px 0 16px rgba(0, 0, 0, 0.45);
     transform: translateX(0);
   }
 
-  /* Canvas wrapper always fills full area — never collapses */
+  /* Canvas & Grapher wrappers always fill full area cleanly on mobile */
   #canvas-wrapper,
+  #grapher-wrapper,
   .canvas-container {
     width: 100% !important;
     min-height: 200px;
@@ -1057,7 +1123,7 @@ body {
 .mobile-palette-backdrop {
   display: none;
 }
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .mobile-palette-backdrop {
     display: block;
     position: absolute;

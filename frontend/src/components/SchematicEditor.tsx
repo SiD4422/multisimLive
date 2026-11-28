@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { getTouchPointer, getPinchState, type PinchState } from '../utils/touchAdapter';
+import { getTouchPointer, getPinchState, computePinchTransform, type PinchState } from '../utils/touchAdapter';
 
 import type Konva from 'konva';
 import { Stage, Layer, Line, Group, Text, Circle, Rect, Path, Arc } from 'react-konva';
@@ -86,9 +86,10 @@ export default function SchematicEditor() {
   } | null>(null);
   // Hovered pin for glow effect during wire drawing
   const [hoveredPinPos, setHoveredPinPos] = useState<Point | null>(null);
-  // Mobile Touch Tap-to-Connect state & pulse indicator
+  // Mobile Touch Tap-to-Connect & Pinch state
   const [touchWireStart, setTouchWireStart] = useState<Point | null>(null);
   const [touchPulseScale, setTouchPulseScale] = useState(1.0);
+  const [isPinching, setIsPinching] = useState(false);
   const shiftHeldRef = useRef(false);
   const hasWarnedPinoutStubRef = useRef(false);
 
@@ -475,6 +476,75 @@ export default function SchematicEditor() {
   }, [wirePoints, mousePos, wireDirOverride]);
 
 
+  const placePendingComponentAt = useCallback((placePos: Point) => {
+    const currentPending = useSchematicStore.getState().pendingComponent;
+    if (!currentPending) return false;
+    const typeStr = currentPending.type;
+
+    if (typeStr === 'ProbeVoltage' || typeStr === 'ProbeCurrent' || typeStr === 'ProbeDigital') {
+      const id = `PR${useSchematicStore.getState().probes.length + 1}`;
+      let probeType = 'Voltage';
+      if (typeStr === 'ProbeCurrent') probeType = 'Current';
+      if (typeStr === 'ProbeDigital') probeType = 'Digital';
+      useSchematicStore.getState().addProbe({
+        id,
+        type: probeType,
+        position: placePos,
+      });
+      setPendingComponent(null);
+      return true;
+    }
+
+    let prefix = 'U';
+    if (typeStr === 'Resistor' || typeStr === 'Potentiometer' || typeStr === 'potentiometer' || typeStr === 'Load') prefix = 'R';
+    else if (typeStr === 'Capacitor') prefix = 'C';
+    else if (typeStr === 'Fuse') prefix = 'F';
+    else if (typeStr === 'Inductor') prefix = 'L';
+    else if (typeStr === 'Diode' || typeStr === 'DiodeZener' || typeStr === 'DiodeSchottky' || typeStr === 'LED' || typeStr === 'BridgeRectifier') prefix = 'D';
+    else if (typeStr === 'TransistorNPN' || typeStr === 'TransistorPNP' || typeStr === 'IGBT') prefix = 'Q';
+    else if (typeStr === 'MosfetN' || typeStr === 'MosfetP') prefix = 'M';
+    else if (typeStr === 'JFET') prefix = 'J';
+    else if (typeStr === 'SwitchSPST' || typeStr === 'switch_spst' || typeStr === 'SPDTSwitch' || typeStr === 'PushButton' || typeStr === 'Relay') prefix = 'S';
+    else if (typeStr.includes('Opamp') || typeStr.includes('Comparator')) prefix = 'U';
+    else if (typeStr === 'Timer555') prefix = 'A';
+    else if (typeStr.includes('Voltage') || (typeStr.includes('Source') && !typeStr.includes('Current')) || typeStr.includes('Phase') || typeStr.includes('Noise')) prefix = 'V';
+    else if (typeStr.includes('Current')) prefix = 'I';
+    else if (typeStr.startsWith('Transformer') || typeStr === 'Transformers') prefix = 'T';
+    else if (typeStr === 'CoupledInductors') prefix = 'K';
+    else if (typeStr === 'LosslessTransmissionLine') prefix = 'T';
+    else if (typeStr === 'LossyTransmissionLine') prefix = 'O';
+    else if (typeStr === 'Resistors') prefix = 'RN';
+    else if (typeStr === 'Ground') prefix = 'GND';
+    else if (typeStr === 'NetLabel') prefix = 'LBL';
+
+    let nextNum = 1;
+    while (components.some(c => c.id === `${prefix}${nextNum}`)) {
+      nextNum++;
+    }
+
+    const libComp = standardICLibrary.find(c => c.id === typeStr);
+    addComponent({
+      id: `${prefix}${nextNum}`,
+      type: typeStr,
+      position: placePos,
+      value: currentPending.value,
+      rotation: 0,
+      props: libComp ? { ...libComp.defaultProps } : undefined,
+    });
+    const stubNote = getPinoutStubNote(typeStr);
+    if (stubNote && !hasWarnedPinoutStubRef.current) {
+      hasWarnedPinoutStubRef.current = true;
+      window.dispatchEvent(new CustomEvent('nodesim-toast', {
+        detail: {
+          message: `${libComp?.name || typeStr} is a pinout stub (no functional SPICE model): provides schematic pin layout and passive terminal loads only.`,
+          type: 'warning',
+        },
+      }));
+    }
+    setPendingComponent(null);
+    return true;
+  }, [components, addComponent, setPendingComponent]);
+
   const handleStageMouseDown = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
     // Right click cancels everything
     if ('button' in e.evt && e.evt.button === 2) {
@@ -490,72 +560,7 @@ export default function SchematicEditor() {
       return;
     }
 
-    const currentPending = useSchematicStore.getState().pendingComponent;
-    if (currentPending && mousePos) {
-      const typeStr = currentPending.type;
-      
-      if (typeStr === 'ProbeVoltage' || typeStr === 'ProbeCurrent' || typeStr === 'ProbeDigital') {
-        const id = `PR${useSchematicStore.getState().probes.length + 1}`;
-        let probeType = 'Voltage';
-        if (typeStr === 'ProbeCurrent') probeType = 'Current';
-        if (typeStr === 'ProbeDigital') probeType = 'Digital';
-        useSchematicStore.getState().addProbe({
-          id,
-          type: probeType,
-          position: mousePos
-        });
-        setPendingComponent(null);
-        return;
-      }
-
-      let prefix = 'U'; // Fallback IC
-      if (typeStr === 'Resistor' || typeStr === 'Potentiometer' || typeStr === 'potentiometer' || typeStr === 'Load') prefix = 'R';
-      else if (typeStr === 'Capacitor') prefix = 'C';
-      else if (typeStr === 'Fuse') prefix = 'F';
-      else if (typeStr === 'Inductor') prefix = 'L';
-      else if (typeStr === 'Diode' || typeStr === 'DiodeZener' || typeStr === 'DiodeSchottky' || typeStr === 'LED' || typeStr === 'BridgeRectifier') prefix = 'D';
-      else if (typeStr === 'TransistorNPN' || typeStr === 'TransistorPNP' || typeStr === 'IGBT') prefix = 'Q';
-      else if (typeStr === 'MosfetN' || typeStr === 'MosfetP') prefix = 'M';
-      else if (typeStr === 'JFET') prefix = 'J';
-      else if (typeStr === 'SwitchSPST' || typeStr === 'switch_spst' || typeStr === 'SPDTSwitch' || typeStr === 'PushButton' || typeStr === 'Relay') prefix = 'S';
-      else if (typeStr.includes('Opamp') || typeStr.includes('Comparator')) prefix = 'U';
-      else if (typeStr === 'Timer555') prefix = 'A';
-      else if (typeStr.includes('Voltage') || (typeStr.includes('Source') && !typeStr.includes('Current')) || typeStr.includes('Phase') || typeStr.includes('Noise')) prefix = 'V';
-      else if (typeStr.includes('Current')) prefix = 'I';
-      else if (typeStr.startsWith('Transformer') || typeStr === 'Transformers') prefix = 'T';
-      else if (typeStr === 'CoupledInductors') prefix = 'K';
-      else if (typeStr === 'LosslessTransmissionLine') prefix = 'T';
-      else if (typeStr === 'LossyTransmissionLine') prefix = 'O';
-      else if (typeStr === 'Resistors') prefix = 'RN';
-      else if (typeStr === 'Ground') prefix = 'GND';
-
-      let nextNum = 1;
-      while (components.some(c => c.id === `${prefix}${nextNum}`)) {
-        nextNum++;
-      }
-
-      const defaultRotation = 0;
-      const libComp = standardICLibrary.find(c => c.id === typeStr);
-
-      addComponent({
-        id: `${prefix}${nextNum}`,
-        type: typeStr,
-        position: mousePos,
-        value: currentPending.value,
-        rotation: defaultRotation,
-        props: libComp ? { ...libComp.defaultProps } : undefined
-      });
-      const stubNote = getPinoutStubNote(typeStr);
-      if (stubNote && !hasWarnedPinoutStubRef.current) {
-        hasWarnedPinoutStubRef.current = true;
-        window.dispatchEvent(new CustomEvent('nodesim-toast', {
-          detail: {
-            message: `${libComp?.name || typeStr} is a pinout stub (no functional SPICE model): provides schematic pin layout and passive terminal loads only.`,
-            type: 'warning',
-          },
-        }));
-      }
-      setPendingComponent(null);
+    if (mousePos && placePendingComponentAt(mousePos)) {
       return;
     }
 
@@ -569,8 +574,8 @@ export default function SchematicEditor() {
     }
     
     if (!wirePoints || !mousePos) {
-      // Start rubber-band selection if clicking on empty canvas
-      if (!wirePoints && !pendingComponent && mousePos && isBackground) {
+      // Start rubber-band selection on desktop mouse drag only (touch pan uses Stage.draggable)
+      if (!isTouchInteraction(e) && !wirePoints && !pendingComponent && mousePos && isBackground) {
         setSelectionBox({ sx: mousePos.x, sy: mousePos.y, ex: mousePos.x, ey: mousePos.y });
       }
       return;
@@ -608,7 +613,7 @@ export default function SchematicEditor() {
     } else {
        setWirePoints([...wirePoints, corner, mousePos]);
     }
-  }, [touchWireStart, setPendingComponent, clearSelection, wirePoints, mousePos, pendingComponent, hoveredPinPos, findNearestPin, getPreviewPoints, addWire, addComponent, components]);
+  }, [touchWireStart, setPendingComponent, clearSelection, wirePoints, mousePos, pendingComponent, hoveredPinPos, findNearestPin, getPreviewPoints, addWire, placePendingComponentAt]);
 
   const handleStageDoubleClick = (_e: Konva.KonvaEventObject<MouseEvent>) => {
     if (wirePoints && wirePoints.length > 1) {
@@ -724,7 +729,11 @@ export default function SchematicEditor() {
   const handleTouchStart = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     const nativeEvt: TouchEvent = e.evt;
     nativeEvt.preventDefault();
+    const stage = stageRef.current;
+
     if (nativeEvt.touches.length === 2) {
+      stage?.stopDrag();
+      setIsPinching(true);
       lastPinchRef.current = getPinchState(nativeEvt.touches);
       return;
     }
@@ -732,29 +741,39 @@ export default function SchematicEditor() {
     if (!pointer) return;
     lastTouchRef.current = { x: pointer.clientX, y: pointer.clientY };
 
-    const stage = stageRef.current;
     if (stage) {
-      const stagePointer = stage.getPointerPosition();
-      if (stagePointer) {
-        const relX = (stagePointer.x - stage.x()) / scale;
-        const relY = (stagePointer.y - stage.y()) / scale;
-        const nearestPin = findNearestPin({ x: relX, y: relY }, PIN_SNAP_RADIUS_TOUCH);
+      const rect = stage.container().getBoundingClientRect();
+      const stagePointer = stage.getPointerPosition() ?? {
+        x: pointer.clientX - rect.left,
+        y: pointer.clientY - rect.top,
+      };
+      const relX = (stagePointer.x - stage.x()) / scale;
+      const relY = (stagePointer.y - stage.y()) / scale;
 
-        if (nearestPin) {
-          // Tapped on or near a pin
-          handleTouchTap(nearestPin);
-          return;
-        } else if (touchWireStart) {
-          // Tap anywhere else cancels wire drawing
-          setTouchWireStart(null);
-          return;
-        }
+      if (useSchematicStore.getState().pendingComponent) {
+        const snapPos = {
+          x: Math.round(relX / SNAP_GRID) * SNAP_GRID,
+          y: Math.round(relY / SNAP_GRID) * SNAP_GRID,
+        };
+        placePendingComponentAt(snapPos);
+        return;
+      }
+
+      const nearestPin = findNearestPin({ x: relX, y: relY }, PIN_SNAP_RADIUS_TOUCH);
+      if (nearestPin) {
+        // Tapped on or near a pin
+        handleTouchTap(nearestPin);
+        return;
+      } else if (touchWireStart) {
+        // Tap anywhere else cancels wire drawing
+        setTouchWireStart(null);
+        return;
       }
     }
 
     // Simulate mousedown on the stage
     handleStageMouseDown(e);
-  }, [handleStageMouseDown, scale, touchWireStart, findNearestPin, handleTouchTap]);
+  }, [handleStageMouseDown, scale, touchWireStart, findNearestPin, handleTouchTap, placePendingComponentAt]);
 
   const handleTouchMove = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     const nativeEvt: TouchEvent = e.evt;
@@ -762,38 +781,48 @@ export default function SchematicEditor() {
 
     // Pinch-to-zoom
     if (nativeEvt.touches.length === 2) {
-      const pinch = getPinchState(nativeEvt.touches);
-      if (!pinch || !lastPinchRef.current) return;
-      const pinchRatio = pinch.distance / lastPinchRef.current.distance;
       const stage = stageRef.current;
-      if (!stage) return;
-      const oldScale = scale;
-      const newScale = Math.min(Math.max(oldScale * pinchRatio, 0.1), 5);
-      const centerX = pinch.centerX - stage.container().getBoundingClientRect().left;
-      const centerY = pinch.centerY - stage.container().getBoundingClientRect().top;
-      const mousePointTo = {
-        x: centerX / oldScale - stage.x() / oldScale,
-        y: centerY / oldScale - stage.y() / oldScale,
-      };
-      setScale(newScale);
-      setStagePos({
-        x: -(mousePointTo.x - centerX / newScale) * newScale,
-        y: -(mousePointTo.y - centerY / newScale) * newScale,
-      });
+      const pinch = getPinchState(nativeEvt.touches);
+      if (!stage || !pinch) return;
+      if (!lastPinchRef.current) {
+        stage.stopDrag();
+        setIsPinching(true);
+        lastPinchRef.current = pinch;
+        return;
+      }
+      const next = computePinchTransform(
+        lastPinchRef.current,
+        pinch,
+        scale,
+        stagePos,
+        stage.container().getBoundingClientRect(),
+        0.25,
+        4,
+      );
+      setScale(next.scale);
+      setStagePos(next.stagePos);
       lastPinchRef.current = pinch;
       return;
     }
+
+    if (isPinching) return;
 
     // Auto-pan when dragging near canvas edge
     applyEdgeAutoPan(e);
 
     // Single-finger pan / wire drawing
     handleMouseMove(e);
-  }, [scale, setScale, setStagePos, handleMouseMove, applyEdgeAutoPan]);
+  }, [scale, stagePos, isPinching, setScale, setStagePos, handleMouseMove, applyEdgeAutoPan]);
 
-  const handleTouchEnd = useCallback((_e: Konva.KonvaEventObject<TouchEvent>) => {
-    lastPinchRef.current = null;
-    lastTouchRef.current = null;
+  const handleTouchEnd = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
+    const remainingTouches = e.evt?.touches?.length ?? 0;
+    if (remainingTouches < 2) {
+      lastPinchRef.current = null;
+      setIsPinching(false);
+    }
+    if (remainingTouches === 0) {
+      lastTouchRef.current = null;
+    }
     handleStageMouseUp();
 
     // If user touched Pin 1 and dragged to Pin 2 on touch screen
@@ -1155,7 +1184,7 @@ export default function SchematicEditor() {
           x={stagePos.x}
           y={stagePos.y}
           style={{ touchAction: 'none' }}
-          draggable={!wirePoints && !pendingComponent && !touchWireStart}
+          draggable={!isPinching && !wirePoints && !pendingComponent && !touchWireStart}
           onDragStart={() => setHoveredWireInfo(null)}
           onDragEnd={(e) => {
             if (e.target === stageRef.current) {
@@ -1531,6 +1560,51 @@ export default function SchematicEditor() {
           />
         )}
 
+        {/* Mobile Tap-to-Place Guidance Banner */}
+        {pendingComponent && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 10,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 95,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              background: 'rgba(15, 23, 42, 0.92)',
+              color: '#f8fafc',
+              border: '1px solid rgba(34, 197, 94, 0.45)',
+              borderRadius: 999,
+              padding: '6px 12px',
+              fontSize: 12,
+              fontWeight: 600,
+              boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+              maxWidth: 'calc(100% - 24px)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span>Tap canvas to place {pendingComponent.value || pendingComponent.type}</span>
+            <button
+              type="button"
+              onClick={() => setPendingComponent(null)}
+              aria-label="Cancel component placement"
+              style={{
+                background: 'rgba(255,255,255,0.12)',
+                border: 'none',
+                color: '#cbd5e1',
+                borderRadius: 999,
+                padding: '2px 8px',
+                cursor: 'pointer',
+                fontSize: 11,
+                fontWeight: 700,
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
         {/* Mobile Component Context Menu */}
         {(() => {
           let compId = null;
@@ -1545,9 +1619,10 @@ export default function SchematicEditor() {
           const comp = components.find(c => c.id === compId);
           if (!comp) return null;
           
-          const screenX = comp.position.x * scale + stagePos.x;
-          // Position slightly above the component
-          const screenY = comp.position.y * scale + stagePos.y - (40 * scale) - 20;
+          const rawX = comp.position.x * scale + stagePos.x;
+          const rawY = comp.position.y * scale + stagePos.y - (40 * scale) - 20;
+          const screenX = dimensions.width > 0 ? Math.min(Math.max(rawX, 68), dimensions.width - 68) : rawX;
+          const screenY = dimensions.height > 0 ? Math.min(Math.max(rawY, 54), dimensions.height - 72) : rawY;
 
           return (
             <div
@@ -1568,6 +1643,30 @@ export default function SchematicEditor() {
               }}
             >
               <button
+                type="button"
+                aria-label="Inspect or edit component properties"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsConfigOpen(true);
+                }}
+                style={{
+                  background: 'transparent', border: 'none', color: '#93c5fd',
+                  cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: '4px'
+                }}
+                title="Edit Properties"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
+                  <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
+                  <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
+                </svg>
+              </button>
+              <div style={{ width: '1px', background: '#374151', margin: '4px 2px' }}></div>
+              <button
+                type="button"
+                aria-label="Rotate component 90 degrees"
                 onClick={(e) => {
                   e.stopPropagation();
                   const cur = comp.rotation || 0;
@@ -1575,7 +1674,7 @@ export default function SchematicEditor() {
                 }}
                 style={{
                   background: 'transparent', border: 'none', color: 'inherit',
-                  cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: '4px'
                 }}
                 title="Rotate"
@@ -1587,6 +1686,8 @@ export default function SchematicEditor() {
               </button>
               <div style={{ width: '1px', background: '#374151', margin: '4px 2px' }}></div>
               <button
+                type="button"
+                aria-label="Delete component"
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteComponent(comp.id);
@@ -1594,7 +1695,7 @@ export default function SchematicEditor() {
                 }}
                 style={{
                   background: 'transparent', border: 'none', color: '#f87171',
-                  cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: '4px'
                 }}
                 title="Delete"
