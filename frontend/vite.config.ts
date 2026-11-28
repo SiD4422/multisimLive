@@ -1,15 +1,17 @@
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import geminiHandler from './api/gemini'
+import shareHandler from './api/share'
 
 function geminiDevPlugin(): Plugin {
   return {
     name: 'gemini-dev-proxy',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url || !req.url.startsWith('/api/gemini')) {
+        if (!req.url || (!req.url.startsWith('/api/gemini') && !req.url.startsWith('/api/share'))) {
           return next();
         }
+        const routeHandler = req.url.startsWith('/api/share') ? shareHandler : geminiHandler;
 
         try {
           const origin = req.headers.origin || `http://${req.headers.host || 'localhost:5173'}`;
@@ -38,7 +40,7 @@ function geminiDevPlugin(): Plugin {
             body: req.method !== 'GET' && req.method !== 'HEAD' && body && body.length > 0 ? body : undefined,
           });
 
-          const webRes = await geminiHandler(webReq);
+          const webRes = await routeHandler(webReq);
 
           res.statusCode = webRes.status;
           webRes.headers.forEach((val, key) => {

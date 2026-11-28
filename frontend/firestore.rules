@@ -65,6 +65,29 @@ service cloud.firestore {
       }
     }
 
+    // Immutable 8-char alphanumeric short share links readable by Edge SSR & clients
+    function validSharedCircuit(d, shortId) {
+      return shortId.matches('^[A-Za-z0-9]{8}$')
+          && d.keys().hasOnly([
+            'id', 'name', 'componentCount', 'componentSummary',
+            'circuitData', 'authorUid', 'createdAt'
+          ])
+          && d.id is string && d.id == shortId
+          && d.name is string && d.name.size() >= 1 && d.name.size() <= 100
+          && d.componentCount is int && d.componentCount >= 1 && d.componentCount <= 2000
+          && d.componentSummary is string && d.componentSummary.size() <= 180
+          && d.circuitData is string && d.circuitData.size() >= 1 && d.circuitData.size() <= 160000
+          && (d.authorUid == null || (isSignedIn() && d.authorUid == request.auth.uid))
+          && d.createdAt == request.time;
+    }
+
+    match /sharedCircuits/{shortId} {
+      allow read: if true;
+      allow create: if validSharedCircuit(request.resource.data, shortId);
+      allow update: if false;
+      allow delete: if false;
+    }
+
     // Per-user usage quota & profile state (prevents client privilege escalation of isPro)
     match /users/{userId} {
       allow read: if isSignedIn() && request.auth.uid == userId;

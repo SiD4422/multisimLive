@@ -1,41 +1,131 @@
-import React, { useMemo, useState } from 'react';
-import { X, Copy, Check, Share2, MessageCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, Copy, Check, Share2, MessageCircle, Link2, Loader2 } from 'lucide-react';
 import LZString from 'lz-string';
 import { useSchematicStore } from '../store/useSchematicStore';
+import { useAuth } from '../hooks/useAuth';
+import { summarizeSharedComponents } from '../utils/shortShareId';
 
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
+  circuitName?: string;
 }
 
-export function ShareModal({ isOpen, onClose }: ShareModalProps) {
+export function ShareModal({ isOpen, onClose, circuitName }: ShareModalProps) {
   if (!isOpen) return null;
-  return <ShareModalInner onClose={onClose} />;
+  return <ShareModalInner onClose={onClose} circuitName={circuitName} />;
 }
 
-function ShareModalInner({ onClose }: { onClose: () => void }) {
-  const { components, wires, probes } = useSchematicStore();
-  const [copied, setCopied] = useState(false);
+interface ShareSnapshot {
+  name: string;
+  componentCount: number;
+  summary: string;
+  compressed: string;
+  directHashUrl: string;
+  hashError: string;
+  authorUid: string | null;
+  origin: string;
+}
 
-  const { shareUrl, error } = useMemo(() => {
+function ShareModalInner({ onClose, circuitName }: { onClose: () => void; circuitName?: string }) {
+  const { components, wires, probes } = useSchematicStore();
+  const { user } = useAuth();
+  const [snapshot] = useState<ShareSnapshot>(() => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.nodesimapp.com';
+    if (components.length === 0) {
+      return {
+        name: (circuitName || '').trim() || 'Shared Circuit',
+        componentCount: 0,
+        summary: '',
+        compressed: '',
+        directHashUrl: '',
+        hashError: 'Add at least one component before creating a share link.',
+        authorUid: user?.uid ?? null,
+        origin,
+      };
+    }
     try {
       const payload = JSON.stringify({ components, wires, probes });
       const compressed = LZString.compressToEncodedURIComponent(payload);
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.nodesimapp.com';
       const url = `${origin}/simulator#circuit=${compressed}`;
-      if (url.length > 32000) {
-        return {
-          shareUrl: '',
-          error: 'Circuit is too large to share via URL. Use File → Save to download as JSON instead.',
-        };
-      }
-      return { shareUrl: url, error: '' };
+      return {
+        name: (circuitName || '').trim() || 'Shared Circuit',
+        componentCount: components.length,
+        summary: summarizeSharedComponents(components),
+        compressed,
+        directHashUrl: url.length <= 32000 ? url : '',
+        hashError: '',
+        authorUid: user?.uid ?? null,
+        origin,
+      };
     } catch {
-      return { shareUrl: '', error: 'Failed to generate share link.' };
+      return {
+        name: (circuitName || '').trim() || 'Shared Circuit',
+        componentCount: components.length,
+        summary: '',
+        compressed: '',
+        directHashUrl: '',
+        hashError: 'Failed to encode circuit payload.',
+        authorUid: user?.uid ?? null,
+        origin,
+      };
     }
-  }, [components, wires, probes]);
+  });
 
-  const isGenerating = false;
+  const [copied, setCopied] = useState(false);
+  const [shortUrl, setShortUrl] = useState('');
+  const [isGenerating, setIsGenerating] = useState(Boolean(snapshot.compressed));
+  const [fallbackNotice, setFallbackNotice] = useState('');
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!snapshot.compressed) return;
+    let cancelled = false;
+
+    import('../lib/firebase')
+      .then(({ createShortShareLink }) =>
+        createShortShareLink({
+          name: snapshot.name,
+          componentCount: snapshot.componentCount,
+          componentSummary: snapshot.summary,
+          circuitData: snapshot.compressed,
+          authorUid: snapshot.authorUid,
+        }),
+      )
+      .then(({ shortPath }) => {
+        if (!cancelled) {
+          setShortUrl(`${snapshot.origin}${shortPath}`);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFallbackNotice(
+            snapshot.directHashUrl
+              ? 'Offline or cloud unavailable — using full URL fallback.'
+              : 'Circuit is too large and cloud short-link service is unavailable.',
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsGenerating(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [snapshot]);
+
+  const shareUrl = shortUrl || snapshot.directHashUrl;
+  const error = snapshot.hashError || (!isGenerating && !shareUrl ? fallbackNotice : '');
 
   const handleCopy = async () => {
     if (!shareUrl) return;
@@ -59,8 +149,6 @@ function ShareModalInner({ onClose }: { onClose: () => void }) {
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
   };
 
-  const componentCount = components.length;
-
   return (
     <div
       style={{
@@ -83,20 +171,29 @@ function ShareModalInner({ onClose }: { onClose: () => void }) {
         fontFamily: 'Inter, system-ui, sans-serif',
       }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ background: '#10b98120', borderRadius: 8, padding: 8 }}>
               <Share2 size={18} style={{ color: '#10b981' }} />
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: 16 }}>Share Circuit</div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>{componentCount} component{componentCount !== 1 ? 's' : ''} · Anyone with this link can open it</div>
+              <div style={{ fontSize: 12, color: '#94a3b8' }}>
+                {snapshot.componentCount} component{snapshot.componentCount !== 1 ? 's' : ''} · {shortUrl ? 'Short URL with link preview' : 'Instant SPICE share link'}
+              </div>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4, borderRadius: 6 }}>
+          <button onClick={onClose} aria-label="Close share dialog" style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4, borderRadius: 6 }}>
             <X size={18} />
           </button>
         </div>
+
+        {shortUrl && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 12, padding: '4px 10px', borderRadius: 999, background: 'rgba(22, 163, 74, 0.16)', border: '1px solid rgba(74, 222, 128, 0.35)', color: '#4ade80', fontSize: 11, fontWeight: 700 }}>
+            <Link2 size={12} />
+            <span>Short Link Ready (OpenGraph preview enabled)</span>
+          </div>
+        )}
 
         {/* URL Box */}
         {error ? (
@@ -104,25 +201,37 @@ function ShareModalInner({ onClose }: { onClose: () => void }) {
             {error}
           </div>
         ) : (
-          <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-            <span style={{ flex: 1, fontSize: 12, color: '#94a3b8', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {isGenerating ? 'Generating link...' : shareUrl}
+          <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <span style={{ flex: 1, fontSize: 12.5, color: shortUrl ? '#e2e8f0' : '#94a3b8', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {isGenerating ? 'Creating short share URL...' : shareUrl}
             </span>
             <button
-              onClick={handleCopy}
+              onClick={() => void handleCopy()}
               disabled={!shareUrl || isGenerating}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 background: copied ? '#10b981' : '#334155',
                 color: copied ? '#fff' : '#e2e8f0',
                 border: 'none', borderRadius: 7, padding: '6px 14px',
-                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                fontSize: 12, fontWeight: 600, cursor: !shareUrl || isGenerating ? 'not-allowed' : 'pointer',
                 flexShrink: 0, transition: 'background 0.2s',
               }}
             >
-              {copied ? <Check size={13} /> : <Copy size={13} />}
-              {copied ? 'Copied!' : 'Copy'}
+              {isGenerating ? (
+                <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+              ) : copied ? (
+                <Check size={13} />
+              ) : (
+                <Copy size={13} />
+              )}
+              {isGenerating ? 'Saving' : copied ? 'Copied!' : 'Copy'}
             </button>
+          </div>
+        )}
+
+        {fallbackNotice && shareUrl && !error && (
+          <div style={{ marginBottom: 14, fontSize: 11.5, color: '#fbbf24' }}>
+            {fallbackNotice}
           </div>
         )}
 

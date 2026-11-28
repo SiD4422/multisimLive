@@ -304,6 +304,79 @@ export async function deleteUserCloudCircuit(circuitId: string): Promise<void> {
   await deleteDoc(doc(db, 'users', uid, 'circuits', circuitId));
 }
 
+export interface SharedCircuitRecord {
+  id: string;
+  name: string;
+  componentCount: number;
+  componentSummary: string;
+  circuitData: string;
+  authorUid: string | null;
+  createdAt: Date;
+}
+
+export interface CreateShortShareInput {
+  name: string;
+  componentCount: number;
+  componentSummary: string;
+  circuitData: string;
+  authorUid?: string | null;
+}
+
+export async function createShortShareLink(
+  input: CreateShortShareInput,
+): Promise<{ shortId: string; shortPath: string }> {
+  const db = await getFirebaseDb();
+  const [{ generateShortShareId }, { doc, serverTimestamp, setDoc }] = await Promise.all([
+    import('../utils/shortShareId'),
+    import('firebase/firestore'),
+  ]);
+
+  const payloadBase = {
+    name: input.name.trim().slice(0, 100) || 'Untitled Circuit',
+    componentCount: Math.max(1, Math.min(2000, Math.floor(input.componentCount))),
+    componentSummary: input.componentSummary.trim().slice(0, 180),
+    circuitData: input.circuitData.slice(0, 160000),
+    authorUid: input.authorUid ?? null,
+    createdAt: serverTimestamp(),
+  };
+
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const shortId = generateShortShareId();
+    try {
+      await setDoc(doc(db, 'sharedCircuits', shortId), {
+        id: shortId,
+        ...payloadBase,
+      });
+      return { shortId, shortPath: `/c/${shortId}` };
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error('Failed to create short share link.');
+}
+
+export async function getSharedCircuitById(shortId: string): Promise<SharedCircuitRecord | null> {
+  const { isValidShortShareId } = await import('../utils/shortShareId');
+  if (!isValidShortShareId(shortId)) return null;
+
+  const db = await getFirebaseDb();
+  const { doc, getDoc } = await import('firebase/firestore');
+
+  const snap = await getDoc(doc(db, 'sharedCircuits', shortId));
+  if (!snap.exists()) return null;
+  const raw = snap.data();
+  return {
+    id: snap.id,
+    name: typeof raw.name === 'string' ? raw.name : 'Shared Circuit',
+    componentCount: typeof raw.componentCount === 'number' ? raw.componentCount : 0,
+    componentSummary: typeof raw.componentSummary === 'string' ? raw.componentSummary : '',
+    circuitData: typeof raw.circuitData === 'string' ? raw.circuitData : '',
+    authorUid: typeof raw.authorUid === 'string' ? raw.authorUid : null,
+    createdAt: raw.createdAt?.toDate?.() || new Date(),
+  };
+}
+
 export async function incrementViews(circuitId: string): Promise<void> {
   try {
     const [db, { doc, increment, setDoc }] = await Promise.all([

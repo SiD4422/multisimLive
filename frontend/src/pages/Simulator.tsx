@@ -1172,7 +1172,7 @@ function Simulator() {
         /></React.Suspense>
       )}
       {isShareModalOpen && (
-        <React.Suspense fallback={null}><ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} /></React.Suspense>
+        <React.Suspense fallback={null}><ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} circuitName={circuitName} /></React.Suspense>
       )}
       {isPublishModalOpen && (
         <React.Suspense fallback={null}><PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} /></React.Suspense>

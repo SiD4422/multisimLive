@@ -44,6 +44,18 @@ function App() {
                 </Suspense>
               }
             />
+            <Route
+              path="/c/:shortId"
+              element={
+                <Suspense fallback={
+                  <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a', color: '#10b981', fontFamily: 'monospace' }}>
+                    <h2>Loading Shared Circuit...</h2>
+                  </div>
+                }>
+                  <Simulator />
+                </Suspense>
+              }
+            />
 
             {/* 404 — catch-all must be last */}
             <Route element={<Layout />}>

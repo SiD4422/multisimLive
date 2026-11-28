@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useSchematicStore, hadSavedCircuitAtBoot } from '../store/useSchematicStore';
+import { isValidShortShareId } from '../utils/shortShareId';
 import LZString from 'lz-string';
 
-type BootSource = 'url' | 'restored' | 'fresh' | 'demo';
+type BootSource = 'url' | 'short-link' | 'restored' | 'fresh' | 'demo';
 
 interface BootPlan {
   source: BootSource;
   urlJson: string | null;
+  shortId: string | null;
 }
 
 const demoCircuit = {
@@ -34,13 +36,14 @@ const demoCircuit = {
 
 function resolveBootPlan(): BootPlan {
   if (typeof window === 'undefined') {
-    return { source: 'fresh', urlJson: null };
+    return { source: 'fresh', urlJson: null, shortId: null };
   }
 
+  const searchParams = new URLSearchParams(window.location.search);
   const hash = window.location.hash;
   const rawParam = hash && hash.startsWith('#circuit=')
     ? hash.substring(9)
-    : new URLSearchParams(window.location.search).get('circuit');
+    : searchParams.get('circuit');
 
   if (rawParam) {
     try {
@@ -53,16 +56,22 @@ function resolveBootPlan(): BootPlan {
         }
       }
       if (jsonStr) {
-        return { source: 'url', urlJson: jsonStr };
+        return { source: 'url', urlJson: jsonStr, shortId: null };
       }
     } catch (err) {
       console.error('Failed to load circuit from URL:', err);
     }
   }
 
+  const pathMatch = window.location.pathname.match(/^\/c\/([A-Za-z0-9]+)\/?$/);
+  const candidateShortId = (pathMatch?.[1] || searchParams.get('c') || '').trim();
+  if (candidateShortId && isValidShortShareId(candidateShortId)) {
+    return { source: 'short-link', urlJson: null, shortId: candidateShortId };
+  }
+
   return hadSavedCircuitAtBoot()
-    ? { source: 'restored', urlJson: null }
-    : { source: 'demo', urlJson: null };
+    ? { source: 'restored', urlJson: null, shortId: null }
+    : { source: 'demo', urlJson: null, shortId: null };
 }
 
 export function useCircuitBoot() {
@@ -77,6 +86,42 @@ export function useCircuitBoot() {
         window.history.replaceState(null, '', window.location.pathname);
       }, 50);
       return () => clearTimeout(timer);
+    }
+
+    if (plan.source === 'short-link' && plan.shortId) {
+      let cancelled = false;
+      const shortId = plan.shortId;
+      import('../lib/firebase')
+        .then(({ getSharedCircuitById }) => getSharedCircuitById(shortId))
+        .then((record) => {
+          if (cancelled) return;
+          if (!record || !record.circuitData) {
+            window.dispatchEvent(
+              new CustomEvent('nodesim-toast', {
+                detail: { message: 'Shared circuit link not found or expired.', type: 'warning' },
+              }),
+            );
+            return;
+          }
+          const jsonStr = LZString.decompressFromEncodedURIComponent(record.circuitData);
+          if (jsonStr) {
+            useSchematicStore.getState().importState(jsonStr);
+            window.history.replaceState(null, '', '/simulator');
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to resolve short share link:', err);
+          if (!cancelled) {
+            window.dispatchEvent(
+              new CustomEvent('nodesim-toast', {
+                detail: { message: 'Could not load shared circuit link.', type: 'warning' },
+              }),
+            );
+          }
+        });
+      return () => {
+        cancelled = true;
+      };
     }
 
     if (plan.source === 'demo') {

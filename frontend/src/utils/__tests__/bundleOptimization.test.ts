@@ -194,10 +194,12 @@ describe('Phase 3.1: Bundle Optimization, Lazy Firebase & Worker Progress', () =
       const files = [
         'lib/firebase.ts',
         'hooks/useAuth.ts',
+        'hooks/useCircuitBoot.ts',
         'utils/dbUsage.ts',
         'utils/cloudSync.ts',
         'pages/CircuitsPage.tsx',
         'components/PublishModal.tsx',
+        'components/ShareModal.tsx',
         'components/AccountMenu.tsx',
         'components/AuthModal.tsx',
         'components/SavedCircuitsModal.tsx',
