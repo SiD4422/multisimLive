@@ -2,7 +2,7 @@
 import SEO from '../components/SEO';
 
 import LZString from 'lz-string';
-import { MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, PanelLeftClose, PanelLeftOpen, FileCode, X, FolderOpen, CheckCircle2, AlertTriangle, BookOpen, Globe, Play, Square, RotateCw, Activity, Loader2 } from 'lucide-react';
+import { MousePointer2, Settings, ZoomIn, ZoomOut, Undo, Redo, PanelLeftClose, PanelLeftOpen, FileCode, X, FolderOpen, CheckCircle2, AlertTriangle, BookOpen, Globe, Play, Square, RotateCw, Activity, Loader2, GitFork } from 'lucide-react';
 import { importSpiceNetlist, looksLikeSpiceNetlist } from '../utils/spiceImporter';
 import SchematicEditor from '../components/SchematicEditor';
 import { useSchematicStore } from '../store/useSchematicStore';
@@ -16,6 +16,7 @@ import { downloadKiCadNetlist } from '../utils/exportKiCad';
 import { StatusBar } from '../components/StatusBar';
 import { resolveGlobalShortcut, SHORTCUT_CATEGORIES, SHORTCUT_DEFINITIONS } from '../utils/keyboardShortcuts';
 import { dismissCloudImportPrompt, importPendingLocalCircuitsToCloud, saveCircuitDual, useCloudSync } from '../utils/cloudSync';
+import { formatForkAttributionLabel } from '../utils/forkAttribution';
 import { warmUpSpiceEngine } from '../utils/spiceEngine';
 
 // Lazily loaded panels — not needed at initial paint
@@ -71,7 +72,7 @@ function Simulator() {
     setPendingComponent, selectedComponentId, updateComponentRotation,
     runSimulation, stopSimulation, isSimulating, isLiveMode, setLiveMode, isLiveUpdating, isPlaying, simulationProgress, exportState, importState,
     isConfigOpen, setIsConfigOpen,
-    simulationError, analysisMode
+    simulationError, analysisMode, forkedFrom, setForkedFrom
   } = useSchematicStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -231,6 +232,9 @@ function Simulator() {
         sessionStorage.removeItem('nodesim-pending-circuit');
         const state = JSON.parse(pending);
         useSchematicStore.getState().importState(JSON.stringify(state));
+        if (typeof state?.name === 'string' && state.name.trim()) {
+          void Promise.resolve(state.name.trim()).then((n) => setCircuitName(n));
+        }
       }
     } catch (err) {
       console.warn('Failed to restore pending circuit from sessionStorage:', err);
@@ -287,6 +291,7 @@ function Simulator() {
             name: circuitName,
             stateJson: state.exportState(),
             componentCount: state.components.length,
+            forkedFrom: state.forkedFrom ?? undefined,
           }).then(({ saved, syncedToCloud }) => {
             if (saved.name !== circuitName) {
               setCircuitName(saved.name);
@@ -829,6 +834,45 @@ function Simulator() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {forkedFrom && (
+            <span
+              title={`${formatForkAttributionLabel(forkedFrom)}${forkedFrom.sourceAuthor ? ` by ${forkedFrom.sourceAuthor}` : ''}`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '4px 9px',
+                borderRadius: 999,
+                background: 'rgba(22, 163, 74, 0.14)',
+                border: '1px solid rgba(74, 222, 128, 0.35)',
+                color: '#86efac',
+                fontSize: 11.5,
+                fontWeight: 600,
+                maxWidth: 220,
+              }}
+            >
+              <GitFork size={12} style={{ flexShrink: 0 }} />
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {formatForkAttributionLabel(forkedFrom)}
+              </span>
+              <button
+                type="button"
+                aria-label="Clear fork attribution"
+                onClick={() => setForkedFrom(null)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#86efac',
+                  cursor: 'pointer',
+                  padding: 0,
+                  lineHeight: 1,
+                  opacity: 0.75,
+                }}
+              >
+                ×
+              </button>
+            </span>
+          )}
           <AccountMenu variant="simulator" />
           <button
             onClick={() => setIsSavesOpen(true)}

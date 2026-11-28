@@ -11,10 +11,12 @@ import {
   CloudUpload,
   Loader2,
   HardDrive,
+  GitFork,
 } from 'lucide-react';
 import LZString from 'lz-string';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { useAuth } from '../hooks/useAuth';
+import { formatForkAttributionLabel } from '../utils/forkAttribution';
 import type { MergedSavedCircuit } from '../utils/circuitSavesStorage';
 import {
   deleteSavedCircuitDual,
@@ -40,7 +42,7 @@ export function SavedCircuitsModal({ isOpen, onClose, circuitName, onNameChange 
 }
 
 function SavedCircuitsModalInner({ onClose, circuitName, onNameChange }: Omit<Props, 'isOpen'>) {
-  const { exportState, importState, components } = useSchematicStore();
+  const { exportState, importState, components, forkedFrom } = useSchematicStore();
   const { user } = useAuth();
   const {
     status,
@@ -73,6 +75,7 @@ function SavedCircuitsModalInner({ onClose, circuitName, onNameChange }: Omit<Pr
       name: saveName,
       stateJson: exportState(),
       componentCount: components.length,
+      forkedFrom: forkedFrom ?? undefined,
     });
     onNameChange(result.saved.name);
     showToast(
@@ -336,11 +339,20 @@ function SavedCircuitsModalInner({ onClose, circuitName, onNameChange }: Omit<Pr
                         {save.origin === 'synced' ? 'Synced' : save.origin === 'cloud-only' ? 'Cloud' : 'Local'}
                       </span>
                     </div>
-                    <div style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                    <div style={{ fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
                       <Clock size={10} />
                       {fmtDate(save.savedAt)}
                       <span style={{ color: '#475569' }}>·</span>
                       {save.componentCount} component{save.componentCount !== 1 ? 's' : ''}
+                      {save.forkedFrom && (
+                        <>
+                          <span style={{ color: '#475569' }}>·</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#86efac' }}>
+                            <GitFork size={10} />
+                            {formatForkAttributionLabel(save.forkedFrom)}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                   {user && isOnline && save.origin === 'local-only' && (

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Globe, Loader2, CheckCircle2, AlertCircle, Lock, LogOut } from 'lucide-react';
+import { X, Globe, Loader2, CheckCircle2, AlertCircle, Lock, LogOut, GitFork } from 'lucide-react';
 import LZString from 'lz-string';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { useAuth } from '../hooks/useAuth';
+import { buildForkedCircuitName, formatForkAttributionLabel } from '../utils/forkAttribution';
 import { AuthProviderButtons } from './AuthModal';
 
 interface PublishModalProps {
@@ -36,9 +37,9 @@ const T = {
 };
 
 export function PublishModal({ isOpen, onClose }: PublishModalProps) {
-  const { components, wires, probes } = useSchematicStore();
+  const { components, wires, probes, forkedFrom } = useSchematicStore();
   const { user, signOut } = useAuth();
-  const [name, setName]             = useState('');
+  const [name, setName]             = useState(() => (forkedFrom ? buildForkedCircuitName(forkedFrom.sourceName) : ''));
   const [description, setDescription] = useState('');
   const [category, setCategory]     = useState('basic');
   const [authorName, setAuthorName] = useState('');
@@ -59,7 +60,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
     setErrorMsg('');
     try {
       const circuitData = LZString.compressToEncodedURIComponent(
-        JSON.stringify({ components, wires, probes })
+        JSON.stringify({ components, wires, probes, ...(forkedFrom ? { forkedFrom } : {}) })
       );
       const { publishCircuit } = await import('../lib/firebase');
       await publishCircuit({
@@ -69,6 +70,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
         authorName:     effectiveAuthorName.trim().slice(0, 50) || 'Anonymous',
         componentCount: components.length,
         circuitData,
+        ...(forkedFrom ? { forkedFrom } : {}),
       });
       setStatus('success');
     } catch (err) {
@@ -219,6 +221,20 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
                 Sign out
               </button>
             </div>
+
+            {forkedFrom && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                background: 'rgba(22, 163, 74, 0.12)', border: '1px solid rgba(74, 222, 128, 0.3)',
+                borderRadius: 8, padding: '8px 12px', fontSize: 12, color: '#86efac',
+              }}>
+                <GitFork size={14} style={{ flexShrink: 0 }} />
+                <span>
+                  {formatForkAttributionLabel(forkedFrom)}
+                  {forkedFrom.sourceAuthor ? ` by ${forkedFrom.sourceAuthor}` : ''}
+                </span>
+              </div>
+            )}
 
             {/* Circuit Name */}
             <div>

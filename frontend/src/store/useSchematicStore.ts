@@ -18,6 +18,7 @@ import {
   DEFAULT_NOISE_SETTINGS,
   type NoiseSettings,
 } from '../utils/noiseAnalysis';
+import { sanitizeForkAttribution, type ForkAttribution } from '../utils/forkAttribution';
 
 export interface Point {
   x: number;
@@ -120,6 +121,7 @@ interface SchematicState {
   noiseSettings: NoiseSettings;
   parametricSweep: ParametricSweepConfig;
   temperatureSweep: TemperatureSweepConfig;
+  forkedFrom: ForkAttribution | null;
   configActiveTab: 'properties' | 'simulation';
   setAnalysisMode: (mode: 'transient' | 'ac' | 'dc' | 'op' | 'noise') => void;
   setAcSettings: (s: Partial<{ fStart: string; fStop: string; points: string }>) => void;
@@ -128,6 +130,7 @@ interface SchematicState {
   setNoiseSettings: (s: Partial<NoiseSettings>) => void;
   setParametricSweep: (s: Partial<ParametricSweepConfig>) => void;
   setTemperatureSweep: (s: Partial<TemperatureSweepConfig>) => void;
+  setForkedFrom: (forkedFrom: ForkAttribution | null) => void;
   setConfigActiveTab: (tab: 'properties' | 'simulation') => void;
   openParametricSweepForComponent: (componentId: string) => void;
 
@@ -241,6 +244,7 @@ export const useSchematicStore = create<SchematicState>()(
       noiseSettings: { ...DEFAULT_NOISE_SETTINGS },
       parametricSweep: { enabled: false, componentId: '', parameter: 'value', start: '1k', stop: '10k', step: '2k' },
       temperatureSweep: { ...DEFAULT_TEMPERATURE_SWEEP_CONFIG },
+      forkedFrom: null,
       configActiveTab: 'properties',
 
       customModels: {},
@@ -351,7 +355,8 @@ export const useSchematicStore = create<SchematicState>()(
       wires: state.wires,
       probes: state.probes,
       stagePos: state.stagePos,
-      scale: state.scale
+      scale: state.scale,
+      ...(state.forkedFrom ? { forkedFrom: state.forkedFrom } : {}),
     };
     return JSON.stringify(data, null, 2);
   },
@@ -396,6 +401,7 @@ export const useSchematicStore = create<SchematicState>()(
         ...(data.noiseSettings ? { noiseSettings: data.noiseSettings } : {}),
         parametricSweep: { enabled: false, componentId: '', parameter: 'value', start: '1k', stop: '10k', step: '2k' },
         temperatureSweep: { ...DEFAULT_TEMPERATURE_SWEEP_CONFIG },
+        forkedFrom: sanitizeForkAttribution(data.forkedFrom) ?? null,
       });
     } catch (e) {
       console.error("Failed to import state", e);
@@ -532,6 +538,7 @@ export const useSchematicStore = create<SchematicState>()(
         ...(next.enabled ? { parametricSweep: { ...state.parametricSweep, enabled: false } } : {}),
       };
     }),
+  setForkedFrom: (forkedFrom) => set({ forkedFrom }),
   setConfigActiveTab: (tab) => set({ configActiveTab: tab }),
   openParametricSweepForComponent: (componentId) => {
     const comp = get().components.find((c) => c.id === componentId);
@@ -774,6 +781,7 @@ export const useSchematicStore = create<SchematicState>()(
         probes: s.probes,
         customModels: s.customModels,
         customModelPorts: s.customModelPorts,
+        forkedFrom: s.forkedFrom,
       } as unknown as SchematicState),
       // â”€â”€â”€ Schema migrations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       // Add an entry here BEFORE bumping SCHEMA_VERSION. Each function receives

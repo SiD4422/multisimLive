@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ChevronRight, Layers, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, ChevronRight, Layers, Trash2, GitFork } from 'lucide-react';
 import type { CommunityCircuit } from '../lib/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/useTheme';
+import { AuthModal } from '../components/AuthModal';
+import { formatForkAttributionLabel } from '../utils/forkAttribution';
 import SEO from '../components/SEO';
 import { EXAMPLES } from '../data/circuitExamples';
 
@@ -24,6 +26,7 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 export default function CircuitsPage() {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isDark = theme === 'dark';
 
   const C = {
@@ -49,6 +52,41 @@ export default function CircuitsPage() {
   const [communityLoading, setCommunityLoading] = useState(false);
   const [communityError, setCommunityError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [forkingId, setForkingId] = useState<string | null>(null);
+  const [pendingForkCircuit, setPendingForkCircuit] = useState<CommunityCircuit | null>(null);
+
+  const executeForkToAccount = async (circuit: CommunityCircuit) => {
+    setForkingId(circuit.id);
+    setCommunityError('');
+    try {
+      const { forkCircuitToAccount } = await import('../utils/cloudSync');
+      const { stateJson } = await forkCircuitToAccount({
+        sourceCircuitId: circuit.id,
+        sourceName: circuit.name,
+        sourceAuthor: circuit.authorName,
+        sourceType: 'community',
+        circuitData: circuit.circuitData,
+      });
+      try {
+        sessionStorage.setItem('nodesim-pending-circuit', stateJson);
+      } catch {
+        // sessionStorage unavailable in restricted contexts
+      }
+      navigate('/simulator');
+    } catch {
+      setCommunityError('Failed to fork circuit into your account. Please try again.');
+    } finally {
+      setForkingId(null);
+    }
+  };
+
+  const handleForkClick = (circuit: CommunityCircuit) => {
+    if (!user) {
+      setPendingForkCircuit(circuit);
+      return;
+    }
+    void executeForkToAccount(circuit);
+  };
 
   const handleDeleteCommunityCircuit = async (circuitId: string, circuitName: string) => {
     if (!window.confirm(`Delete "${circuitName}" from the community gallery?`)) return;
@@ -397,6 +435,15 @@ export default function CircuitsPage() {
                       <div style={{ fontWeight: 700, fontSize: 15, color: '#1f2937', lineHeight: 1.3 }}>{circuit.name}</div>
                       <span style={{ background: '#dcfce7', color: '#16a34a', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, flexShrink: 0 }}>{circuit.category}</span>
                     </div>
+                    {circuit.forkedFrom && (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: '#15803d', fontWeight: 600 }}>
+                        <GitFork size={12} />
+                        <span>
+                          {formatForkAttributionLabel(circuit.forkedFrom)}
+                          {circuit.forkedFrom.sourceAuthor ? ` by ${circuit.forkedFrom.sourceAuthor}` : ''}
+                        </span>
+                      </div>
+                    )}
                     {circuit.description && (
                       <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.5 }}>{circuit.description}</div>
                     )}
@@ -413,6 +460,31 @@ export default function CircuitsPage() {
                         }}
                         style={{ flex: 1, display: 'block', textAlign: 'center', background: '#16a34a', color: '#fff', padding: '10px', borderRadius: 8, fontWeight: 600, fontSize: 13, textDecoration: 'none' }}
                       >Open in Simulator →</a>
+                      <button
+                        type="button"
+                        title="Fork circuit to your account"
+                        aria-label={`Fork ${circuit.name}`}
+                        disabled={forkingId === circuit.id}
+                        onClick={() => handleForkClick(circuit)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 5,
+                          padding: '0 12px',
+                          borderRadius: 8,
+                          border: '1px solid #cbd5e1',
+                          background: '#f8fafc',
+                          color: '#0f172a',
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          cursor: forkingId === circuit.id ? 'not-allowed' : 'pointer',
+                          opacity: forkingId === circuit.id ? 0.6 : 1,
+                        }}
+                      >
+                        <GitFork size={13} />
+                        <span>{forkingId === circuit.id ? 'Forking...' : 'Fork'}</span>
+                      </button>
                       {user && circuit.authorUid && circuit.authorUid === user.uid && (
                         <button
                           type="button"
@@ -445,6 +517,21 @@ export default function CircuitsPage() {
         )}
       </div>
     </div>
+    <AuthModal
+      isOpen={Boolean(pendingForkCircuit)}
+      onClose={() => setPendingForkCircuit(null)}
+      onAuthenticated={() => {
+        if (pendingForkCircuit) {
+          void executeForkToAccount(pendingForkCircuit);
+        }
+      }}
+      title="Sign in to fork circuit"
+      subtitle={
+        pendingForkCircuit
+          ? `Fork "${pendingForkCircuit.name}" into your account with creator attribution.`
+          : 'Sign in to save a remixed copy under your account.'
+      }
+    />
     </>
   );
 }

@@ -15,26 +15,37 @@ service cloud.firestore {
           && d.circuitData is string && d.circuitData.size() >= 1 && d.circuitData.size() <= 80000;
     }
 
+    function validForkedFrom(f) {
+      return f is map
+          && f.keys().hasOnly(['sourceCircuitId', 'sourceName', 'sourceAuthor', 'sourceType'])
+          && f.sourceCircuitId is string && f.sourceCircuitId.size() >= 1 && f.sourceCircuitId.size() <= 100
+          && f.sourceName is string && f.sourceName.size() >= 1 && f.sourceName.size() <= 100
+          && f.sourceAuthor is string && f.sourceAuthor.size() <= 50
+          && (!('sourceType' in f) || f.sourceType in ['community', 'template']);
+    }
+
     function validNewCircuit(d) {
       return d.keys().hasOnly([
             'name', 'description', 'category', 'authorName', 'authorUid',
-            'componentCount', 'circuitData', 'views', 'createdAt'
+            'componentCount', 'circuitData', 'views', 'createdAt', 'forkedFrom'
           ])
           && validCircuitFields(d)
           && d.authorUid is string && d.authorUid == request.auth.uid
           && d.views == 0
-          && d.createdAt == request.time;
+          && d.createdAt == request.time
+          && (!('forkedFrom' in d) || validForkedFrom(d.forkedFrom));
     }
 
     function validOwnerCircuitUpdate(next, prev) {
       return next.keys().hasOnly([
             'name', 'description', 'category', 'authorName', 'authorUid',
-            'componentCount', 'circuitData', 'views', 'createdAt', 'updatedAt'
+            'componentCount', 'circuitData', 'views', 'createdAt', 'updatedAt', 'forkedFrom'
           ])
           && validCircuitFields(next)
           && next.authorUid == prev.authorUid
           && next.createdAt == prev.createdAt
           && next.views == prev.views
+          && ((!('forkedFrom' in prev) && !('forkedFrom' in next)) || next.forkedFrom == prev.forkedFrom)
           && (!('updatedAt' in next) || next.updatedAt == request.time);
     }
 
@@ -105,7 +116,7 @@ service cloud.firestore {
         allow create, update: if isSignedIn()
                               && request.auth.uid == userId
                               && request.resource.data.keys().hasOnly([
-                                'id', 'name', 'compressed', 'componentCount', 'savedAt', 'updatedAt'
+                                'id', 'name', 'compressed', 'componentCount', 'savedAt', 'updatedAt', 'forkedFrom'
                               ])
                               && request.resource.data.id is string
                               && request.resource.data.id == circuitId
@@ -122,6 +133,7 @@ service cloud.firestore {
                               && request.resource.data.componentCount <= 2000
                               && request.resource.data.savedAt is int
                               && request.resource.data.savedAt >= 0
+                              && (!('forkedFrom' in request.resource.data) || validForkedFrom(request.resource.data.forkedFrom))
                               && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt == request.time);
         allow delete: if isSignedIn() && request.auth.uid == userId;
       }

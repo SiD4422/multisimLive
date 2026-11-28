@@ -1,6 +1,7 @@
 import type { FirebaseApp } from 'firebase/app';
 import type { Auth, GithubAuthProvider, GoogleAuthProvider } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
+import { sanitizeForkAttribution, type ForkAttribution } from '../utils/forkAttribution';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyAQLl2CA3vcuKmFgxl7NMBN8krFWIoQUck',
@@ -32,11 +33,18 @@ export async function getFirebaseApp(): Promise<FirebaseApp> {
 /** Lazily loads Firestore (~300 KB+) only when community/usage operations execute. */
 export async function getFirebaseDb(): Promise<Firestore> {
   if (!dbPromise) {
-    dbPromise = Promise.all([getFirebaseApp(), import('firebase/firestore')]).then(
-      ([app, { getFirestore }]) => getFirestore(app),
-    );
+    dbPromise = getFirebaseApp().then(async (app) => {
+      const { getFirestore } = await import('firebase/firestore');
+      return getFirestore(app);
+    });
   }
   return dbPromise;
+}
+
+async function resolveFirestore() {
+  const db = await getFirebaseDb();
+  const fs = await import('firebase/firestore');
+  return { db, fs };
 }
 
 /** Lazily loads Firebase Auth with Google & GitHub OAuth providers only when auth is needed. */
@@ -74,6 +82,7 @@ export interface CommunityCircuit {
   createdAt: Date;
   updatedAt?: Date;
   views: number;
+  forkedFrom?: ForkAttribution;
 }
 
 export type PublishCircuitInput = Omit<
@@ -93,6 +102,7 @@ export function buildNewCircuitDocument(
   if (!uid) {
     throw new Error('AUTH_REQUIRED: Please sign in before publishing a circuit.');
   }
+  const forkedFrom = sanitizeForkAttribution(data.forkedFrom);
   return {
     name: data.name.trim().slice(0, 100),
     description: data.description.trim().slice(0, 500),
@@ -102,23 +112,23 @@ export function buildNewCircuitDocument(
     componentCount: data.componentCount,
     circuitData: data.circuitData,
     views: 0,
+    ...(forkedFrom ? { forkedFrom } : {}),
   };
 }
 
 export async function publishCircuit(data: PublishCircuitInput): Promise<string> {
-  const [{ auth }, db, { collection, addDoc, serverTimestamp }] = await Promise.all([
+  const [{ auth }, { db, fs }] = await Promise.all([
     getFirebaseAuth(),
-    getFirebaseDb(),
-    import('firebase/firestore'),
+    resolveFirestore(),
   ]);
   const currentUser = auth.currentUser;
   if (!currentUser) {
     throw new Error('AUTH_REQUIRED: Please sign in before publishing a circuit.');
   }
   const payload = buildNewCircuitDocument(data, currentUser.uid);
-  const docRef = await addDoc(collection(db, 'circuits'), {
+  const docRef = await fs.addDoc(fs.collection(db, 'circuits'), {
     ...payload,
-    createdAt: serverTimestamp(),
+    createdAt: fs.serverTimestamp(),
   });
   return docRef.id;
 }
@@ -127,15 +137,14 @@ export async function updateCommunityCircuit(
   circuitId: string,
   updates: UpdateCommunityCircuitInput,
 ): Promise<void> {
-  const [{ auth }, db, { doc, serverTimestamp, updateDoc }] = await Promise.all([
+  const [{ auth }, { db, fs }] = await Promise.all([
     getFirebaseAuth(),
-    getFirebaseDb(),
-    import('firebase/firestore'),
+    resolveFirestore(),
   ]);
   if (!auth.currentUser) {
     throw new Error('AUTH_REQUIRED: Please sign in to edit your circuit.');
   }
-  const sanitized: Record<string, unknown> = { updatedAt: serverTimestamp() };
+  const sanitized: Record<string, unknown> = { updatedAt: fs.serverTimestamp() };
   if (typeof updates.name === 'string') sanitized.name = updates.name.trim().slice(0, 100);
   if (typeof updates.description === 'string') sanitized.description = updates.description.trim().slice(0, 500);
   if (typeof updates.category === 'string') sanitized.category = updates.category.trim().slice(0, 30);
@@ -143,36 +152,33 @@ export async function updateCommunityCircuit(
   if (typeof updates.componentCount === 'number') sanitized.componentCount = updates.componentCount;
   if (typeof updates.circuitData === 'string') sanitized.circuitData = updates.circuitData;
 
-  await updateDoc(doc(db, 'circuits', circuitId), sanitized);
+  await fs.updateDoc(fs.doc(db, 'circuits', circuitId), sanitized);
 }
 
 export async function deleteCommunityCircuit(circuitId: string): Promise<void> {
-  const [{ auth }, db, { deleteDoc, doc }] = await Promise.all([
+  const [{ auth }, { db, fs }] = await Promise.all([
     getFirebaseAuth(),
-    getFirebaseDb(),
-    import('firebase/firestore'),
+    resolveFirestore(),
   ]);
   if (!auth.currentUser) {
     throw new Error('AUTH_REQUIRED: Please sign in to delete your circuit.');
   }
   // Best-effort cleanup of view counter subcollection doc before removing parent circuit
-  await deleteDoc(doc(db, 'circuits', circuitId, 'meta', 'views')).catch(() => {});
-  await deleteDoc(doc(db, 'circuits', circuitId));
+  await fs.deleteDoc(fs.doc(db, 'circuits', circuitId, 'meta', 'views')).catch(() => {});
+  await fs.deleteDoc(fs.doc(db, 'circuits', circuitId));
 }
 
 export async function getCommunityCircuits(limitCount = 50): Promise<CommunityCircuit[]> {
-  const [db, { collection, getDocs, query, orderBy, limit }] = await Promise.all([
-    getFirebaseDb(),
-    import('firebase/firestore'),
-  ]);
-  const q = query(
-    collection(db, 'circuits'),
-    orderBy('createdAt', 'desc'),
-    limit(limitCount),
+  const { db, fs } = await resolveFirestore();
+  const q = fs.query(
+    fs.collection(db, 'circuits'),
+    fs.orderBy('createdAt', 'desc'),
+    fs.limit(limitCount),
   );
-  const snapshot = await getDocs(q);
+  const snapshot = await fs.getDocs(q);
   return snapshot.docs.map((d) => {
     const raw = d.data();
+    const forkedFrom = sanitizeForkAttribution(raw.forkedFrom);
     return {
       id: d.id,
       name: typeof raw.name === 'string' ? raw.name : 'Untitled Circuit',
@@ -185,6 +191,7 @@ export async function getCommunityCircuits(limitCount = 50): Promise<CommunityCi
       views: typeof raw.views === 'number' ? raw.views : 0,
       createdAt: raw.createdAt?.toDate?.() || new Date(),
       updatedAt: raw.updatedAt?.toDate?.(),
+      ...(forkedFrom ? { forkedFrom } : {}),
     } as CommunityCircuit;
   });
 }
@@ -195,6 +202,7 @@ export interface CloudSavedCircuit {
   compressed: string;
   savedAt: number;
   componentCount: number;
+  forkedFrom?: ForkAttribution;
 }
 
 function sanitizePrivateCircuitId(rawId: string, fallbackName: string): string {
@@ -211,57 +219,59 @@ export function buildUserCloudCircuitDocument(circuit: CloudSavedCircuit): Cloud
   if (!compressed) {
     throw new Error('Cannot save an empty circuit payload to cloud.');
   }
+  const forkedFrom = sanitizeForkAttribution(circuit.forkedFrom);
   return {
     id,
     name,
     compressed,
     savedAt: Number.isFinite(circuit.savedAt) ? Math.max(0, Math.floor(circuit.savedAt)) : Date.now(),
     componentCount: Math.max(0, Math.min(2000, Math.floor(circuit.componentCount || 0))),
+    ...(forkedFrom ? { forkedFrom } : {}),
   };
 }
 
 export async function listUserCloudCircuits(limitCount = 100): Promise<CloudSavedCircuit[]> {
-  const [{ auth }, db, { collection, getDocs, limit, orderBy, query }] = await Promise.all([
+  const [{ auth }, { db, fs }] = await Promise.all([
     getFirebaseAuth(),
-    getFirebaseDb(),
-    import('firebase/firestore'),
+    resolveFirestore(),
   ]);
   const uid = auth.currentUser?.uid;
   if (!uid) {
     throw new Error('AUTH_REQUIRED: Please sign in to load cloud circuits.');
   }
-  const q = query(
-    collection(db, 'users', uid, 'circuits'),
-    orderBy('savedAt', 'desc'),
-    limit(limitCount),
+  const q = fs.query(
+    fs.collection(db, 'users', uid, 'circuits'),
+    fs.orderBy('savedAt', 'desc'),
+    fs.limit(limitCount),
   );
-  const snapshot = await getDocs(q);
+  const snapshot = await fs.getDocs(q);
   return snapshot.docs.map((d) => {
     const raw = d.data();
+    const forkedFrom = sanitizeForkAttribution(raw.forkedFrom);
     return {
       id: d.id,
       name: typeof raw.name === 'string' ? raw.name : 'Untitled Circuit',
       compressed: typeof raw.compressed === 'string' ? raw.compressed : '',
       savedAt: typeof raw.savedAt === 'number' ? raw.savedAt : Date.now(),
       componentCount: typeof raw.componentCount === 'number' ? raw.componentCount : 0,
+      ...(forkedFrom ? { forkedFrom } : {}),
     };
   });
 }
 
 export async function saveUserCloudCircuit(circuit: CloudSavedCircuit): Promise<CloudSavedCircuit> {
-  const [{ auth }, db, { doc, serverTimestamp, setDoc }] = await Promise.all([
+  const [{ auth }, { db, fs }] = await Promise.all([
     getFirebaseAuth(),
-    getFirebaseDb(),
-    import('firebase/firestore'),
+    resolveFirestore(),
   ]);
   const uid = auth.currentUser?.uid;
   if (!uid) {
     throw new Error('AUTH_REQUIRED: Please sign in to save circuits to the cloud.');
   }
   const payload = buildUserCloudCircuitDocument(circuit);
-  await setDoc(doc(db, 'users', uid, 'circuits', payload.id), {
+  await fs.setDoc(fs.doc(db, 'users', uid, 'circuits', payload.id), {
     ...payload,
-    updatedAt: serverTimestamp(),
+    updatedAt: fs.serverTimestamp(),
   });
   return payload;
 }
@@ -269,10 +279,9 @@ export async function saveUserCloudCircuit(circuit: CloudSavedCircuit): Promise<
 export async function importLocalCircuitsToCloud(
   localCircuits: CloudSavedCircuit[],
 ): Promise<{ importedCount: number; circuits: CloudSavedCircuit[] }> {
-  const [{ auth }, db, { doc, serverTimestamp, setDoc }] = await Promise.all([
+  const [{ auth }, { db, fs }] = await Promise.all([
     getFirebaseAuth(),
-    getFirebaseDb(),
-    import('firebase/firestore'),
+    resolveFirestore(),
   ]);
   const uid = auth.currentUser?.uid;
   if (!uid) {
@@ -282,9 +291,9 @@ export async function importLocalCircuitsToCloud(
   const imported: CloudSavedCircuit[] = [];
   for (const item of valid) {
     const payload = buildUserCloudCircuitDocument(item);
-    await setDoc(doc(db, 'users', uid, 'circuits', payload.id), {
+    await fs.setDoc(fs.doc(db, 'users', uid, 'circuits', payload.id), {
       ...payload,
-      updatedAt: serverTimestamp(),
+      updatedAt: fs.serverTimestamp(),
     });
     imported.push(payload);
   }
@@ -292,16 +301,15 @@ export async function importLocalCircuitsToCloud(
 }
 
 export async function deleteUserCloudCircuit(circuitId: string): Promise<void> {
-  const [{ auth }, db, { deleteDoc, doc }] = await Promise.all([
+  const [{ auth }, { db, fs }] = await Promise.all([
     getFirebaseAuth(),
-    getFirebaseDb(),
-    import('firebase/firestore'),
+    resolveFirestore(),
   ]);
   const uid = auth.currentUser?.uid;
   if (!uid) {
     throw new Error('AUTH_REQUIRED: Please sign in to delete a cloud circuit.');
   }
-  await deleteDoc(doc(db, 'users', uid, 'circuits', circuitId));
+  await fs.deleteDoc(fs.doc(db, 'users', uid, 'circuits', circuitId));
 }
 
 export interface SharedCircuitRecord {
@@ -379,13 +387,10 @@ export async function getSharedCircuitById(shortId: string): Promise<SharedCircu
 
 export async function incrementViews(circuitId: string): Promise<void> {
   try {
-    const [db, { doc, increment, setDoc }] = await Promise.all([
-      getFirebaseDb(),
-      import('firebase/firestore'),
-    ]);
-    await setDoc(
-      doc(db, 'circuits', circuitId, 'meta', 'views'),
-      { count: increment(1) },
+    const { db, fs } = await resolveFirestore();
+    await fs.setDoc(
+      fs.doc(db, 'circuits', circuitId, 'meta', 'views'),
+      { count: fs.increment(1) },
       { merge: true },
     );
   } catch (err) {

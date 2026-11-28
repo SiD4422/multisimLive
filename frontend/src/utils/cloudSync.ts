@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import LZString from 'lz-string';
 import {
   getLocalOnlyCircuitsPendingImport,
   isCloudImportDismissed,
@@ -11,6 +12,11 @@ import {
   type MergedSavedCircuit,
   type SavedCircuit,
 } from './circuitSavesStorage';
+import {
+  buildForkedCircuitName,
+  sanitizeForkAttribution,
+  type ForkAttribution,
+} from './forkAttribution';
 import { useAuth } from '../hooks/useAuth';
 
 export type CloudSyncStatus = 'offline-local' | 'saving' | 'saved-cloud';
@@ -132,6 +138,7 @@ export interface SaveCircuitDualParams {
   stateJson: string;
   componentCount: number;
   now?: number;
+  forkedFrom?: ForkAttribution;
 }
 
 export interface SaveCircuitDualResult {
@@ -359,4 +366,85 @@ export function useCloudSync(): CloudSyncSnapshot {
   }, [nextUid]);
 
   return getCloudSyncSnapshot();
+}
+
+export interface ForkToAccountParams {
+  sourceCircuitId: string;
+  sourceName: string;
+  sourceAuthor: string;
+  sourceType?: 'community' | 'template';
+  circuitData?: string;
+  rawJson?: string;
+  now?: number;
+}
+
+export interface ForkToAccountResult {
+  saved: SavedCircuit;
+  syncedToCloud: boolean;
+  stateJson: string;
+  forkedFrom: ForkAttribution;
+}
+
+/**
+ * Creates a forked copy under the signed-in user's account (`users/{uid}/circuits/...` + localStorage fallback)
+ * while attaching clean `forkedFrom` creator attribution.
+ */
+export async function forkCircuitToAccount(
+  params: ForkToAccountParams,
+): Promise<ForkToAccountResult> {
+  if (!syncState.uid) {
+    const { getFirebaseAuth } = await import('../lib/firebase');
+    const { auth } = await getFirebaseAuth();
+    const uid = auth.currentUser?.uid ?? null;
+    if (!uid) {
+      throw new Error('AUTH_REQUIRED: Please sign in to fork this circuit into your account.');
+    }
+    syncState.uid = uid;
+    loadedUid = uid;
+  }
+
+  let decodedJson = params.rawJson || '';
+  if (!decodedJson && params.circuitData) {
+    decodedJson = LZString.decompressFromEncodedURIComponent(params.circuitData) || '';
+  }
+  if (!decodedJson) {
+    throw new Error('Could not decode source circuit payload for forking.');
+  }
+
+  const parsed = JSON.parse(decodedJson) as Record<string, unknown>;
+  const components = Array.isArray(parsed.components) ? parsed.components : [];
+  const forkedFrom = sanitizeForkAttribution({
+    sourceCircuitId: params.sourceCircuitId,
+    sourceName: params.sourceName,
+    sourceAuthor: params.sourceAuthor || 'Anonymous',
+    sourceType: params.sourceType || 'community',
+  });
+  if (!forkedFrom) {
+    throw new Error('Missing source metadata required for fork attribution.');
+  }
+
+  const forkedName = buildForkedCircuitName(params.sourceName);
+  const now = params.now ?? Date.now();
+  const forkId = sanitizeCloudCircuitId(`fork_${params.sourceCircuitId}_${now}`, forkedName);
+  const enrichedStateJson = JSON.stringify({
+    ...parsed,
+    name: forkedName,
+    forkedFrom,
+  });
+
+  const { saved, syncedToCloud } = await saveCircuitDual({
+    id: forkId,
+    name: forkedName,
+    stateJson: enrichedStateJson,
+    componentCount: components.length,
+    now,
+    forkedFrom,
+  });
+
+  return {
+    saved,
+    syncedToCloud,
+    stateJson: enrichedStateJson,
+    forkedFrom,
+  };
 }

@@ -134,6 +134,7 @@ export function AuthProviderButtons({ onSuccess, compact = false }: AuthProvider
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAuthenticated?: () => void;
   title?: string;
   subtitle?: string;
 }
@@ -141,6 +142,7 @@ interface AuthModalProps {
 export function AuthModal({
   isOpen,
   onClose,
+  onAuthenticated,
   title = 'Sign in to NodeSim',
   subtitle = 'Publish circuits to the community gallery, track ownership, and manage your designs.',
 }: AuthModalProps) {
@@ -233,7 +235,12 @@ export function AuthModal({
           </button>
         </div>
 
-        <AuthProviderButtons onSuccess={onClose} />
+        <AuthProviderButtons
+          onSuccess={() => {
+            onAuthenticated?.();
+            onClose();
+          }}
+        />
 
         <div
           style={{

@@ -1,4 +1,5 @@
 import LZString from 'lz-string';
+import { sanitizeForkAttribution, type ForkAttribution } from './forkAttribution';
 
 export const CIRCUIT_SAVES_STORAGE_KEY = 'nodesim-saved-circuits-v1';
 export const CLOUD_IMPORT_DISMISSED_PREFIX = 'nodesim-cloud-import-dismissed-v1:';
@@ -9,6 +10,7 @@ export interface SavedCircuit {
   compressed: string;
   savedAt: number;
   componentCount: number;
+  forkedFrom?: ForkAttribution;
 }
 
 export type MergedCircuitOrigin = 'synced' | 'cloud-only' | 'local-only';
@@ -63,6 +65,7 @@ export interface UpsertLocalCircuitSaveParams {
   stateJson: string;
   componentCount: number;
   now?: number;
+  forkedFrom?: ForkAttribution;
 }
 
 export interface UpsertLocalCircuitSaveResult {
@@ -82,6 +85,7 @@ export function upsertLocalCircuitSave(
   const existing = params.id
     ? current.find((s) => s.id === params.id) || current.find((s) => s.name === normalizedName)
     : current.find((s) => s.name === normalizedName);
+  const resolvedForkedFrom = sanitizeForkAttribution(params.forkedFrom ?? existing?.forkedFrom);
 
   let saved: SavedCircuit;
   let next: SavedCircuit[];
@@ -95,6 +99,7 @@ export function upsertLocalCircuitSave(
       compressed,
       savedAt: now,
       componentCount: params.componentCount,
+      ...(resolvedForkedFrom ? { forkedFrom: resolvedForkedFrom } : {}),
     };
     next = current.map((s) => (s.id === existing.id ? saved : s));
   } else {
@@ -104,6 +109,7 @@ export function upsertLocalCircuitSave(
       compressed,
       savedAt: now,
       componentCount: params.componentCount,
+      ...(resolvedForkedFrom ? { forkedFrom: resolvedForkedFrom } : {}),
     };
     next = [saved, ...current];
   }
