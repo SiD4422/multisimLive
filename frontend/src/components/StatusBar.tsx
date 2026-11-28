@@ -1,16 +1,25 @@
 import React from 'react';
-import { Share2, Zap, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Share2, Zap, CheckCircle2, AlertCircle, Loader2, Cloud, CloudOff } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
+import { getCloudSyncLabel, useCloudSync } from '../utils/cloudSync';
 
-export function StatusBar({ onShare }: { onShare?: () => void }) {
+export function StatusBar({
+  onShare,
+  onOpenSaves,
+}: {
+  onShare?: () => void;
+  onOpenSaves?: () => void;
+}) {
   const { components, wires, isSimulating, simulationProgress, simulationError, simulationData } = useSchematicStore();
-  
+  const { status: syncStatus, lastError: syncError } = useCloudSync();
+
   const status = simulationError ? 'error'
                : isSimulating ? 'running'
                : simulationData && simulationData.length > 0 ? 'done'
                : 'ready';
   const runningPercent = simulationProgress?.percent ?? 15;
   const runningLabel = simulationProgress?.label ?? 'Simulating...';
+  const syncLabel = getCloudSyncLabel(syncStatus);
 
   return (
     <div style={{
@@ -76,6 +85,35 @@ export function StatusBar({ onShare }: { onShare?: () => void }) {
 
       {/* Right */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#64748b' }}>
+        <button
+          type="button"
+          onClick={onOpenSaves}
+          title={syncError ? `Cloud sync issue (${syncError}) — local fallback active` : `Circuit save status: ${syncLabel}`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            background: 'none',
+            border: 'none',
+            padding: '2px 6px',
+            borderRadius: 4,
+            cursor: onOpenSaves ? 'pointer' : 'default',
+            fontSize: 11,
+            fontFamily: 'monospace',
+            color:
+              syncStatus === 'saved-cloud'
+                ? '#4ade80'
+                : syncStatus === 'saving'
+                ? '#facc15'
+                : '#94a3b8',
+          }}
+        >
+          {syncStatus === 'saving' && <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} />}
+          {syncStatus === 'saved-cloud' && <Cloud size={11} />}
+          {syncStatus === 'offline-local' && <CloudOff size={11} />}
+          <span>{syncLabel}</span>
+        </button>
+
         {status === 'done' && (
           <div className="statusbar-desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#22c55e' }}>
             <CheckCircle2 size={10} />

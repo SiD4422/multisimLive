@@ -15,7 +15,7 @@ import { AccountMenu } from '../components/AccountMenu';
 import { downloadKiCadNetlist } from '../utils/exportKiCad';
 import { StatusBar } from '../components/StatusBar';
 import { resolveGlobalShortcut, SHORTCUT_CATEGORIES, SHORTCUT_DEFINITIONS } from '../utils/keyboardShortcuts';
-import { upsertLocalCircuitSave } from '../utils/circuitSavesStorage';
+import { dismissCloudImportPrompt, importPendingLocalCircuitsToCloud, saveCircuitDual, useCloudSync } from '../utils/cloudSync';
 import { warmUpSpiceEngine } from '../utils/spiceEngine';
 
 // Lazily loaded panels — not needed at initial paint
@@ -92,6 +92,7 @@ function Simulator() {
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isSavesOpen, setIsSavesOpen] = useState(false);
+  const cloudSync = useCloudSync();
   const [isLabReportModalOpen, setIsLabReportModalOpen] = useState(false);
   const [schematicSnapshot, setSchematicSnapshot] = useState<string | undefined>();
   const [graphSnapshot, setGraphSnapshot] = useState<string | undefined>();
@@ -282,15 +283,19 @@ function Simulator() {
           break;
         case 'quickSave': {
           const state = useSchematicStore.getState();
-          const { saved } = upsertLocalCircuitSave({
+          void saveCircuitDual({
             name: circuitName,
             stateJson: state.exportState(),
             componentCount: state.components.length,
+          }).then(({ saved, syncedToCloud }) => {
+            if (saved.name !== circuitName) {
+              setCircuitName(saved.name);
+            }
+            showToast(
+              syncedToCloud ? `Saved "${saved.name}" to cloud ✓` : `Saved "${saved.name}" locally`,
+              'success',
+            );
           });
-          if (saved.name !== circuitName) {
-            setCircuitName(saved.name);
-          }
-          showToast(`Saved "${saved.name}" locally`, 'success');
           break;
         }
         case 'rotate': {
@@ -570,6 +575,67 @@ function Simulator() {
       />
       <div className="app-container">
         <RestoreBanner show={bootSource === 'restored'} />
+        {!isEmbed && cloudSync.uid && cloudSync.pendingLocalImport.length > 0 && !isSavesOpen && (
+          <div
+            role="status"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+              padding: '7px 14px',
+              background: 'linear-gradient(90deg, #0c4a6e, #0f172a)',
+              borderBottom: '1px solid rgba(56, 189, 248, 0.35)',
+              color: '#e0f2fe',
+              fontSize: 12,
+            }}
+          >
+            <span>
+              Found <strong>{cloudSync.pendingLocalImport.length}</strong> local circuit{cloudSync.pendingLocalImport.length === 1 ? '' : 's'} in this browser. Import to your cloud account?
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                type="button"
+                disabled={cloudSync.isImporting || !cloudSync.isOnline}
+                onClick={() => {
+                  void importPendingLocalCircuitsToCloud().then((count) => {
+                    if (count > 0) {
+                      showToast(`Imported ${count} local circuit${count === 1 ? '' : 's'} to cloud ✓`, 'success');
+                    }
+                  });
+                }}
+                style={{
+                  background: '#0284c7',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '4px 10px',
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  cursor: cloudSync.isImporting || !cloudSync.isOnline ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {cloudSync.isImporting ? 'Importing...' : `Import ${cloudSync.pendingLocalImport.length} to Cloud`}
+              </button>
+              <button
+                type="button"
+                onClick={dismissCloudImportPrompt}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid rgba(148, 163, 184, 0.35)',
+                  color: '#cbd5e1',
+                  borderRadius: 6,
+                  padding: '4px 9px',
+                  fontSize: 11.5,
+                  cursor: 'pointer',
+                }}
+              >
+                Not now
+              </button>
+            </div>
+          </div>
+        )}
       {/* Hidden File Input for Loading Circuits */}
       <input 
         type="file" 
@@ -951,7 +1017,7 @@ function Simulator() {
       {/* AnalysisSettings is shown as a modal via the gear icon — no bottom panel */}
 
       {/* Status Bar */}
-      <StatusBar onShare={handleShare} />
+      <StatusBar onShare={handleShare} onOpenSaves={() => setIsSavesOpen(true)} />
 
       {/* Mobile Bottom Action Toolbar (≤ 768px) */}
       <nav className="mobile-bottom-bar" aria-label="Mobile Simulator Actions">

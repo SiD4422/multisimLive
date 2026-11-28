@@ -189,6 +189,121 @@ export async function getCommunityCircuits(limitCount = 50): Promise<CommunityCi
   });
 }
 
+export interface CloudSavedCircuit {
+  id: string;
+  name: string;
+  compressed: string;
+  savedAt: number;
+  componentCount: number;
+}
+
+function sanitizePrivateCircuitId(rawId: string, fallbackName: string): string {
+  const cleaned = rawId.trim().replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
+  if (cleaned.length > 0) return cleaned;
+  const fromName = fallbackName.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_').slice(0, 48);
+  return fromName ? `${fromName}_${Date.now()}` : `ckt_${Date.now()}`;
+}
+
+export function buildUserCloudCircuitDocument(circuit: CloudSavedCircuit): CloudSavedCircuit {
+  const name = circuit.name.trim().slice(0, 100) || 'Untitled Circuit';
+  const id = sanitizePrivateCircuitId(circuit.id, name);
+  const compressed = circuit.compressed.slice(0, 160000);
+  if (!compressed) {
+    throw new Error('Cannot save an empty circuit payload to cloud.');
+  }
+  return {
+    id,
+    name,
+    compressed,
+    savedAt: Number.isFinite(circuit.savedAt) ? Math.max(0, Math.floor(circuit.savedAt)) : Date.now(),
+    componentCount: Math.max(0, Math.min(2000, Math.floor(circuit.componentCount || 0))),
+  };
+}
+
+export async function listUserCloudCircuits(limitCount = 100): Promise<CloudSavedCircuit[]> {
+  const [{ auth }, db, { collection, getDocs, limit, orderBy, query }] = await Promise.all([
+    getFirebaseAuth(),
+    getFirebaseDb(),
+    import('firebase/firestore'),
+  ]);
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    throw new Error('AUTH_REQUIRED: Please sign in to load cloud circuits.');
+  }
+  const q = query(
+    collection(db, 'users', uid, 'circuits'),
+    orderBy('savedAt', 'desc'),
+    limit(limitCount),
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((d) => {
+    const raw = d.data();
+    return {
+      id: d.id,
+      name: typeof raw.name === 'string' ? raw.name : 'Untitled Circuit',
+      compressed: typeof raw.compressed === 'string' ? raw.compressed : '',
+      savedAt: typeof raw.savedAt === 'number' ? raw.savedAt : Date.now(),
+      componentCount: typeof raw.componentCount === 'number' ? raw.componentCount : 0,
+    };
+  });
+}
+
+export async function saveUserCloudCircuit(circuit: CloudSavedCircuit): Promise<CloudSavedCircuit> {
+  const [{ auth }, db, { doc, serverTimestamp, setDoc }] = await Promise.all([
+    getFirebaseAuth(),
+    getFirebaseDb(),
+    import('firebase/firestore'),
+  ]);
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    throw new Error('AUTH_REQUIRED: Please sign in to save circuits to the cloud.');
+  }
+  const payload = buildUserCloudCircuitDocument(circuit);
+  await setDoc(doc(db, 'users', uid, 'circuits', payload.id), {
+    ...payload,
+    updatedAt: serverTimestamp(),
+  });
+  return payload;
+}
+
+export async function importLocalCircuitsToCloud(
+  localCircuits: CloudSavedCircuit[],
+): Promise<{ importedCount: number; circuits: CloudSavedCircuit[] }> {
+  const [{ auth }, db, { doc, serverTimestamp, setDoc }] = await Promise.all([
+    getFirebaseAuth(),
+    getFirebaseDb(),
+    import('firebase/firestore'),
+  ]);
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    throw new Error('AUTH_REQUIRED: Please sign in to import local circuits to cloud.');
+  }
+  const valid = localCircuits.filter((c) => Boolean(c.compressed && c.compressed.trim()));
+  const imported: CloudSavedCircuit[] = [];
+  for (const item of valid) {
+    const payload = buildUserCloudCircuitDocument(item);
+    await setDoc(doc(db, 'users', uid, 'circuits', payload.id), {
+      ...payload,
+      updatedAt: serverTimestamp(),
+    });
+    imported.push(payload);
+  }
+  return { importedCount: imported.length, circuits: imported };
+}
+
+export async function deleteUserCloudCircuit(circuitId: string): Promise<void> {
+  const [{ auth }, db, { deleteDoc, doc }] = await Promise.all([
+    getFirebaseAuth(),
+    getFirebaseDb(),
+    import('firebase/firestore'),
+  ]);
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    throw new Error('AUTH_REQUIRED: Please sign in to delete a cloud circuit.');
+  }
+  await deleteDoc(doc(db, 'users', uid, 'circuits', circuitId));
+}
+
 export async function incrementViews(circuitId: string): Promise<void> {
   try {
     const [db, { doc, increment, setDoc }] = await Promise.all([

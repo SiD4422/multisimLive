@@ -75,6 +75,33 @@ service cloud.firestore {
                     && request.auth.uid == userId
                     && (!('isPro' in request.resource.data) || request.resource.data.isPro == resource.data.isPro);
       allow delete: if false;
+
+      // Private user cloud circuit saves (offline localStorage synced on sign-in)
+      match /circuits/{circuitId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow create, update: if isSignedIn()
+                              && request.auth.uid == userId
+                              && request.resource.data.keys().hasOnly([
+                                'id', 'name', 'compressed', 'componentCount', 'savedAt', 'updatedAt'
+                              ])
+                              && request.resource.data.id is string
+                              && request.resource.data.id == circuitId
+                              && request.resource.data.id.size() >= 1
+                              && request.resource.data.id.size() <= 80
+                              && request.resource.data.name is string
+                              && request.resource.data.name.size() >= 1
+                              && request.resource.data.name.size() <= 100
+                              && request.resource.data.compressed is string
+                              && request.resource.data.compressed.size() >= 1
+                              && request.resource.data.compressed.size() <= 160000
+                              && request.resource.data.componentCount is int
+                              && request.resource.data.componentCount >= 0
+                              && request.resource.data.componentCount <= 2000
+                              && request.resource.data.savedAt is int
+                              && request.resource.data.savedAt >= 0
+                              && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt == request.time);
+        allow delete: if isSignedIn() && request.auth.uid == userId;
+      }
     }
   }
 }

@@ -249,7 +249,9 @@ describe('Phase 3.4: Keyboard Shortcuts, Wire Mode & Quick-Save', () => {
     const editorSrc = readFileSync(resolve(__dirname, '../../components/SchematicEditor.tsx'), 'utf8');
 
     expect(simSrc).toContain('resolveGlobalShortcut');
-    expect(simSrc).toContain('upsertLocalCircuitSave');
+    expect(simSrc).toContain('saveCircuitDual');
+    const cloudSyncSrc = readFileSync(resolve(__dirname, '../cloudSync.ts'), 'utf8');
+    expect(cloudSyncSrc).toContain('upsertLocalCircuitSave');
     expect(simSrc).toContain('SHORTCUT_DEFINITIONS');
     expect(simSrc).toContain('aria-labelledby="shortcuts-modal-title"');
     expect(editorSrc).toContain('isEditableEventTarget');
