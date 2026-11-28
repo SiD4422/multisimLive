@@ -10,6 +10,11 @@ import {
   prepareParametricSweepNetlist,
   type ParametricSweepConfig,
 } from '../utils/parametricSweep';
+import {
+  buildNoiseDirective,
+  DEFAULT_NOISE_SETTINGS,
+  type NoiseSettings,
+} from '../utils/noiseAnalysis';
 
 export interface Point {
   x: number;
@@ -105,16 +110,18 @@ interface SchematicState {
   playbackSpeed: number;
 
   // Analysis Mode
-  analysisMode: 'transient' | 'ac' | 'dc' | 'op';
+  analysisMode: 'transient' | 'ac' | 'dc' | 'op' | 'noise';
   acSettings: { fStart: string; fStop: string; points: string };
   dcSettings: { source: string; start: string; stop: string; step: string };
   transientSettings: { endTime: string; step: string };
+  noiseSettings: NoiseSettings;
   parametricSweep: ParametricSweepConfig;
   configActiveTab: 'properties' | 'simulation';
-  setAnalysisMode: (mode: 'transient' | 'ac' | 'dc' | 'op') => void;
+  setAnalysisMode: (mode: 'transient' | 'ac' | 'dc' | 'op' | 'noise') => void;
   setAcSettings: (s: Partial<{ fStart: string; fStop: string; points: string }>) => void;
   setDcSettings: (s: Partial<{ source: string; start: string; stop: string; step: string }>) => void;
   setTransientSettings: (s: Partial<{ endTime: string; step: string }>) => void;
+  setNoiseSettings: (s: Partial<NoiseSettings>) => void;
   setParametricSweep: (s: Partial<ParametricSweepConfig>) => void;
   setConfigActiveTab: (tab: 'properties' | 'simulation') => void;
   openParametricSweepForComponent: (componentId: string) => void;
@@ -226,6 +233,7 @@ export const useSchematicStore = create<SchematicState>()(
       acSettings: { fStart: '1', fStop: '1Meg', points: '100' },
       dcSettings: { source: 'V1', start: '0', stop: '5', step: '0.1' },
       transientSettings: { endTime: '10ms', step: '0.01ms' },
+      noiseSettings: { ...DEFAULT_NOISE_SETTINGS },
       parametricSweep: { enabled: false, componentId: '', parameter: 'value', start: '1k', stop: '10k', step: '2k' },
       configActiveTab: 'properties',
 
@@ -379,6 +387,7 @@ export const useSchematicStore = create<SchematicState>()(
         ...(data.acSettings ? { acSettings: data.acSettings } : {}),
         ...(data.dcSettings ? { dcSettings: data.dcSettings } : {}),
         ...(data.transientSettings ? { transientSettings: data.transientSettings } : {}),
+        ...(data.noiseSettings ? { noiseSettings: data.noiseSettings } : {}),
         parametricSweep: { enabled: false, componentId: '', parameter: 'value', start: '1k', stop: '10k', step: '2k' },
       });
     } catch (e) {
@@ -499,6 +508,7 @@ export const useSchematicStore = create<SchematicState>()(
   setAcSettings: (s) => set((state) => ({ acSettings: { ...state.acSettings, ...s } })),
   setDcSettings: (s) => set((state) => ({ dcSettings: { ...state.dcSettings, ...s } })),
   setTransientSettings: (s) => set((state) => ({ transientSettings: { ...state.transientSettings, ...s } })),
+  setNoiseSettings: (s) => set((state) => ({ noiseSettings: { ...state.noiseSettings, ...s } })),
   setParametricSweep: (s) => set((state) => ({ parametricSweep: { ...state.parametricSweep, ...s } })),
   setConfigActiveTab: (tab) => set({ configActiveTab: tab }),
   openParametricSweepForComponent: (componentId) => {
@@ -516,7 +526,7 @@ export const useSchematicStore = create<SchematicState>()(
   },
 
   runSimulation: async (isSilent = false) => {
-    const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings, parametricSweep } = get();
+    const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings, noiseSettings, parametricSweep } = get();
     
     if (!isSilent) track('Simulation_Run', { mode: analysisMode });
 
@@ -621,6 +631,9 @@ export const useSchematicStore = create<SchematicState>()(
         analysisCmd = `.dc ${dcSettings.source} ${dcSettings.start} ${dcSettings.stop} ${dcSettings.step}`;
       } else if (analysisMode === 'op') {
         analysisCmd = `.op`;
+      } else if (analysisMode === 'noise') {
+        const builtNoise = buildNoiseDirective(netlist, components, wires, probes, noiseSettings);
+        analysisCmd = builtNoise.directive;
       } else {
         // Default transient (without uic so SPICE calculates initial DC operating point, crucial for amplifiers)
         analysisCmd = `.tran ${transientSettings.step} ${transientSettings.endTime}`;
@@ -633,8 +646,8 @@ export const useSchematicStore = create<SchematicState>()(
 
       let sweepMeta: SweepMetadata | undefined;
       if (parametricSweep.enabled && parametricSweep.componentId) {
-        if (analysisMode === 'op') {
-          throw new Error('Parametric Sweep (.step) requires Transient, AC Sweep, or DC Sweep analysis (switch away from .op).');
+        if (analysisMode === 'op' || analysisMode === 'noise') {
+          throw new Error('Parametric Sweep (.step) supports Transient, AC Sweep, and DC Sweep analyses.');
         }
         const prepared = prepareParametricSweepNetlist(netlist, components, parametricSweep);
         netlist = prepared.netlist;
@@ -647,7 +660,7 @@ export const useSchematicStore = create<SchematicState>()(
         }
       }, sweepMeta);
 
-      const isAcOrDc = analysisMode === 'ac' || analysisMode === 'dc';
+      const isAcOrDc = analysisMode === 'ac' || analysisMode === 'dc' || analysisMode === 'noise';
       set((state) => {
         // If it was an .op analysis, data is an array of op value objects. 
         if (analysisMode === 'op' || data.__plotType === 'op') {

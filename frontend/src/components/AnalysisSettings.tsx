@@ -6,6 +6,7 @@ import {
   getDefaultSweepConfigForComponent,
   isSweepableComponent,
 } from '../utils/parametricSweep';
+import { listNoiseCandidateSources } from '../utils/noiseAnalysis';
 
 interface AnalysisSettingsProps {
   isOpen?: boolean;
@@ -26,6 +27,7 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
     acSettings, setAcSettings,
     dcSettings, setDcSettings,
     transientSettings, setTransientSettings,
+    noiseSettings, setNoiseSettings,
     parametricSweep, setParametricSweep,
     runSimulation, isSimulating,
     components
@@ -36,6 +38,11 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
       .filter(c => c.type === 'ACSource' || c.type === 'DCSource')
       .map(c => c.id);
   }, [components]);
+
+  const noiseSources = React.useMemo(
+    () => listNoiseCandidateSources(components),
+    [components],
+  );
 
   const sweepableComponents = React.useMemo(
     () => components.filter((c) => isSweepableComponent(c)),
@@ -77,13 +84,21 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
         <div style={{ marginBottom: '20px' }}>
           <label className="input-label">Analysis Type</label>
           <div className="analysis-tabs">
-            {(['transient', 'ac', 'dc', 'op'] as const).map(m => (
+            {(['transient', 'ac', 'dc', 'op', 'noise'] as const).map(m => (
               <button
                 key={m}
                 onClick={() => setAnalysisMode(m)}
                 className={`analysis-tab ${analysisMode === m ? 'active' : ''}`}
               >
-                {m === 'transient' ? '⏱ Transient' : m === 'ac' ? '〜 AC Sweep' : m === 'dc' ? '📈 DC Sweep' : '⚡ Operating Point (.op)'}
+                {m === 'transient'
+                  ? '⏱ Transient'
+                  : m === 'ac'
+                  ? '〜 AC Sweep'
+                  : m === 'dc'
+                  ? '📈 DC Sweep'
+                  : m === 'op'
+                  ? '⚡ Operating Point (.op)'
+                  : '🔊 Noise (.noise)'}
               </button>
             ))}
           </div>
@@ -216,8 +231,84 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
           </div>
         )}
 
+        {/* Noise Analysis Settings */}
+        {analysisMode === 'noise' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">Output Node</label>
+                <input
+                  className="input-field"
+                  value={noiseSettings.outputNode}
+                  onChange={e => setNoiseSettings({ outputNode: e.target.value })}
+                  placeholder="Auto (from Voltage Probe)"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">Input Source</label>
+                <select
+                  className="input-field"
+                  value={noiseSettings.inputSource}
+                  onChange={e => setNoiseSettings({ inputSource: e.target.value })}
+                >
+                  {noiseSources.length === 0 ? (
+                    <option value="">-- Place a Source --</option>
+                  ) : (
+                    noiseSources.map(src => (
+                      <option key={src.id} value={src.id}>
+                        {src.id} ({src.type})
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">Scale</label>
+                <select
+                  className="input-field"
+                  value={noiseSettings.variation}
+                  onChange={e => setNoiseSettings({ variation: e.target.value as 'dec' | 'oct' | 'lin' })}
+                >
+                  <option value="dec">Decade (dec)</option>
+                  <option value="oct">Octave (oct)</option>
+                  <option value="lin">Linear (lin)</option>
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">Pts/Dec</label>
+                <input
+                  className="input-field"
+                  value={noiseSettings.points}
+                  onChange={e => setNoiseSettings({ points: e.target.value })}
+                  placeholder="10"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">Start Freq</label>
+                <input
+                  className="input-field"
+                  value={noiseSettings.fStart}
+                  onChange={e => setNoiseSettings({ fStart: e.target.value })}
+                  placeholder="1"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label className="input-label">Stop Freq</label>
+                <input
+                  className="input-field"
+                  value={noiseSettings.fStop}
+                  onChange={e => setNoiseSettings({ fStop: e.target.value })}
+                  placeholder="1Meg"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Parametric Sweep (.step) Section */}
-        {analysisMode !== 'op' && (
+        {analysisMode !== 'op' && analysisMode !== 'noise' && (
           <div style={{ marginBottom: '16px', padding: '12px', borderRadius: 10, border: `1px solid ${parametricSweep.enabled ? '#7dd3fc' : '#e5e7eb'}`, background: parametricSweep.enabled ? '#f0f9ff' : '#f9fafb' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: parametricSweep.enabled ? 10 : 0 }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#0f172a' }}>
@@ -362,6 +453,8 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
             ? '💡 Use Hz, kHz, Meg (e.g. "1 → 1Meg"). Place a voltage probe to see the Bode plot.'
             : analysisMode === 'dc'
             ? '💡 Source name must match a source ID in your circuit (e.g. V1).'
+            : analysisMode === 'noise'
+            ? '💡 Computes Johnson/shot noise spectral density (V/√Hz) and integrated RMS noise. Place a Voltage Probe on your output wire or leave Output Node blank for auto-detection.'
             : analysisMode === 'op'
             ? '💡 Calculates the steady-state DC voltage at every node and current through sources. No graphs are generated.'
             : '💡 Use s, ms, µs units (e.g. "10ms", "0.01ms"). Step defaults to end÷1000.'}

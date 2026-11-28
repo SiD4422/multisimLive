@@ -317,7 +317,7 @@ export function prepareParametricSweepNetlist(
 }
 
 export type MergedSweepOutput = SpiceDataRow[] & {
-  __plotType?: 'transient' | 'ac' | 'dc' | 'op';
+  __plotType?: 'transient' | 'ac' | 'dc' | 'op' | 'noise';
   __isComplex?: boolean;
   __variables?: string[];
   __sweepMeta?: SweepMetadata;

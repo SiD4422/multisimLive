@@ -37,20 +37,29 @@ export interface SweepMetadata {
   steps: SweepStepDescriptor[];
 }
 
+export interface NoiseSummary {
+  onoiseTotal: number;
+  inoiseTotal: number;
+  outputNode: string;
+  inputSource: string;
+}
+
 export type SpiceParsedOutput = (SpiceDataRow[] | OpDataPoint[]) & {
-  __plotType?: 'transient' | 'ac' | 'dc' | 'op';
+  __plotType?: 'transient' | 'ac' | 'dc' | 'op' | 'noise';
   __isComplex?: boolean;
   __variables?: string[];
   __engineVersion?: string;
   __sweepMeta?: SweepMetadata;
+  __noiseSummary?: NoiseSummary;
 };
 
 export type SpiceResult = SpiceDataRow[] & {
-  __plotType?: 'transient' | 'ac' | 'dc' | 'op';
+  __plotType?: 'transient' | 'ac' | 'dc' | 'op' | 'noise';
   __isComplex?: boolean;
   __variables?: string[];
   __engineVersion?: string;
   __sweepMeta?: SweepMetadata;
+  __noiseSummary?: NoiseSummary;
 };
 
 /**
@@ -116,8 +125,9 @@ export interface SimulationRow {
 
 // Tagged simulation result array � carries plot type metadata
 export interface SimulationData extends Array<SimulationRow> {
-  __plotType?: 'transient' | 'ac' | 'dc' | 'op';
+  __plotType?: 'transient' | 'ac' | 'dc' | 'op' | 'noise';
   __engineVersion?: string;
   __sweepMeta?: SweepMetadata;
+  __noiseSummary?: NoiseSummary;
 }
 

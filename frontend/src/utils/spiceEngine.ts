@@ -1,5 +1,5 @@
 // spiceEngine.ts
-import type { SpiceJob, SpiceProgress, SpiceResult, SweepMetadata } from './spiceTypes';
+import type { NoiseSummary, SpiceJob, SpiceProgress, SpiceResult, SweepMetadata } from './spiceTypes';
 
 let currentJobId = 0;
 let pendingJob: SpiceJob | null = null;
@@ -17,6 +17,7 @@ interface WorkerResponsePayload {
   __isComplex?: boolean;
   __variables?: unknown[];
   __sweepMeta?: SweepMetadata;
+  __noiseSummary?: NoiseSummary;
   engineVersion?: string;
 }
 
@@ -30,7 +31,7 @@ function resetPersistentWorker(): void {
 }
 
 function handleWorkerMessage(e: MessageEvent): void {
-  const { id: incomingId, type, progress, data, error, __plotType, __isComplex, __variables, __sweepMeta, engineVersion } =
+  const { id: incomingId, type, progress, data, error, __plotType, __isComplex, __variables, __sweepMeta, __noiseSummary, engineVersion } =
     e.data as WorkerResponsePayload;
 
   if (!pendingJob || pendingJob.id !== incomingId) return;
@@ -50,6 +51,7 @@ function handleWorkerMessage(e: MessageEvent): void {
     if (__isComplex !== undefined) (data as SpiceResult).__isComplex = __isComplex;
     if (__variables) (data as SpiceResult).__variables = __variables as SpiceResult['__variables'];
     if (__sweepMeta) (data as SpiceResult).__sweepMeta = __sweepMeta;
+    if (__noiseSummary) (data as SpiceResult).__noiseSummary = __noiseSummary;
     if (engineVersion) (data as SpiceResult).__engineVersion = engineVersion;
 
     completedJob.resolve(data);

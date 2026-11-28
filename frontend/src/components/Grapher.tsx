@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import type { SimulationData, SimulationRow, SweepMetadata } from '../utils/spiceTypes';
+import type { NoiseSummary, SimulationData, SimulationRow, SweepMetadata } from '../utils/spiceTypes';
 import { getSweepTraceKey } from '../utils/parametricSweep';
+import { formatNoiseDensity, formatRmsNoiseVoltage } from '../utils/noiseAnalysis';
 import { useSchematicStore } from '../store/useSchematicStore';
 import { getSpiceNodeForPoint } from '../utils/netlister';
 import { computeFFT } from '../utils/fftAnalyzer';
@@ -65,7 +66,9 @@ function formatTraceName(t: string): string {
   if (sl.endsWith('_db')) return formatTraceName(s.slice(0, -3)) + ' (dB)';
   if (sl.endsWith('_phase')) return formatTraceName(s.slice(0, -6)) + ' Phase (°)';
 
-  // Axis keys
+  // Axis keys & Noise spectra
+  if (sl === 'onoise_spectrum' || sl === 'v(onoise_spectrum)') return 'Output Noise (V/√Hz)';
+  if (sl === 'inoise_spectrum' || sl === 'v(inoise_spectrum)') return 'Input-Referred Noise (V/√Hz)';
   if (sl === 'frequency' || sl === 'freq') return 'Frequency (Hz)';
   if (sl === 'time') return 'Time (s)';
   if (sl === 'v_sweep') return 'Sweep Voltage (V)';
@@ -109,6 +112,7 @@ function fmtSI(value: number): string {
 function getYAxisLabel(traces: string[], isAcMagnitude: boolean = false, isAcPhase: boolean = false): string {
   if (isAcMagnitude) return 'Magnitude (dB)';
   if (isAcPhase) return 'Phase (°)';
+  if (traces.some((t) => t.toLowerCase().includes('noise_spectrum'))) return 'Noise Density (V/√Hz)';
   const hasV = traces.some(t => t.toLowerCase().startsWith('v('));
   const hasI = traces.some(t => t.toLowerCase().startsWith('i('));
   if (hasV && hasI) return 'Value';
@@ -1050,7 +1054,7 @@ function formatBufferRows(
   if (!buffer || buffer.length === 0) return [];
 
   const plotType = buffer.__plotType || 'transient';
-  const isAcOrDc = plotType === 'ac' || plotType === 'dc';
+  const isAcOrDc = plotType === 'ac' || plotType === 'dc' || plotType === 'noise';
   const safePlaybackTime = Number.isFinite(playbackTime) && playbackTime > 0 ? playbackTime : Infinity;
   const activeData =
     isAcOrDc || !isPlaying
@@ -1058,7 +1062,7 @@ function formatBufferRows(
       : buffer.filter((row) => Number.isFinite(row.time as number) && (row.time as number) <= safePlaybackTime);
 
   const visible = activeData.length === 0 && buffer.length > 0 ? [buffer[0]] : activeData;
-  let processed: SimulationRow[] = visible.filter((row) => (plotType === 'ac' ? row.frequency > 0 : true));
+  let processed: SimulationRow[] = visible.filter((row) => (plotType === 'ac' || plotType === 'noise' ? row.frequency > 0 : true));
 
   if (probeAliases.length > 0 && processed.length > 0) {
     processed = processed.map((row) => {
@@ -1106,6 +1110,128 @@ function applyDigitalSnap(rows: SimulationRow[], isDigitalMode: boolean): Simula
     });
     return snapped;
   });
+}
+
+// ⚡⚡ Noise Spectral Density Plot ⚡⚡─────────────────────────────────────────────
+
+function NoisePlot({
+  data,
+  traces,
+  noiseSummary,
+  isOscilloscope,
+  isCursorMode,
+  cursorA,
+  cursorB,
+  hoverRow,
+  onChartClick,
+  onChartMouseMove,
+  onChartMouseLeave,
+}: {
+  data: SimulationData;
+  traces: string[];
+  noiseSummary?: NoiseSummary;
+  isOscilloscope: boolean;
+  isCursorMode: boolean;
+  cursorA: SimulationRow | null;
+  cursorB: SimulationRow | null;
+  hoverRow: SimulationRow | null;
+  onChartClick?: (r: SimulationRow | null) => void;
+  onChartMouseMove?: (r: SimulationRow | null) => void;
+  onChartMouseLeave?: () => void;
+}) {
+  const [useLogY, setUseLogY] = useState(true);
+  const colors = isOscilloscope ? OSC_COLORS : COLORS;
+  const gridColor = isOscilloscope ? '#003300' : '#e5e7eb';
+  const textColor = isOscilloscope ? '#00ff00' : '#6b7280';
+
+  const plotRows = useMemo(() => {
+    if (!useLogY) return data;
+    return data.filter((row) =>
+      traces.every((t) => {
+        const val = row[t];
+        return val === undefined || (Number.isFinite(val) && val > 0);
+      }),
+    );
+  }, [data, traces, useLogY]);
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: isOscilloscope ? '#001100' : '#fff', padding: 8, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '0 8px 6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, color: isOscilloscope ? '#00ff00' : '#374151', margin: 0 }}>
+            Noise Spectral Density
+          </h3>
+          {noiseSummary && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, fontFamily: 'monospace', color: isOscilloscope ? '#4ade80' : '#4b5563' }}>
+              <span>
+                V({noiseSummary.outputNode}) RMS: <strong style={{ color: '#7e22ce' }}>{formatRmsNoiseVoltage(noiseSummary.onoiseTotal)}</strong>
+              </span>
+              {noiseSummary.inoiseTotal > 0 && (
+                <span>
+                  Input-Referred ({noiseSummary.inputSource}): <strong>{formatRmsNoiseVoltage(noiseSummary.inoiseTotal)}</strong>
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: textColor, cursor: 'pointer' }}>
+          <input type="checkbox" checked={useLogY} onChange={(e) => setUseLogY(e.target.checked)} />
+          Log Y
+        </label>
+      </div>
+      <div style={{ position: 'relative', flex: 1, minHeight: 120 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={plotRows}
+            margin={{ top: 5, right: 30, left: 24, bottom: 24 }}
+            onClick={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(plotRows, e, 'frequency'); if (r && onChartClick) onChartClick(r); } : undefined}
+            onMouseMove={isCursorMode ? (e: MouseHandlerDataParam) => { const r = rowFromChartEvent(plotRows, e, 'frequency'); if (r && onChartMouseMove) onChartMouseMove(r); } : undefined}
+            onMouseLeave={isCursorMode ? onChartMouseLeave : undefined}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+            <XAxis
+              dataKey="frequency"
+              type="number"
+              scale="log"
+              domain={['dataMin', 'dataMax']}
+              tickFormatter={formatHz}
+              tick={{ fill: textColor }}
+              label={{ value: 'Frequency (Hz)', position: 'insideBottom', offset: -14, fill: textColor }}
+            />
+            <YAxis
+              scale={useLogY ? 'log' : 'auto'}
+              domain={['auto', 'auto']}
+              tickFormatter={fmtSI}
+              width={66}
+              tick={{ fill: textColor }}
+              label={{ value: 'Noise (V/√Hz)', angle: -90, position: 'insideLeft', offset: -6, fill: textColor }}
+            />
+            <Tooltip
+              labelFormatter={(v) => `Freq: ${formatHz(Number(v))}`}
+              formatter={(val, name) => [formatNoiseDensity(Number(val)), String(name ?? '')]}
+              contentStyle={isOscilloscope ? { backgroundColor: '#001100', border: '1px solid #00ff00', color: '#00ff00' } : undefined}
+            />
+            <Legend verticalAlign="top" height={28} wrapperStyle={isOscilloscope ? { color: '#00ff00' } : undefined} />
+            {isCursorMode && cursorA && Number.isFinite(cursorA.frequency as number) && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
+            {isCursorMode && cursorB && Number.isFinite(cursorB.frequency as number) && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
+            {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow.frequency as number) && <ReferenceLine x={hoverRow.frequency} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
+            {traces.map((t, i) => (
+              <Line
+                key={t}
+                name={formatTraceName(t)}
+                type="monotone"
+                dataKey={t}
+                stroke={colors[i % colors.length]}
+                dot={false}
+                strokeWidth={isOscilloscope ? 3 : 2}
+                isAnimationActive={false}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
 }
 
 export default function Grapher() {
@@ -1337,6 +1463,16 @@ export default function Grapher() {
       return { traces: [], sweepKey: 'frequency' };
     }
 
+    if (plotType === 'noise') {
+      const noiseKeys = ['onoise_spectrum', 'inoise_spectrum'].filter((k) =>
+        allKeys.some((ak) => ak.toLowerCase() === k),
+      );
+      const resolvedKeys = noiseKeys.length > 0
+        ? noiseKeys.map((k) => allKeys.find((ak) => ak.toLowerCase() === k)!).filter(Boolean)
+        : allKeys.filter((k) => k !== 'frequency' && !k.startsWith('__'));
+      return { traces: resolvedKeys, sweepKey: 'frequency' };
+    }
+
     if (plotType === 'dc') {
       const xKey = allKeys[0]; // first key is the sweep variable
       const valueKeys = allKeys.filter(k => k !== xKey);
@@ -1426,6 +1562,16 @@ export default function Grapher() {
   if (showFft && plotType === 'transient') {
     PlotComponent = (
       <FftPlot simulationBuffer={simulationBuffer!} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} />
+    );
+  } else if (plotType === 'noise') {
+    PlotComponent = (
+      <NoisePlot
+        data={displayDataWithGhost}
+        traces={traces}
+        noiseSummary={simulationBuffer?.__noiseSummary}
+        isOscilloscope={isOscilloscope}
+        {...cursorProps}
+      />
     );
   } else if (plotType === 'ac') {
     PlotComponent = <BodePlot data={displayDataWithGhost} traces={traces} ghostTraces={ghostTraces} sweepMeta={sweepMeta} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
@@ -1682,12 +1828,12 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
         {/* Analysis mode badge */}
         <div style={{ 
           display: 'flex', alignItems: 'center', gap: 4,
-          background: plotType === 'ac' ? '#dbeafe' : plotType === 'dc' ? '#fef3c7' : '#f0fdf4',
-          color: plotType === 'ac' ? '#1d4ed8' : plotType === 'dc' ? '#92400e' : '#166534',
-          border: `1px solid ${plotType === 'ac' ? '#bfdbfe' : plotType === 'dc' ? '#fde68a' : '#bbf7d0'}`,
+          background: plotType === 'ac' ? '#dbeafe' : plotType === 'dc' ? '#fef3c7' : plotType === 'noise' ? '#f3e8ff' : '#f0fdf4',
+          color: plotType === 'ac' ? '#1d4ed8' : plotType === 'dc' ? '#92400e' : plotType === 'noise' ? '#7e22ce' : '#166534',
+          border: `1px solid ${plotType === 'ac' ? '#bfdbfe' : plotType === 'dc' ? '#fde68a' : plotType === 'noise' ? '#e9d5ff' : '#bbf7d0'}`,
           borderRadius: 6, padding: '3px 10px', fontSize: 11, fontWeight: 700
         }}>
-          {plotType === 'ac' ? '∿ AC Sweep' : plotType === 'dc' ? '⎓ DC Sweep' : '⚡ Transient'}
+          {plotType === 'ac' ? '∿ AC Sweep' : plotType === 'dc' ? '⎓ DC Sweep' : plotType === 'noise' ? '🔊 Noise' : '⚡ Transient'}
         </div>
         {/* FFT toggle — only shown for transient */}
         {plotType === 'transient' && (

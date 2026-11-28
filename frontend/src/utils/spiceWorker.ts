@@ -15,9 +15,10 @@ if (typeof self !== 'undefined') {
   }
 }
 
-import type { NgspiceModule, OpDataPoint, SpiceDataRow, SpiceParsedOutput, SweepMetadata } from './spiceTypes';
+import type { NgspiceModule, NoiseSummary, OpDataPoint, SpiceDataRow, SpiceParsedOutput, SweepMetadata } from './spiceTypes';
 import { createNgspiceInstancePool, type ProgressReporter } from './spiceInstancePool';
 import { mergeParametricSweepOutputs } from './parametricSweep';
+import { parseIntegratedNoiseRaw } from './noiseAnalysis';
 
 interface RawParserRow extends SpiceDataRow {
   __parsedVars?: number;
@@ -96,7 +97,7 @@ function parseRawFile(rawStr: string): SpiceParsedOutput {
 
   let mode = 'header';
   let isComplex = false;
-  let plotType: 'transient' | 'ac' | 'dc' | 'op' = 'transient';
+  let plotType: 'transient' | 'ac' | 'dc' | 'op' | 'noise' = 'transient';
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -108,7 +109,8 @@ function parseRawFile(rawStr: string): SpiceParsedOutput {
 
     if (line.startsWith('Plotname:')) {
       const pn = line.split(':')[1].trim().toLowerCase();
-      if (pn.includes('ac analysis') || pn.includes('frequency')) plotType = 'ac';
+      if (pn.includes('noise')) plotType = 'noise';
+      else if (pn.includes('ac analysis') || pn.includes('frequency')) plotType = 'ac';
       else if (pn.includes('dc transfer characteristic') || pn.includes('dc')) plotType = 'dc';
       else if (pn.includes('operating point')) plotType = 'op';
       else plotType = 'transient';
@@ -133,7 +135,7 @@ function parseRawFile(rawStr: string): SpiceParsedOutput {
       if (isNewPoint) {
         const pointData: RawParserRow = {};
         const valStr = parts[1];
-        const xVarName = variables[0]?.name || (plotType === 'ac' ? 'frequency' : 'time');
+        const xVarName = variables[0]?.name || (plotType === 'ac' || plotType === 'noise' ? 'frequency' : 'time');
 
         if (plotType === 'op') {
           // For .op, we just map variable values one by one. The first one is variable index 0.
@@ -338,6 +340,23 @@ async function runNgspiceInternal(
     if (outputFilesData.length === 0) {
       throw new Error('Simulation produced no data points. The circuit might have a floating node, missing Ground, or a singular matrix.');
     }
+
+    if (outputFilesData.__plotType === 'noise') {
+      try {
+        const totalRaw = instance.FS.readFile('/noise_total.raw', { encoding: 'utf8' });
+        const noiseCmdMatch = fullNetlist.match(/^\.noise\s+V\(([^)]+)\)\s+(\S+)/im);
+        const summary: NoiseSummary | undefined = parseIntegratedNoiseRaw(totalRaw, {
+          outputNode: noiseCmdMatch?.[1] || 'out',
+          inputSource: noiseCmdMatch?.[2]?.replace(/^[VI]_/i, '') || 'Vin',
+        });
+        if (summary) {
+          outputFilesData.__noiseSummary = summary;
+        }
+      } catch {
+        // Integrated noise raw is optional if spectral curve already succeeded
+      }
+    }
+
     return outputFilesData;
   }
 
@@ -369,8 +388,11 @@ function buildSweepControlBlock(sweep: SweepMetadata): string {
 }
 
 function appendControlBlock(netlist: string, sweep?: SweepMetadata): string {
+  const isNoiseAnalysis = /^\.noise\b/im.test(netlist);
   const control = sweep && sweep.steps.length > 0
     ? buildSweepControlBlock(sweep)
+    : isNoiseAnalysis
+    ? '.control\nrun\nset filetype=ascii\nwrite /output.raw noise1.all\nwrite /noise_total.raw noise2.all\n.endc'
     : '.control\nrun\nset filetype=ascii\nwrite /output.raw\n.endc';
   const trimmed = netlist.trim().replace(/^\.end\b\s*$/im, '').trimEnd();
   return `${trimmed}\n${control}\n.end\n`;
@@ -422,6 +444,7 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; type?: 'W
         __isComplex: data.__isComplex,
         __variables: data.__variables,
         __sweepMeta: data.__sweepMeta,
+        __noiseSummary: data.__noiseSummary,
         engineVersion: detectedNgspiceVersion,
       });
       return;
