@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronRight, Layers } from 'lucide-react';
-import { getCommunityCircuits, incrementViews, type CommunityCircuit } from '../lib/firebase';
+import type { CommunityCircuit } from '../lib/firebase';
 import { useTheme } from '../contexts/useTheme';
 import SEO from '../components/SEO';
 import { EXAMPLES } from '../data/circuitExamples';
@@ -52,7 +52,8 @@ export default function CircuitsPage() {
     if (activeTab === 'community' || communityLoading) return;
     setCommunityLoading(true);
     setCommunityError('');
-    getCommunityCircuits(50)
+    import('../lib/firebase')
+      .then(({ getCommunityCircuits }) => getCommunityCircuits(50))
       .then(circuits => setCommunityCircuits(circuits))
       .catch(() => setCommunityError('Failed to load community circuits.'))
       .finally(() => setCommunityLoading(false));
@@ -389,7 +390,9 @@ export default function CircuitsPage() {
                     </div>
                     <a
                       href={`/simulator#circuit=${circuit.circuitData}`}
-                      onClick={() => incrementViews(circuit.id)}
+                      onClick={() => {
+                        void import('../lib/firebase').then(({ incrementViews }) => incrementViews(circuit.id));
+                      }}
                       style={{ display: 'block', textAlign: 'center', background: '#16a34a', color: '#fff', padding: '10px', borderRadius: 8, fontWeight: 600, fontSize: 13, textDecoration: 'none', marginTop: 4 }}
                     >Open in Simulator →</a>
                   </div>

@@ -2,18 +2,11 @@ import React, { Suspense, lazy, type ComponentType } from 'react';
 import { Route } from 'react-router-dom';
 import Layout from '../pages/Layout';
 import LandingPage from '../pages/LandingPage';
-import FeaturesPage from '../pages/FeaturesPage';
-import { AboutPage } from '../pages/AboutPage';
-import { EducatorsPage, WorksheetPage } from '../pages/EducatorsPage';
-import { ShowcasePage } from '../pages/ShowcasePage';
-import ProcedurePage from '../pages/ProcedurePage';
-import ResourcesPage from '../pages/ResourcesPage';
-import CircuitTemplatePage from '../pages/CircuitTemplatePage';
 
 const LOADING = <div style={{ padding: '2rem' }}>Loading...</div>;
 const LOADING_DARK = <div style={{ padding: '2rem', color: '#10b981' }}>Loading...</div>;
 
-type LazyModule = { default: ComponentType };
+type LazyModule = Record<string, ComponentType | undefined>;
 type LazyLoader = () => Promise<LazyModule>;
 
 /**
@@ -25,13 +18,21 @@ function makeElement(
   loader: LazyLoader,
   fallback: React.ReactNode,
   eagerModules?: Record<string, LazyModule>,
+  exportName = 'default',
 ): React.ReactNode {
-  const eager = eagerModules?.[modulePath]?.default;
+  const eager = eagerModules?.[modulePath]?.[exportName];
   if (eager) {
     const Comp = eager;
     return <Comp />;
   }
-  const LazyComp = lazy(loader);
+  const LazyComp = lazy(async () => {
+    const mod = await loader();
+    const Comp = mod[exportName] ?? mod.default;
+    if (!Comp) {
+      throw new Error(`Missing component export "${exportName}" in ${modulePath}`);
+    }
+    return { default: Comp };
+  });
   return <Suspense fallback={fallback}><LazyComp /></Suspense>;
 }
 
@@ -40,8 +41,12 @@ function makeElement(
  * and SSR entry-server.tsx. Keeping Simulator outside this tree ensures SSR never pulls in Konva or ngspice-wasm.
  */
 export function renderMarketingRoutes(eagerModules?: Record<string, LazyModule>) {
-  const el = (pathKey: string, loader: LazyLoader, fallback: React.ReactNode = LOADING) =>
-    makeElement(pathKey, loader, fallback, eagerModules);
+  const el = (
+    pathKey: string,
+    loader: LazyLoader,
+    fallback: React.ReactNode = LOADING,
+    exportName = 'default',
+  ) => makeElement(pathKey, loader, fallback, eagerModules, exportName);
 
   return (
     <>
@@ -50,16 +55,16 @@ export function renderMarketingRoutes(eagerModules?: Record<string, LazyModule>)
 
       {/* Marketing Pages with shared Navbar & Footer */}
       <Route element={<Layout />}>
-        <Route path="/features" element={<FeaturesPage />} />
-        <Route path="/educators" element={<EducatorsPage />} />
-        <Route path="/educators/worksheets" element={<WorksheetPage />} />
-        <Route path="/educators/worksheets/:slug" element={<WorksheetPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/showcase" element={<ShowcasePage />} />
+        <Route path="/features" element={el('../pages/FeaturesPage.tsx', () => import('../pages/FeaturesPage'))} />
+        <Route path="/educators" element={el('../pages/EducatorsPage.tsx', () => import('../pages/EducatorsPage'), LOADING, 'EducatorsPage')} />
+        <Route path="/educators/worksheets" element={el('../pages/EducatorsPage.tsx', () => import('../pages/EducatorsPage'), LOADING, 'WorksheetPage')} />
+        <Route path="/educators/worksheets/:slug" element={el('../pages/EducatorsPage.tsx', () => import('../pages/EducatorsPage'), LOADING, 'WorksheetPage')} />
+        <Route path="/about" element={el('../pages/AboutPage.tsx', () => import('../pages/AboutPage'), LOADING, 'AboutPage')} />
+        <Route path="/showcase" element={el('../pages/ShowcasePage.tsx', () => import('../pages/ShowcasePage'), LOADING, 'ShowcasePage')} />
         <Route path="/circuits" element={el('../pages/CircuitsPage.tsx', () => import('../pages/CircuitsPage'))} />
-        <Route path="/circuits/:id" element={<CircuitTemplatePage />} />
-        <Route path="/procedure" element={<ProcedurePage />} />
-        <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/circuits/:id" element={el('../pages/CircuitTemplatePage.tsx', () => import('../pages/CircuitTemplatePage'))} />
+        <Route path="/procedure" element={el('../pages/ProcedurePage.tsx', () => import('../pages/ProcedurePage'))} />
+        <Route path="/resources" element={el('../pages/ResourcesPage.tsx', () => import('../pages/ResourcesPage'))} />
         <Route path="/privacy" element={el('../pages/PrivacyPage.tsx', () => import('../pages/PrivacyPage'))} />
         <Route path="/terms" element={el('../pages/TermsPage.tsx', () => import('../pages/TermsPage'))} />
 

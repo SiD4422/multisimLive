@@ -3,12 +3,14 @@ import { Share2, Zap, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
 
 export function StatusBar({ onShare }: { onShare?: () => void }) {
-  const { components, wires, isSimulating, simulationError, simulationData } = useSchematicStore();
+  const { components, wires, isSimulating, simulationProgress, simulationError, simulationData } = useSchematicStore();
   
   const status = simulationError ? 'error'
                : isSimulating ? 'running'
                : simulationData && simulationData.length > 0 ? 'done'
                : 'ready';
+  const runningPercent = simulationProgress?.percent ?? 15;
+  const runningLabel = simulationProgress?.label ?? 'Simulating...';
 
   return (
     <div style={{
@@ -27,14 +29,40 @@ export function StatusBar({ onShare }: { onShare?: () => void }) {
       {/* Left */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, color: '#64748b' }}>
         {/* Status dot */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {status === 'running' && <Loader2 size={10} style={{ color: '#facc15', animation: 'spin 1s linear infinite' }} />}
           {status === 'done' && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />}
           {status === 'error' && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />}
           {status === 'ready' && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#64748b', display: 'inline-block' }} />}
           <span style={{ color: status === 'running' ? '#facc15' : status === 'done' ? '#22c55e' : status === 'error' ? '#ef4444' : '#94a3b8' }}>
-            {status === 'running' ? 'Simulating...' : status === 'done' ? 'Ready' : status === 'error' ? 'Error' : 'Ready'}
+            {status === 'running' ? `${runningLabel} (${runningPercent}%)` : status === 'done' ? 'Ready' : status === 'error' ? 'Error' : 'Ready'}
           </span>
+          {status === 'running' && (
+            <span
+              role="progressbar"
+              aria-valuenow={runningPercent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              style={{
+                width: 64,
+                height: 4,
+                background: '#1e293b',
+                borderRadius: 999,
+                overflow: 'hidden',
+                display: 'inline-block',
+              }}
+            >
+              <span
+                style={{
+                  display: 'block',
+                  height: '100%',
+                  width: `${Math.min(100, Math.max(5, runningPercent))}%`,
+                  background: 'linear-gradient(90deg, #facc15, #22c55e)',
+                  transition: 'width 180ms ease-out',
+                }}
+              />
+            </span>
+          )}
         </div>
         <span style={{ color: '#1e293b' }}>|</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

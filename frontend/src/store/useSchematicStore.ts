@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { track } from '@vercel/analytics';
-import type { OpDataPoint, SimulationData } from '../utils/spiceTypes';
+import type { OpDataPoint, SimulationData, SpiceProgress } from '../utils/spiceTypes';
 import { generateNetlist, parseSpiceToFloat } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
 
@@ -87,6 +87,7 @@ interface SchematicState {
   clearCustomModels: () => void;
   // Simulation State
   isSimulating: boolean;
+  simulationProgress: SpiceProgress | null;
   simulationData: SimulationData | null;
   opData: { node: string, value: number, unit: string }[] | null;
   simulationBuffer: SimulationData | null;
@@ -190,6 +191,7 @@ export const useSchematicStore = create<SchematicState>()(
       aiDiagnosis: null,
       highlightedComponentIds: [],
       isSimulating: false,
+      simulationProgress: null,
   simulationData: null,
   opData: null,
   simulationBuffer: null,
@@ -557,7 +559,13 @@ export const useSchematicStore = create<SchematicState>()(
     }
 
     if (!isSilent) {
-      set({ isSimulating: true, simulationError: null, isPlaying: false, playbackTime: 0 });
+      set({
+        isSimulating: true,
+        simulationProgress: { stage: 'spawning-worker', percent: 5, label: 'Starting SPICE worker...' },
+        simulationError: null,
+        isPlaying: false,
+        playbackTime: 0,
+      });
     }
     try {
       let netlist = generateNetlist(components, wires, probes, get().customModels, get().customModelPorts);
@@ -582,7 +590,11 @@ export const useSchematicStore = create<SchematicState>()(
         netlist = netlist.replace(/\.end\s*$/, `${analysisCmd}\n.end`);
       }
 
-      const data = await runSpiceSimulation(netlist, isSilent);
+      const data = await runSpiceSimulation(netlist, isSilent, (progress) => {
+        if (!isSilent) {
+          set({ simulationProgress: progress });
+        }
+      });
 
       const isAcOrDc = analysisMode === 'ac' || analysisMode === 'dc';
       set(() => {
@@ -599,6 +611,7 @@ export const useSchematicStore = create<SchematicState>()(
           return {
             opData: finalData as unknown as OpDataPoint[],
             isSimulating: false,
+            simulationProgress: null,
             isPlaying: false
           };
         }
@@ -609,6 +622,7 @@ export const useSchematicStore = create<SchematicState>()(
           simulationData: finalData as unknown as SimulationData,
           opData: null, // Clear op data if we did a regular simulation
           isSimulating: false,
+          simulationProgress: null,
           // Silent runs don't animate playback; they show full trace instantly
           isPlaying: isSilent ? false : (!isAcOrDc && finalData.length > 0),
           playbackTime: isSilent ? Infinity : 0
@@ -627,7 +641,7 @@ export const useSchematicStore = create<SchematicState>()(
       } else {
         if (!isSilent) track('Simulation_Error', { type: 'SPICE', details: errorMsg.substring(0, 100) });
       }
-      set({ isSimulating: false, simulationError: errorMsg });
+      set({ isSimulating: false, simulationProgress: null, simulationError: errorMsg });
     }
   },
 

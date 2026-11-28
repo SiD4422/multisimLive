@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { X, Globe, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import LZString from 'lz-string';
 import { useSchematicStore } from '../store/useSchematicStore';
-import { publishCircuit } from '../lib/firebase';
 
 interface PublishModalProps {
   isOpen: boolean;
@@ -54,6 +53,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
       const circuitData = LZString.compressToEncodedURIComponent(
         JSON.stringify({ components, wires, probes })
       );
+      const { publishCircuit } = await import('../lib/firebase');
       await publishCircuit({
         name:           name.trim().slice(0, 100),
         description:    description.trim().slice(0, 500),

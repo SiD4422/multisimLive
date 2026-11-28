@@ -65,7 +65,7 @@ function Simulator() {
   const { 
     components, wires, probes, undo, redo, past, future, scale, setScale,
     setPendingComponent,
-    runSimulation, isSimulating, exportState, importState,
+    runSimulation, isSimulating, simulationProgress, exportState, importState,
     isConfigOpen, setIsConfigOpen,
     simulationError, analysisMode
   } = useSchematicStore();
@@ -502,38 +502,47 @@ function Simulator() {
 
       {/* Example Library Modal */}
       <React.Suspense fallback={null}><WelcomeTour /></React.Suspense>
-      <React.Suspense fallback={null}><EmbedModal 
-        isOpen={isEmbedModalOpen} 
-        onClose={() => setIsEmbedModalOpen(false)} 
-        circuitData={LZString.compressToEncodedURIComponent(exportState())}
-      /></React.Suspense>
-      <React.Suspense fallback={null}><ExampleLibraryModal
-        isOpen={isLibraryOpen}
-        onClose={() => setIsLibraryOpen(false)}
-      /></React.Suspense>
-
-      <React.Suspense fallback={null}><AiExplainerPanel
-        isOpen={isAiPanelOpen}
-        onClose={() => setIsAiPanelOpen(false)}
-        onFocusNode={(_node) => { setActiveView('grapher'); }}
-      /></React.Suspense>
-      <React.Suspense fallback={null}><CustomModelPanel
-        isOpen={isCustomModelOpen}
-        onClose={() => setIsCustomModelOpen(false)}
-      /></React.Suspense>
+      {isEmbedModalOpen && (
+        <React.Suspense fallback={null}><EmbedModal 
+          isOpen={isEmbedModalOpen} 
+          onClose={() => setIsEmbedModalOpen(false)} 
+          circuitData={LZString.compressToEncodedURIComponent(exportState())}
+        /></React.Suspense>
+      )}
+      {isLibraryOpen && (
+        <React.Suspense fallback={null}><ExampleLibraryModal
+          isOpen={isLibraryOpen}
+          onClose={() => setIsLibraryOpen(false)}
+        /></React.Suspense>
+      )}
+      {isAiPanelOpen && (
+        <React.Suspense fallback={null}><AiExplainerPanel
+          isOpen={isAiPanelOpen}
+          onClose={() => setIsAiPanelOpen(false)}
+          onFocusNode={(_node) => { setActiveView('grapher'); }}
+        /></React.Suspense>
+      )}
+      {isCustomModelOpen && (
+        <React.Suspense fallback={null}><CustomModelPanel
+          isOpen={isCustomModelOpen}
+          onClose={() => setIsCustomModelOpen(false)}
+        /></React.Suspense>
+      )}
 
       {/* My Circuit Library (localStorage) */}
-      <React.Suspense fallback={null}><CircuitLibrary
-        isOpen={isMyCktOpen}
-        onClose={() => setIsMyCktOpen(false)}
-        onSaveRequest={() => {
-          // Grab Konva stage via the canvas element for thumbnail
-          try {
-            const canvas = document.querySelector('#canvas-wrapper canvas') as HTMLCanvasElement;
-            return canvas?.toDataURL('image/jpeg', 0.6) || '';
-          } catch { return ''; }
-        }}
-      /></React.Suspense>
+      {isMyCktOpen && (
+        <React.Suspense fallback={null}><CircuitLibrary
+          isOpen={isMyCktOpen}
+          onClose={() => setIsMyCktOpen(false)}
+          onSaveRequest={() => {
+            // Grab Konva stage via the canvas element for thumbnail
+            try {
+              const canvas = document.querySelector('#canvas-wrapper canvas') as HTMLCanvasElement;
+              return canvas?.toDataURL('image/jpeg', 0.6) || '';
+            } catch { return ''; }
+          }}
+        /></React.Suspense>
+      )}
 
       {/* Toast Notification */}
       {toast && (
@@ -675,6 +684,44 @@ function Simulator() {
       </div>
 
       <div className="main-area">
+        {isSimulating && simulationProgress && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: 'absolute',
+              top: 12,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 45,
+              pointerEvents: 'none',
+              background: 'rgba(15, 23, 42, 0.94)',
+              border: '1px solid rgba(34, 197, 94, 0.35)',
+              borderRadius: 10,
+              padding: '8px 14px',
+              minWidth: 260,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+              color: '#f8fafc',
+              fontSize: 12,
+              fontFamily: 'Inter, system-ui, sans-serif',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5, gap: 12 }}>
+              <span style={{ fontWeight: 600 }}>{simulationProgress.label}</span>
+              <span style={{ fontFamily: 'monospace', color: '#4ade80', fontWeight: 700 }}>{simulationProgress.percent}%</span>
+            </div>
+            <div style={{ width: '100%', height: 4, background: '#1e293b', borderRadius: 999, overflow: 'hidden' }}>
+              <div
+                style={{
+                  width: `${Math.min(100, Math.max(5, simulationProgress.percent))}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #22c55e, #4ade80)',
+                  transition: 'width 180ms ease-out',
+                }}
+              />
+            </div>
+          </div>
+        )}
         {simulationError && (
           <div style={{
             position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50,
@@ -814,15 +861,23 @@ function Simulator() {
           </div>
         </div>
       )}
-      <React.Suspense fallback={null}><LabReportModal
-        isOpen={isLabReportModalOpen}
-        onClose={() => setIsLabReportModalOpen(false)}
-        schematicDataUrl={schematicSnapshot}
-        graphDataUrl={graphSnapshot}
-      /></React.Suspense>
-      <React.Suspense fallback={null}><ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} /></React.Suspense>
-      <React.Suspense fallback={null}><PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} /></React.Suspense>
-      <React.Suspense fallback={null}><SavedCircuitsModal isOpen={isSavesOpen} onClose={() => setIsSavesOpen(false)} circuitName={circuitName} onNameChange={setCircuitName} /></React.Suspense>
+      {isLabReportModalOpen && (
+        <React.Suspense fallback={null}><LabReportModal
+          isOpen={isLabReportModalOpen}
+          onClose={() => setIsLabReportModalOpen(false)}
+          schematicDataUrl={schematicSnapshot}
+          graphDataUrl={graphSnapshot}
+        /></React.Suspense>
+      )}
+      {isShareModalOpen && (
+        <React.Suspense fallback={null}><ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} /></React.Suspense>
+      )}
+      {isPublishModalOpen && (
+        <React.Suspense fallback={null}><PublishModal isOpen={isPublishModalOpen} onClose={() => setIsPublishModalOpen(false)} /></React.Suspense>
+      )}
+      {isSavesOpen && (
+        <React.Suspense fallback={null}><SavedCircuitsModal isOpen={isSavesOpen} onClose={() => setIsSavesOpen(false)} circuitName={circuitName} onNameChange={setCircuitName} /></React.Suspense>
+      )}
       {/* Viral Embed Badge — shows only in embedded iframe mode */}
       {isEmbed && (
         <a

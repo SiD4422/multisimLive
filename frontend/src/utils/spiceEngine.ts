@@ -1,10 +1,14 @@
 // spiceEngine.ts
-import type { SpiceJob, SpiceResult } from './spiceTypes';
+import type { SpiceJob, SpiceProgress, SpiceResult } from './spiceTypes';
 
 let currentJobId = 0;
 let pendingJob: SpiceJob | null = null;
 
-export async function runSpiceSimulation(netlist: string, isSilent = false): Promise<SpiceResult> {
+export async function runSpiceSimulation(
+  netlist: string,
+  isSilent = false,
+  onProgress?: (progress: SpiceProgress) => void,
+): Promise<SpiceResult> {
   // Pre-flight DRC: detect netlists that contain only voltage/current sources with no load.
   // Parse actual SPICE component lines (non-comment, non-directive lines starting with component letters).
   const lines = netlist.split('\n').filter(l => {
@@ -32,6 +36,7 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
   const id = currentJobId;
   
   return new Promise<SpiceResult>((resolve, reject) => {
+    onProgress?.({ stage: 'spawning-worker', percent: 5, label: 'Starting SPICE worker...' });
     // Create a completely fresh worker for every run.
     // This prevents ngspice-wasm from crashing or hanging due to stale C-state or global scope pollution on subsequent runs.
     const worker = new Worker(new URL('./spiceWorker.ts', import.meta.url), { type: 'module' });
@@ -47,9 +52,10 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
     }, 60000);
 
     worker.onmessage = (e: MessageEvent) => {
-      const { id: incomingId, type, data, error, __plotType, __isComplex, __variables, engineVersion } = e.data as {
+      const { id: incomingId, type, progress, data, error, __plotType, __isComplex, __variables, engineVersion } = e.data as {
         id: number;
-        type: 'SUCCESS' | 'ERROR';
+        type: 'PROGRESS' | 'SUCCESS' | 'ERROR';
+        progress?: SpiceProgress;
         data: SpiceResult;
         error: string;
         __plotType?: string;
@@ -58,6 +64,10 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
         engineVersion?: string;
       };
       if (pendingJob && pendingJob.id === incomingId) {
+        if (type === 'PROGRESS') {
+          if (progress) pendingJob.onProgress?.(progress);
+          return;
+        }
         clearTimeout(pendingJob.timeoutId);
         if (type === 'SUCCESS') {
           // Re-attach the hidden properties needed by Grapher
@@ -87,7 +97,7 @@ export async function runSpiceSimulation(netlist: string, isSilent = false): Pro
       }
     };
 
-    pendingJob = { id, resolve, reject, worker, timeoutId };
+    pendingJob = { id, resolve, reject, worker, timeoutId, onProgress };
     worker.postMessage({ id, netlist });
   });
 }

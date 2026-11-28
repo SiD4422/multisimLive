@@ -10,13 +10,13 @@ import { renderMarketingRoutes } from './routes/marketingRoutes';
 
 // Eagerly import all non-simulator pages ONLY in the SSR bundle so renderToString
 // emits full synchronous HTML with zero Suspense fallbacks or hidden stream templates.
-const eagerPages = import.meta.glob<{ default: React.ComponentType }>(
+const eagerPages = import.meta.glob<Record<string, React.ComponentType | undefined>>(
   ['./pages/**/*.tsx', '!./pages/Simulator.tsx'],
   { eager: true },
 );
 
 // Re-key `./pages/...` -> `../pages/...` to match keys used inside src/routes/marketingRoutes.tsx
-const normalizedEagerPages: Record<string, { default: React.ComponentType }> = {};
+const normalizedEagerPages: Record<string, Record<string, React.ComponentType | undefined>> = {};
 for (const [key, mod] of Object.entries(eagerPages)) {
   normalizedEagerPages[key.replace('./pages/', '../pages/')] = mod;
 }

@@ -15,8 +15,7 @@ if (typeof self !== 'undefined') {
   }
 }
 
-import createNgspiceModule from '@o.z/ngspice-wasm';
-import type { NgspiceModule, OpDataPoint, SpiceDataRow, SpiceParsedOutput } from './spiceTypes';
+import type { NgspiceModule, OpDataPoint, SpiceDataRow, SpiceParsedOutput, SpiceProgressStage } from './spiceTypes';
 
 interface RawParserRow extends SpiceDataRow {
   __parsedVars?: number;
@@ -27,12 +26,25 @@ interface EmscriptenExitStatus {
   status?: number;
 }
 
+type NgspiceFactory = typeof import('@o.z/ngspice-wasm').default;
+type ProgressReporter = (stage: SpiceProgressStage, percent: number, label: string) => void;
+
+let cachedNgspiceFactory: NgspiceFactory | null = null;
 let ngspiceInstance: NgspiceModule | null = null;
 let isInitializing = false;
 let initPromise: Promise<void> | null = null;
 let detectedNgspiceVersion = 'ngspice (WebAssembly build)';
 
-async function initNgspice() {
+async function loadNgspiceFactory(reportProgress?: ProgressReporter): Promise<NgspiceFactory> {
+  if (!cachedNgspiceFactory) {
+    reportProgress?.('loading-engine', 20, 'Loading ngspice WASM engine (7 MB)...');
+    const mod = await import('@o.z/ngspice-wasm');
+    cachedNgspiceFactory = mod.default;
+  }
+  return cachedNgspiceFactory;
+}
+
+async function initNgspice(reportProgress?: ProgressReporter) {
   if (ngspiceInstance) return;
   if (isInitializing && initPromise) {
     await initPromise;
@@ -42,7 +54,9 @@ async function initNgspice() {
   isInitializing = true;
   initPromise = (async () => {
     try {
-      const mod = await createNgspiceModule({
+      const factory = await loadNgspiceFactory(reportProgress);
+      reportProgress?.('initializing-wasm', 55, 'Initializing SPICE WASM solver...');
+      const mod = await factory({
         locateFile: (file: string) => `/${file}`,
         print: (text: string) => {
           console.log('[SPICE Worker]', text);
@@ -328,8 +342,12 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; netlist?:
   const { id, netlist } = e.data;
   if (!id || !netlist) return;
 
+  const reportProgress: ProgressReporter = (stage, percent, label) => {
+    self.postMessage({ id, type: 'PROGRESS', progress: { stage, percent, label } });
+  };
+
   try {
-    await initNgspice();
+    await initNgspice(reportProgress);
 
     let fullNetlist = netlist.trim();
     if (!fullNetlist.startsWith('Circuit') && !fullNetlist.startsWith('*')) {
@@ -340,7 +358,9 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; netlist?:
     // ── Attempt 1: standard simulation ──────────────────────────────────
     let originalError: string;
     try {
+      reportProgress('solving', 75, 'Solving circuit MNA matrix...');
       const data = await runNgspice(fullNetlist);
+      reportProgress('parsing', 95, 'Finalizing waveforms...');
       // Success — send result normally
       self.postMessage({
         id,
@@ -364,11 +384,13 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; netlist?:
     // ── Attempt 2: relaxed tolerances ───────────────────────────────────
     // Re-initialize ngspice for a fresh instance (required by Emscripten design)
     ngspiceInstance = null;
-    await initNgspice();
+    reportProgress('solving', 85, 'Retrying with relaxed SPICE tolerances...');
+    await initNgspice(reportProgress);
 
     const relaxedNetlist = injectRelaxedOptions(fullNetlist);
     try {
       const data = await runNgspice(relaxedNetlist);
+      reportProgress('parsing', 95, 'Finalizing waveforms...');
       // Retry success — send with warning
       self.postMessage({
         id,

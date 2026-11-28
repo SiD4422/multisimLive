@@ -68,6 +68,22 @@ export interface NgspiceModule {
 }
 
 /**
+ * Granular engine initialization & solver progress stages streamed from spiceWorker.ts.
+ */
+export type SpiceProgressStage =
+  | 'spawning-worker'
+  | 'loading-engine'
+  | 'initializing-wasm'
+  | 'solving'
+  | 'parsing';
+
+export interface SpiceProgress {
+  stage: SpiceProgressStage;
+  percent: number;
+  label: string;
+}
+
+/**
  * A pending simulation job tracked by spiceEngine.ts.
  */
 export interface SpiceJob {
@@ -76,6 +92,7 @@ export interface SpiceJob {
   reject: (err: Error) => void;
   worker: Worker;
   timeoutId: ReturnType<typeof setTimeout>;
+  onProgress?: (progress: SpiceProgress) => void;
 }
 
 // Simulation result row � one time step or frequency point

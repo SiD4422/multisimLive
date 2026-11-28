@@ -1,7 +1,9 @@
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-
-export async function checkAndIncrementUsage(userId: string): Promise<{ allowed: boolean, remaining: number }> {
+export async function checkAndIncrementUsage(userId: string): Promise<{ allowed: boolean; remaining: number }> {
+  const [{ doc, getDoc, setDoc, updateDoc }, { getFirebaseDb }] = await Promise.all([
+    import('firebase/firestore'),
+    import('../lib/firebase'),
+  ]);
+  const db = await getFirebaseDb();
   const userRef = doc(db, 'users', userId);
   const currentMonth = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
 
@@ -12,7 +14,7 @@ export async function checkAndIncrementUsage(userId: string): Promise<{ allowed:
     await setDoc(userRef, {
       labReportsUsed: 1,
       lastResetMonth: currentMonth,
-      isPro: false
+      isPro: false,
     });
     return { allowed: true, remaining: 2 };
   }
@@ -34,7 +36,7 @@ export async function checkAndIncrementUsage(userId: string): Promise<{ allowed:
   if (labReportsUsed < 3) {
     await updateDoc(userRef, {
       labReportsUsed: labReportsUsed + 1,
-      lastResetMonth
+      lastResetMonth,
     });
     return { allowed: true, remaining: 3 - (labReportsUsed + 1) };
   } else {
