@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { getTouchPointer, getPinchState, computePinchTransform, type PinchState } from '../utils/touchAdapter';
+import { isEditableEventTarget } from '../utils/keyboardShortcuts';
 
 import type Konva from 'konva';
 import { Stage, Layer, Line, Group, Text, Circle, Rect, Path, Arc } from 'react-konva';
@@ -56,8 +57,10 @@ export default function SchematicEditor() {
     selectedWireId, setSelectedWire, clearSelection,
     deleteComponent, updateComponentRotation, copyComponent,
     isPlaying, simulationBuffer, playbackTime, opData,
-    selectedComponentIds, setSelectedComponentIds, toggleSelectedComponentId
+    selectedComponentIds, setSelectedComponentIds, toggleSelectedComponentId,
+    isWireMode, setWireMode
   } = useSchematicStore();
+  const prevWireModeRef = useRef(isWireMode);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [dashOffset, setDashOffset] = useState(0);
   const stageRef = useRef<Konva.Stage | null>(null);
@@ -340,9 +343,20 @@ export default function SchematicEditor() {
     return () => window.removeEventListener('export-schematic', handleExport);
   }, []);
 
+  useEffect(() => {
+    if (prevWireModeRef.current && !isWireMode) {
+      setWirePoints(null);
+      setTouchWireStart(null);
+      setMousePos(null);
+    }
+    prevWireModeRef.current = isWireMode;
+  }, [isWireMode]);
+
   // Keyboard shortcuts (Escape to cancel/commit, Space to flip wire elbow)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isEditableEventTarget(e.target)) return;
+
       if (e.key === 'Escape') {
         if (wirePoints && wirePoints.length > 1) {
           addWire({ id: `W${Date.now()}`, points: wirePoints });
@@ -350,19 +364,13 @@ export default function SchematicEditor() {
         setWirePoints(null);
         setTouchWireStart(null);
         setPendingComponent(null);
+        setWireMode(false);
         setMousePos(null);
       }
       if (e.key === ' ') {
         e.preventDefault();
         // Cycle: auto → h → v → auto
         setWireDirOverride(prev => prev === 'auto' ? 'h' : prev === 'h' ? 'v' : 'auto');
-      }
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        const { selectedComponentIds } = useSchematicStore.getState();
-        if (selectedComponentIds.length > 1) {
-          e.stopPropagation();
-          useSchematicStore.getState().deleteSelectedComponents();
-        }
       }
     };
     const handleKeyUp = (e: KeyboardEvent) => { if (e.key === 'Shift') shiftHeldRef.current = false; };
@@ -375,7 +383,7 @@ export default function SchematicEditor() {
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('keydown', trackShiftDown, { capture: true });
     };
-  }, [setPendingComponent, wirePoints, addWire]);
+  }, [setPendingComponent, setWireMode, wirePoints, addWire]);
 
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
@@ -420,37 +428,46 @@ export default function SchematicEditor() {
     return nearest;
   }, [components]);
 
+  const resolveSnappedStagePoint = useCallback(
+    (e?: Konva.KonvaEventObject<MouseEvent | TouchEvent>, allowPinSnap = false): { point: Point; gridPoint: Point; snapPin: Point | null } | null => {
+      const stage = stageRef.current;
+      if (!stage) return null;
+      const pointer = stage.getPointerPosition();
+      if (!pointer) return null;
+
+      const relativeX = (pointer.x - stage.x()) / scale;
+      const relativeY = (pointer.y - stage.y()) / scale;
+      const gridPoint = {
+        x: Math.round(relativeX / SNAP_GRID) * SNAP_GRID,
+        y: Math.round(relativeY / SNAP_GRID) * SNAP_GRID,
+      };
+      const snapRadius = e ? getSnapRadius(e) : PIN_SNAP_RADIUS_DESKTOP;
+      const snapPin = allowPinSnap ? findNearestPin({ x: relativeX, y: relativeY }, snapRadius) : null;
+      return {
+        point: snapPin ?? gridPoint,
+        gridPoint,
+        snapPin,
+      };
+    },
+    [scale, findNearestPin],
+  );
+
   const handleMouseMove = useCallback((e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    if (!wirePoints && !pendingComponent) {
+    if (!wirePoints && !pendingComponent && !isWireMode && !selectionBox) {
       return; 
     }
-    const stage = stageRef.current;
-    if (!stage) return;
+    const resolved = resolveSnappedStagePoint(e, Boolean(wirePoints || isWireMode));
+    if (!resolved) return;
     
-    const pointer = stage.getPointerPosition();
-    if (!pointer) return;
-    
-    const relativeX = (pointer.x - stage.x()) / scale;
-    const relativeY = (pointer.y - stage.y()) / scale;
-    
-    const x = Math.round(relativeX / SNAP_GRID) * SNAP_GRID;
-    const y = Math.round(relativeY / SNAP_GRID) * SNAP_GRID;
-
-    // Dynamic pin snapping: 28px for touch, 10px for desktop
-    const snapRadius = getSnapRadius(e);
-    const snapPin = wirePoints ? findNearestPin({ x: relativeX, y: relativeY }, snapRadius) : null;
-    const targetX = snapPin ? snapPin.x : x;
-    const targetY = snapPin ? snapPin.y : y;
-    
-    if (!mousePos || mousePos.x !== targetX || mousePos.y !== targetY) {
-      setMousePos({ x: targetX, y: targetY });
-      setHoveredPinPos(snapPin);
+    if (!mousePos || mousePos.x !== resolved.point.x || mousePos.y !== resolved.point.y) {
+      setMousePos(resolved.point);
+      setHoveredPinPos(resolved.snapPin);
     }
 
     if (selectionBox) {
-      setSelectionBox(prev => prev ? { ...prev, ex: x, ey: y } : null);
+      setSelectionBox(prev => prev ? { ...prev, ex: resolved.gridPoint.x, ey: resolved.gridPoint.y } : null);
     }
-  }, [wirePoints, pendingComponent, scale, mousePos, findNearestPin, selectionBox]);
+  }, [wirePoints, pendingComponent, isWireMode, mousePos, resolveSnappedStagePoint, selectionBox]);
 
   const getPreviewPoints = useCallback(() => {
     if (!wirePoints || !mousePos) return [];
@@ -573,10 +590,25 @@ export default function SchematicEditor() {
       if (touchWireStart) setTouchWireStart(null);
     }
     
+    if (!wirePoints && isWireMode && !pendingComponent && !isTouchInteraction(e)) {
+      const startPos = mousePos ?? resolveSnappedStagePoint(e, true)?.point ?? null;
+      if (startPos) {
+        const snappedStart = findNearestPin(startPos, getSnapRadius(e)) ?? startPos;
+        clearSelection();
+        setWirePoints([snappedStart]);
+        setWireDirOverride('auto');
+        setMousePos(snappedStart);
+        return;
+      }
+    }
+
     if (!wirePoints || !mousePos) {
       // Start rubber-band selection on desktop mouse drag only (touch pan uses Stage.draggable)
-      if (!isTouchInteraction(e) && !wirePoints && !pendingComponent && mousePos && isBackground) {
-        setSelectionBox({ sx: mousePos.x, sy: mousePos.y, ex: mousePos.x, ey: mousePos.y });
+      if (!isTouchInteraction(e) && !wirePoints && !pendingComponent && isBackground) {
+        const boxStart = mousePos ?? resolveSnappedStagePoint(e, false)?.gridPoint ?? null;
+        if (boxStart) {
+          setSelectionBox({ sx: boxStart.x, sy: boxStart.y, ex: boxStart.x, ey: boxStart.y });
+        }
       }
       return;
     }
@@ -613,7 +645,7 @@ export default function SchematicEditor() {
     } else {
        setWirePoints([...wirePoints, corner, mousePos]);
     }
-  }, [touchWireStart, setPendingComponent, clearSelection, wirePoints, mousePos, pendingComponent, hoveredPinPos, findNearestPin, getPreviewPoints, addWire, placePendingComponentAt]);
+  }, [touchWireStart, setPendingComponent, clearSelection, wirePoints, mousePos, pendingComponent, hoveredPinPos, findNearestPin, getPreviewPoints, addWire, placePendingComponentAt, isWireMode, resolveSnappedStagePoint]);
 
   const handleStageDoubleClick = (_e: Konva.KonvaEventObject<MouseEvent>) => {
     if (wirePoints && wirePoints.length > 1) {
@@ -764,6 +796,13 @@ export default function SchematicEditor() {
         // Tapped on or near a pin
         handleTouchTap(nearestPin);
         return;
+      } else if (isWireMode) {
+        const snapPos = {
+          x: Math.round(relX / SNAP_GRID) * SNAP_GRID,
+          y: Math.round(relY / SNAP_GRID) * SNAP_GRID,
+        };
+        handleTouchTap(snapPos);
+        return;
       } else if (touchWireStart) {
         // Tap anywhere else cancels wire drawing
         setTouchWireStart(null);
@@ -773,7 +812,7 @@ export default function SchematicEditor() {
 
     // Simulate mousedown on the stage
     handleStageMouseDown(e);
-  }, [handleStageMouseDown, scale, touchWireStart, findNearestPin, handleTouchTap, placePendingComponentAt]);
+  }, [handleStageMouseDown, scale, touchWireStart, findNearestPin, handleTouchTap, placePendingComponentAt, isWireMode]);
 
   const handleTouchMove = useCallback((e: Konva.KonvaEventObject<TouchEvent>) => {
     const nativeEvt: TouchEvent = e.evt;
@@ -1172,7 +1211,7 @@ export default function SchematicEditor() {
     return (
       <div style={{
         width: '100%', height: '100%', backgroundColor: '#a3a3a3', position: 'absolute',
-        cursor: wirePoints || touchWireStart ? 'none' : pendingComponent ? 'crosshair' : 'grab',
+        cursor: wirePoints || touchWireStart ? 'none' : pendingComponent || isWireMode ? 'crosshair' : 'grab',
         touchAction: 'none'
       }}>
         {dimensions.width > 0 && (
@@ -1184,7 +1223,7 @@ export default function SchematicEditor() {
           x={stagePos.x}
           y={stagePos.y}
           style={{ touchAction: 'none' }}
-          draggable={!isPinching && !wirePoints && !pendingComponent && !touchWireStart}
+          draggable={!isPinching && !wirePoints && !pendingComponent && !touchWireStart && !isWireMode}
           onDragStart={() => setHoveredWireInfo(null)}
           onDragEnd={(e) => {
             if (e.target === stageRef.current) {
@@ -1601,6 +1640,51 @@ export default function SchematicEditor() {
               }}
             >
               Cancel
+            </button>
+          </div>
+        )}
+
+        {/* Active Wire Mode Guidance Banner (W to toggle, Esc to exit) */}
+        {isWireMode && !pendingComponent && !touchWireStart && (
+          <div
+            role="status"
+            style={{
+              position: 'absolute',
+              top: 10,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 95,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              background: 'rgba(15, 23, 42, 0.9)',
+              color: '#f8fafc',
+              border: '1px solid rgba(56, 189, 248, 0.45)',
+              borderRadius: 999,
+              padding: '6px 14px',
+              fontSize: 12,
+              fontWeight: 500,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.28)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span>Wire Mode — Click pins or grid to draw · Space flips elbow</span>
+            <button
+              type="button"
+              onClick={() => setWireMode(false)}
+              aria-label="Exit wire mode"
+              style={{
+                background: 'rgba(255,255,255,0.12)',
+                border: 'none',
+                color: '#cbd5e1',
+                borderRadius: 999,
+                padding: '2px 8px',
+                cursor: 'pointer',
+                fontSize: 11,
+                fontWeight: 700,
+              }}
+            >
+              Exit (W)
             </button>
           </div>
         )}

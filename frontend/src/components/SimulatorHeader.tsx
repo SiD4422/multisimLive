@@ -276,7 +276,8 @@ export function SimulatorHeader({
           <Maximize size={16}/>
         </button>
         <button
-          title="Keyboard Shortcuts"
+          title="Keyboard Shortcuts (?)"
+          aria-label="Keyboard Shortcuts"
           onClick={() => setIsShortcutModalOpen(true)}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',

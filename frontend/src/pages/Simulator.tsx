@@ -13,6 +13,8 @@ import { ComponentPalette } from '../components/ComponentPalette';
 import { SimulatorHeader } from '../components/SimulatorHeader';
 import { downloadKiCadNetlist } from '../utils/exportKiCad';
 import { StatusBar } from '../components/StatusBar';
+import { resolveGlobalShortcut, SHORTCUT_CATEGORIES, SHORTCUT_DEFINITIONS } from '../utils/keyboardShortcuts';
+import { upsertLocalCircuitSave } from '../utils/circuitSavesStorage';
 
 // Lazily loaded panels — not needed at initial paint
 const Grapher = React.lazy(() => import('../components/Grapher'));
@@ -227,75 +229,135 @@ function Simulator() {
 
   // Global Keyboard Shortcuts
   useEffect(() => {
+    const isModalOpen =
+      isSavesOpen ||
+      isLibraryOpen ||
+      isEmbedModalOpen ||
+      isShareModalOpen ||
+      isCustomModelOpen ||
+      isMyCktOpen ||
+      isPublishModalOpen ||
+      isLabReportModalOpen;
+
     const handleKey = (e: KeyboardEvent) => {
-      // Don't fire shortcuts when user is typing in an input/textarea/select
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+      const match = resolveGlobalShortcut(e, {
+        isShortcutModalOpen,
+        isModalOpen,
+      });
+      if (!match) return;
+      if (match.preventDefault) e.preventDefault();
 
-      // Rotation (Ctrl+R)
-      if (e.ctrlKey && e.key.toLowerCase() === 'r') {
-        e.preventDefault();
-        const state = useSchematicStore.getState();
-        if (state.selectedComponentId) {
-          const comp = state.components.find(c => c.id === state.selectedComponentId);
-          if (comp) {
-            const currentRotation = comp.rotation || 0;
-            const newRotation = (currentRotation + 90) % 360;
-            state.updateComponentRotation(state.selectedComponentId, newRotation);
+      switch (match.action) {
+        case 'toggleShortcuts':
+          setIsShortcutModalOpen(prev => !prev);
+          break;
+        case 'escape': {
+          if (isShortcutModalOpen) {
+            setIsShortcutModalOpen(false);
+            break;
           }
+          if (isSavesOpen) {
+            setIsSavesOpen(false);
+            break;
+          }
+          const state = useSchematicStore.getState();
+          if (state.isWireMode) {
+            state.setWireMode(false);
+          }
+          state.clearSelection();
+          break;
         }
-      }
-
-      // Delete selected components / wires / probes
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        const state = useSchematicStore.getState();
-        if (state.selectedComponentIds && state.selectedComponentIds.length > 0) {
-          state.deleteSelectedComponents();
-        } else if (state.selectedComponentId) {
-          state.deleteComponent(state.selectedComponentId);
-        } else if (state.selectedWireId) {
-          state.deleteWire(state.selectedWireId);
-        } else if (state.selectedProbeId) {
-          state.deleteProbe(state.selectedProbeId);
+        case 'saveAs':
+          setIsSavesOpen(true);
+          break;
+        case 'quickSave': {
+          const state = useSchematicStore.getState();
+          const { saved } = upsertLocalCircuitSave({
+            name: circuitName,
+            stateJson: state.exportState(),
+            componentCount: state.components.length,
+          });
+          if (saved.name !== circuitName) {
+            setCircuitName(saved.name);
+          }
+          showToast(`Saved "${saved.name}" locally`, 'success');
+          break;
         }
-      }
-
-      // Undo (Ctrl+Z / Cmd+Z)
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
-        e.preventDefault();
-        useSchematicStore.getState().undo();
-      }
-
-      // Redo (Ctrl+Y / Cmd+Y or Ctrl+Shift+Z / Cmd+Shift+Z)
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
-        e.preventDefault();
-        useSchematicStore.getState().redo();
-      }
-
-      // Clear canvas (Ctrl+Shift+Delete)
-      if (e.ctrlKey && e.shiftKey && e.key === 'Delete') {
-        e.preventDefault();
-        if (window.confirm('Clear the canvas? This cannot be undone.')) {
-          useSchematicStore.getState().importState(JSON.stringify({ components: [], wires: [], probes: [] }));
-          showToast('Canvas cleared', 'success');
+        case 'rotate': {
+          const state = useSchematicStore.getState();
+          if (state.selectedComponentId) {
+            const comp = state.components.find(c => c.id === state.selectedComponentId);
+            if (comp) {
+              const currentRotation = comp.rotation || 0;
+              const newRotation = (currentRotation + 90) % 360;
+              state.updateComponentRotation(state.selectedComponentId, newRotation);
+            }
+          }
+          break;
         }
-        return;
-      }
-
-      // Escape -> clear selection
-      if (e.key === 'Escape') {
-        useSchematicStore.getState().clearSelection();
-      }
-
-      // Run simulation (Ctrl+Enter / Cmd+Enter)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        handleRunSimulation();
+        case 'toggleWireMode': {
+          const state = useSchematicStore.getState();
+          const next = !state.isWireMode;
+          state.setWireMode(next);
+          showToast(next ? 'Wire Mode enabled (click pins or grid, Esc to exit)' : 'Wire Mode exited', 'success');
+          break;
+        }
+        case 'copy': {
+          const hasTextSelection = typeof window !== 'undefined' && Boolean(window.getSelection()?.toString());
+          const state = useSchematicStore.getState();
+          if (!hasTextSelection && state.selectedComponentId) {
+            e.preventDefault();
+            state.copyComponent(state.selectedComponentId);
+          }
+          break;
+        }
+        case 'delete': {
+          const state = useSchematicStore.getState();
+          if (state.selectedComponentIds && state.selectedComponentIds.length > 0) {
+            state.deleteSelectedComponents();
+          } else if (state.selectedComponentId) {
+            state.deleteComponent(state.selectedComponentId);
+          } else if (state.selectedWireId) {
+            state.deleteWire(state.selectedWireId);
+          } else if (state.selectedProbeId) {
+            state.deleteProbe(state.selectedProbeId);
+          }
+          break;
+        }
+        case 'undo':
+          useSchematicStore.getState().undo();
+          break;
+        case 'redo':
+          useSchematicStore.getState().redo();
+          break;
+        case 'clearCanvas':
+          if (window.confirm('Clear the canvas? This cannot be undone.')) {
+            useSchematicStore.getState().importState(JSON.stringify({ components: [], wires: [], probes: [] }));
+            showToast('Canvas cleared', 'success');
+          }
+          break;
+        case 'runSimulation':
+          handleRunSimulation();
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [handleRunSimulation, showToast]);
+  }, [
+    circuitName,
+    isShortcutModalOpen,
+    isSavesOpen,
+    isLibraryOpen,
+    isEmbedModalOpen,
+    isShareModalOpen,
+    isCustomModelOpen,
+    isMyCktOpen,
+    isPublishModalOpen,
+    isLabReportModalOpen,
+    handleRunSimulation,
+    showToast,
+  ]);
 
   // Prevent accidental refresh if there are components placed
   useEffect(() => {
@@ -937,37 +999,54 @@ function Simulator() {
 
       {/* Keyboard Shortcuts Modal */}
       {isShortcutModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={() => setIsShortcutModalOpen(false)}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 24, maxWidth: 480, width: '90%', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}
-            onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>⌨️ Keyboard Shortcuts</h2>
-              <button onClick={() => setIsShortcutModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#6b7280' }}>×</button>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="shortcuts-modal-title"
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={() => setIsShortcutModalOpen(false)}
+        >
+          <div
+            style={{ background: '#ffffff', borderRadius: 12, padding: 24, maxWidth: 560, width: '100%', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 24px 48px rgba(0,0,0,0.3)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div>
+                <h2 id="shortcuts-modal-title" style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f172a' }}>Keyboard Shortcuts</h2>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>Press <kbd style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: 4, padding: '1px 5px', fontSize: 11 }}>?</kbd> or <kbd style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: 4, padding: '1px 5px', fontSize: 11 }}>Esc</kbd> to toggle</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Close keyboard shortcuts"
+                onClick={() => setIsShortcutModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, lineHeight: 1, color: '#6b7280', padding: 4 }}
+              >
+                ×
+              </button>
             </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <tbody>
-                {[
-                  ['Space', 'Flip wire direction (H ↔ V)'],
-                  ['Escape', 'Cancel wire / component placement'],
-                  ['Delete / Backspace', 'Delete selected component or wire'],
-                  ['Ctrl + R', 'Rotate selected component 90°'],
-                  ['Ctrl + Z', 'Undo'],
-                  ['Ctrl + Y', 'Redo'],
-                  ['Ctrl + C', 'Copy selected component'],
-                  ['Scroll wheel', 'Zoom in / out on canvas'],
-                  ['Right-click', 'Cancel wire drawing'],
-                  ['Double-click wire', 'Finish wire segment'],
-                ].map(([key, desc]) => (
-                  <tr key={key} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '6px 12px 6px 0', fontFamily: 'monospace', background: 'none' }}>
-                      <kbd style={{ background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 4, padding: '2px 6px', fontSize: 11 }}>{key}</kbd>
-                    </td>
-                    <td style={{ padding: '6px 0', color: '#374151' }}>{desc}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {SHORTCUT_CATEGORIES.map((category) => (
+                <div key={category}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b', marginBottom: 6 }}>
+                    {category}
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <tbody>
+                      {SHORTCUT_DEFINITIONS.filter((item) => item.category === category).map((item) => (
+                        <tr key={item.keys} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '6px 12px 6px 0', width: '44%', fontFamily: 'monospace' }}>
+                            <kbd style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: 4, padding: '2px 7px', fontSize: 11, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                              {item.keys}
+                            </kbd>
+                          </td>
+                          <td style={{ padding: '6px 0', color: '#334155' }}>{item.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

@@ -74,6 +74,7 @@ interface SchematicState {
   toggleSelectedComponentId: (id: string) => void;
   deleteSelectedComponents: () => void;
   pendingComponent: { type: string, value: string } | null;
+  isWireMode: boolean;
   isConfigOpen: boolean;
   // AI Debugger State
   aiDiagnosis: import('../lib/aiTypes').DiagnosisResult | null;
@@ -125,6 +126,7 @@ interface SchematicState {
   flipComponent: (id: string) => void;
 
   setPendingComponent: (comp: { type: string, value: string } | null) => void;
+  setWireMode: (active: boolean) => void;
   setIsConfigOpen: (isOpen: boolean) => void;
   addWire: (wire: Wire) => void;
   addProbe: (probe: Probe) => void;
@@ -187,6 +189,7 @@ export const useSchematicStore = create<SchematicState>()(
       selectedComponentIds: [],
       editingComponentId: null,
       pendingComponent: null,
+      isWireMode: false,
       isConfigOpen: false,
       aiDiagnosis: null,
       highlightedComponentIds: [],
@@ -338,6 +341,7 @@ export const useSchematicStore = create<SchematicState>()(
         selectedProbeId: null,
         editingComponentId: null,
         pendingComponent: null,
+        isWireMode: false,
         isConfigOpen: false,      // Never auto-open settings on import
         isSimulating: false,
         simulationData: null,
@@ -400,7 +404,8 @@ export const useSchematicStore = create<SchematicState>()(
       selectedComponentIds: [],
     }));
   },
-  setPendingComponent: (comp) => set({ pendingComponent: comp }),
+  setPendingComponent: (comp) => set({ pendingComponent: comp, ...(comp ? { isWireMode: false } : {}) }),
+  setWireMode: (active) => set({ isWireMode: active, ...(active ? { pendingComponent: null } : {}) }),
   setIsConfigOpen: (isOpen) => set({ isConfigOpen: isOpen }),
   setAiDiagnosis: (d) => set({ aiDiagnosis: d }),
   setHighlightedComponentIds: (ids) => set({ highlightedComponentIds: ids }),

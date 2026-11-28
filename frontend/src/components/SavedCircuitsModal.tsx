@@ -2,29 +2,12 @@ import React, { useState } from 'react';
 import { X, Save, FolderOpen, Trash2, Clock, CircuitBoard } from 'lucide-react';
 import LZString from 'lz-string';
 import { useSchematicStore } from '../store/useSchematicStore';
-
-const SAVES_KEY = 'nodesim-saved-circuits-v1';
-
-interface SavedCircuit {
-  id: string;
-  name: string;
-  compressed: string;
-  savedAt: number;
-  componentCount: number;
-}
-
-function loadSaves(): SavedCircuit[] {
-  try {
-    const raw = localStorage.getItem(SAVES_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeSaves(saves: SavedCircuit[]): void {
-  localStorage.setItem(SAVES_KEY, JSON.stringify(saves));
-}
+import {
+  loadSavedCircuits,
+  upsertLocalCircuitSave,
+  writeSavedCircuits,
+  type SavedCircuit,
+} from '../utils/circuitSavesStorage';
 
 interface Props {
   isOpen: boolean;
@@ -40,7 +23,7 @@ export function SavedCircuitsModal({ isOpen, onClose, circuitName, onNameChange 
 
 function SavedCircuitsModalInner({ onClose, circuitName, onNameChange }: Omit<Props, 'isOpen'>) {
   const { exportState, importState, components } = useSchematicStore();
-  const [saves, setSaves] = useState<SavedCircuit[]>(loadSaves);
+  const [saves, setSaves] = useState<SavedCircuit[]>(loadSavedCircuits);
   const [saveName, setSaveName] = useState(circuitName || 'Untitled Circuit');
   const [toast, setToast] = useState('');
 
@@ -50,31 +33,14 @@ function SavedCircuitsModalInner({ onClose, circuitName, onNameChange }: Omit<Pr
   };
 
   const handleSave = () => {
-    const name = saveName.trim() || 'Untitled Circuit';
-    const json = exportState();
-    const compressed = LZString.compress(json);
-    const existing = saves.find(s => s.name === name);
-    let next: SavedCircuit[];
-    if (existing) {
-      next = saves.map(s =>
-        s.name === name
-          ? { ...s, compressed, savedAt: Date.now(), componentCount: components.length }
-          : s
-      );
-    } else {
-      const newEntry: SavedCircuit = {
-        id: `${Date.now()}`,
-        name,
-        compressed,
-        savedAt: Date.now(),
-        componentCount: components.length,
-      };
-      next = [newEntry, ...saves];
-    }
-    writeSaves(next);
+    const { saved, saves: next } = upsertLocalCircuitSave({
+      name: saveName,
+      stateJson: exportState(),
+      componentCount: components.length,
+    });
     setSaves(next);
-    onNameChange(name);
-    showToast(`Saved "${name}"`);
+    onNameChange(saved.name);
+    showToast(`Saved "${saved.name}"`);
   };
 
   const handleLoad = (save: SavedCircuit) => {
@@ -91,7 +57,7 @@ function SavedCircuitsModalInner({ onClose, circuitName, onNameChange }: Omit<Pr
 
   const handleDelete = (id: string) => {
     const next = saves.filter(s => s.id !== id);
-    writeSaves(next);
+    writeSavedCircuits(next);
     setSaves(next);
   };
 
@@ -128,6 +94,7 @@ function SavedCircuitsModalInner({ onClose, circuitName, onNameChange }: Omit<Pr
           <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b', marginBottom: 10 }}>Save Current Circuit</div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
+              autoFocus
               value={saveName}
               onChange={e => setSaveName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleSave(); }}
