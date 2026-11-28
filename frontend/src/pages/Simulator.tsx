@@ -68,7 +68,7 @@ function Simulator() {
   const { 
     components, wires, probes, undo, redo, past, future, scale, setScale, setStagePos,
     setPendingComponent, selectedComponentId, updateComponentRotation,
-    runSimulation, stopSimulation, isSimulating, isPlaying, simulationProgress, exportState, importState,
+    runSimulation, stopSimulation, isSimulating, isLiveMode, setLiveMode, isLiveUpdating, isPlaying, simulationProgress, exportState, importState,
     isConfigOpen, setIsConfigOpen,
     simulationError, analysisMode
   } = useSchematicStore();
@@ -695,18 +695,54 @@ function Simulator() {
           {isSidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
         </button>
 
-        {/* Mode badge */}
-        <div className="sim-desktop-only" style={{
-          display: 'flex', alignItems: 'center', gap: '4px',
-          padding: '3px 10px', borderRadius: '4px',
-          background: 'rgba(255,255,255,0.08)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.8)',
-          letterSpacing: '0.04em', marginRight: '8px', cursor: 'default',
-          userSelect: 'none',
-        }}>
-          Interactive
-        </div>
+        {/* Real Interactive Live Auto-Resim Toggle */}
+        <button
+          type="button"
+          className="sim-desktop-only"
+          aria-pressed={isLiveMode}
+          onClick={() => {
+            const next = !isLiveMode;
+            setLiveMode(next);
+            showToast(
+              next ? 'Live Mode ON — slider & switch edits auto-resimulate (300ms)' : 'Live Mode OFF — click Run to simulate edits',
+              'success',
+            );
+          }}
+          title={
+            isLiveMode
+              ? 'Live Mode Active: component & switch changes auto-simulate (300ms debounce). Click to switch to Manual.'
+              : 'Manual Mode: click to enable Live auto re-simulation on component changes.'
+          }
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 10px',
+            borderRadius: '6px',
+            background: isLiveMode ? 'rgba(16, 185, 129, 0.16)' : 'rgba(255,255,255,0.08)',
+            border: `1px solid ${isLiveMode ? 'rgba(52, 211, 153, 0.45)' : 'rgba(255,255,255,0.14)'}`,
+            fontSize: '11px',
+            fontWeight: 700,
+            color: isLiveMode ? '#6ee7b7' : 'rgba(255,255,255,0.7)',
+            letterSpacing: '0.03em',
+            marginRight: '8px',
+            cursor: 'pointer',
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <span
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: '50%',
+              background: isLiveUpdating ? '#fbbf24' : isLiveMode ? '#10b981' : '#64748b',
+              boxShadow: isLiveMode ? '0 0 6px #10b981' : 'none',
+            }}
+          />
+          {isLiveUpdating ? 'Live Updating…' : isLiveMode ? 'Live Interactive' : 'Manual Mode'}
+        </button>
 
         <div className="sim-desktop-only" style={{ display: 'flex', alignItems: 'center' }}>
           <React.Suspense fallback={null}><SimulationControls drcIssues={drcIssues} onRun={handleRunSimulation} /></React.Suspense>

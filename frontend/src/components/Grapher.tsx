@@ -14,6 +14,7 @@ import { AiWaveformPanel } from './AiWaveformPanel';
 import { toPng } from 'html-to-image';
 import { generateCSV } from '../utils/csvExport';
 import { evaluateMathExpression } from '../utils/evaluateMathExpression';
+import { getGhostDataKey, mergeGhostTraces } from '../utils/ghostTraceMerge';
 
 const COLORS = [
   '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'
@@ -528,12 +529,12 @@ function rowFromChartEvent(
 }
 
 function BodePlot({
-  data, traces, probeMap, isOscilloscope,
+  data, traces, ghostTraces = [], probeMap, isOscilloscope,
   isCursorMode, cursorA, cursorB, hoverRow,
   onChartClick, onChartMouseMove, onChartMouseLeave,
   isDigitalMode
 }: { 
-  data: SimulationData; traces: string[]; probeMap: Record<string, string>; isOscilloscope: boolean;
+  data: SimulationData; traces: string[]; ghostTraces?: string[]; probeMap: Record<string, string>; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
   setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
   onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
@@ -609,6 +610,10 @@ function BodePlot({
                 />
               );
             })()}
+            {dbTraces.filter((t) => ghostTraces.includes(t)).map((t, i) => (
+              <Line key={getGhostDataKey(t)} name={`${getDisplayName(t)} (prev)`} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={getGhostDataKey(t)}
+                stroke={colors[i % colors.length]} strokeOpacity={0.35} strokeDasharray="4 4" dot={false} strokeWidth={1.75} isAnimationActive={false} connectNulls />
+            ))}
             {dbTraces.map((t, i) => (
               <Line key={t} name={getDisplayName(t)} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} isAnimationActive={false}  />
@@ -636,6 +641,10 @@ function BodePlot({
             {isCursorMode && cursorA && Number.isFinite(cursorA.frequency as number) && <ReferenceLine x={cursorA.frequency} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && Number.isFinite(cursorB.frequency as number) && <ReferenceLine x={cursorB.frequency} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow.frequency as number) && <ReferenceLine x={hoverRow.frequency} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
+            {phaseTraces.filter((t) => ghostTraces.includes(t)).map((t, i) => (
+              <Line key={getGhostDataKey(t)} name={`${getDisplayName(t)} phase (prev)`} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={getGhostDataKey(t)}
+                stroke={colors[i % colors.length]} strokeOpacity={0.3} strokeDasharray="3 5" dot={false} strokeWidth={1.5} isAnimationActive={false} connectNulls />
+            ))}
             {phaseTraces.map((t, i) => (
               <Line key={t} name={getDisplayName(t) + ' phase'} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={t}
                 stroke={colors[i % colors.length]} dot={false} strokeWidth={isOscilloscope ? 3 : 2} strokeDasharray="5 3" isAnimationActive={false}  />
@@ -651,14 +660,14 @@ function BodePlot({
 // âš¡âš¡ DC Sweep Plot âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡Ã¢â€â‚¬
 
 function DcSweepPlot({
-  data, traces, sweepKey, probeMap, isOscilloscope,
+  data, traces, ghostTraces = [], sweepKey, probeMap, isOscilloscope,
   isCursorMode, cursorA, cursorB, hoverRow,
   onChartClick, onChartMouseMove, onChartMouseLeave,
   isDigitalMode,
   mathExpressions,
   onRemoveExpression
 }: { 
-  data: SimulationData; traces: string[]; sweepKey: string; probeMap: Record<string, string>; isOscilloscope: boolean;
+  data: SimulationData; traces: string[]; ghostTraces?: string[]; sweepKey: string; probeMap: Record<string, string>; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
   setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
   onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
@@ -735,6 +744,13 @@ function DcSweepPlot({
             {isCursorMode && cursorA && Number.isFinite(cursorA[sweepKey] as number) && <ReferenceLine x={cursorA[sweepKey]} stroke="#ff0000" strokeWidth={2} />}
             {isCursorMode && cursorB && Number.isFinite(cursorB[sweepKey] as number) && <ReferenceLine x={cursorB[sweepKey]} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
             {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow[sweepKey] as number) && <ReferenceLine x={hoverRow[sweepKey]} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
+            {traces.filter((t) => ghostTraces.includes(t)).map((t, i) => {
+              const displayName = probeMap[t] || probeMap[t.toLowerCase()] || formatTraceName(t);
+              return (
+              <Line key={getGhostDataKey(t)} name={`${displayName} (prev)`} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={getGhostDataKey(t)}
+                stroke={colors[i % colors.length]} strokeOpacity={0.35} strokeDasharray="4 4" dot={false} strokeWidth={1.75} isAnimationActive={false} connectNulls />
+              );
+            })}
             {traces.map((t, i) => {
               const displayName = probeMap[t] || probeMap[t.toLowerCase()] || formatTraceName(t);
               return (
@@ -777,14 +793,14 @@ function DcSweepPlot({
 // âš¡âš¡ Transient Plot âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡âš¡
 
 function TransientPlot({
-  data, traces, probeMap, playbackTime, isOscilloscope,
+  data, traces, ghostTraces = [], probeMap, playbackTime, isOscilloscope,
   isCursorMode, cursorA, cursorB, hoverRow,
   onChartClick, onChartMouseMove, onChartMouseLeave,
   isDigitalMode,
   mathExpressions,
   onRemoveExpression
 }: {
-  data: SimulationData; traces: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
+  data: SimulationData; traces: string[]; ghostTraces?: string[]; probeMap: Record<string, string>; playbackTime: number; isOscilloscope: boolean;
   isCursorMode: boolean; cursorA: SimulationRow | null; cursorB: SimulationRow | null; hoverRow: SimulationRow | null;
   setCursorA?: (v: SimulationRow | null) => void; setCursorB?: (v: SimulationRow | null) => void;
   onChartClick?: (r: SimulationRow | null) => void; onChartMouseMove?: (r: SimulationRow | null) => void; onChartMouseLeave?: () => void;
@@ -911,6 +927,13 @@ function TransientPlot({
               {isCursorMode && cursorA && Number.isFinite(cursorA.time as number) && <ReferenceLine x={cursorA.time} stroke="#ff0000" strokeWidth={2} />}
               {isCursorMode && cursorB && Number.isFinite(cursorB.time as number) && <ReferenceLine x={cursorB.time} stroke="#ff00ff" strokeWidth={2} strokeDasharray="3 3" />}
               {isCursorMode && cursorA && !cursorB && hoverRow && Number.isFinite(hoverRow.time as number) && <ReferenceLine x={hoverRow.time} stroke="#ff00ff" strokeWidth={1.5} strokeDasharray="3 3" strokeOpacity={0.6} />}
+              {traces.filter((traceName) => ghostTraces.includes(traceName)).map((traceName, idx) => {
+                const displayName = probeMap[traceName] || probeMap[traceName.toLowerCase()] || formatTraceName(traceName);
+                return (
+                  <Line key={getGhostDataKey(traceName)} name={`${displayName} (prev)`} type={isDigitalMode ? 'stepAfter' : 'monotone'} dataKey={getGhostDataKey(traceName)}
+                    stroke={colors[idx % colors.length]} strokeOpacity={0.35} strokeDasharray="4 4" dot={false} strokeWidth={1.75} isAnimationActive={false} connectNulls />
+                );
+              })}
               {traces.map((traceName, idx) => {
                 const displayName = probeMap[traceName] || probeMap[traceName.toLowerCase()] || formatTraceName(traceName);
                 return (
@@ -996,9 +1019,77 @@ function OpPointView({ data }: { data: { node: string; value: number; unit: stri
     </div>
   );
 }
+function formatBufferRows(
+  buffer: SimulationData | null,
+  probeAliases: { key: string; base: string }[],
+  playbackTime: number,
+  isPlaying: boolean,
+): SimulationRow[] {
+  if (!buffer || buffer.length === 0) return [];
+
+  const plotType = buffer.__plotType || 'transient';
+  const isAcOrDc = plotType === 'ac' || plotType === 'dc';
+  const safePlaybackTime = Number.isFinite(playbackTime) && playbackTime > 0 ? playbackTime : Infinity;
+  const activeData =
+    isAcOrDc || !isPlaying
+      ? buffer
+      : buffer.filter((row) => Number.isFinite(row.time as number) && (row.time as number) <= safePlaybackTime);
+
+  const visible = activeData.length === 0 && buffer.length > 0 ? [buffer[0]] : activeData;
+  let processed: SimulationRow[] = visible.filter((row) => (plotType === 'ac' ? row.frequency > 0 : true));
+
+  if (probeAliases.length > 0 && processed.length > 0) {
+    processed = processed.map((row) => {
+      const next: SimulationRow = { ...row };
+      for (const { key, base } of probeAliases) {
+        const val = row[base] ?? row[base.toLowerCase()];
+        if (val !== undefined) {
+          next[key] = val;
+        }
+        if (plotType === 'ac') {
+          const dbVal = row[`${base}_db`] ?? row[`${base.toLowerCase()}_db`];
+          if (dbVal !== undefined) next[`${key}_db`] = dbVal;
+          const phaseVal = row[`${base}_phase`] ?? row[`${base.toLowerCase()}_phase`];
+          if (phaseVal !== undefined) next[`${key}_phase`] = phaseVal;
+        }
+      }
+      return next;
+    });
+  }
+
+  // Decimate large buffers to <= 800 points to keep Recharts SVG rendering responsive at 60fps.
+  const MAX_POINTS = 800;
+  if (processed.length > MAX_POINTS) {
+    const step = Math.ceil(processed.length / MAX_POINTS);
+    const decimated: SimulationRow[] = [];
+    for (let i = 0; i < processed.length; i += step) {
+      decimated.push(processed[i]);
+    }
+    if (decimated[decimated.length - 1] !== processed[processed.length - 1]) {
+      decimated.push(processed[processed.length - 1]);
+    }
+    processed = decimated;
+  }
+
+  return processed;
+}
+
+function applyDigitalSnap(rows: SimulationRow[], isDigitalMode: boolean): SimulationRow[] {
+  if (!isDigitalMode || rows.length === 0) return rows;
+  return rows.map((row) => {
+    const snapped: SimulationRow = {};
+    Object.keys(row).forEach((k) => {
+      const v = row[k];
+      snapped[k] = typeof v === 'number' && k !== 'time' && k !== 'frequency' ? (v > 2.5 ? 5 : 0) : v;
+    });
+    return snapped;
+  });
+}
+
 export default function Grapher() {
   const {
-    simulationBuffer, playbackTime, isSimulating, simulationError,
+    simulationBuffer, previousSimulationBuffer, showPreviousTrace, setShowPreviousTrace, clearPreviousTrace,
+    playbackTime, isSimulating, isLiveUpdating, simulationError,
     probes, components, wires, analysisMode, isPlaying, opData
   } = useSchematicStore();
   
@@ -1154,87 +1245,28 @@ export default function Grapher() {
     return () => window.removeEventListener('export-graph', handleExport);
   }, []);
 
-  // Format data for Recharts (safe key names)
-  const formattedData = useMemo(() => {
-    if (!simulationBuffer || simulationBuffer.length === 0) return [];
-
-    const plotType = (simulationBuffer as SimulationData).__plotType || 'transient';
-    const isAcOrDc = plotType === 'ac' || plotType === 'dc';
-
-    // For AC/DC: always show all data.
-    // For Transient: show all data when NOT actively playing (i.e. playback is paused/done).
-    // Only filter by time when isPlaying is true (live animation).
-    // GUARD: playbackTime=0 or NaN at animation start causes empty filtered array → Recharts NaN flood.
-    // Use Infinity as fallback so all rows pass through until animation properly advances.
-    const safePlaybackTime = (Number.isFinite(playbackTime) && playbackTime > 0) ? playbackTime : Infinity;
-    const activeData = (isAcOrDc || !isPlaying)
-      ? simulationBuffer
-      : simulationBuffer.filter(row => Number.isFinite(row.time as number) && (row.time as number) <= safePlaybackTime);
-
-    const visible = activeData.length === 0 && simulationBuffer.length > 0
-      ? [simulationBuffer[0]]
-      : activeData;
-
-    let processed = visible.filter(row => {
-      // Guard: log(0) = -Infinity -> crashes Recharts log scale on XAxis
-      if (plotType === 'ac') return row.frequency > 0;
-      return true;
-    });
-
-    // Populate duplicated probe keys if multiple probes share the same node
-    if (probeAliases.length > 0 && processed.length > 0) {
-      processed = processed.map(row => {
-        const next: SimulationRow = { ...row };
-        for (const { key, base } of probeAliases) {
-          const val = row[base] ?? row[base.toLowerCase()];
-          if (val !== undefined) {
-            next[key] = val;
-          }
-          if (plotType === 'ac') {
-            const dbVal = row[`${base}_db`] ?? row[`${base.toLowerCase()}_db`];
-            if (dbVal !== undefined) next[`${key}_db`] = dbVal;
-            const phaseVal = row[`${base}_phase`] ?? row[`${base.toLowerCase()}_phase`];
-            if (phaseVal !== undefined) next[`${key}_phase`] = phaseVal;
-          }
-        }
-        return next;
-      });
-    }
-
-    // 🚀 PERFORMANCE FIX: Recharts lags heavily with thousands of SVG nodes.
-    // We decimate the dataset to a maximum of ~800 points to keep 60FPS rendering.
-    const MAX_POINTS = 800;
-    if (processed.length > MAX_POINTS) {
-      const step = Math.ceil(processed.length / MAX_POINTS);
-      const decimated = [];
-      for (let i = 0; i < processed.length; i += step) {
-        decimated.push(processed[i]);
-      }
-      // Ensure the last data point is always drawn
-      if (decimated[decimated.length - 1] !== processed[processed.length - 1]) {
-        decimated.push(processed[processed.length - 1]);
-      }
-      processed = decimated;
-    }
-
-    return processed;
-  }, [simulationBuffer, playbackTime, isPlaying, probeAliases]);
-
+  // Format current and optional previous baseline buffers through the same pipeline
+  const formattedData = useMemo(
+    () => formatBufferRows(simulationBuffer, probeAliases, playbackTime, isPlaying),
+    [simulationBuffer, playbackTime, isPlaying, probeAliases],
+  );
 
   // When digital mode is active, snap all voltage values to 0 or 5
-  const displayData = useMemo(() => {
-    if (!isDigitalMode) return formattedData;
-    return formattedData.map(row => {
-      const snapped: SimulationRow = {};
-      Object.keys(row).forEach(k => {
-        const v = row[k];
-        snapped[k] = typeof v === 'number' && k !== 'time' && k !== 'frequency'
-          ? (v > 2.5 ? 5 : 0)
-          : v;
-      });
-      return snapped;
-    });
-  }, [formattedData, isDigitalMode]);
+  const displayData = useMemo(
+    () => applyDigitalSnap(formattedData, isDigitalMode),
+    [formattedData, isDigitalMode],
+  );
+
+  const displayPrevData = useMemo(() => {
+    if (!showPreviousTrace || !previousSimulationBuffer || previousSimulationBuffer.length === 0) {
+      return [];
+    }
+    const currPlot = (simulationBuffer as SimulationData)?.__plotType || 'transient';
+    const prevPlot = previousSimulationBuffer.__plotType || 'transient';
+    if (currPlot !== prevPlot) return [];
+    const formattedPrev = formatBufferRows(previousSimulationBuffer, probeAliases, Infinity, false);
+    return applyDigitalSnap(formattedPrev, isDigitalMode);
+  }, [showPreviousTrace, previousSimulationBuffer, simulationBuffer, probeAliases, isDigitalMode]);
 
   // Augment dataset with evaluated math expressions
   const displayDataWithExpr = useMemo(() => {
@@ -1316,6 +1348,11 @@ export default function Grapher() {
     return { traces: [], sweepKey: timeKey };
   }, [displayData, probes, probeMap, simulationBuffer]);
 
+  const { rows: displayDataWithGhost, ghostTraces } = useMemo(
+    () => mergeGhostTraces(displayDataWithExpr, displayPrevData, sweepKey, traces),
+    [displayDataWithExpr, displayPrevData, sweepKey, traces],
+  );
+
   // ⚡⚡ Render ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
 
   if (isSimulating) return <div style={{ position: 'absolute', inset: 0 }}><LoadingSpinner /></div>;
@@ -1365,14 +1402,15 @@ export default function Grapher() {
       <FftPlot simulationBuffer={simulationBuffer!} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} />
     );
   } else if (plotType === 'ac') {
-    PlotComponent = <BodePlot data={displayDataWithExpr} traces={traces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
+    PlotComponent = <BodePlot data={displayDataWithGhost} traces={traces} ghostTraces={ghostTraces} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} {...cursorProps} />;
   } else if (plotType === 'dc') {
-    PlotComponent = <DcSweepPlot data={displayDataWithExpr} traces={traces} sweepKey={sweepKey} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} mathExpressions={mathExpressions} onRemoveExpression={handleRemoveExpression} {...cursorProps} />;
+    PlotComponent = <DcSweepPlot data={displayDataWithGhost} traces={traces} ghostTraces={ghostTraces} sweepKey={sweepKey} probeMap={probeMap} isOscilloscope={isOscilloscope} isDigitalMode={isDigitalMode} mathExpressions={mathExpressions} onRemoveExpression={handleRemoveExpression} {...cursorProps} />;
   } else {
     PlotComponent = (
       <TransientPlot
-        data={displayDataWithExpr}
+        data={displayDataWithGhost}
         traces={traces}
+        ghostTraces={ghostTraces}
         probeMap={probeMap}
         playbackTime={playbackTime}
         isOscilloscope={isOscilloscope}
@@ -1696,6 +1734,50 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
           <Plus size={14} />
           Add Expression
         </button>
+
+        {previousSimulationBuffer && previousSimulationBuffer.length > 0 && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', borderRadius: 6, overflow: 'hidden', border: `1.5px solid ${showPreviousTrace ? '#0ea5e9' : '#e5e7eb'}`, background: showPreviousTrace ? '#f0f9ff' : '#fff' }}>
+            <button
+              type="button"
+              onClick={() => setShowPreviousTrace(!showPreviousTrace)}
+              title="Overlay faint dashed trace from the previous run to compare parameter changes"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '4px 9px', fontSize: 12, fontWeight: 600,
+                border: 'none', background: 'transparent',
+                color: showPreviousTrace ? '#0369a1' : '#6b7280',
+                cursor: 'pointer',
+              }}
+            >
+              Prev Diff
+            </button>
+            <button
+              type="button"
+              onClick={clearPreviousTrace}
+              title="Clear previous trace overlay"
+              aria-label="Clear previous trace overlay"
+              style={{
+                border: 'none', borderLeft: '1px solid #cbd5e1', background: 'transparent',
+                padding: '4px 6px', fontSize: 12, color: '#64748b', cursor: 'pointer', lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {isLiveUpdating && (
+          <span
+            role="status"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+              padding: '3px 9px', borderRadius: 999,
+              background: '#fef3c7', color: '#b45309', fontSize: 11, fontWeight: 700,
+            }}
+          >
+            Live Updating…
+          </span>
+        )}
 
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <button

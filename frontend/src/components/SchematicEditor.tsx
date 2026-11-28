@@ -1122,10 +1122,6 @@ export default function SchematicEditor() {
             e.cancelBubble = true;
             const newClosed = !comp.props?.closed;
             useSchematicStore.getState().updateComponentProp(comp.id, 'closed', newClosed);
-            const state = useSchematicStore.getState();
-            if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
-              state.runSimulation(true);
-            }
           }
         }}
         onTap={(e) => {
@@ -1133,10 +1129,6 @@ export default function SchematicEditor() {
             e.cancelBubble = true;
             const newClosed = !comp.props?.closed;
             useSchematicStore.getState().updateComponentProp(comp.id, 'closed', newClosed);
-            const state = useSchematicStore.getState();
-            if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
-              state.runSimulation(true);
-            }
           }
         }}
         onDblClick={() => { setSelectedComponent(comp.id); setIsConfigOpen(true); }}

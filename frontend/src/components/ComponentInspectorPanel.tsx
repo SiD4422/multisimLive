@@ -41,6 +41,12 @@ function formatWithUnit(baseValue: number, unitStr: string) {
 // old import replaced cleanly via single top import
 import { AnalysisSettings } from './AnalysisSettings';
 import { componentDisplayValue, normalizeValue, validateValue, COMPONENT_UNITS } from '../utils/valueFormatter';
+import {
+  getAcFrequencyLogSlider,
+  getPassiveSliderSpec,
+  getVoltageOrCurrentSliderSpec,
+  scheduleLiveResimulation,
+} from '../utils/liveSimulation';
 
 function parseValueWithUnit(raw: string): { num: string; unit: string } {
   const m = raw.trim().match(/^([+-]?[\d.]+)\s*([kKmMuU\u00b5nNpP]?)(\u03a9|F|H|ohm|ohms?)?$/i);
@@ -332,6 +338,9 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
       id: designator.trim(),
       value: newValue.trim(),
     });
+    if (newValue.trim() !== (activeComponent.value || '').trim()) {
+      scheduleLiveResimulation();
+    }
   };
 
   const handleSetDefault = () => {
@@ -344,22 +353,76 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
       setValueError(null);
       const newValue = stringifyValue(activeComponent.type, parsed);
       updateComponentProperties(activeComponent.id, { id: designator.trim(), value: newValue.trim() });
+      scheduleLiveResimulation();
     }
   };
 
   const updateComponent = (id: string, newProps: { value: string }) => {
     updateField('main', newProps.value);
     updateComponentProperties(id, newProps);
+    scheduleLiveResimulation();
+  };
+
+  const updateFieldLive = (key: string, val: string) => {
+    const nextFields = { ...fields, [key]: val };
+    setFields(nextFields);
+    if (!activeComponent) return;
+    const nextValue = stringifyValue(activeComponent.type, nextFields).trim();
+    if (nextValue) {
+      updateComponentProperties(activeComponent.id, { value: nextValue });
+      scheduleLiveResimulation();
+    }
   };
 
   const renderFields = () => {
     if (!activeComponent) return null;
 
     if (fields.amplitude !== undefined && fields.frequency !== undefined) {
+      const ampNum = parseFloat(fields.amplitude) || 1;
+      const ampMax = Math.max(24, Math.ceil(ampNum * 2));
+      const freqSlider = getAcFrequencyLogSlider(fields.frequency);
+      const isAcUnitCurrent = activeComponent.type.includes('Current');
       return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          <InputGroup label="Amplitude" value={fields.amplitude} onChange={(v: string) => updateField('amplitude', v)} placeholder="e.g. 5" icon={Waves} />
-          <InputGroup label="Frequency" value={fields.frequency} onChange={(v: string) => updateField('frequency', v)} placeholder="e.g. 1k" icon={Activity} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            <InputGroup label="Amplitude" value={fields.amplitude} onChange={(v: string) => updateFieldLive('amplitude', v)} placeholder="e.g. 5" icon={Waves} />
+            <InputGroup label="Frequency" value={fields.frequency} onChange={(v: string) => updateFieldLive('frequency', v)} placeholder="e.g. 1k" icon={Activity} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', marginBottom: 2 }}>
+              <span>Live Amplitude</span>
+              <span style={{ fontFamily: 'monospace', color: '#2563eb' }}>{ampNum}{isAcUnitCurrent ? 'Apk' : 'Vpk'}</span>
+            </div>
+            <input
+              type="range"
+              aria-label="Live Amplitude Slider"
+              min={0.1}
+              max={ampMax}
+              step={0.1}
+              value={Math.min(ampMax, Math.max(0.1, ampNum))}
+              onChange={(e) => updateFieldLive('amplitude', e.target.value)}
+              style={{ width: '100%', cursor: 'pointer', accentColor: '#2563eb' }}
+            />
+          </div>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', marginBottom: 2 }}>
+              <span>Live Frequency (Log)</span>
+              <span style={{ fontFamily: 'monospace', color: '#2563eb' }}>{freqSlider.hzFromPos(freqSlider.sliderPos).label}</span>
+            </div>
+            <input
+              type="range"
+              aria-label="Live Frequency Slider"
+              min={0}
+              max={100}
+              step={1}
+              value={freqSlider.sliderPos}
+              onChange={(e) => {
+                const next = freqSlider.hzFromPos(Number(e.target.value));
+                updateFieldLive('frequency', next.spiceStr);
+              }}
+              style={{ width: '100%', cursor: 'pointer', accentColor: '#2563eb' }}
+            />
+          </div>
         </div>
       );
     }
@@ -368,17 +431,17 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
       return (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <InputGroup label="V_Initial" value={fields.v1} onChange={(v: string) => updateField('v1', v)} placeholder="0" />
-            <InputGroup label="V_Pulse" value={fields.v2} onChange={(v: string) => updateField('v2', v)} placeholder="5" />
+            <InputGroup label="V_Initial" value={fields.v1} onChange={(v: string) => updateFieldLive('v1', v)} placeholder="0" />
+            <InputGroup label="V_Pulse" value={fields.v2} onChange={(v: string) => updateFieldLive('v2', v)} placeholder="5" />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-            <InputGroup label="Delay" value={fields.delay} onChange={(v: string) => updateField('delay', v)} placeholder="0" />
-            <InputGroup label="Rise Time" value={fields.rise} onChange={(v: string) => updateField('rise', v)} placeholder="1u" />
-            <InputGroup label="Fall Time" value={fields.fall} onChange={(v: string) => updateField('fall', v)} placeholder="1u" />
+            <InputGroup label="Delay" value={fields.delay} onChange={(v: string) => updateFieldLive('delay', v)} placeholder="0" />
+            <InputGroup label="Rise Time" value={fields.rise} onChange={(v: string) => updateFieldLive('rise', v)} placeholder="1u" />
+            <InputGroup label="Fall Time" value={fields.fall} onChange={(v: string) => updateFieldLive('fall', v)} placeholder="1u" />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <InputGroup label="Pulse Width" value={fields.width} onChange={(v: string) => updateField('width', v)} placeholder="10u" icon={Timer} />
-            <InputGroup label="Period" value={fields.period} onChange={(v: string) => updateField('period', v)} placeholder="20u" icon={ActivitySquare} />
+            <InputGroup label="Pulse Width" value={fields.width} onChange={(v: string) => updateFieldLive('width', v)} placeholder="10u" icon={Timer} />
+            <InputGroup label="Period" value={fields.period} onChange={(v: string) => updateFieldLive('period', v)} placeholder="20u" icon={ActivitySquare} />
           </div>
         </>
       );
@@ -397,6 +460,7 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
             </div>
             <input
               type="range"
+              aria-label="Potentiometer Wiper Position"
               min={0}
               max={100}
               step={1}
@@ -404,12 +468,8 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
               onChange={(e) => {
                 const newWiper = Number(e.target.value);
                 useSchematicStore.getState().updateComponentProp(activeComponent.id, 'wiper_position', newWiper);
-                const state = useSchematicStore.getState();
-                if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
-                  state.runSimulation(true);
-                }
               }}
-              style={{ width: '100%', marginTop: 4, cursor: 'pointer' }}
+              style={{ width: '100%', marginTop: 4, cursor: 'pointer', accentColor: '#2563eb' }}
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -425,10 +485,6 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
                 onChange={(e) => {
                   const newTotal = parseFloat(e.target.value) || 0;
                   useSchematicStore.getState().updateComponentProp(activeComponent.id, 'total_resistance', newTotal);
-                  const state = useSchematicStore.getState();
-                  if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
-                    state.runSimulation(true);
-                  }
                 }}
                 style={{
                   flex: 1, padding: '6px 8px', background: '#1e293b', border: '1px solid #334155',
@@ -454,10 +510,6 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
             onClick={() => {
               const newClosed = !isClosed;
               useSchematicStore.getState().updateComponentProp(activeComponent.id, 'closed', newClosed);
-              const state = useSchematicStore.getState();
-              if ((state.simulationBuffer && state.simulationBuffer.length > 0) || (state.simulationData && state.simulationData.length > 0)) {
-                state.runSimulation(true);
-              }
             }}
             style={{
               padding: '8px 12px',
@@ -476,7 +528,7 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
       );
     }
 
-    // Simple single-value component — add normalize-on-blur, validation, and display hint
+    // Simple single-value component — add normalize-on-blur, validation, live slider, and display hint
     const comp = activeComponent;
     const isRCL = comp.type === 'Resistor' || comp.type === 'Capacitor' || comp.type === 'Inductor';
     const isSimpleType = !!COMPONENT_UNITS[activeComponent.type];
@@ -486,6 +538,9 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
     const showHint = displayHint && displayHint !== fields.main;
     
     const units = UNIT_OPTIONS[activeComponent.type];
+    const parsedRcl = parseValueWithUnit(comp.value || '');
+    const passiveSlider = isRCL ? getPassiveSliderSpec(comp.type, rclInput, parsedRcl.unit) : null;
+    const linearVoltageSlider = !isRCL ? getVoltageOrCurrentSliderSpec(comp.type, fields.main || '') : null;
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
@@ -494,6 +549,7 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
           Value / Parameter
         </label>
         {isRCL ? (
+          <>
           <div style={{ display: 'flex', gap: 4 }}>
             <input
               type="number"
@@ -539,7 +595,7 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
               style={{ flex: 1, padding: '6px 8px', background: '#1e293b', border: `1px solid ${valueError ? '#ef4444' : '#334155'}`, borderRadius: 6, color: '#e2e8f0', fontSize: 13 }}
             />
             <select
-              value={parseValueWithUnit(comp.value || '').unit}
+              value={parsedRcl.unit}
               onChange={e => {
                 const numericVal = parseFloat(rclInput);
                 if (isNaN(numericVal) || numericVal <= 0) {
@@ -579,7 +635,32 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
               </>)}
             </select>
           </div>
+          {passiveSlider && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', marginBottom: 2 }}>
+                <span>Live Tune (Log)</span>
+                <span style={{ fontFamily: 'monospace', color: '#2563eb' }}>{passiveSlider.currentScalar} {passiveSlider.formatValueAtPos(passiveSlider.sliderPos).displayLabel.split(' ').slice(1).join(' ')}</span>
+              </div>
+              <input
+                type="range"
+                aria-label={`Live tune ${comp.type} value`}
+                min={0}
+                max={100}
+                step={1}
+                value={passiveSlider.sliderPos}
+                onChange={(e) => {
+                  const next = passiveSlider.formatValueAtPos(Number(e.target.value));
+                  setRclInput(next.scalarStr);
+                  setValueError(null);
+                  updateComponent(comp.id, { value: next.fullValue });
+                }}
+                style={{ width: '100%', cursor: 'pointer', accentColor: '#2563eb' }}
+              />
+            </div>
+          )}
+          </>
         ) : (
+          <>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
               type="text"
@@ -589,6 +670,10 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
                 if (isSimpleType) {
                   const result = validateValue(v.target.value, activeComponent.type);
                   setValueError(result.valid ? null : (result.error ?? null));
+                  if (result.valid) {
+                    updateComponentProperties(activeComponent.id, { value: v.target.value.trim() });
+                    scheduleLiveResimulation();
+                  }
                 }
               }}
               onBlur={() => {
@@ -617,11 +702,11 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
                     const newStr = formatWithUnit(val, e.target.value);
                     updateField('main', newStr);
                     
-                    // trigger a save directly:
-                    const newValue = newStr; // we know we're in the simple component view
+                    // trigger a save + debounced live update:
                     updateComponentProperties(activeComponent.id, {
-                      value: newValue.trim()
+                      value: newStr.trim()
                     });
+                    scheduleLiveResimulation();
                   }
                 }}
               >
@@ -629,6 +714,29 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
               </select>
             )}
           </div>
+          {linearVoltageSlider && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', marginBottom: 2 }}>
+                <span>Live Tune</span>
+                <span style={{ fontFamily: 'monospace', color: '#2563eb' }}>{linearVoltageSlider.current.toFixed(1)} {linearVoltageSlider.unitLabel}</span>
+              </div>
+              <input
+                type="range"
+                aria-label={`Live tune ${activeComponent.type} value`}
+                min={linearVoltageSlider.min}
+                max={linearVoltageSlider.max}
+                step={linearVoltageSlider.step}
+                value={linearVoltageSlider.current}
+                onChange={(e) => {
+                  const nextStr = `${Number(e.target.value).toFixed(1).replace(/\.0$/, '')}`;
+                  setValueError(null);
+                  updateComponent(activeComponent.id, { value: nextStr });
+                }}
+                style={{ width: '100%', cursor: 'pointer', accentColor: '#2563eb' }}
+              />
+            </div>
+          )}
+          </>
         )}
         {valueError && (
           <p style={{ fontSize: '11px', color: '#ef4444', margin: '4px 0 0 0', lineHeight: 1.4 }}>

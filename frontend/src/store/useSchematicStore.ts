@@ -4,9 +4,7 @@ import { track } from '@vercel/analytics';
 import type { OpDataPoint, SimulationData, SpiceProgress } from '../utils/spiceTypes';
 import { generateNetlist, parseSpiceToFloat } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
-
-// Atomic flag to clear graph on switch flip without race conditions
-export const shouldClearRef = { current: false };
+import { bindLiveSimulationStore, cancelLiveResimulation, scheduleLiveResimulation } from '../utils/liveSimulation';
 
 export interface Point {
   x: number;
@@ -88,8 +86,12 @@ interface SchematicState {
   clearCustomModels: () => void;
   // Simulation State
   isSimulating: boolean;
+  isLiveMode: boolean;
+  isLiveUpdating: boolean;
   simulationProgress: SpiceProgress | null;
   simulationData: SimulationData | null;
+  previousSimulationBuffer: SimulationData | null;
+  showPreviousTrace: boolean;
   opData: { node: string, value: number, unit: string }[] | null;
   simulationBuffer: SimulationData | null;
   simulationError: string | null;
@@ -155,6 +157,9 @@ interface SchematicState {
   setSimulationBuffer: (data: SimulationData | null) => void;
   setSimulationError: (error: string | null) => void;
   setPlaybackTime: (time: number | ((t: number) => number)) => void;
+  setLiveMode: (enabled: boolean) => void;
+  setShowPreviousTrace: (show: boolean) => void;
+  clearPreviousTrace: () => void;
 }
 
 export const STORAGE_KEY = 'nodesim-schematic-v1';
@@ -194,8 +199,12 @@ export const useSchematicStore = create<SchematicState>()(
       aiDiagnosis: null,
       highlightedComponentIds: [],
       isSimulating: false,
+      isLiveMode: true,
+      isLiveUpdating: false,
       simulationProgress: null,
   simulationData: null,
+  previousSimulationBuffer: null,
+  showPreviousTrace: true,
   opData: null,
   simulationBuffer: null,
   simulationError: null,
@@ -323,6 +332,7 @@ export const useSchematicStore = create<SchematicState>()(
 
   importState: (jsonStr) => {
     try {
+      cancelLiveResimulation();
       let data = JSON.parse(jsonStr);
       if (data && data.default) {
         data = data.default;
@@ -344,7 +354,9 @@ export const useSchematicStore = create<SchematicState>()(
         isWireMode: false,
         isConfigOpen: false,      // Never auto-open settings on import
         isSimulating: false,
+        isLiveUpdating: false,
         simulationData: null,
+        previousSimulationBuffer: null,
         opData: null,
         simulationBuffer: null,
         simulationError: null,
@@ -374,9 +386,6 @@ export const useSchematicStore = create<SchematicState>()(
   })),
 
   updateComponentProp: (id, key, val) => {
-    if (key === 'closed') {
-      shouldClearRef.current = true;
-    }
     set((state) => ({
       components: state.components.map(c => c.id === id ? {
         ...c,
@@ -385,6 +394,7 @@ export const useSchematicStore = create<SchematicState>()(
       past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
       future: []
     }));
+    scheduleLiveResimulation();
   },
 
   clearSelection: () => set({ selectedComponentId: null, selectedWireId: null, selectedProbeId: null, selectedComponentIds: [] }),
@@ -436,17 +446,12 @@ export const useSchematicStore = create<SchematicState>()(
   })),
 
   updateComponentValue: (id, value) => {
-    // If we're interacting with a switch, flag the graph to be cleared
-    const comp = get().components.find(c => c.id === id);
-    if (comp && (comp.type === 'SwitchSPST' || comp.type === 'PushButton')) {
-      shouldClearRef.current = true;
-    }
-    
     set((state) => ({
       components: state.components.map(c => c.id === id ? { ...c, value } : c),
       past: [...state.past, { components: state.components, wires: state.wires, probes: state.probes }].slice(-50),
       future: []
     }));
+    scheduleLiveResimulation();
   },
 
   updateComponentRotation: (id, rotation) => set((state) => ({
@@ -566,11 +571,14 @@ export const useSchematicStore = create<SchematicState>()(
     if (!isSilent) {
       set({
         isSimulating: true,
+        isLiveUpdating: false,
         simulationProgress: { stage: 'spawning-worker', percent: 5, label: 'Starting SPICE worker...' },
         simulationError: null,
         isPlaying: false,
         playbackTime: 0,
       });
+    } else {
+      set({ isLiveUpdating: true, simulationError: null });
     }
     try {
       let netlist = generateNetlist(components, wires, probes, get().customModels, get().customModelPorts);
@@ -602,41 +610,44 @@ export const useSchematicStore = create<SchematicState>()(
       });
 
       const isAcOrDc = analysisMode === 'ac' || analysisMode === 'dc';
-      set(() => {
-        // Feature 4: User fix 2 - clear on switch flip atomic check
-        let finalData = data;
-        if (shouldClearRef.current) {
-          finalData = []; // Clear the graph data visually
-          shouldClearRef.current = false;
-        }
-
+      set((state) => {
         // If it was an .op analysis, data is an array of op value objects. 
         if (analysisMode === 'op' || data.__plotType === 'op') {
           if (!isSilent) track('Simulation_Success', { mode: analysisMode });
           return {
-            opData: finalData as unknown as OpDataPoint[],
+            opData: data as unknown as OpDataPoint[],
             isSimulating: false,
+            isLiveUpdating: false,
             simulationProgress: null,
             isPlaying: false
           };
         }
+
+        const prevBuffer = state.simulationBuffer;
+        const canKeepPrev =
+          prevBuffer &&
+          prevBuffer.length > 0 &&
+          data.length > 0 &&
+          (prevBuffer.__plotType || 'transient') === (data.__plotType || 'transient');
         
         if (!isSilent) track('Simulation_Success', { mode: analysisMode });
         return {
-          simulationBuffer: finalData as unknown as SimulationData,
-          simulationData: finalData as unknown as SimulationData,
+          previousSimulationBuffer: canKeepPrev ? prevBuffer : null,
+          simulationBuffer: data as unknown as SimulationData,
+          simulationData: data as unknown as SimulationData,
           opData: null, // Clear op data if we did a regular simulation
           isSimulating: false,
+          isLiveUpdating: false,
           simulationProgress: null,
           // Silent runs don't animate playback; they show full trace instantly
-          isPlaying: isSilent ? false : (!isAcOrDc && finalData.length > 0),
+          isPlaying: isSilent ? false : (!isAcOrDc && data.length > 0),
           playbackTime: isSilent ? Infinity : 0
         };
       });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg === "CANCELLED_BY_NEW_JOB" || msg === "ALREADY_SIMULATING") {
-        return; // Silently ignore cancelled jobs or double-clicks
+        return; // Silently ignore superseded live runs or double-clicks
       }
       console.error("Simulation failed:", e);
       let errorMsg = msg || "Simulation failed. See console for details.";
@@ -646,7 +657,7 @@ export const useSchematicStore = create<SchematicState>()(
       } else {
         if (!isSilent) track('Simulation_Error', { type: 'SPICE', details: errorMsg.substring(0, 100) });
       }
-      set({ isSimulating: false, simulationProgress: null, simulationError: errorMsg });
+      set({ isSimulating: false, isLiveUpdating: false, simulationProgress: null, simulationError: errorMsg });
     }
   },
 
@@ -662,6 +673,12 @@ export const useSchematicStore = create<SchematicState>()(
   setOpData: (data) => set({ opData: data }),
   setSimulationBuffer: (data) => set({ simulationBuffer: data }),
   setSimulationError: (error) => set({ simulationError: error }),
+  setLiveMode: (enabled) => {
+    if (!enabled) cancelLiveResimulation();
+    set({ isLiveMode: enabled });
+  },
+  setShowPreviousTrace: (show) => set({ showPreviousTrace: show }),
+  clearPreviousTrace: () => set({ previousSimulationBuffer: null }),
   togglePlayback: () => set((state) => ({ isPlaying: !state.isPlaying }))
     }),
     {
@@ -713,3 +730,5 @@ export const useSchematicStore = create<SchematicState>()(
     }
   )
 );
+
+bindLiveSimulationStore(() => useSchematicStore.getState());
