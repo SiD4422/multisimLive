@@ -155,7 +155,7 @@ function writeSimulatorShell(cleanTemplate) {
   const simHead = [
     '<title>NodeSim Simulator | Free Online SPICE Circuit Simulator</title>',
     '<meta name="title" content="NodeSim Simulator | Free Online SPICE Circuit Simulator" />',
-    '<meta name="description" content="Launch the interactive NodeSim SPICE schematic editor and real-time waveform grapher directly in your browser. 311+ components, zero install." />',
+    '<meta name="description" content="Launch the interactive NodeSim SPICE schematic editor and real-time waveform grapher directly in your browser. Analog, power, digital logic, and IC SPICE simulation with zero install." />',
     '<meta name="robots" content="index, follow" />',
     '<link rel="canonical" href="https://www.nodesimapp.com/simulator" />',
   ].join('\n    ');

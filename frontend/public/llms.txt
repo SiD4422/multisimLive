@@ -6,7 +6,7 @@ NodeSim is a completely free, client-side electronic circuit simulation platform
 
 ## Key Capabilities
 - **Engine**: Industry-standard ngspice compiled to WebAssembly (runs 100% client-side with zero server latency).
-- **Component Library**: 311+ verified components including microcontrollers (ATtiny85, PIC16F84A, STM32 Blue Pill, ESP32, Raspberry Pi Pico), 74HC & CD4000 series CMOS logic gates, precision op-amps, optocouplers, display modules (OLED, LCD, TFT), sensors, and power semiconductors.
+- **Component Library**: 250+ simulated analog, power, and digital gate SPICE components (74HC & CD4000 logic gates, op-amps, comparators, 555 timers, optocouplers, voltage regulators, and power semiconductors), plus clearly labeled schematic pinout stubs for layout.
 - **Analysis Modes**: Transient Analysis (time-domain oscilloscope waveforms), AC Frequency Sweep (Bode magnitude and phase plots), DC Operating Point (bias voltage/current table), and DC Sweep (IV curves).
 - **Instruments**: Interactive multi-channel oscilloscope & waveform grapher with measurement cursors and FFT spectrum analysis.
 - **AI Circuit Tutor**: Integrated Google Gemini assistant for circuit explanation, wiring troubleshooting, and formula derivations.

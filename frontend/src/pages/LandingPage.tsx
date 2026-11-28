@@ -8,11 +8,11 @@ import LandingInteractiveDemo from '../components/LandingInteractiveDemo';
 const LANDING_FAQS = [
   {
     question: "Is NodeSim completely free to use?",
-    answer: "Yes, NodeSim is 100% free with zero paywalls, no subscription, and no account required. All 311+ components and SPICE simulation engines run entirely in your web browser."
+    answer: "Yes, NodeSim is 100% free with zero paywalls, no subscription, and no account required. All 250+ SPICE & behavioral models and ngspice simulation engines run entirely in your web browser."
   },
   {
     question: "How does NodeSim compare to NI Multisim Live?",
-    answer: "NodeSim is a fast, free alternative to NI Multisim Live powered by ngspice WebAssembly. It provides instant client-side simulation, 311+ components, interactive waveform graphers, AI circuit debugging, KiCad export, and PDF lab report export without login or desktop installation."
+    answer: "NodeSim is a fast, free alternative to NI Multisim Live powered by ngspice WebAssembly for analog, power, digital logic gate, and IC SPICE simulation — featuring 250+ simulated models, interactive waveform graphers, AI circuit debugging, KiCad export, and PDF lab report export without login."
   },
   {
     question: "Does NodeSim require any software download or installation?",
@@ -52,7 +52,7 @@ const COMPARISON_ROWS = [
   { feature: 'Runs in Browser', nodesim: 'Yes (Zero install)', multisim: 'Legacy / Discontinued', ltspice: 'No (Windows/macOS app)', falstad: 'Yes' },
   { feature: 'Account Required', nodesim: 'No', multisim: 'Yes (Required)', ltspice: 'No', falstad: 'No' },
   { feature: 'Simulation Engine', nodesim: 'Real ngspice (WASM)', multisim: 'SPICE (Server)', ltspice: 'Proprietary SPICE', falstad: 'Simplified solver' },
-  { feature: 'Component Library', nodesim: '311+ Components & MCUs', multisim: 'Limited on free tier', ltspice: 'Analog Devices focused', falstad: '~150 basic parts' },
+  { feature: 'Component Library', nodesim: '250+ SPICE & Behavioral ICs', multisim: 'Limited on free tier', ltspice: 'Analog Devices focused', falstad: '~150 basic parts' },
   { feature: 'AI Debugging & PDF Lab Reports', nodesim: 'Built-in + IEEE PDF export', multisim: 'None', ltspice: 'None', falstad: 'None' },
 ];
 
@@ -63,7 +63,7 @@ export default function LandingPage() {
     <>
       <SEO 
         title="Free Online Circuit Simulator & Multisim Alternative | NodeSim"
-        description="Run real SPICE circuit simulations in your browser. 311+ components, live waveform grapher, interactive AI tutor. Free alternative to NI Multisim Live, zero install."
+        description="Run real SPICE circuit simulations in your browser. Analog, power, digital gate, and IC simulation with 250+ models, live waveform grapher, and AI tutor. Zero install."
         url="https://www.nodesimapp.com/"
         canonical="https://www.nodesimapp.com/"
         faqs={LANDING_FAQS}
@@ -205,7 +205,7 @@ export default function LandingPage() {
 
               <h1>Free Online SPICE<br />Circuit Simulator <span className="accent">&amp; Multisim Alternative</span></h1>
 
-              <p className="lede">The modern, free alternative to NI Multisim Live. Design, simulate, and analyze circuits directly in your browser with 311+ components, waveform grapher, and AI tutor. Zero install, 100% free.</p>
+              <p className="lede">Analog, power, digital gate, and IC SPICE simulation for ECE/EEE students — running locally in your browser with 250+ SPICE &amp; behavioral models, waveform grapher, and AI tutor. Zero install, 100% free.</p>
 
               <div className="msl-hero-ctas">
                 <Link className="msl-btn msl-btn-primary msl-btn-lg" to="/simulator">
@@ -265,7 +265,7 @@ export default function LandingPage() {
               <ul className="msl-trust-logos">
                 <li><span style={{ color: '#16a34a' }}>~42ms</span> Avg Simulation Time</li>
                 <li><span style={{ color: '#16a34a' }}>100%</span> Client-Side Execution</li>
-                <li><span style={{ color: '#16a34a' }}>311+</span> Verified SPICE Components</li>
+                <li><span style={{ color: '#16a34a' }}>250+</span> SPICE &amp; Behavioral Models</li>
               </ul>
             </div>
             <div style={{ flex: 1, paddingLeft: '40px', borderLeft: '1px solid var(--line)' }}>
@@ -361,7 +361,7 @@ export default function LandingPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', textAlign: 'left' }}>
               {[
-                { step: '01', Icon: Sliders, title: 'Draw Your Circuit', desc: 'Drag and drop from 311+ verified parts — resistors, capacitors, BJTs, MOSFETs, op-amps, 555 timers, and logic gates.' },
+                { step: '01', Icon: Sliders, title: 'Draw Your Circuit', desc: 'Drag and drop from 250+ SPICE parts — resistors, capacitors, BJTs, MOSFETs, op-amps, 555 timers, regulators, and logic gates.' },
                 { step: '02', Icon: Play, title: 'Run SPICE Simulation', desc: 'Hit Run. Our WebAssembly ngspice engine runs full transient, AC Bode sweep, or DC operating point analysis in milliseconds.' },
                 { step: '03', Icon: Activity, title: 'Analyze & Export', desc: 'Inspect voltage and current probes in the Grapher. Use the AI Tutor to verify equations and export PDF lab reports.' },
               ].map(({ step, Icon, title, desc }) => (

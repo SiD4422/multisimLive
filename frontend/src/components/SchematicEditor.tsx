@@ -14,7 +14,7 @@ import { findOrthogonalPath } from '../utils/autoRouter';
 import { buildWireNodeMap, buildWireVoltageResult, voltageToStrokeWidth, getPointAlongPolyline } from '../utils/wireVoltageMap';
 import { computeWireCrossings } from '../utils/wireCrossings';
 import { CurrentFlowOverlay } from './CurrentFlowOverlay';
-import { standardICLibrary } from '../data/components';
+import { getPinoutStubNote, standardICLibrary } from '../data/components';
 
 const SNAP_GRID = 10;
 const VISUAL_GRID = 45;
@@ -90,6 +90,7 @@ export default function SchematicEditor() {
   const [touchWireStart, setTouchWireStart] = useState<Point | null>(null);
   const [touchPulseScale, setTouchPulseScale] = useState(1.0);
   const shiftHeldRef = useRef(false);
+  const hasWarnedPinoutStubRef = useRef(false);
 
   // Pulse animation for selected first pin in tap-to-connect mode (scale 1.0 -> 1.4 -> 1.0)
   useEffect(() => {
@@ -544,6 +545,16 @@ export default function SchematicEditor() {
         rotation: defaultRotation,
         props: libComp ? { ...libComp.defaultProps } : undefined
       });
+      const stubNote = getPinoutStubNote(typeStr);
+      if (stubNote && !hasWarnedPinoutStubRef.current) {
+        hasWarnedPinoutStubRef.current = true;
+        window.dispatchEvent(new CustomEvent('nodesim-toast', {
+          detail: {
+            message: `${libComp?.name || typeStr} is a pinout stub (no functional SPICE model): provides schematic pin layout and passive terminal loads only.`,
+            type: 'warning',
+          },
+        }));
+      }
       setPendingComponent(null);
       return;
     }

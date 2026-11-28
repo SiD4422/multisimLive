@@ -16,7 +16,7 @@
 ## Features
 
 - **Real SPICE engine (ngspice WASM)** — Transient analysis, AC frequency sweeps (Bode plots), DC sweeps, and DC operating points executed locally in your browser
-- **311+ verified components** — Passive RLC parts, diodes, BJTs, MOSFETs, precision op-amps, 555 timers, 74HC/CD4000 logic gates, optocouplers, MCUs, and display modules
+- **250+ SPICE & behavioral models** — Analog, power, digital logic gate, and IC components (RLC passives, diodes, BJTs, MOSFETs, precision op-amps, 555 timers, 74HC/CD4000 logic gates, optocouplers, and regulators), with non-modeled MCU/display/sensor pinouts explicitly quarantined as pinout stubs
 - **Interactive waveform grapher** — Multi-channel oscilloscope plots with cursors, FFT spectrum view, animated current-flow visualization, and CSV export
 - **AI circuit debugger** — Diagnose wiring issues, verify equations, and inspect netlist behavior with Gemini AI (`AiExplainerPanel`)
 - **Academic & PCB exports** — Export IEEE-formatted PDF lab reports (`LabReportModal`), KiCad netlists (`.net` via `exportKiCad`), SPICE netlists (`.cir`), and PNG schematics

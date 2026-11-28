@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import SEO from '../components/SEO';
 import { Link } from 'react-router-dom';
-import { standardICLibrary } from '../data/components';
+import { isPinoutStubComponent, PINOUT_STUB_CATEGORY, standardICLibrary } from '../data/components';
 import type { ComponentDefinition } from '../data/components';
 
 // Static basic components list (from ComponentPalette)
@@ -35,10 +35,12 @@ const BASIC_COMPONENTS = [
 type ViewMode = 'grid' | 'list';
 
 interface ComponentEntry {
+  id?: string;
   name: string;
   category: string;
   description: string;
   isIC: boolean;
+  isPinoutStub?: boolean;
   pinCount?: number;
 }
 
@@ -46,6 +48,7 @@ const CATEGORY_ORDER = [
   'Passive', 'Semiconductors', 'Transistors', 'Amplifiers', 'Sources',
   'Magnetics', 'Sensors', 'Protection',
   'Logic Gates', 'Integrated Circuits', 'Sources & Switches', 'Passive Components',
+  PINOUT_STUB_CATEGORY,
 ];
 
 function groupByCategory<T extends { category: string }>(items: T[]): Record<string, T[]> {
@@ -62,15 +65,19 @@ const ComponentsPage: React.FC = () => {
   const [view, setView] = useState<ViewMode>('grid');
 
   const allComponents: ComponentEntry[] = [
-    ...BASIC_COMPONENTS.map(c => ({ ...c, isIC: false })),
+    ...BASIC_COMPONENTS.map(c => ({ ...c, isIC: false, isPinoutStub: false })),
     ...standardICLibrary.map((ic: ComponentDefinition) => ({
+      id: ic.id,
       name: ic.name,
       category: ic.category,
       description: ic.description,
       isIC: true,
+      isPinoutStub: isPinoutStubComponent(ic.id),
       pinCount: ic.pins.length,
     })),
   ];
+  const simulatedComponentsCount = allComponents.filter(c => !c.isPinoutStub).length;
+  const pinoutStubsCount = allComponents.filter(c => c.isPinoutStub).length;
 
   const filtered = search.trim()
     ? allComponents.filter(c =>
@@ -94,8 +101,8 @@ const ComponentsPage: React.FC = () => {
   return (
     <>
       <SEO
-        title="Circuit Components Library | 311+ SPICE Components — NodeSim"
-        description="Browse 311+ SPICE-ready components: resistors, capacitors, inductors, op-amps, MOSFETs, BJTs, microcontrollers (ATtiny85, ESP32, PIC), logic gates, displays, optocouplers. All free in NodeSim."
+        title={`Circuit Components Library | ${simulatedComponentsCount}+ SPICE & Behavioral Models — NodeSim`}
+        description="Browse SPICE and behavioral circuit models in NodeSim: resistors, capacitors, inductors, op-amps, MOSFETs, BJTs, logic gates, 555 timers, regulators, and optocouplers — plus quarantined schematic pinout stubs."
         url="https://www.nodesimapp.com/components"
         canonical="https://www.nodesimapp.com/components"
       />
@@ -111,20 +118,20 @@ const ComponentsPage: React.FC = () => {
         {/* Header */}
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-white mb-3">
-            {allComponents.length}+ Electronic Components
+            {simulatedComponentsCount}+ Simulated SPICE Components
           </h1>
           <p className="text-gray-400 text-lg max-w-3xl">
-            Browse every simulation-ready component in NodeSim — from basic passive elements to complex
-            digital ICs and microcontrollers. All components simulate in your browser with no install required.
+            Analog, power, digital gate, and IC SPICE simulation for ECE/EEE students — running locally in your
+            browser via ngspice WASM. Schematic pinout stubs without firmware/protocol SPICE models are listed separately below.
           </p>
         </div>
 
         {/* Stats bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total Components', value: allComponents.length.toString() },
-            { label: 'IC / Digital', value: standardICLibrary.length.toString() },
-            { label: 'Basic / Analog', value: BASIC_COMPONENTS.length.toString() },
+            { label: 'Simulated Models', value: simulatedComponentsCount.toString() },
+            { label: 'Simulated ICs / Gates', value: (standardICLibrary.length - pinoutStubsCount).toString() },
+            { label: 'Pinout Stubs (Quarantined)', value: pinoutStubsCount.toString() },
             { label: 'Categories', value: Object.keys(groupByCategory(allComponents)).length.toString() },
           ].map(stat => (
             <div key={stat.label} className="bg-gray-800 rounded-lg p-4 border border-gray-700 text-center">
@@ -170,19 +177,31 @@ const ComponentsPage: React.FC = () => {
         {/* Component groups */}
         {sortedCategories.map(category => (
           <section key={category} className="mb-10">
-            <h2 className="text-xl font-semibold text-cyan-400 mb-4 flex items-center gap-2">
-              {category}
+            <h2 className={`text-xl font-semibold mb-3 flex items-center gap-2 ${category === PINOUT_STUB_CATEGORY ? 'text-amber-400' : 'text-cyan-400'}`}>
+              {category === PINOUT_STUB_CATEGORY ? `⚠️ ${category}` : category}
               <span className="text-sm text-gray-500 font-normal">({grouped[category].length})</span>
             </h2>
+            {category === PINOUT_STUB_CATEGORY && (
+              <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-200">
+                Pinout layout &amp; basic terminal impedances only. Microcontroller firmware, OLED/TFT/LCD displays, wireless packets, and digital sensor protocols cannot be executed in SPICE.
+              </div>
+            )}
 
             {view === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {grouped[category].map(comp => (
                   <div
                     key={comp.name}
-                    className="bg-gray-800 hover:bg-gray-750 rounded-lg p-4 border border-gray-700 hover:border-cyan-700 transition-colors"
+                    className={`bg-gray-800 hover:bg-gray-750 rounded-lg p-4 border transition-colors ${comp.isPinoutStub ? 'border-amber-700/60 hover:border-amber-500' : 'border-gray-700 hover:border-cyan-700'}`}
                   >
-                    <div className="font-semibold text-white mb-1">{comp.name}</div>
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="font-semibold text-white">{comp.name}</div>
+                      {comp.isPinoutStub && (
+                        <span className="shrink-0 rounded bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-amber-300">
+                          Pinout Stub
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-gray-400 leading-relaxed line-clamp-3">{comp.description}</div>
                     {'pinCount' in comp && comp.pinCount && (
                       <div className="mt-2 text-xs text-gray-500">{comp.pinCount} pins</div>
@@ -197,7 +216,14 @@ const ComponentsPage: React.FC = () => {
                     key={comp.name}
                     className={`flex items-start gap-4 px-4 py-3 ${i < grouped[category].length - 1 ? 'border-b border-gray-700/50' : ''}`}
                   >
-                    <div className="min-w-[180px] font-semibold text-white text-sm">{comp.name}</div>
+                    <div className="min-w-[180px] font-semibold text-white text-sm flex items-center gap-2">
+                      <span>{comp.name}</span>
+                      {comp.isPinoutStub && (
+                        <span className="rounded bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-amber-300">
+                          Pinout
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-gray-400 leading-relaxed flex-1">{comp.description}</div>
                     {'pinCount' in comp && comp.pinCount && (
                       <div className="text-xs text-gray-500 whitespace-nowrap">{comp.pinCount} pins</div>
@@ -220,7 +246,7 @@ const ComponentsPage: React.FC = () => {
         <section className="mt-12 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-xl p-8 border border-cyan-700/50 text-center">
           <h2 className="text-2xl font-bold text-white mb-3">Ready to Simulate?</h2>
           <p className="text-gray-300 mb-6">
-            All {allComponents.length}+ components are available free in the NodeSim browser simulator.
+            All {simulatedComponentsCount}+ simulated SPICE &amp; behavioral models (plus {pinoutStubsCount} schematic pinout blocks) are available free in the NodeSim browser simulator.
             No account, no install — just open and start building.
           </p>
           <Link

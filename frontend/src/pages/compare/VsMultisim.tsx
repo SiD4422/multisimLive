@@ -31,7 +31,7 @@ const VsMultisim: React.FC = () => {
     <div style={{ padding: '3rem 2rem', maxWidth: '800px', margin: '0 auto', color: '#e2e8f0', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <SEO
         title="Free NI Multisim Alternative Online | NodeSim SPICE Simulator"
-        description="NodeSim is the best free NI Multisim alternative. Run real SPICE circuit simulations in your browser — 311+ components, waveform grapher, AI tutor. No login or install needed. Multisim Live replacement."
+        description="NodeSim is a free, open-source NI Multisim alternative. Run real SPICE circuit simulations in your browser — 250+ SPICE models, waveform grapher, AI tutor. No login or install needed."
         url="https://www.nodesimapp.com/compare/multisim"
         canonical="https://www.nodesimapp.com/compare/multisim"
         keywords={[
@@ -57,7 +57,7 @@ const VsMultisim: React.FC = () => {
       <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#10b981' }}>Free NI Multisim Alternative Online — NodeSim SPICE Simulator</h1>
       
       <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>
-        Looking for a free alternative to NI Multisim? NodeSim is a web-native SPICE circuit simulator powered by ngspice WebAssembly. Design, wire, and analyze analog and digital circuits with 311+ components, real-time waveform graphing, and AI tutoring — 100% free with no install and no account required.
+        Looking for a free alternative to NI Multisim? NodeSim is a web-native SPICE circuit simulator powered by ngspice WebAssembly for analog, power, digital logic gate, and IC circuits — featuring 250+ simulated SPICE &amp; behavioral models, real-time waveform graphing, and AI tutoring, 100% free with no install and no account required.
       </p>
 
       {/* Quick Launch Interactive CTA Banner */}

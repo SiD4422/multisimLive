@@ -10,17 +10,120 @@ export interface ComponentPinDef {
   y: number;
 }
 
+export const PINOUT_STUB_CATEGORY = 'Pinout Stubs (No SPICE Model)';
+export type SimulationModelStatus = 'spice' | 'behavioral' | 'pinout-stub';
+
 export interface ComponentDefinition {
   id: string;
   name: string;
-  category: 'Logic Gates' | 'Integrated Circuits' | 'Sources & Switches' | 'Passive Components' | string;
+  category:
+    | 'Logic Gates'
+    | 'Integrated Circuits'
+    | 'Sources & Switches'
+    | 'Passive Components'
+    | typeof PINOUT_STUB_CATEGORY
+    | string;
   description: string;
   defaultProps: Record<string, string | number | boolean | undefined>;
   symbol: string;
   pins: ComponentPinDef[];
+  simulationModel?: SimulationModelStatus;
+  modelNote?: string;
 }
 
-export const standardICLibrary: ComponentDefinition[] = [
+const MCU_STUB_NOTE =
+  'Pinout layout & terminal impedances only. Microcontroller firmware execution is not simulated in SPICE.';
+const DISPLAY_STUB_NOTE =
+  'Pinout layout & passive pull-ups/loads only. Display pixels and SPI/I2C controller protocols are not simulated in SPICE.';
+const RF_BRIDGE_STUB_NOTE =
+  'Pinout layout & basic terminal stub only. RF/Wi-Fi/BLE wireless packets and USB serial enumeration are not simulated in SPICE.';
+const PROTOCOL_MODULE_STUB_NOTE =
+  'Pinout layout & static/passive stub only. Digital I2C/SPI protocol state machines are not simulated in SPICE.';
+const SENSOR_STUB_NOTE =
+  'Pinout layout & static electrical stub only. Physical sensing (temperature, gas, motion, distance, IMU) is not modeled dynamically in SPICE.';
+
+/**
+ * Components whose SPICE implementation only provides mechanical pinouts,
+ * passive pull resistors, or fixed dummy voltage/current stubs rather than real IC/firmware behavior.
+ */
+export const PINOUT_STUB_NOTES: Record<string, string> = {
+  // Microcontrollers
+  ic_atmega328: MCU_STUB_NOTE,
+  ic_attiny85: MCU_STUB_NOTE,
+  ic_pic16f84a: MCU_STUB_NOTE,
+  ic_pic16f877a: MCU_STUB_NOTE,
+  ic_stm32f103c8t6: MCU_STUB_NOTE,
+  ic_esp32_wroom: MCU_STUB_NOTE,
+  ic_raspberry_pi_pico: MCU_STUB_NOTE,
+
+  // Displays & Matrix Drivers
+  display_ili9341: DISPLAY_STUB_NOTE,
+  display_st7789: DISPLAY_STUB_NOTE,
+  display_ssd1306: DISPLAY_STUB_NOTE,
+  display_nokia5110: DISPLAY_STUB_NOTE,
+  display_lcd1602_i2c: DISPLAY_STUB_NOTE,
+  display_lcd2004_i2c: DISPLAY_STUB_NOTE,
+  ic_tm1637: DISPLAY_STUB_NOTE,
+  ic_ht16k33: DISPLAY_STUB_NOTE,
+
+  // Wireless & USB-UART Protocol Bridges
+  ic_esp8266: RF_BRIDGE_STUB_NOTE,
+  ic_nrf24l01: RF_BRIDGE_STUB_NOTE,
+  ic_hc05: RF_BRIDGE_STUB_NOTE,
+  ic_ch340g: RF_BRIDGE_STUB_NOTE,
+  ic_ft232rl: RF_BRIDGE_STUB_NOTE,
+  ic_cp2102: RF_BRIDGE_STUB_NOTE,
+
+  // I2C/SPI Protocol Peripherals & Addressable LED
+  ic_pcf8574: PROTOCOL_MODULE_STUB_NOTE,
+  ic_pcf8575: PROTOCOL_MODULE_STUB_NOTE,
+  ic_mcp23017: PROTOCOL_MODULE_STUB_NOTE,
+  ic_mcp23008: PROTOCOL_MODULE_STUB_NOTE,
+  ic_pca9685: PROTOCOL_MODULE_STUB_NOTE,
+  ic_pca9306: PROTOCOL_MODULE_STUB_NOTE,
+  ic_ina219: PROTOCOL_MODULE_STUB_NOTE,
+  ic_ws2812: PROTOCOL_MODULE_STUB_NOTE,
+  ic_max127: PROTOCOL_MODULE_STUB_NOTE,
+  ic_ads1115: PROTOCOL_MODULE_STUB_NOTE,
+  ic_ads1015: PROTOCOL_MODULE_STUB_NOTE,
+  ic_mcp4822: PROTOCOL_MODULE_STUB_NOTE,
+  ic_pcf8591: PROTOCOL_MODULE_STUB_NOTE,
+  ic_max31855: PROTOCOL_MODULE_STUB_NOTE,
+
+  // Sensors & Mechanical Encoder without physical stimulus simulation
+  ic_si7021: SENSOR_STUB_NOTE,
+  ic_bmp280: SENSOR_STUB_NOTE,
+  ic_ds18b20: SENSOR_STUB_NOTE,
+  ic_mpu6050: SENSOR_STUB_NOTE,
+  ic_dht11: SENSOR_STUB_NOTE,
+  ic_dht22: SENSOR_STUB_NOTE,
+  ic_bme280: SENSOR_STUB_NOTE,
+  ic_bme680: SENSOR_STUB_NOTE,
+  sensor_mlx90614: SENSOR_STUB_NOTE,
+  sensor_pir_hc_sr501: SENSOR_STUB_NOTE,
+  sensor_tsl2561: SENSOR_STUB_NOTE,
+  sensor_max30102: SENSOR_STUB_NOTE,
+  sensor_adxl345: SENSOR_STUB_NOTE,
+  sensor_tcs34725: SENSOR_STUB_NOTE,
+  sensor_vl53l0x: SENSOR_STUB_NOTE,
+  sensor_hcsr04: SENSOR_STUB_NOTE,
+  sensor_soil_moisture: SENSOR_STUB_NOTE,
+  sensor_ky038: SENSOR_STUB_NOTE,
+  sensor_mq2: SENSOR_STUB_NOTE,
+  sensor_mq3: SENSOR_STUB_NOTE,
+  sensor_mq7: SENSOR_STUB_NOTE,
+  sensor_rotary_encoder: SENSOR_STUB_NOTE,
+};
+
+export function isPinoutStubComponent(typeId: string): boolean {
+  return Object.prototype.hasOwnProperty.call(PINOUT_STUB_NOTES, typeId);
+}
+
+export function getPinoutStubNote(typeId: string): string | null {
+  return PINOUT_STUB_NOTES[typeId] ?? null;
+}
+
+const RAW_STANDARD_IC_LIBRARY: ComponentDefinition[] = [
   // Group A: Standard Logic Gates (74xx Series)
   {
     id: 'logic_nand2',
@@ -5600,5 +5703,20 @@ export const standardICLibrary: ComponentDefinition[] = [
       { id: 'QG', name: 'QG', x: 55, y: 60 },
     ],
   },
-
 ];
+
+export const standardICLibrary: ComponentDefinition[] = RAW_STANDARD_IC_LIBRARY.map((item) => {
+  const modelNote = PINOUT_STUB_NOTES[item.id];
+  if (!modelNote) {
+    return {
+      ...item,
+      simulationModel: item.simulationModel ?? 'behavioral',
+    };
+  }
+  return {
+    ...item,
+    category: PINOUT_STUB_CATEGORY,
+    simulationModel: 'pinout-stub',
+    modelNote,
+  };
+});

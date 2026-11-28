@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSchematicStore, type SchematicComponent } from '../store/useSchematicStore';
-import { X, Zap, Settings, Activity, ActivitySquare, Timer, Waves, SlidersHorizontal, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, Zap, Settings, Activity, ActivitySquare, Timer, Waves, SlidersHorizontal, Trash2, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
 import { getComponentMetadata } from '../utils/ComponentDescriptions';
 import { parseSpiceToFloat } from '../utils/netlister';
+import { getPinoutStubNote } from '../data/components';
 
 const COMPONENT_DESCRIPTIONS: Record<string, string> = {
   Resistor: 'Two-terminal passive component',
@@ -689,6 +690,7 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
   };
 
   const meta = getComponentMetadata(activeComponent.type);
+  const pinoutStubNote = getPinoutStubNote(activeComponent.type);
 
   return (
     <>
@@ -706,6 +708,16 @@ const ComponentPropertiesEditor: React.FC<ComponentPropertiesEditorProps> = ({
                   </p>
                 </div>
               </div>
+
+              {pinoutStubNote && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', marginBottom: 14, background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10, color: '#92400e', fontSize: 12, lineHeight: 1.45 }}>
+                  <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2, color: '#d97706' }} />
+                  <div>
+                    <strong style={{ display: 'block', marginBottom: 2 }}>Pinout Only (No SPICE Model)</strong>
+                    {pinoutStubNote}
+                  </div>
+                </div>
+              )}
 
               {/* Configuration */}
               <div style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>

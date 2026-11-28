@@ -15,7 +15,7 @@ import {
   IconVoltmeter, IconAmmeter, IconWattmeter,
   IconThermistor, IconLDR, IconVaristor, IconVaractor, IconTVSDiode
 } from './icons/MultisimIcons';
-import { standardICLibrary } from '../data/components';
+import { getPinoutStubNote, isPinoutStubComponent, PINOUT_STUB_CATEGORY, standardICLibrary } from '../data/components';
 
 export interface ComponentPaletteProps {
   isOpen: boolean;
@@ -346,15 +346,28 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(c);
     });
-    displaySections = Object.keys(grouped).map(k => ({ category: k, components: grouped[k] }));
+    displaySections = Object.keys(grouped)
+      .sort((a, b) => {
+        const aStub = a.includes(PINOUT_STUB_CATEGORY);
+        const bStub = b.includes(PINOUT_STUB_CATEGORY);
+        if (aStub !== bStub) return aStub ? 1 : -1;
+        return a.localeCompare(b);
+      })
+      .map(k => ({ category: k, components: grouped[k] }));
   } else if (activeTab === 'ICs & Modules') {
-    // Dynamic grouping by category for IC library
+    // Dynamic grouping by category for IC library, quarantining pinout stubs last
     const grouped: Record<string, typeof ALL_COMPONENTS> = {};
     IC_COMPONENTS.forEach(c => {
       if (!grouped[c.category]) grouped[c.category] = [];
       grouped[c.category].push(c);
     });
-    displaySections = Object.keys(grouped).sort().map(cat => ({ category: cat, components: grouped[cat] }));
+    displaySections = Object.keys(grouped)
+      .sort((a, b) => {
+        if (a === PINOUT_STUB_CATEGORY) return 1;
+        if (b === PINOUT_STUB_CATEGORY) return -1;
+        return a.localeCompare(b);
+      })
+      .map(cat => ({ category: cat, components: grouped[cat] }));
   } else {
     // Show sections for active tab
     const categories = TAB_CATEGORIES[activeTab] || [];
@@ -457,9 +470,24 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
                     transition: '0.15s' 
                   }} 
                 />
-                {section.category}
+                {section.category === PINOUT_STUB_CATEGORY ? `⚠️ ${section.category}` : section.category}
               </div>
               
+              {!collapsed && section.category === PINOUT_STUB_CATEGORY && (
+                <div style={{
+                  fontSize: 10.5,
+                  lineHeight: 1.4,
+                  color: '#92400e',
+                  background: '#fffbeb',
+                  border: '1px solid #fcd34d',
+                  borderRadius: 6,
+                  padding: '6px 8px',
+                  marginBottom: 8,
+                }}>
+                  Pin layout &amp; passive terminal impedances only. Firmware, displays, and RF/I2C/SPI protocols are not modeled in SPICE.
+                </div>
+              )}
+
               {!collapsed && (
                 <div style={{
                   display: 'grid',
@@ -467,7 +495,12 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
                   gap: 8,
                   padding: '4px 0',
                 }}>
-                  {section.components.map(comp => (
+                  {section.components.map(comp => {
+                    const isStub = isPinoutStubComponent(comp.type);
+                    const stubNote = getPinoutStubNote(comp.type);
+                    const baseBg = isStub ? '#fffbeb' : '#f8fafc';
+                    const baseBorder = isStub ? '#fde68a' : '#e2e8f0';
+                    return (
                     <div
                       key={comp.type + comp.label}
                       draggable
@@ -478,6 +511,7 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
                         handleSelectComponent(comp.type, comp.value);
                       }}
                       style={{
+                        position: 'relative',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -485,8 +519,8 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
                         gap: 5,
                         padding: '10px 4px 8px',
                         borderRadius: 8,
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
+                        background: baseBg,
+                        border: `1px solid ${baseBorder}`,
                         cursor: 'pointer',
                         fontSize: 11,
                         textAlign: 'center',
@@ -495,17 +529,35 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
                         minHeight: '78px',
                       }}
                       onMouseEnter={e => {
-                        e.currentTarget.style.background = '#ecfdf5';
-                        e.currentTarget.style.borderColor = '#34d399';
-                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(52,211,153,0.15)';
+                        e.currentTarget.style.background = isStub ? '#fef3c7' : '#ecfdf5';
+                        e.currentTarget.style.borderColor = isStub ? '#f59e0b' : '#34d399';
+                        e.currentTarget.style.boxShadow = isStub
+                          ? '0 2px 8px rgba(245,158,11,0.18)'
+                          : '0 2px 8px rgba(52,211,153,0.15)';
                       }}
                       onMouseLeave={e => {
-                        e.currentTarget.style.background = '#f8fafc';
-                        e.currentTarget.style.borderColor = '#e2e8f0';
+                        e.currentTarget.style.background = baseBg;
+                        e.currentTarget.style.borderColor = baseBorder;
                         e.currentTarget.style.boxShadow = 'none';
                       }}
-                      title={comp.label}
+                      title={stubNote ? `${comp.label} — Pin layout only (no SPICE model): ${stubNote}` : comp.label}
                     >
+                      {isStub && (
+                        <span style={{
+                          position: 'absolute',
+                          top: 3,
+                          right: 3,
+                          fontSize: 8,
+                          fontWeight: 700,
+                          letterSpacing: '0.03em',
+                          color: '#92400e',
+                          background: '#fde68a',
+                          padding: '1px 4px',
+                          borderRadius: 4,
+                        }}>
+                          PINOUT
+                        </span>
+                      )}
                       <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36 }}>
                         {renderIcon(comp.type, { width: 32, height: 32 })}
                       </span>
@@ -513,7 +565,8 @@ export function ComponentPalette({ isOpen, onToggle: _onToggle, onSelect, isEmbe
                         {comp.label}
                       </span>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
