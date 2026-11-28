@@ -1,20 +1,17 @@
-# Firebase Firestore Security Rules
+# Firebase Authentication & Firestore Setup
 
-Go to: Firebase Console → Firestore → Rules tab → paste these rules → Publish:
+## 1. Enable Sign-In Providers
 
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /circuits/{circuitId} {
-      allow read: if true;
-      allow create: if request.resource.data.name is string
-                    && request.resource.data.name.size() >= 1
-                    && request.resource.data.name.size() <= 100
-                    && request.resource.data.circuitData is string
-                    && request.resource.data.circuitData.size() <= 80000;
-      allow update, delete: if false;
-    }
-  }
-}
-```
+Go to: **Firebase Console -> Authentication -> Sign-in method** and enable:
+
+1. **Google**
+   - Toggle **Enable**, set project support email, save.
+2. **GitHub**
+   - Create a GitHub OAuth App with callback URL `https://nodesim-2c84b.firebaseapp.com/__/auth/handler`.
+   - Toggle **Enable**, enter Client ID & Client Secret, save.
+3. **Authorized domains**
+   - Ensure `www.nodesimapp.com`, `nodesimapp.com`, and `localhost` are listed under **Settings -> Authorized domains**.
+
+## 2. Publish Firestore Security Rules
+
+Go to: **Firebase Console -> Firestore -> Rules tab** -> paste the contents of [firestore.rules](./firestore.rules) -> **Publish**.

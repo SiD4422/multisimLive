@@ -11,6 +11,7 @@ import { useCircuitBoot } from '../hooks/useCircuitBoot';
 import { RestoreBanner } from '../components/RestoreBanner';
 import { ComponentPalette } from '../components/ComponentPalette';
 import { SimulatorHeader } from '../components/SimulatorHeader';
+import { AccountMenu } from '../components/AccountMenu';
 import { downloadKiCadNetlist } from '../utils/exportKiCad';
 import { StatusBar } from '../components/StatusBar';
 import { resolveGlobalShortcut, SHORTCUT_CATEGORIES, SHORTCUT_DEFINITIONS } from '../utils/keyboardShortcuts';
@@ -762,6 +763,7 @@ function Simulator() {
         </div>
 
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AccountMenu variant="simulator" />
           <button
             onClick={() => setIsSavesOpen(true)}
             title="My Saved Circuits"

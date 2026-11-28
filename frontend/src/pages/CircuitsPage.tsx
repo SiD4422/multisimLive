@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronRight, Layers } from 'lucide-react';
+import { Search, ChevronRight, Layers, Trash2 } from 'lucide-react';
 import type { CommunityCircuit } from '../lib/firebase';
+import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/useTheme';
 import SEO from '../components/SEO';
 import { EXAMPLES } from '../data/circuitExamples';
@@ -22,6 +23,7 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 
 export default function CircuitsPage() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const isDark = theme === 'dark';
 
   const C = {
@@ -46,6 +48,21 @@ export default function CircuitsPage() {
   const [communityCircuits, setCommunityCircuits] = useState<CommunityCircuit[]>([]);
   const [communityLoading, setCommunityLoading] = useState(false);
   const [communityError, setCommunityError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteCommunityCircuit = async (circuitId: string, circuitName: string) => {
+    if (!window.confirm(`Delete "${circuitName}" from the community gallery?`)) return;
+    setDeletingId(circuitId);
+    try {
+      const { deleteCommunityCircuit } = await import('../lib/firebase');
+      await deleteCommunityCircuit(circuitId);
+      setCommunityCircuits((prev) => prev.filter((c) => c.id !== circuitId));
+    } catch {
+      setCommunityError('Failed to delete circuit. Please verify you are signed in as the author.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleOpenCommunityTab = () => {
     setActiveTab('community');
@@ -388,13 +405,38 @@ export default function CircuitsPage() {
                       <span>👤 {circuit.authorName}</span>
                       <span>📅 {circuit.createdAt.toLocaleDateString()}</span>
                     </div>
-                    <a
-                      href={`/simulator#circuit=${circuit.circuitData}`}
-                      onClick={() => {
-                        void import('../lib/firebase').then(({ incrementViews }) => incrementViews(circuit.id));
-                      }}
-                      style={{ display: 'block', textAlign: 'center', background: '#16a34a', color: '#fff', padding: '10px', borderRadius: 8, fontWeight: 600, fontSize: 13, textDecoration: 'none', marginTop: 4 }}
-                    >Open in Simulator →</a>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                      <a
+                        href={`/simulator#circuit=${circuit.circuitData}`}
+                        onClick={() => {
+                          void import('../lib/firebase').then(({ incrementViews }) => incrementViews(circuit.id));
+                        }}
+                        style={{ flex: 1, display: 'block', textAlign: 'center', background: '#16a34a', color: '#fff', padding: '10px', borderRadius: 8, fontWeight: 600, fontSize: 13, textDecoration: 'none' }}
+                      >Open in Simulator →</a>
+                      {user && circuit.authorUid && circuit.authorUid === user.uid && (
+                        <button
+                          type="button"
+                          title="Delete your published circuit"
+                          aria-label={`Delete ${circuit.name}`}
+                          disabled={deletingId === circuit.id}
+                          onClick={() => void handleDeleteCommunityCircuit(circuit.id, circuit.name)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '0 12px',
+                            borderRadius: 8,
+                            border: '1px solid #fecaca',
+                            background: '#fef2f2',
+                            color: '#dc2626',
+                            cursor: deletingId === circuit.id ? 'not-allowed' : 'pointer',
+                            opacity: deletingId === circuit.id ? 0.6 : 1,
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

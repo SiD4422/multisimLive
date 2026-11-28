@@ -4,6 +4,7 @@ import SEO from '../components/SEO';
 import { useTheme } from '../contexts/useTheme';
 import { Sun, Moon, Sliders, Play, Activity, Check, Minus } from 'lucide-react';
 import LandingInteractiveDemo from '../components/LandingInteractiveDemo';
+import { AccountMenu } from '../components/AccountMenu';
 
 const LANDING_FAQS = [
   {
@@ -139,6 +140,7 @@ export default function LandingPage() {
             >
               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
+            <AccountMenu variant={theme === 'dark' ? 'layout-dark' : 'landing'} />
             <Link to="/simulator" className="msl-btn msl-btn-primary">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7L7 5Z" /></svg>
               Launch Simulator
@@ -188,6 +190,7 @@ export default function LandingPage() {
             >
               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
+            <AccountMenu variant="mobile" />
             <Link className="msl-btn msl-btn-primary" to="/simulator">Launch Simulator</Link>
           </div>
         </div>

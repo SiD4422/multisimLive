@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '../contexts/useTheme';
+import { AccountMenu } from '../components/AccountMenu';
 import './LandingPage.css';
 
 // Inline styles for the Learn dropdown
@@ -160,6 +161,8 @@ export default function Layout() {
               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
 
+            <AccountMenu variant={isDark ? 'layout-dark' : 'layout-light'} />
+
             <Link to="/simulator" className="msl-btn msl-btn-primary">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7L7 5Z"/></svg>
               Launch Simulator
@@ -237,6 +240,7 @@ export default function Layout() {
             >
               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
+            <AccountMenu variant="mobile" />
             <Link className="msl-btn msl-btn-primary" to="/simulator">Launch Simulator</Link>
           </div>
         </div>

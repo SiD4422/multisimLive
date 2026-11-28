@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { X, Globe, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Globe, Loader2, CheckCircle2, AlertCircle, Lock, LogOut } from 'lucide-react';
 import LZString from 'lz-string';
 import { useSchematicStore } from '../store/useSchematicStore';
+import { useAuth } from '../hooks/useAuth';
+import { AuthProviderButtons } from './AuthModal';
 
 interface PublishModalProps {
   isOpen: boolean;
@@ -35,16 +37,22 @@ const T = {
 
 export function PublishModal({ isOpen, onClose }: PublishModalProps) {
   const { components, wires, probes } = useSchematicStore();
+  const { user, signOut } = useAuth();
   const [name, setName]             = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory]     = useState('basic');
   const [authorName, setAuthorName] = useState('');
+  const [authorTouched, setAuthorTouched] = useState(false);
   const [status, setStatus]         = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg]     = useState('');
 
   if (!isOpen) return null;
 
+  const defaultProfileName = user?.displayName || user?.email?.split('@')[0] || '';
+  const effectiveAuthorName = authorTouched ? authorName : defaultProfileName;
+
   const handlePublish = async () => {
+    if (!user) { setErrorMsg('Please sign in with Google or GitHub before publishing.'); return; }
     if (!name.trim()) { setErrorMsg('Please enter a circuit name.'); return; }
     if (components.length === 0) { setErrorMsg('Your circuit has no components to publish.'); return; }
     setStatus('loading');
@@ -58,13 +66,18 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
         name:           name.trim().slice(0, 100),
         description:    description.trim().slice(0, 500),
         category,
-        authorName:     authorName.trim().slice(0, 50) || 'Anonymous',
+        authorName:     effectiveAuthorName.trim().slice(0, 50) || 'Anonymous',
         componentCount: components.length,
         circuitData,
       });
       setStatus('success');
-    } catch {
-      setErrorMsg('Failed to publish. Check your internet connection and try again.');
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : String(err || '');
+      if (raw.includes('AUTH_REQUIRED') || raw.toLowerCase().includes('permission')) {
+        setErrorMsg('Authentication required or expired. Please sign in again before publishing.');
+      } else {
+        setErrorMsg('Failed to publish. Check your internet connection and try again.');
+      }
       setStatus('error');
     }
   };
@@ -165,9 +178,47 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
             </a>
           </div>
 
+        ) : !user ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{
+              background: T.bg, border: `1px solid ${T.border}`,
+              borderRadius: 12, padding: 18,
+              display: 'flex', flexDirection: 'column', gap: 8,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: T.textPri }}>
+                <Lock size={16} style={{ color: '#4ade80' }} />
+                <span>Sign in required to publish</span>
+              </div>
+              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.55, color: T.textSec }}>
+                Sign in with Google or GitHub so your published circuits are attributed to your account and protected against gallery spam.
+              </p>
+            </div>
+            <AuthProviderButtons compact />
+          </div>
         ) : (
           /* ── Form ── */
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+              background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: '8px 12px',
+              fontSize: 12,
+            }}>
+              <span style={{ color: T.textSec, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                Publishing as <strong style={{ color: T.textPri }}>{user.displayName || user.email || 'Authenticated User'}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  background: 'transparent', border: 'none', color: T.textMut,
+                  fontSize: 11.5, fontWeight: 600, cursor: 'pointer', flexShrink: 0,
+                }}
+              >
+                <LogOut size={12} />
+                Sign out
+              </button>
+            </div>
 
             {/* Circuit Name */}
             <div>
@@ -223,8 +274,11 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
                 <label style={label}>Your Name</label>
                 <input
                   style={field}
-                  value={authorName}
-                  onChange={e => setAuthorName(e.target.value)}
+                  value={effectiveAuthorName}
+                  onChange={e => {
+                    setAuthorTouched(true);
+                    setAuthorName(e.target.value);
+                  }}
                   placeholder="Anonymous"
                   maxLength={50}
                 />

@@ -197,6 +197,8 @@ describe('Phase 3.1: Bundle Optimization, Lazy Firebase & Worker Progress', () =
         'utils/dbUsage.ts',
         'pages/CircuitsPage.tsx',
         'components/PublishModal.tsx',
+        'components/AccountMenu.tsx',
+        'components/AuthModal.tsx',
       ];
       for (const rel of files) {
         const src = readFileSync(resolve(SRC_ROOT, rel), 'utf8');

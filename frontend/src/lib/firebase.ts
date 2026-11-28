@@ -1,5 +1,5 @@
 import type { FirebaseApp } from 'firebase/app';
-import type { Auth, GoogleAuthProvider } from 'firebase/auth';
+import type { Auth, GithubAuthProvider, GoogleAuthProvider } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -13,7 +13,11 @@ const firebaseConfig = {
 
 let appPromise: Promise<FirebaseApp> | null = null;
 let dbPromise: Promise<Firestore> | null = null;
-let authPromise: Promise<{ auth: Auth; googleProvider: GoogleAuthProvider }> | null = null;
+let authPromise: Promise<{
+  auth: Auth;
+  googleProvider: GoogleAuthProvider;
+  githubProvider: GithubAuthProvider;
+}> | null = null;
 
 /** Lazily initializes and caches the singleton FirebaseApp instance. */
 export async function getFirebaseApp(): Promise<FirebaseApp> {
@@ -35,14 +39,24 @@ export async function getFirebaseDb(): Promise<Firestore> {
   return dbPromise;
 }
 
-/** Lazily loads Firebase Auth only when authentication state or login is needed. */
-export async function getFirebaseAuth(): Promise<{ auth: Auth; googleProvider: GoogleAuthProvider }> {
+/** Lazily loads Firebase Auth with Google & GitHub OAuth providers only when auth is needed. */
+export async function getFirebaseAuth(): Promise<{
+  auth: Auth;
+  googleProvider: GoogleAuthProvider;
+  githubProvider: GithubAuthProvider;
+}> {
   if (!authPromise) {
     authPromise = Promise.all([getFirebaseApp(), import('firebase/auth')]).then(
-      ([app, { getAuth, GoogleAuthProvider }]) => ({
-        auth: getAuth(app),
-        googleProvider: new GoogleAuthProvider(),
-      }),
+      ([app, { getAuth, GithubAuthProvider, GoogleAuthProvider }]) => {
+        const googleProvider = new GoogleAuthProvider();
+        googleProvider.setCustomParameters({ prompt: 'select_account' });
+        const githubProvider = new GithubAuthProvider();
+        return {
+          auth: getAuth(app),
+          googleProvider,
+          githubProvider,
+        };
+      },
     );
   }
   return authPromise;
@@ -54,23 +68,96 @@ export interface CommunityCircuit {
   description: string;
   category: string;
   authorName: string;
+  authorUid: string;
   componentCount: number;
   circuitData: string;
   createdAt: Date;
+  updatedAt?: Date;
   views: number;
 }
 
-export async function publishCircuit(data: Omit<CommunityCircuit, 'id' | 'createdAt' | 'views'>): Promise<string> {
-  const [db, { collection, addDoc, serverTimestamp }] = await Promise.all([
+export type PublishCircuitInput = Omit<
+  CommunityCircuit,
+  'id' | 'authorUid' | 'createdAt' | 'updatedAt' | 'views'
+>;
+
+export type UpdateCommunityCircuitInput = Partial<
+  Pick<CommunityCircuit, 'name' | 'description' | 'category' | 'authorName' | 'componentCount' | 'circuitData'>
+>;
+
+export function buildNewCircuitDocument(
+  data: PublishCircuitInput,
+  authorUid: string,
+): Omit<CommunityCircuit, 'id' | 'createdAt' | 'updatedAt'> & { authorUid: string } {
+  const uid = authorUid.trim();
+  if (!uid) {
+    throw new Error('AUTH_REQUIRED: Please sign in before publishing a circuit.');
+  }
+  return {
+    name: data.name.trim().slice(0, 100),
+    description: data.description.trim().slice(0, 500),
+    category: data.category.trim().slice(0, 30) || 'other',
+    authorName: data.authorName.trim().slice(0, 50) || 'Anonymous',
+    authorUid: uid,
+    componentCount: data.componentCount,
+    circuitData: data.circuitData,
+    views: 0,
+  };
+}
+
+export async function publishCircuit(data: PublishCircuitInput): Promise<string> {
+  const [{ auth }, db, { collection, addDoc, serverTimestamp }] = await Promise.all([
+    getFirebaseAuth(),
     getFirebaseDb(),
     import('firebase/firestore'),
   ]);
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error('AUTH_REQUIRED: Please sign in before publishing a circuit.');
+  }
+  const payload = buildNewCircuitDocument(data, currentUser.uid);
   const docRef = await addDoc(collection(db, 'circuits'), {
-    ...data,
-    views: 0,
+    ...payload,
     createdAt: serverTimestamp(),
   });
   return docRef.id;
+}
+
+export async function updateCommunityCircuit(
+  circuitId: string,
+  updates: UpdateCommunityCircuitInput,
+): Promise<void> {
+  const [{ auth }, db, { doc, serverTimestamp, updateDoc }] = await Promise.all([
+    getFirebaseAuth(),
+    getFirebaseDb(),
+    import('firebase/firestore'),
+  ]);
+  if (!auth.currentUser) {
+    throw new Error('AUTH_REQUIRED: Please sign in to edit your circuit.');
+  }
+  const sanitized: Record<string, unknown> = { updatedAt: serverTimestamp() };
+  if (typeof updates.name === 'string') sanitized.name = updates.name.trim().slice(0, 100);
+  if (typeof updates.description === 'string') sanitized.description = updates.description.trim().slice(0, 500);
+  if (typeof updates.category === 'string') sanitized.category = updates.category.trim().slice(0, 30);
+  if (typeof updates.authorName === 'string') sanitized.authorName = updates.authorName.trim().slice(0, 50);
+  if (typeof updates.componentCount === 'number') sanitized.componentCount = updates.componentCount;
+  if (typeof updates.circuitData === 'string') sanitized.circuitData = updates.circuitData;
+
+  await updateDoc(doc(db, 'circuits', circuitId), sanitized);
+}
+
+export async function deleteCommunityCircuit(circuitId: string): Promise<void> {
+  const [{ auth }, db, { deleteDoc, doc }] = await Promise.all([
+    getFirebaseAuth(),
+    getFirebaseDb(),
+    import('firebase/firestore'),
+  ]);
+  if (!auth.currentUser) {
+    throw new Error('AUTH_REQUIRED: Please sign in to delete your circuit.');
+  }
+  // Best-effort cleanup of view counter subcollection doc before removing parent circuit
+  await deleteDoc(doc(db, 'circuits', circuitId, 'meta', 'views')).catch(() => {});
+  await deleteDoc(doc(db, 'circuits', circuitId));
 }
 
 export async function getCommunityCircuits(limitCount = 50): Promise<CommunityCircuit[]> {
@@ -84,20 +171,35 @@ export async function getCommunityCircuits(limitCount = 50): Promise<CommunityCi
     limit(limitCount),
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(d => ({
-    id: d.id,
-    ...d.data(),
-    createdAt: d.data().createdAt?.toDate() || new Date(),
-  } as CommunityCircuit));
+  return snapshot.docs.map((d) => {
+    const raw = d.data();
+    return {
+      id: d.id,
+      name: typeof raw.name === 'string' ? raw.name : 'Untitled Circuit',
+      description: typeof raw.description === 'string' ? raw.description : '',
+      category: typeof raw.category === 'string' ? raw.category : 'other',
+      authorName: typeof raw.authorName === 'string' ? raw.authorName : 'Anonymous',
+      authorUid: typeof raw.authorUid === 'string' ? raw.authorUid : '',
+      componentCount: typeof raw.componentCount === 'number' ? raw.componentCount : 0,
+      circuitData: typeof raw.circuitData === 'string' ? raw.circuitData : '',
+      views: typeof raw.views === 'number' ? raw.views : 0,
+      createdAt: raw.createdAt?.toDate?.() || new Date(),
+      updatedAt: raw.updatedAt?.toDate?.(),
+    } as CommunityCircuit;
+  });
 }
 
 export async function incrementViews(circuitId: string): Promise<void> {
   try {
-    const [db, { doc, updateDoc, increment }] = await Promise.all([
+    const [db, { doc, increment, setDoc }] = await Promise.all([
       getFirebaseDb(),
       import('firebase/firestore'),
     ]);
-    await updateDoc(doc(db, 'circuits', circuitId), { views: increment(1) });
+    await setDoc(
+      doc(db, 'circuits', circuitId, 'meta', 'views'),
+      { count: increment(1) },
+      { merge: true },
+    );
   } catch (err) {
     console.warn('Failed to increment circuit view count:', err);
   }
