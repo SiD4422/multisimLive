@@ -3,7 +3,7 @@ import { interpolateTraceAtX } from './ghostTraceMerge';
 import { parseSpiceToFloat } from './netlister/parseSpiceToFloat';
 import type { SpiceDataRow, SpiceParsedOutput, SweepMetadata, SweepStepDescriptor } from './spiceTypes';
 
-export const MAX_PARAMETRIC_SWEEP_STEPS = 25;
+export const MAX_PARAMETRIC_SWEEP_STEPS = 40;
 export const SWEEP_TRACE_SEPARATOR = '__step_';
 
 export type ParametricSweepParameter = 'value' | 'wiper_position';
@@ -16,6 +16,20 @@ export interface ParametricSweepConfig {
   stop: string;
   step: string;
 }
+
+export interface TemperatureSweepConfig {
+  enabled: boolean;
+  start: string;
+  stop: string;
+  step: string;
+}
+
+export const DEFAULT_TEMPERATURE_SWEEP_CONFIG: TemperatureSweepConfig = {
+  enabled: false,
+  start: '-40',
+  stop: '125',
+  step: '55',
+};
 
 export const SWEEPABLE_COMPONENT_TYPES = new Set<string>([
   'Resistor',
@@ -309,8 +323,86 @@ export function prepareParametricSweepNetlist(
   return {
     netlist: resultLines.join('\n'),
     sweepMeta: {
+      kind: 'param',
       componentId: comp.id,
       parameter: config.parameter,
+      steps: expanded.steps,
+    },
+  };
+}
+
+/**
+ * Expands a Celsius temperature sweep (`start..stop` by `step`), enforcing absolute-zero bounds and max step cap.
+ */
+export function expandTemperatureSweep(config: TemperatureSweepConfig): ExpandedSweepResult {
+  const start = parseFloat(config.start);
+  const stop = parseFloat(config.stop);
+  const step = parseFloat(config.step);
+
+  if (!Number.isFinite(start) || !Number.isFinite(stop) || !Number.isFinite(step)) {
+    return { steps: [], error: 'Start, Stop, and Step must be valid numeric temperatures in °C.' };
+  }
+  if (start <= -273.15) {
+    return { steps: [], error: 'Start temperature must be above absolute zero (-273.15 °C).' };
+  }
+  if (step <= 0) {
+    return { steps: [], error: 'Temperature step must be greater than 0 °C.' };
+  }
+  if (stop < start) {
+    return { steps: [], error: 'Stop temperature must be greater than or equal to Start temperature.' };
+  }
+
+  const steps: SweepStepDescriptor[] = [];
+  const epsilon = step * 1e-6;
+  for (let i = 0; ; i++) {
+    const tempC = Number((start + i * step).toFixed(4));
+    if (tempC > stop + epsilon) break;
+    if (steps.length >= MAX_PARAMETRIC_SWEEP_STEPS) {
+      return {
+        steps: [],
+        error: `Sweep produces more than ${MAX_PARAMETRIC_SWEEP_STEPS} steps. Increase temperature step to stay within ${MAX_PARAMETRIC_SWEEP_STEPS} runs.`,
+      };
+    }
+    steps.push({
+      stepIndex: steps.length,
+      value: tempC,
+      label: `${Number(tempC.toFixed(1))}°C`,
+    });
+  }
+
+  if (steps.length === 0) {
+    return { steps: [], error: 'Temperature sweep generated zero steps.' };
+  }
+
+  return { steps };
+}
+
+/**
+ * Annotates a SPICE netlist for multi-temperature simulation (`option temp=...` inside spiceWorker `.control`).
+ */
+export function prepareTemperatureSweepNetlist(
+  baseNetlist: string,
+  config: TemperatureSweepConfig,
+): PreparedSweepNetlist {
+  const expanded = expandTemperatureSweep(config);
+  if (expanded.error || expanded.steps.length === 0) {
+    throw new Error(expanded.error || 'Invalid temperature sweep range.');
+  }
+
+  const lines = baseNetlist.split(/\r?\n/);
+  const tempDirectiveLine = `* .step temp ${config.start} ${config.stop} ${config.step}`;
+  const resultLines = [
+    lines[0] || '* WebAssembly SPICE Netlist',
+    tempDirectiveLine,
+    ...lines.slice(1),
+  ];
+
+  return {
+    netlist: resultLines.join('\n'),
+    sweepMeta: {
+      kind: 'temp',
+      componentId: 'TEMP',
+      parameter: 'temp',
       steps: expanded.steps,
     },
   };

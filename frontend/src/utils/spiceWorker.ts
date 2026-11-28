@@ -378,6 +378,16 @@ async function runNgspiceInternal(
 }
 
 function buildSweepControlBlock(sweep: SweepMetadata): string {
+  if (sweep.kind === 'temp') {
+    const stepCmds = sweep.steps
+      .map(
+        (step) =>
+          `option temp=${step.value}\nrun\nwrite /step_${step.stepIndex}.raw`,
+      )
+      .join('\n');
+    return `.control\nset filetype=ascii\n${stepCmds}\n.endc`;
+  }
+
   const stepCmds = sweep.steps
     .map(
       (step) =>

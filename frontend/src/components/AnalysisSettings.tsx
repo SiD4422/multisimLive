@@ -1,8 +1,9 @@
 import React from 'react';
-import { X, GitCompare, Play } from 'lucide-react';
+import { X, GitCompare, Play, Thermometer } from 'lucide-react';
 import { useSchematicStore } from '../store/useSchematicStore';
 import {
   expandParametricSweep,
+  expandTemperatureSweep,
   getDefaultSweepConfigForComponent,
   isSweepableComponent,
 } from '../utils/parametricSweep';
@@ -29,6 +30,7 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
     transientSettings, setTransientSettings,
     noiseSettings, setNoiseSettings,
     parametricSweep, setParametricSweep,
+    temperatureSweep, setTemperatureSweep,
     runSimulation, isSimulating,
     components
   } = useSchematicStore();
@@ -53,6 +55,11 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
     () => sweepableComponents.find((c) => c.id === parametricSweep.componentId) ?? sweepableComponents[0] ?? null,
     [sweepableComponents, parametricSweep.componentId],
   );
+
+  const tempPreview = React.useMemo(() => {
+    if (!temperatureSweep.enabled) return null;
+    return expandTemperatureSweep(temperatureSweep);
+  }, [temperatureSweep]);
 
   const sweepPreview = React.useMemo(() => {
     if (!parametricSweep.enabled || !selectedSweepComp) return null;
@@ -442,6 +449,110 @@ function AnalysisSettingsInner({ onClose }: { onClose?: () => void }) {
                     </button>
                   </>
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Temperature Sweep (.step temp) Section */}
+        {analysisMode !== 'op' && analysisMode !== 'noise' && (
+          <div style={{ marginBottom: '16px', padding: '12px', borderRadius: 10, border: `1px solid ${temperatureSweep.enabled ? '#fdba74' : '#e5e7eb'}`, background: temperatureSweep.enabled ? '#fff7ed' : '#f9fafb' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: temperatureSweep.enabled ? 10 : 0 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#0f172a' }}>
+                <input
+                  type="checkbox"
+                  checked={temperatureSweep.enabled}
+                  onChange={(e) => setTemperatureSweep({ enabled: e.target.checked })}
+                />
+                <Thermometer size={14} style={{ color: '#ea580c' }} />
+                <span>Temperature Sweep (.step temp)</span>
+              </label>
+              {temperatureSweep.enabled && tempPreview && !tempPreview.error && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#c2410c' }}>
+                  {tempPreview.steps.length} temp{tempPreview.steps.length === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
+
+            {temperatureSweep.enabled && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {[
+                    { label: 'Wide (-40..125°C)', start: '-40', stop: '125', step: '55' },
+                    { label: 'Fine (-40..125°C, 5°)', start: '-40', stop: '125', step: '5' },
+                    { label: 'Commercial (0..85°C)', start: '0', stop: '85', step: '25' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setTemperatureSweep({ start: preset.start, stop: preset.stop, step: preset.step })}
+                      style={{
+                        padding: '3px 8px', borderRadius: 5, fontSize: 11, fontWeight: 600,
+                        border: '1px solid #fed7aa', background: '#fff', color: '#9a3412', cursor: 'pointer',
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <label className="input-label">Start (°C)</label>
+                    <input
+                      className="input-field"
+                      aria-label="Temp Sweep Start"
+                      value={temperatureSweep.start}
+                      onChange={(e) => setTemperatureSweep({ start: e.target.value })}
+                      placeholder="-40"
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label className="input-label">Stop (°C)</label>
+                    <input
+                      className="input-field"
+                      aria-label="Temp Sweep Stop"
+                      value={temperatureSweep.stop}
+                      onChange={(e) => setTemperatureSweep({ stop: e.target.value })}
+                      placeholder="125"
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label className="input-label">Step (°C)</label>
+                    <input
+                      className="input-field"
+                      aria-label="Temp Sweep Step"
+                      value={temperatureSweep.step}
+                      onChange={(e) => setTemperatureSweep({ step: e.target.value })}
+                      placeholder="55"
+                    />
+                  </div>
+                </div>
+
+                {tempPreview?.error ? (
+                  <div style={{ fontSize: 11, color: '#dc2626', fontWeight: 600 }}>
+                    {tempPreview.error}
+                  </div>
+                ) : tempPreview && tempPreview.steps.length > 0 ? (
+                  <div style={{ fontSize: 11, color: '#9a3412', fontFamily: 'monospace', wordBreak: 'break-word' }}>
+                    Temps: {tempPreview.steps.slice(0, 8).map((s) => s.label).join(', ')}
+                    {tempPreview.steps.length > 8 ? ` … (${tempPreview.steps.length} total)` : ''}
+                  </div>
+                ) : null}
+
+                <button
+                  type="button"
+                  disabled={isSimulating || Boolean(tempPreview?.error)}
+                  onClick={() => void runSimulation(false)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: '8px 12px', borderRadius: 6, border: 'none',
+                    background: '#ea580c', color: '#fff', fontSize: 12, fontWeight: 700,
+                    cursor: isSimulating ? 'not-allowed' : 'pointer', opacity: isSimulating || tempPreview?.error ? 0.65 : 1,
+                  }}
+                >
+                  <Play size={13} fill="currentColor" />
+                  Run Temperature Sweep
+                </button>
               </div>
             )}
           </div>

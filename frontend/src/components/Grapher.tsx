@@ -1944,12 +1944,16 @@ Keep your response concise and practical for a 2nd/3rd year engineering student.
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
               padding: '3px 9px', borderRadius: 6,
-              background: '#f0f9ff', border: '1px solid #bae6fd',
-              color: '#0369a1', fontSize: 11, fontWeight: 700,
+              background: sweepMeta.kind === 'temp' ? '#fff7ed' : '#f0f9ff',
+              border: `1px solid ${sweepMeta.kind === 'temp' ? '#fdba74' : '#bae6fd'}`,
+              color: sweepMeta.kind === 'temp' ? '#c2410c' : '#0369a1',
+              fontSize: 11, fontWeight: 700,
               whiteSpace: 'nowrap',
             }}
           >
-            .step {sweepMeta.componentId} ({sweepMeta.steps.length} steps)
+            {sweepMeta.kind === 'temp'
+              ? `.step temp ${sweepMeta.steps[0]?.label ?? ''}..${sweepMeta.steps[sweepMeta.steps.length - 1]?.label ?? ''} (${sweepMeta.steps.length} steps)`
+              : `.step ${sweepMeta.componentId} (${sweepMeta.steps.length} steps)`}
           </span>
         )}
 

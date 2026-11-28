@@ -6,9 +6,12 @@ import { generateNetlist, parseSpiceToFloat } from '../utils/netlister';
 import { runSpiceSimulation } from '../utils/spiceEngine';
 import { bindLiveSimulationStore, cancelLiveResimulation, scheduleLiveResimulation } from '../utils/liveSimulation';
 import {
+  DEFAULT_TEMPERATURE_SWEEP_CONFIG,
   getDefaultSweepConfigForComponent,
   prepareParametricSweepNetlist,
+  prepareTemperatureSweepNetlist,
   type ParametricSweepConfig,
+  type TemperatureSweepConfig,
 } from '../utils/parametricSweep';
 import {
   buildNoiseDirective,
@@ -116,6 +119,7 @@ interface SchematicState {
   transientSettings: { endTime: string; step: string };
   noiseSettings: NoiseSettings;
   parametricSweep: ParametricSweepConfig;
+  temperatureSweep: TemperatureSweepConfig;
   configActiveTab: 'properties' | 'simulation';
   setAnalysisMode: (mode: 'transient' | 'ac' | 'dc' | 'op' | 'noise') => void;
   setAcSettings: (s: Partial<{ fStart: string; fStop: string; points: string }>) => void;
@@ -123,6 +127,7 @@ interface SchematicState {
   setTransientSettings: (s: Partial<{ endTime: string; step: string }>) => void;
   setNoiseSettings: (s: Partial<NoiseSettings>) => void;
   setParametricSweep: (s: Partial<ParametricSweepConfig>) => void;
+  setTemperatureSweep: (s: Partial<TemperatureSweepConfig>) => void;
   setConfigActiveTab: (tab: 'properties' | 'simulation') => void;
   openParametricSweepForComponent: (componentId: string) => void;
 
@@ -235,6 +240,7 @@ export const useSchematicStore = create<SchematicState>()(
       transientSettings: { endTime: '10ms', step: '0.01ms' },
       noiseSettings: { ...DEFAULT_NOISE_SETTINGS },
       parametricSweep: { enabled: false, componentId: '', parameter: 'value', start: '1k', stop: '10k', step: '2k' },
+      temperatureSweep: { ...DEFAULT_TEMPERATURE_SWEEP_CONFIG },
       configActiveTab: 'properties',
 
       customModels: {},
@@ -389,6 +395,7 @@ export const useSchematicStore = create<SchematicState>()(
         ...(data.transientSettings ? { transientSettings: data.transientSettings } : {}),
         ...(data.noiseSettings ? { noiseSettings: data.noiseSettings } : {}),
         parametricSweep: { enabled: false, componentId: '', parameter: 'value', start: '1k', stop: '10k', step: '2k' },
+        temperatureSweep: { ...DEFAULT_TEMPERATURE_SWEEP_CONFIG },
       });
     } catch (e) {
       console.error("Failed to import state", e);
@@ -509,24 +516,40 @@ export const useSchematicStore = create<SchematicState>()(
   setDcSettings: (s) => set((state) => ({ dcSettings: { ...state.dcSettings, ...s } })),
   setTransientSettings: (s) => set((state) => ({ transientSettings: { ...state.transientSettings, ...s } })),
   setNoiseSettings: (s) => set((state) => ({ noiseSettings: { ...state.noiseSettings, ...s } })),
-  setParametricSweep: (s) => set((state) => ({ parametricSweep: { ...state.parametricSweep, ...s } })),
+  setParametricSweep: (s) =>
+    set((state) => {
+      const next = { ...state.parametricSweep, ...s };
+      return {
+        parametricSweep: next,
+        ...(next.enabled ? { temperatureSweep: { ...state.temperatureSweep, enabled: false } } : {}),
+      };
+    }),
+  setTemperatureSweep: (s) =>
+    set((state) => {
+      const next = { ...state.temperatureSweep, ...s };
+      return {
+        temperatureSweep: next,
+        ...(next.enabled ? { parametricSweep: { ...state.parametricSweep, enabled: false } } : {}),
+      };
+    }),
   setConfigActiveTab: (tab) => set({ configActiveTab: tab }),
   openParametricSweepForComponent: (componentId) => {
     const comp = get().components.find((c) => c.id === componentId);
     if (!comp) return;
     const defaults = getDefaultSweepConfigForComponent(comp);
-    set({
+    set((state) => ({
       selectedComponentId: componentId,
       selectedWireId: null,
       selectedProbeId: null,
       parametricSweep: defaults,
+      temperatureSweep: { ...state.temperatureSweep, enabled: false },
       isConfigOpen: true,
       configActiveTab: 'simulation',
-    });
+    }));
   },
 
   runSimulation: async (isSilent = false) => {
-    const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings, noiseSettings, parametricSweep } = get();
+    const { components, wires, probes, analysisMode, acSettings, dcSettings, transientSettings, noiseSettings, parametricSweep, temperatureSweep } = get();
     
     if (!isSilent) track('Simulation_Run', { mode: analysisMode });
 
@@ -650,6 +673,13 @@ export const useSchematicStore = create<SchematicState>()(
           throw new Error('Parametric Sweep (.step) supports Transient, AC Sweep, and DC Sweep analyses.');
         }
         const prepared = prepareParametricSweepNetlist(netlist, components, parametricSweep);
+        netlist = prepared.netlist;
+        sweepMeta = prepared.sweepMeta;
+      } else if (temperatureSweep.enabled) {
+        if (analysisMode === 'op' || analysisMode === 'noise') {
+          throw new Error('Temperature Sweep (.step temp) supports Transient, AC Sweep, and DC Sweep analyses.');
+        }
+        const prepared = prepareTemperatureSweepNetlist(netlist, temperatureSweep);
         netlist = prepared.netlist;
         sweepMeta = prepared.sweepMeta;
       }

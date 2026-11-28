@@ -32,6 +32,7 @@ export interface SweepStepDescriptor {
 }
 
 export interface SweepMetadata {
+  kind?: 'param' | 'temp';
   componentId: string;
   parameter: string;
   steps: SweepStepDescriptor[];
