@@ -1,22 +1,24 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { runSpiceSimulation } from '../spiceEngine';
+import { disposeSpiceEngine, runSpiceSimulation } from '../spiceEngine';
 import type { SpiceProgress } from '../spiceTypes';
 
 const SRC_ROOT = resolve(__dirname, '../..');
 
 describe('Phase 3.1: Bundle Optimization, Lazy Firebase & Worker Progress', () => {
   afterEach(() => {
+    disposeSpiceEngine();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
   describe('spiceEngine progress streaming & worker lifecycle', () => {
-    it('streams worker PROGRESS stages without premature termination and resolves on SUCCESS', async () => {
+    it('streams worker PROGRESS stages, keeps persistent worker alive across runs, and resolves on SUCCESS', async () => {
       const stages: SpiceProgress[] = [];
-      let terminated = false;
-      let postedMsg: { id: number; netlist: string } | null = null;
+      let terminatedCount = 0;
+      let constructedCount = 0;
+      let postedMsg: { id?: number; type?: string; netlist?: string } | null = null;
       let capturedWorker: {
         onmessage: ((ev: MessageEvent) => void) | null;
         onerror: ((ev: ErrorEvent) => void) | null;
@@ -28,14 +30,15 @@ describe('Phase 3.1: Bundle Optimization, Lazy Firebase & Worker Progress', () =
         onmessage: ((ev: MessageEvent) => void) | null = null;
         onerror: ((ev: ErrorEvent) => void) | null = null;
         constructor() {
+          constructedCount++;
           // eslint-disable-next-line @typescript-eslint/no-this-alias
           capturedWorker = this;
         }
         postMessage(msg: unknown) {
-          postedMsg = msg as { id: number; netlist: string };
+          postedMsg = msg as { id?: number; type?: string; netlist?: string };
         }
         terminate() {
-          terminated = true;
+          terminatedCount++;
         }
       }
 
@@ -48,11 +51,12 @@ describe('Phase 3.1: Bundle Optimization, Lazy Firebase & Worker Progress', () =
       );
 
       expect(capturedWorker).not.toBeNull();
+      expect(constructedCount).toBe(1);
       expect(postedMsg).not.toBeNull();
       expect(stages.map((s) => s.stage)).toEqual(['spawning-worker']);
-      expect(terminated).toBe(false);
+      expect(terminatedCount).toBe(0);
 
-      const jobId = postedMsg!.id;
+      const jobId = postedMsg!.id!;
       const emit = (payload: unknown) => {
         capturedWorker!.onmessage?.({ data: payload } as MessageEvent);
       };
@@ -73,7 +77,7 @@ describe('Phase 3.1: Bundle Optimization, Lazy Firebase & Worker Progress', () =
         progress: { stage: 'solving', percent: 75, label: 'Solving circuit MNA matrix...' },
       });
 
-      expect(terminated).toBe(false);
+      expect(terminatedCount).toBe(0);
       expect(stages.map((s) => s.stage)).toEqual([
         'spawning-worker',
         'loading-engine',
@@ -93,10 +97,78 @@ describe('Phase 3.1: Bundle Optimization, Lazy Firebase & Worker Progress', () =
       });
 
       const res = await simPromise;
-      expect(terminated).toBe(true);
+      // Phase 4.1: keep the healthy persistent worker alive so its pre-warmed WASM instance stays warm.
+      expect(terminatedCount).toBe(0);
       expect(res.length).toBe(2);
       expect(res.__plotType).toBe('transient');
       expect(res.__engineVersion).toBe('ngspice-44');
+
+      // Second sequential simulation reuses the exact same persistent worker instance.
+      const run2Stages: SpiceProgress[] = [];
+      const simPromise2 = runSpiceSimulation(
+        '* RC2\nV1 in 0 5\nR1 in out 2k\nC1 out 0 1u\n.tran 1u 100u\n.end',
+        false,
+        (progress) => run2Stages.push(progress),
+      );
+      expect(constructedCount).toBe(1);
+      expect(run2Stages[0]?.label).toMatch(/warm/i);
+      emit({
+        id: postedMsg!.id!,
+        type: 'SUCCESS',
+        data: [{ time: 0, 'v(out)': 0 }, { time: 1e-4, 'v(out)': 0.244 }],
+        __plotType: 'transient',
+      });
+      const res2 = await simPromise2;
+      expect(res2.length).toBe(2);
+      expect(terminatedCount).toBe(0);
+    });
+
+    it('terminates blocked worker when a silent re-simulation cancels an in-flight run and spawns a replacement', async () => {
+      const workers: Array<{
+        terminated: boolean;
+        onmessage: ((ev: MessageEvent) => void) | null;
+        onerror: ((ev: ErrorEvent) => void) | null;
+        lastMsg: { id?: number } | null;
+        postMessage: (msg: unknown) => void;
+        terminate: () => void;
+      }> = [];
+
+      class MockWorker {
+        terminated = false;
+        onmessage: ((ev: MessageEvent) => void) | null = null;
+        onerror: ((ev: ErrorEvent) => void) | null = null;
+        lastMsg: { id?: number } | null = null;
+        constructor() {
+          workers.push(this);
+        }
+        postMessage(msg: unknown) {
+          this.lastMsg = msg as { id?: number };
+        }
+        terminate() {
+          this.terminated = true;
+        }
+      }
+
+      vi.stubGlobal('Worker', MockWorker);
+
+      const job1 = runSpiceSimulation('* RC1\nV1 in 0 5\nR1 in out 1k\nC1 out 0 1u\n.tran 1u 100u\n.end', false);
+      const job2 = runSpiceSimulation('* RC2\nV1 in 0 5\nR1 in out 2k\nC1 out 0 1u\n.tran 1u 100u\n.end', true);
+
+      await expect(job1).rejects.toThrow('CANCELLED_BY_NEW_JOB');
+      expect(workers).toHaveLength(2);
+      expect(workers[0].terminated).toBe(true);
+      expect(workers[1].terminated).toBe(false);
+
+      workers[1].onmessage?.({
+        data: {
+          id: workers[1].lastMsg!.id,
+          type: 'SUCCESS',
+          data: [{ time: 0, 'v(out)': 0 }],
+          __plotType: 'transient',
+        },
+      } as MessageEvent);
+      const res2 = await job2;
+      expect(res2).toHaveLength(1);
     });
 
     it('rejects unloaded voltage sources in pre-flight DRC before spawning a Worker', async () => {

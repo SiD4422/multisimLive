@@ -15,7 +15,8 @@ if (typeof self !== 'undefined') {
   }
 }
 
-import type { NgspiceModule, OpDataPoint, SpiceDataRow, SpiceParsedOutput, SpiceProgressStage } from './spiceTypes';
+import type { NgspiceModule, OpDataPoint, SpiceDataRow, SpiceParsedOutput } from './spiceTypes';
+import { createNgspiceInstancePool, type ProgressReporter } from './spiceInstancePool';
 
 interface RawParserRow extends SpiceDataRow {
   __parsedVars?: number;
@@ -27,12 +28,8 @@ interface EmscriptenExitStatus {
 }
 
 type NgspiceFactory = typeof import('@o.z/ngspice-wasm').default;
-type ProgressReporter = (stage: SpiceProgressStage, percent: number, label: string) => void;
 
 let cachedNgspiceFactory: NgspiceFactory | null = null;
-let ngspiceInstance: NgspiceModule | null = null;
-let isInitializing = false;
-let initPromise: Promise<void> | null = null;
 let detectedNgspiceVersion = 'ngspice (WebAssembly build)';
 
 async function loadNgspiceFactory(reportProgress?: ProgressReporter): Promise<NgspiceFactory> {
@@ -44,46 +41,50 @@ async function loadNgspiceFactory(reportProgress?: ProgressReporter): Promise<Ng
   return cachedNgspiceFactory;
 }
 
-async function initNgspice(reportProgress?: ProgressReporter) {
-  if (ngspiceInstance) return;
-  if (isInitializing && initPromise) {
-    await initPromise;
-    return;
-  }
-
-  isInitializing = true;
-  initPromise = (async () => {
+async function createNgspiceInstance(reportProgress?: ProgressReporter): Promise<NgspiceModule> {
+  try {
+    const factory = await loadNgspiceFactory(reportProgress);
+    reportProgress?.('initializing-wasm', 55, 'Initializing SPICE WASM solver...');
+    const mod = await factory({
+      locateFile: (file: string) => `/${file}`,
+      print: (text: string) => {
+        console.log('[SPICE Worker]', text);
+        const m = text.match(/ngspice[- ]?(?:version\s*)?(\d+[\w.-]*)/i);
+        if (m && m[1]) {
+          detectedNgspiceVersion = `ngspice-${m[1]}`;
+        }
+      },
+      printErr: (text: string) => {
+        console.error('[SPICE Worker ERR]', text);
+        const m = text.match(/ngspice[- ]?(?:version\s*)?(\d+[\w.-]*)/i);
+        if (m && m[1]) {
+          detectedNgspiceVersion = `ngspice-${m[1]}`;
+        }
+      },
+      noExitRuntime: false,
+    });
+    const instance = mod as unknown as NgspiceModule;
     try {
-      const factory = await loadNgspiceFactory(reportProgress);
-      reportProgress?.('initializing-wasm', 55, 'Initializing SPICE WASM solver...');
-      const mod = await factory({
-        locateFile: (file: string) => `/${file}`,
-        print: (text: string) => {
-          console.log('[SPICE Worker]', text);
-          const m = text.match(/ngspice[- ]?(?:version\s*)?(\d+[\w.-]*)/i);
-          if (m && m[1]) {
-            detectedNgspiceVersion = `ngspice-${m[1]}`;
-          }
-        },
-        printErr: (text: string) => {
-          console.error('[SPICE Worker ERR]', text);
-          const m = text.match(/ngspice[- ]?(?:version\s*)?(\d+[\w.-]*)/i);
-          if (m && m[1]) {
-            detectedNgspiceVersion = `ngspice-${m[1]}`;
-          }
-        },
-        noExitRuntime: false
-      });
-      ngspiceInstance = mod as unknown as NgspiceModule;
-    } catch (err) {
-      console.error('Failed to initialize ngspice-wasm in worker:', err);
-      throw err;
-    } finally {
-      isInitializing = false;
+      instance.FS.mkdir('/proc');
+    } catch {
+      // /proc may already exist in the Emscripten VFS
     }
-  })();
+    instance.FS.writeFile('/proc/meminfo', 'MemTotal:       16384000 kB\nMemFree:         8192000 kB\nMemAvailable:    8192000 kB\n');
+    return instance;
+  } catch (err) {
+    console.error('Failed to initialize ngspice-wasm in worker:', err);
+    throw err;
+  }
+}
 
-  await initPromise;
+const ngspicePool = createNgspiceInstancePool(createNgspiceInstance, (err) => {
+  console.warn('[SPICE Worker] Background WASM pre-warm skipped:', err);
+});
+
+function scheduleNextPrewarm(): void {
+  setTimeout(() => {
+    ngspicePool.prewarm();
+  }, 0);
 }
 
 // Ensure the parser logic from the original engine is preserved exactly
@@ -276,14 +277,9 @@ function injectRelaxedOptions(netlist: string): string {
   return `${relaxed}\n${withoutOptions}`;
 }
 
-// Core: run ngspice on the given full netlist string and return parsed data.
+// Core: run ngspice on an isolated one-shot module instance and return parsed data.
 // Throws on any failure.
-async function runNgspice(fullNetlist: string): Promise<SpiceParsedOutput> {
-  if (!ngspiceInstance) {
-    throw new Error('ngspice instance is not initialized.');
-  }
-  const instance = ngspiceInstance;
-
+async function runNgspice(instance: NgspiceModule, fullNetlist: string): Promise<SpiceParsedOutput> {
   instance.FS.writeFile('/circuit.cir', fullNetlist);
   try {
     instance.FS.mkdir('/proc');
@@ -293,9 +289,9 @@ async function runNgspice(fullNetlist: string): Promise<SpiceParsedOutput> {
   instance.FS.writeFile('/proc/meminfo', 'MemTotal:       16384000 kB\nMemFree:         8192000 kB\nMemAvailable:    8192000 kB\n');
 
   const args = ['ngspice', '-b', '/circuit.cir'];
-  const stack = instance.__emscripten_stack_get_current
-    ? instance.__emscripten_stack_get_current()
-    : (instance.stackSave ? instance.stackSave() : 0);
+  const stack = instance.stackSave
+    ? instance.stackSave()
+    : (instance.__emscripten_stack_get_current ? instance.__emscripten_stack_get_current() : 0);
 
   try {
     const ptrs: number[] = [];
@@ -317,10 +313,10 @@ async function runNgspice(fullNetlist: string): Promise<SpiceParsedOutput> {
       throw err;
     }
   } finally {
-    if (instance.__emscripten_stack_restore) {
-      instance.__emscripten_stack_restore(stack);
-    } else if (instance.stackRestore) {
+    if (instance.stackRestore) {
       instance.stackRestore(stack);
+    } else if (instance.__emscripten_stack_restore) {
+      instance.__emscripten_stack_restore(stack);
     }
   }
 
@@ -338,16 +334,22 @@ async function runNgspice(fullNetlist: string): Promise<SpiceParsedOutput> {
   return data;
 }
 
-self.addEventListener('message', async (e: MessageEvent<{ id?: number; netlist?: string }>) => {
-  const { id, netlist } = e.data;
+self.addEventListener('message', async (e: MessageEvent<{ id?: number; type?: 'WARMUP' | 'RUN'; netlist?: string }>) => {
+  const { id, type, netlist } = e.data;
+  if (type === 'WARMUP') {
+    ngspicePool.prewarm();
+    return;
+  }
   if (!id || !netlist) return;
 
   const reportProgress: ProgressReporter = (stage, percent, label) => {
     self.postMessage({ id, type: 'PROGRESS', progress: { stage, percent, label } });
   };
 
+  let acquiredAttempt1 = false;
   try {
-    await initNgspice(reportProgress);
+    const { instance: firstInstance } = await ngspicePool.acquire(reportProgress);
+    acquiredAttempt1 = true;
 
     let fullNetlist = netlist.trim();
     if (!fullNetlist.startsWith('Circuit') && !fullNetlist.startsWith('*')) {
@@ -359,9 +361,9 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; netlist?:
     let originalError: string;
     try {
       reportProgress('solving', 75, 'Solving circuit MNA matrix...');
-      const data = await runNgspice(fullNetlist);
+      const data = await runNgspice(firstInstance, fullNetlist);
       reportProgress('parsing', 95, 'Finalizing waveforms...');
-      // Success — send result normally
+      // Success — send result immediately
       self.postMessage({
         id,
         type: 'SUCCESS',
@@ -382,14 +384,13 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; netlist?:
     }
 
     // ── Attempt 2: relaxed tolerances ───────────────────────────────────
-    // Re-initialize ngspice for a fresh instance (required by Emscripten design)
-    ngspiceInstance = null;
+    // Use a guaranteed fresh Emscripten instance (never re-enter _main on an already executed instance)
     reportProgress('solving', 85, 'Retrying with relaxed SPICE tolerances...');
-    await initNgspice(reportProgress);
+    const { instance: retryInstance } = await ngspicePool.acquire(reportProgress);
 
     const relaxedNetlist = injectRelaxedOptions(fullNetlist);
     try {
-      const data = await runNgspice(relaxedNetlist);
+      const data = await runNgspice(retryInstance, relaxedNetlist);
       reportProgress('parsing', 95, 'Finalizing waveforms...');
       // Retry success — send with warning
       self.postMessage({
@@ -411,8 +412,10 @@ self.addEventListener('message', async (e: MessageEvent<{ id?: number; netlist?:
     const msg = error instanceof Error ? error.message : String(error);
     self.postMessage({ id, type: 'ERROR', error: translateSpiceError(msg) });
   } finally {
-    // CRITICAL: Force ngspice to re-initialize on the next run.
-    // Calling _main() multiple times on the same instance causes C-state memory corruption and exit(1) crashes.
-    ngspiceInstance = null;
+    // Yield a macrotask so the main thread processes SUCCESS/ERROR first, then pre-warm a fresh WASM instance
+    // for the next run while keeping every Emscripten _main() strictly one-shot.
+    if (acquiredAttempt1) {
+      scheduleNextPrewarm();
+    }
   }
 });

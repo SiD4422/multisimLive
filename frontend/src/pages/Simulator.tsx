@@ -15,6 +15,7 @@ import { downloadKiCadNetlist } from '../utils/exportKiCad';
 import { StatusBar } from '../components/StatusBar';
 import { resolveGlobalShortcut, SHORTCUT_CATEGORIES, SHORTCUT_DEFINITIONS } from '../utils/keyboardShortcuts';
 import { upsertLocalCircuitSave } from '../utils/circuitSavesStorage';
+import { warmUpSpiceEngine } from '../utils/spiceEngine';
 
 // Lazily loaded panels — not needed at initial paint
 const Grapher = React.lazy(() => import('../components/Grapher'));
@@ -99,6 +100,14 @@ function Simulator() {
       useSchematicStore?: typeof useSchematicStore;
     }
     (window as WindowWithStore).useSchematicStore = useSchematicStore;
+  }, []);
+
+  // Defer SPICE WASM pre-warm slightly after initial paint so first simulation clicks feel instant
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      warmUpSpiceEngine();
+    }, 400);
+    return () => window.clearTimeout(timer);
   }, []);
 
   // ── Circuit DRC ────────────────────────────────────────────────────────────────
