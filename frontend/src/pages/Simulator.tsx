@@ -357,18 +357,30 @@ function Simulator() {
         return;
       }
       const result = importSpiceNetlist(text);
-      // Build a minimal state JSON and import it
+      const upperCmd = (result.analysisCommand || '').toUpperCase();
+      const analysisMode = upperCmd.startsWith('.AC')
+        ? 'ac'
+        : upperCmd.startsWith('.DC')
+          ? 'dc'
+          : upperCmd === '.OP'
+            ? 'op'
+            : 'transient';
+
       const stateJson = JSON.stringify({
         components: result.components,
-        wires: [],
+        wires: result.wires,
         probes: [],
-        stagePos: { x: 400, y: 300 },
-        scale: 0.8,
+        stagePos: { x: 0, y: 0 },
+        scale: 0.9,
+        analysisMode,
       });
       importState(stateJson);
+      const topologySummary = result.netLabelCount > 0
+        ? `${result.wireCount} wires and ${result.netLabelCount} net labels`
+        : `${result.wireCount} wires`;
       const msg = result.warnings.length > 0
-        ? `Imported ${result.componentCount} components. Note: ${result.warnings[0]}`
-        : `Imported ${result.componentCount} components from SPICE netlist. Wires are not reconstructed — please connect pins manually.`;
+        ? `Imported ${result.componentCount} components (${topologySummary}). Note: ${result.warnings[0]}`
+        : `Imported ${result.componentCount} components with ${topologySummary} from SPICE netlist.`;
       showToast(msg, result.warnings.length > 0 ? 'warning' : 'success');
     };
     reader.readAsText(file);

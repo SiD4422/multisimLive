@@ -54,7 +54,9 @@ export function getComponentPins(comp: SchematicComponent): { id: string, name?:
     });
   }
   // Hardcoded generic pins for basic components if they lack KiCad symbol mapping
-  if (comp.type === 'Ground') return [{ id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } }];
+  if (comp.type === 'Ground' || comp.type === 'NetLabel') {
+    return [{ id: '1', gridNode: toGridNode({ x: comp.position.x, y: comp.position.y }), p: { x: comp.position.x, y: comp.position.y } }];
+  }
   
   const twoPinHorizontal = [
     'Resistor', 'Load', 'Capacitor', 'Inductor',

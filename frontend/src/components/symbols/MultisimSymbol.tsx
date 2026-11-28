@@ -602,6 +602,19 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{ x: 0, y: 0 }];
     labelOffset = { x: 15, y: 5 };
   }
+  // --- ELECTRICAL NET LABEL ---
+  else if (type === 'NetLabel') {
+    const labelStr = (component.value || 'NET').trim();
+    const flagW = Math.max(30, labelStr.length * 5.2 + 14);
+    paths.push({
+      data: `M 0 0 L 7 -7 L ${flagW} -7 L ${flagW} 7 L 7 7 Z`,
+      fill: '#eff6ff',
+      stroke: '#2563eb',
+    });
+    texts.push({ text: labelStr, x: 9, y: -3.5, size: 7.5, fill: '#1e40af' });
+    pins = [{ x: 0, y: 0 }];
+    labelOffset = { x: 0, y: -14 };
+  }
   // --- JUNCTION (T-junction dot) ---
   else if (type === 'Junction') {
     // A junction is a T-connection node — cross lines with a dot
@@ -5591,7 +5604,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               )}
 
               {/* Reference Designator label pill */}
-              {component.id !== 'preview' && (
+              {component.id !== 'preview' && type !== 'NetLabel' && (
                 <Group x={idLocalX} y={idLocalY} rotation={-rot}>
                   <Rect
                     x={-(refDes.length * 8 + 6) / 2} y={-12}
@@ -5613,7 +5626,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
               )}
 
               {/* Value label pill */}
-              {valText.length > 0 && (
+              {valText.length > 0 && type !== 'NetLabel' && (
                 <Group x={valLocalX} y={valLocalY} rotation={-rot}>
                   <Rect
                     x={-(valText.length * 7 + 6) / 2} y={-11}

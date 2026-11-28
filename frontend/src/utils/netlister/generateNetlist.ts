@@ -143,13 +143,68 @@ export function generateNetlist(
 
 
   // Clean up merged (empty) nets
-  const finalNets = nets.filter(net => net.size > 0);
+  let finalNets = nets.filter(net => net.size > 0);
+
+  // Merge nets connected via electrical NetLabel components sharing the same net name
+  const labelComponents = processedComponents.filter(c => c.type === 'NetLabel' && c.value?.trim());
+  if (labelComponents.length > 0) {
+    const labelGroups = new Map<string, Set<string>>();
+    for (const lbl of labelComponents) {
+      const lblName = (lbl.value || '').trim().toUpperCase();
+      if (!lblName) continue;
+      const pins = getComponentPins(lbl);
+      const pin = pins[0];
+      if (!pin) continue;
+
+      let netIdx = finalNets.findIndex(net => net.has(pin.gridNode));
+      if (netIdx === -1) {
+        const directMatches = [pin.gridNode];
+        if (pin.p) {
+          for (const other of allPins) {
+            if (isPointOnSegment(other.p, pin.p, pin.p, PIN_TOLERANCE)) {
+              directMatches.push(other.gridNode);
+            }
+          }
+        }
+        finalNets.push(new Set(directMatches));
+        netIdx = finalNets.length - 1;
+      }
+
+      if (!labelGroups.has(lblName)) labelGroups.set(lblName, new Set());
+      const groupNodes = labelGroups.get(lblName)!;
+      finalNets[netIdx].forEach(gp => groupNodes.add(gp));
+      groupNodes.add(pin.gridNode);
+    }
+
+    for (const groupNodes of labelGroups.values()) {
+      const merged = new Set<string>(groupNodes);
+      const remaining: Set<string>[] = [];
+      for (const net of finalNets) {
+        let overlaps = false;
+        for (const gn of net) {
+          if (merged.has(gn)) {
+            overlaps = true;
+            break;
+          }
+        }
+        if (overlaps) {
+          net.forEach(gp => merged.add(gp));
+        } else {
+          remaining.push(net);
+        }
+      }
+      remaining.push(merged);
+      finalNets = remaining;
+    }
+  }
 
   // Find Ground nodes (Node 0)
   const groundNodes = new Set<string>();
-  const hasGroundComponents = components.some(c => c.type === 'Ground');
+  const hasGroundComponents = components.some(
+    c => c.type === 'Ground' || (c.type === 'NetLabel' && /^(0|GND)$/i.test(c.value?.trim() || '')),
+  );
   
-  components.filter(c => c.type === 'Ground').forEach(c => {
+  components.filter(c => c.type === 'Ground' || (c.type === 'NetLabel' && /^(0|GND)$/i.test(c.value?.trim() || ''))).forEach(c => {
     const pins = getComponentPins(c);
     pins.forEach(pin => {
       groundNodes.add(pin.gridNode);
@@ -253,7 +308,7 @@ export function generateNetlist(
       return;
     }
     
-    if (comp.type === 'Ground') return;
+    if (comp.type === 'Ground' || comp.type === 'NetLabel') return;
 
     const nodes = pins.map(p => getNodeId(p.gridNode));
 
