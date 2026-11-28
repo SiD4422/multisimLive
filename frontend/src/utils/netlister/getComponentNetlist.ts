@@ -36,21 +36,43 @@ B_E1 Y GND V = ((V(A) > 1.5) != (V(B) > 1.5)) ? 5 : 0
 Rout Y GND 10Meg
 .ends XOR2`,
 
+  // LM741 / uA741 single op-amp Boyle-style GM-C macromodel (AOL=200k, GBW=1MHz, SR=0.5V/us, Ib=80n)
   UA741_SUB: `.subckt UA741_SUB INP INM VCC VEE OUT
 Rin INP INM 2Meg
-B1 out_int 0 V = max(0, (V(VCC)-V(VEE))/2 - 1.5)*tanh((V(INP)-V(INM))*20000) + (V(VCC)+V(VEE))/2
-R_out out_int OUT 50
+B_ibp VCC INP I = (V(VCC) > V(VEE) + 1.0) ? 80n : 0
+B_ibm VCC INM I = (V(VCC) > V(VEE) + 1.0) ? 80n : 0
+B_mid vmid 0 V = (max(V(VEE), V(VCC)-1.5) + min(max(V(VEE), V(VCC)-1.5), V(VEE)+1.5)) / 2
+B_gm 0 vc I = (V(VCC) > V(VEE) + 1.0) ? (0.0025 * tanh((0.031416 * (V(INP) - V(INM))) / 0.0025)) : 0
+R_p vc vmid 6366197.7
+C_c vc 0 5n
+B_clamp vc 0 I = 0.2 * (max(0, V(vc) - max(V(VEE), V(VCC) - 1.5)) - max(0, min(max(V(VEE), V(VCC) - 1.5), V(VEE) + 1.5) - V(vc)))
+B_buf out_int 0 V = V(vc)
+R_out out_int OUT 75
 Rvcc VCC 0 100Meg
 Rvee VEE 0 100Meg
 .ends UA741_SUB`,
 
+  // LM358 Dual Single-Supply Op-Amp GM-C macromodel (AOL=100k, GBW=1MHz, SR=0.4V/us, Ib=45n, VEE+0.05..VCC-1.5V)
   LM358: `.subckt LM358 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC GND
-* LM358 Dual Single-Supply Op-Amp (swings VEE+0.05V to VCC-1.5V)
 Rin1 IN1P IN1M 2Meg
-Rin2 IN2P IN2M 2Meg
-B1 o1_i 0 V = (V(VCC,GND) > 1.5) ? (((max(V(GND), V(VCC)-1.5) - min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2)*tanh((V(IN1P)-V(IN1M))*20000) + (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2) : V(GND)
-B2 o2_i 0 V = (V(VCC,GND) > 1.5) ? (((max(V(GND), V(VCC)-1.5) - min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2)*tanh((V(IN2P)-V(IN2M))*20000) + (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2) : V(GND)
+B_ib1p IN1P GND I = (V(VCC,GND) > 1.5) ? 45n : 0
+B_ib1m IN1M GND I = (V(VCC,GND) > 1.5) ? 45n : 0
+B_mid1 vmid1 0 V = (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05)) / 2
+B_gm1 0 vc1 I = (V(VCC,GND) > 1.5) ? (0.0020 * tanh((0.031416 * (V(IN1P) - V(IN1M))) / 0.0020)) : 0
+R_p1 vc1 vmid1 3183098.9
+C_c1 vc1 0 5n
+B_cl1 vc1 0 I = 0.2 * (max(0, V(vc1) - max(V(GND), V(VCC) - 1.5)) - max(0, min(max(V(GND), V(VCC) - 1.5), V(GND) + 0.05) - V(vc1)))
+B_o1 o1_i 0 V = V(vc1)
 R_o1 o1_i OUT1 50
+Rin2 IN2P IN2M 2Meg
+B_ib2p IN2P GND I = (V(VCC,GND) > 1.5) ? 45n : 0
+B_ib2m IN2M GND I = (V(VCC,GND) > 1.5) ? 45n : 0
+B_mid2 vmid2 0 V = (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05)) / 2
+B_gm2 0 vc2 I = (V(VCC,GND) > 1.5) ? (0.0020 * tanh((0.031416 * (V(IN2P) - V(IN2M))) / 0.0020)) : 0
+R_p2 vc2 vmid2 3183098.9
+C_c2 vc2 0 5n
+B_cl2 vc2 0 I = 0.2 * (max(0, V(vc2) - max(V(GND), V(VCC) - 1.5)) - max(0, min(max(V(GND), V(VCC) - 1.5), V(GND) + 0.05) - V(vc2)))
+B_o2 o2_i 0 V = V(vc2)
 R_o2 o2_i OUT2 50
 Rvcc VCC GND 100Meg
 .ends LM358`,
@@ -124,7 +146,7 @@ Rgs G S 100Meg
   // Schottky Diode â€” low Vf (IS=1e-8, N=1.05) approximating 1N5819
   SCHOTTKY: `.subckt SCHOTTKY A K
 D1 A K DSCHOTTKY
-.model DSCHOTTKY D(IS=1e-8 N=1.05 RS=0.01)
+.model DSCHOTTKY D(IS=11.5u RS=0.08 N=1.02 BV=40 IBV=1m CJO=110p VJ=0.45 M=0.40 EG=0.69)
 .ends SCHOTTKY`,
 
   // â”€â”€ Additional Linear ICs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -136,12 +158,26 @@ X1 INP INM VCC VEE OUT UA741_SUB
 
   // LM324 Quad Op-Amp â€” exposed as dual (same behavioural core as LM358)
   LM324: `.subckt LM324 IN1P IN1M OUT1 IN2P IN2M OUT2 VCC GND
-* LM324 Single-Supply Op-Amp (dual channel section, VEE+0.05V to VCC-1.5V)
+* LM324 Single-Supply Op-Amp GM-C macromodel (AOL=100k, GBW=1MHz, SR=0.4V/us, VEE+0.05..VCC-1.5V)
 Rin1 IN1P IN1M 2Meg
-Rin2 IN2P IN2M 2Meg
-B1 o1_i 0 V = (V(VCC,GND) > 1.5) ? (((max(V(GND), V(VCC)-1.5) - min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2)*tanh((V(IN1P)-V(IN1M))*20000) + (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2) : V(GND)
-B2 o2_i 0 V = (V(VCC,GND) > 1.5) ? (((max(V(GND), V(VCC)-1.5) - min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2)*tanh((V(IN2P)-V(IN2M))*20000) + (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05))/2) : V(GND)
+B_ib1p IN1P GND I = (V(VCC,GND) > 1.5) ? 45n : 0
+B_ib1m IN1M GND I = (V(VCC,GND) > 1.5) ? 45n : 0
+B_mid1 vmid1 0 V = (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05)) / 2
+B_gm1 0 vc1 I = (V(VCC,GND) > 1.5) ? (0.0020 * tanh((0.031416 * (V(IN1P) - V(IN1M))) / 0.0020)) : 0
+R_p1 vc1 vmid1 3183098.9
+C_c1 vc1 0 5n
+B_cl1 vc1 0 I = 0.2 * (max(0, V(vc1) - max(V(GND), V(VCC) - 1.5)) - max(0, min(max(V(GND), V(VCC) - 1.5), V(GND) + 0.05) - V(vc1)))
+B_o1 o1_i 0 V = V(vc1)
 R_o1 o1_i OUT1 50
+Rin2 IN2P IN2M 2Meg
+B_ib2p IN2P GND I = (V(VCC,GND) > 1.5) ? 45n : 0
+B_ib2m IN2M GND I = (V(VCC,GND) > 1.5) ? 45n : 0
+B_mid2 vmid2 0 V = (max(V(GND), V(VCC)-1.5) + min(max(V(GND), V(VCC)-1.5), V(GND)+0.05)) / 2
+B_gm2 0 vc2 I = (V(VCC,GND) > 1.5) ? (0.0020 * tanh((0.031416 * (V(IN2P) - V(IN2M))) / 0.0020)) : 0
+R_p2 vc2 vmid2 3183098.9
+C_c2 vc2 0 5n
+B_cl2 vc2 0 I = 0.2 * (max(0, V(vc2) - max(V(GND), V(VCC) - 1.5)) - max(0, min(max(V(GND), V(VCC) - 1.5), V(GND) + 0.05) - V(vc2)))
+B_o2 o2_i 0 V = V(vc2)
 R_o2 o2_i OUT2 50
 Rvcc VCC GND 100Meg
 .ends LM324`,
@@ -2463,71 +2499,101 @@ B_y2 y2 vss V = ((V(a2,vss) > 2.7) && (V(b2,vss) > 2.7)) ? 0.0 : V(vdd,vss)
 R_pwr vdd vss 10Meg
 .ends CD4093_SUB`,
 
-  D1N4007_SUB: `* 1N4007 Diode Model
+  D1N4007_SUB: `* 1N4007 Diode Model (Vishay/ON Semi full AC/transient parameters)
 .subckt D1N4007_SUB a k
 D1 a k D1N4007_MOD
-.model D1N4007_MOD D(Is=7.027n Rs=0.034 N=1.8 Bv=1000 Ibv=0.1m)
+.model D1N4007_MOD D(IS=7.027n RS=0.034 N=1.80 BV=1000 IBV=10u CJO=26.5p VJ=0.7 M=0.333 TT=4.32u)
 .ends D1N4007_SUB`,
 
-  D1N5819_SUB: `* 1N5819 Schottky Diode Model
+  D1N5819_SUB: `* 1N5819 Schottky Diode Model (ON Semi 40V 1A Schottky)
 .subckt D1N5819_SUB a k
 D1 a k D1N5819_MOD
-.model D1N5819_MOD D(Is=31.7u Rs=0.051 N=1.05 Bv=40 Ibv=1m)
+.model D1N5819_MOD D(IS=11.5u RS=0.08 N=1.02 BV=40 IBV=1m CJO=110p VJ=0.45 M=0.40 EG=0.69)
 .ends D1N5819_SUB`,
 
   D1N5822_SUB: `* 1N5822 3A Schottky Diode Model
 .subckt D1N5822_SUB a k
 D1 a k D1N5822_MOD
-.model D1N5822_MOD D(Is=50u Rs=0.02 N=1.05 Bv=40 Ibv=2m)
+.model D1N5822_MOD D(Is=50u Rs=0.02 N=1.05 Bv=40 Ibv=2m CJO=250p VJ=0.45 M=0.40 EG=0.69)
 .ends D1N5822_SUB`,
 
   D1N5408_SUB: `* 1N5408 3A Power Diode Model
 .subckt D1N5408_SUB a k
 D1 a k D1N5408_MOD
-.model D1N5408_MOD D(Is=12n Rs=0.015 N=1.7 Bv=1000 Ibv=0.1m)
+.model D1N5408_MOD D(Is=12n Rs=0.015 N=1.7 Bv=1000 Ibv=0.1m CJO=50p TT=5u)
 .ends D1N5408_SUB`,
 
   D1N4733A_SUB: `* 1N4733A 5.1V Zener Model
 .subckt D1N4733A_SUB a k
 D1 a k D1N4733A_MOD
-.model D1N4733A_MOD D(Is=1e-14 Bv=5.1 Ibv=1m Rs=1.5)
+.model D1N4733A_MOD D(Is=1e-14 Bv=5.1 Ibv=1m Rs=1.5 CJO=140p)
 .ends D1N4733A_SUB`,
 
   D1N4742A_SUB: `* 1N4742A 12V Zener Model
 .subckt D1N4742A_SUB a k
 D1 a k D1N4742A_MOD
-.model D1N4742A_MOD D(Is=1e-14 Bv=12.0 Ibv=1m Rs=2.5)
+.model D1N4742A_MOD D(Is=1e-14 Bv=12.0 Ibv=1m Rs=2.5 CJO=70p)
 .ends D1N4742A_SUB`,
 
-  DBZX55C5V1_SUB: `* BZX55C5V1 5.1V Zener Model
+  DBZX55C3V3_SUB: `* BZX55C3V3 3.3V 500mW Zener Model (Philips/Vishay)
+.subckt DBZX55C3V3_SUB a k
+D1 a k DBZX55C3V3_MOD
+.model DBZX55C3V3_MOD D(IS=100f RS=8.0 N=1.2 CJO=250p VJ=0.75 M=0.33 BV=3.3 IBV=5m)
+.ends DBZX55C3V3_SUB`,
+
+  DBZX55C4V7_SUB: `* BZX55C4V7 4.7V 500mW Zener Model (Philips/Vishay)
+.subckt DBZX55C4V7_SUB a k
+D1 a k DBZX55C4V7_MOD
+.model DBZX55C4V7_MOD D(IS=100f RS=5.0 N=1.2 CJO=180p VJ=0.75 M=0.33 BV=4.7 IBV=5m)
+.ends DBZX55C4V7_SUB`,
+
+  DBZX55C5V1_SUB: `* BZX55C5V1 5.1V 500mW Zener Model (Philips/Vishay)
 .subckt DBZX55C5V1_SUB a k
 D1 a k DBZX55C5V1_MOD
-.model DBZX55C5V1_MOD D(Is=1e-14 Bv=5.1 Ibv=1m Rs=2.0)
+.model DBZX55C5V1_MOD D(IS=10f RS=2.0 N=1.2 CJO=140p VJ=0.75 M=0.33 BV=5.1 IBV=5m)
 .ends DBZX55C5V1_SUB`,
+
+  DBZX55C6V8_SUB: `* BZX55C6V8 6.8V 500mW Zener Model (Philips/Vishay)
+.subckt DBZX55C6V8_SUB a k
+D1 a k DBZX55C6V8_MOD
+.model DBZX55C6V8_MOD D(IS=10f RS=1.5 N=1.15 CJO=110p VJ=0.75 M=0.33 BV=6.8 IBV=5m)
+.ends DBZX55C6V8_SUB`,
+
+  DBZX55C9V1_SUB: `* BZX55C9V1 9.1V 500mW Zener Model (Philips/Vishay)
+.subckt DBZX55C9V1_SUB a k
+D1 a k DBZX55C9V1_MOD
+.model DBZX55C9V1_MOD D(IS=10f RS=2.0 N=1.15 CJO=85p VJ=0.75 M=0.33 BV=9.1 IBV=5m)
+.ends DBZX55C9V1_SUB`,
+
+  DBZX55C12_SUB: `* BZX55C12 12V 500mW Zener Model (Philips/Vishay)
+.subckt DBZX55C12_SUB a k
+D1 a k DBZX55C12_MOD
+.model DBZX55C12_MOD D(IS=10f RS=3.0 N=1.15 CJO=65p VJ=0.75 M=0.33 BV=12.0 IBV=5m)
+.ends DBZX55C12_SUB`,
 
   BJT_2N2222A_SUB: `.subckt BJT_2N2222A_SUB b c e
 Q1 c b e Q2N2222A
-.model Q2N2222A NPN(IS=14.34f BF=255.9 VAF=74.03 IKF=0.2847 NE=1.307 ISE=14.34f)
+.model Q2N2222A NPN(IS=14.34f XTI=3 EG=1.11 VAF=74.03 BF=255.9 NE=1.307 ISE=14.34f IKF=0.2847 XTB=1.5 BR=6.092 NC=2 RC=1 CJC=7.306p MJC=0.3416 VJC=0.75 FC=0.5 CJE=22.01p MJE=0.377 VJE=0.75 TR=46.91n TF=411.1p ITF=0.6 VTF=1.7 XTF=3 RB=10)
 .ends BJT_2N2222A_SUB`,
 
   BJT_2N2907A_SUB: `.subckt BJT_2N2907A_SUB b c e
 Q1 c b e Q2N2907A
-.model Q2N2907A PNP(IS=650.6e-18 BF=231.7 VAF=115.7 IKF=1.079)
+.model Q2N2907A PNP(IS=650.6e-18 BF=231.7 VAF=115.7 IKF=1.079 BR=3.563 CJC=14.7p CJE=19.82p TF=603.7p TR=111.3n RB=10 RC=0.715)
 .ends BJT_2N2907A_SUB`,
 
   BJT_2N3904_SUB: `.subckt BJT_2N3904_SUB b c e
 Q1 c b e Q2N3904
-.model Q2N3904 NPN(IS=6.734f BF=416.4 VAF=74.03 IKF=0.06678)
+.model Q2N3904 NPN(IS=6.734f XTI=3 EG=1.11 VAF=74.03 BF=416.4 NE=1.259 IKF=66.78m XTB=1.5 BR=0.7371 NC=2 RC=1 CJC=3.638p MJC=0.3085 VJC=0.75 FC=0.5 CJE=4.493p MJE=0.2593 VJE=0.75 TR=239.5n TF=301.2p ITF=0.4 VTF=4 XTF=2 RB=10)
 .ends BJT_2N3904_SUB`,
 
   BJT_2N3906_SUB: `.subckt BJT_2N3906_SUB b c e
 Q1 c b e Q2N3906
-.model Q2N3906 PNP(IS=1.41f BF=180.7 VAF=18.7 IKF=0.08)
+.model Q2N3906 PNP(IS=1.41f XTI=3 EG=1.11 VAF=18.7 BF=180.7 NE=1.5 IKF=80m XTB=1.5 BR=4.977 NC=2 RC=2.5 CJC=9.728p MJC=0.5776 VJC=0.75 FC=0.5 CJE=8.063p MJE=0.3677 VJE=0.75 TR=33.42n TF=179.3p ITF=0.4 VTF=4 XTF=6 RB=10)
 .ends BJT_2N3906_SUB`,
 
   BJT_BC547_SUB: `.subckt BJT_BC547_SUB b c e
 Q1 c b e QBC547
-.model QBC547 NPN(IS=7.049f BF=294.3 VAF=63.2 IKF=0.149)
+.model QBC547 NPN(IS=20f VAF=50 BF=350 NE=1.3 ISE=9.72f IKF=80m BR=10 NC=2 VAR=10 RB=280 RE=1 RC=40 TR=300n CJE=12p VJE=0.48 MJE=0.5 CJC=6p VJC=0.7 MJC=0.33 TF=500p)
 .ends BJT_BC547_SUB`,
 
   BJT_BC557_SUB: `.subckt BJT_BC557_SUB b c e
@@ -2953,6 +3019,71 @@ B_qe qe vss V = (V(bl)>1.5 && (V(val)==0 || V(val)==2 || V(val)==6 || V(val)==8)
 B_qf qf vss V = (V(bl)>1.5 && (V(val)==0 || V(val)==4 || V(val)==5 || V(val)==6 || V(val)==8 || V(val)==9)) ? V(vdd) : 0
 B_qg qg vss V = (V(bl)>1.5 && (V(val)>=2 && V(val)<=6 || V(val)==8 || V(val)==9)) ? V(vdd) : 0
 .ends LOGIC_CD4511_SUB`,
+
+  NMOS_2N7000_SUB: `* 2N7000 60V 200mA N-Ch MOSFET (Level-1 core + body diode + Ciss/Crss)
+.subckt NMOS_2N7000_SUB G D S
+R_g G g_i 5
+R_d D d_i 0.4
+R_s S s_i 0.4
+M1 d_i g_i s_i s_i M2N7000_MOD
+C_gs g_i s_i 45p
+C_gd g_i d_i 12p
+D_body s_i D DB_2N7000
+.model M2N7000_MOD NMOS(LEVEL=1 VTO=2.1 KP=0.08 LAMBDA=0.01)
+.model DB_2N7000 D(IS=10f BV=60 IBV=10u CJO=30p RS=0.5)
+.ends NMOS_2N7000_SUB`,
+
+  NMOS_IRF540_SUB: `* IRF540N 100V 28A N-Ch Power MOSFET (Level-1 core + body diode + Ciss/Crss)
+.subckt NMOS_IRF540_SUB G D S
+R_g G g_i 3.0
+R_d D d_i 0.015
+R_s S s_i 0.010
+M1 d_i g_i s_i s_i MIRF540_MOD
+C_gs g_i s_i 1.6n
+C_gd g_i d_i 120p
+D_body s_i D DB_IRF540
+.model MIRF540_MOD NMOS(LEVEL=1 VTO=3.6 KP=9.0 LAMBDA=0.01)
+.model DB_IRF540 D(IS=1e-10 BV=100 IBV=25u CJO=450p RS=0.01 N=1.2)
+.ends NMOS_IRF540_SUB`,
+
+  PMOS_IRF9540_SUB: `* IRF9540N -100V -19A P-Ch Power MOSFET (Level-1 core + body diode + Ciss/Crss)
+.subckt PMOS_IRF9540_SUB G D S
+R_g G g_i 5.0
+R_d D d_i 0.05
+R_s S s_i 0.04
+M1 d_i g_i s_i s_i MIRF9540_MOD
+C_gs g_i s_i 1.2n
+C_gd g_i d_i 150p
+D_body D s_i DB_IRF9540
+.model MIRF9540_MOD PMOS(LEVEL=1 VTO=-3.8 KP=4.0 LAMBDA=0.01)
+.model DB_IRF9540 D(IS=1e-10 BV=100 IBV=25u CJO=400p RS=0.02 N=1.2)
+.ends PMOS_IRF9540_SUB`,
+
+  OPAMP_TL072_SUB: `* TL072 Dual Low-Noise JFET Op-Amp GM-C Macromodel (AOL=200k, GBW=3MHz, SR=13V/us, Ib=65p)
+.subckt OPAMP_TL072_SUB IN1N IN1P OUT1 IN2P IN2N OUT2 VCC VEE
+R_in1 IN1P IN1N 1T
+B_ib1p VCC IN1P I = (V(VCC) > V(VEE) + 1.0) ? 65p : 0
+B_ib1m VCC IN1N I = (V(VCC) > V(VEE) + 1.0) ? 65p : 0
+B_mid1 vmid1 0 V = (max(V(VEE), V(VCC)-1.5) + min(max(V(VEE), V(VCC)-1.5), V(VEE)+1.5)) / 2
+B_gm1 0 vc1 I = (V(VCC) > V(VEE) + 1.0) ? (0.065 * tanh((0.094248 * (V(IN1P) - V(IN1N))) / 0.065)) : 0
+R_p1 vc1 vmid1 2122065.9
+C_c1 vc1 0 5n
+B_cl1 vc1 0 I = 0.2 * (max(0, V(vc1) - max(V(VEE), V(VCC) - 1.5)) - max(0, min(max(V(VEE), V(VCC) - 1.5), V(VEE) + 1.5) - V(vc1)))
+B_o1 o1_i 0 V = V(vc1)
+R_o1 o1_i OUT1 50
+R_in2 IN2P IN2N 1T
+B_ib2p VCC IN2P I = (V(VCC) > V(VEE) + 1.0) ? 65p : 0
+B_ib2m VCC IN2N I = (V(VCC) > V(VEE) + 1.0) ? 65p : 0
+B_mid2 vmid2 0 V = (max(V(VEE), V(VCC)-1.5) + min(max(V(VEE), V(VCC)-1.5), V(VEE)+1.5)) / 2
+B_gm2 0 vc2 I = (V(VCC) > V(VEE) + 1.0) ? (0.065 * tanh((0.094248 * (V(IN2P) - V(IN2N))) / 0.065)) : 0
+R_p2 vc2 vmid2 2122065.9
+C_c2 vc2 0 5n
+B_cl2 vc2 0 I = 0.2 * (max(0, V(vc2) - max(V(VEE), V(VCC) - 1.5)) - max(0, min(max(V(VEE), V(VCC) - 1.5), V(VEE) + 1.5) - V(vc2)))
+B_o2 o2_i 0 V = V(vc2)
+R_o2 o2_i OUT2 50
+Rvcc VCC 0 100Meg
+Rvee VEE 0 100Meg
+.ends OPAMP_TL072_SUB`,
 };
 
 export function getSubcktDefinitions(): Record<string, string> {
@@ -3083,17 +3214,60 @@ export function getComponentNetlist(comp: SchematicComponent, nodes: string[]): 
     }
     case 'mosfet_n': {
       const [g = '0', d = '0', s = '0'] = nodes;
+      const partVal = String(comp.props?.value || comp.value || '').toUpperCase();
+      if (partVal.includes('IRF540')) {
+        return {
+          line: `X_${comp.id} ${g} ${d} ${s} NMOS_IRF540_SUB`,
+          subckts: [SUBCKT_DEFINITIONS.NMOS_IRF540_SUB]
+        };
+      }
       return {
-        line: `X_${comp.id} ${g} ${d} ${s} MOSFET_N`,
-        subckts: [SUBCKT_DEFINITIONS.MOSFET_N]
+        line: `X_${comp.id} ${g} ${d} ${s} NMOS_2N7000_SUB`,
+        subckts: [SUBCKT_DEFINITIONS.NMOS_2N7000_SUB]
       };
     }
     case 'mosfet_p': {
       const [g = '0', d = '0', s = '0'] = nodes;
       return {
-        line: `X_${comp.id} ${g} ${d} ${s} MOSFET_P`,
-        subckts: [SUBCKT_DEFINITIONS.MOSFET_P]
+        line: `X_${comp.id} ${g} ${d} ${s} PMOS_IRF9540_SUB`,
+        subckts: [SUBCKT_DEFINITIONS.PMOS_IRF9540_SUB]
       };
+    }
+    case 'mosfet_2n7000': {
+      const [g = '0', d = '0', s = '0'] = nodes;
+      return { line: `X_${comp.id} ${g} ${d} ${s} NMOS_2N7000_SUB`, subckts: [SUBCKT_DEFINITIONS.NMOS_2N7000_SUB] };
+    }
+    case 'mosfet_irf540': {
+      const [g = '0', d = '0', s = '0'] = nodes;
+      return { line: `X_${comp.id} ${g} ${d} ${s} NMOS_IRF540_SUB`, subckts: [SUBCKT_DEFINITIONS.NMOS_IRF540_SUB] };
+    }
+    case 'mosfet_irf9540': {
+      const [g = '0', d = '0', s = '0'] = nodes;
+      return { line: `X_${comp.id} ${g} ${d} ${s} PMOS_IRF9540_SUB`, subckts: [SUBCKT_DEFINITIONS.PMOS_IRF9540_SUB] };
+    }
+    case 'ic_tl072': {
+      const [in1n='0', in1p='0', out1='0', in2p='0', in2n='0', out2='0', vcc='0', vee='0'] = nodes;
+      return { line: `X_${comp.id} ${in1n} ${in1p} ${out1} ${in2p} ${in2n} ${out2} ${vcc} ${vee} OPAMP_TL072_SUB`, subckts: [SUBCKT_DEFINITIONS.OPAMP_TL072_SUB] };
+    }
+    case 'diode_bzx55c3v3': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} DBZX55C3V3_SUB`, subckts: [SUBCKT_DEFINITIONS.DBZX55C3V3_SUB] };
+    }
+    case 'diode_bzx55c4v7': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} DBZX55C4V7_SUB`, subckts: [SUBCKT_DEFINITIONS.DBZX55C4V7_SUB] };
+    }
+    case 'diode_bzx55c6v8': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} DBZX55C6V8_SUB`, subckts: [SUBCKT_DEFINITIONS.DBZX55C6V8_SUB] };
+    }
+    case 'diode_bzx55c9v1': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} DBZX55C9V1_SUB`, subckts: [SUBCKT_DEFINITIONS.DBZX55C9V1_SUB] };
+    }
+    case 'diode_bzx55c12': {
+      const [a='0', k='0'] = nodes;
+      return { line: `X_${comp.id} ${a} ${k} DBZX55C12_SUB`, subckts: [SUBCKT_DEFINITIONS.DBZX55C12_SUB] };
     }
     case 'schottky_diode': {
       const [a = '0', k = '0'] = nodes;

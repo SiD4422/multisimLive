@@ -330,11 +330,11 @@ export function generateNetlist(
         const rawVal = (comp.value || '2N3904').toUpperCase();
         
         const npnModels: Record<string, string> = {
-          '2N3904': '.model 2N3904 NPN (IS=1E-14 VAF=100 BF=300 IKF=0.4 XTB=1.5 BR=4 CJC=4E-12 CJE=8E-12 TR=250E-9 TF=350E-12 ITF=1 VTF=2 XTF=3)',
-          'BC547':  '.model BC547 NPN (IS=1.8E-14 VAF=80 BF=400 IKF=0.1 XTB=1.5 BR=4 CJC=4E-12 CJE=8E-12 TR=250E-9 TF=350E-12)',
-          'BC548':  '.model BC548 NPN (IS=1.8E-14 VAF=80 BF=400 IKF=0.1 XTB=1.5 BR=4 CJC=4E-12 CJE=8E-12 TR=250E-9 TF=350E-12)',
-          'BC549':  '.model BC549 NPN (IS=1.8E-14 VAF=80 BF=500 IKF=0.1 XTB=1.5 BR=4 CJC=4E-12 CJE=8E-12 TR=250E-9 TF=350E-12)',
-          '2N2222': '.model 2N2222 NPN (IS=1E-14 VAF=74 BF=400 IKF=0.3 XTB=1.5 BR=6 CJC=8E-12 CJE=25E-12 TR=10E-9 TF=0.5E-9)'
+          '2N3904': '.model 2N3904 NPN (IS=6.734f XTI=3 EG=1.11 VAF=74.03 BF=416.4 NE=1.259 IKF=66.78m XTB=1.5 BR=0.7371 NC=2 RC=1 CJC=3.638p MJC=0.3085 VJC=0.75 FC=0.5 CJE=4.493p MJE=0.2593 VJE=0.75 TR=239.5n TF=301.2p ITF=0.4 VTF=4 XTF=2 RB=10)',
+          'BC547':  '.model BC547 NPN (IS=20f VAF=50 BF=350 NE=1.3 ISE=9.72f IKF=80m BR=10 NC=2 VAR=10 RB=280 RE=1 RC=40 TR=300n CJE=12p VJE=0.48 MJE=0.5 CJC=6p VJC=0.7 MJC=0.33 TF=500p)',
+          'BC548':  '.model BC548 NPN (IS=20f VAF=50 BF=350 NE=1.3 ISE=9.72f IKF=80m BR=10 NC=2 VAR=10 RB=280 RE=1 RC=40 TR=300n CJE=12p VJE=0.48 MJE=0.5 CJC=6p VJC=0.7 MJC=0.33 TF=500p)',
+          'BC549':  '.model BC549 NPN (IS=20f VAF=50 BF=450 NE=1.3 ISE=9.72f IKF=80m BR=10 NC=2 VAR=10 RB=280 RE=1 RC=40 TR=300n CJE=12p VJE=0.48 MJE=0.5 CJC=6p VJC=0.7 MJC=0.33 TF=500p)',
+          '2N2222': '.model 2N2222 NPN (IS=14.34f XTI=3 EG=1.11 VAF=74.03 BF=255.9 NE=1.307 ISE=14.34f IKF=0.2847 XTB=1.5 BR=6.092 NC=2 RC=1 CJC=7.306p MJC=0.3416 VJC=0.75 FC=0.5 CJE=22.01p MJE=0.377 VJE=0.75 TR=46.91n TF=411.1p ITF=0.6 VTF=1.7 XTF=3 RB=10)'
         };
         
         const modelKey = Object.keys(npnModels).find(k => rawVal.includes(k)) || '2N3904';
@@ -439,7 +439,7 @@ S_dis DIS GND dis_gate GND SMOD555
         const targetModel = customModels[modelName] ? modelName : 'LM741';
         netlist += `X_${comp.id} ${inMinus} ${inPlus} ${vcc} ${vee} ${out} ${targetModel}\n`;
         if (targetModel === 'LM741') {
-          models.add(`.subckt LM741 IN- IN+ VCC VEE OUT\nB1 OUT 0 V=(V(VCC)-V(VEE))/2*tanh((V(IN+)-V(IN-))*100000)+(V(VCC)+V(VEE))/2\n.ends`);
+          models.add(`.subckt LM741 IN- IN+ VCC VEE OUT\nRin IN+ IN- 2Meg\nB_ibp VCC IN+ I=(V(VCC)>V(VEE)+1.0)?80n:0\nB_ibm VCC IN- I=(V(VCC)>V(VEE)+1.0)?80n:0\nB_mid vmid 0 V=(max(V(VEE),V(VCC)-1.5)+min(max(V(VEE),V(VCC)-1.5),V(VEE)+1.5))/2\nB_gm 0 vc I=(V(VCC)>V(VEE)+1.0)?(0.0025*tanh((0.031416*(V(IN+)-V(IN-)))/0.0025)):0\nR_p vc vmid 6366197.7\nC_c vc 0 5n\nB_clamp vc 0 I=0.2*(max(0,V(vc)-max(V(VEE),V(VCC)-1.5))-max(0,min(max(V(VEE),V(VCC)-1.5),V(VEE)+1.5)-V(vc)))\nB_buf out_int 0 V=V(vc)\nR_out out_int OUT 75\nRvcc VCC 0 100Meg\nRvee VEE 0 100Meg\n.ends`);
         }
       }
     }
@@ -467,7 +467,7 @@ S_dis DIS GND dis_gate GND SMOD555
         const targetModel = customModels[modelName] ? modelName : 'LM358_MDL';
         netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} ${targetModel}\n`;
         if (targetModel === 'LM358_MDL') {
-          models.add(`.subckt LM358_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1Meg\nB1 OUT 0 V=max(0,(V(VCC)-V(VEE))/2-1.5)*tanh((V(IN+)-V(IN-))*20000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends LM358_MDL`);
+          models.add(`.subckt LM358_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 2Meg\nB_ibp IN+ VEE I=(V(VCC)>V(VEE)+1.5)?45n:0\nB_ibm IN- VEE I=(V(VCC)>V(VEE)+1.5)?45n:0\nB_mid vmid 0 V=(max(V(VEE),V(VCC)-1.5)+min(max(V(VEE),V(VCC)-1.5),V(VEE)+0.05))/2\nB_gm 0 vc I=(V(VCC)>V(VEE)+1.5)?(0.0020*tanh((0.031416*(V(IN+)-V(IN-)))/0.0020)):0\nR_p vc vmid 3183098.9\nC_c vc 0 5n\nB_clamp vc 0 I=0.2*(max(0,V(vc)-max(V(VEE),V(VCC)-1.5))-max(0,min(max(V(VEE),V(VCC)-1.5),V(VEE)+0.05)-V(vc)))\nB_buf out_int 0 V=V(vc)\nR_out out_int OUT 50\nRvcc VCC 0 100Meg\nRvee VEE 0 100Meg\n.ends LM358_MDL`);
         }
       }
     }
@@ -495,7 +495,7 @@ S_dis DIS GND dis_gate GND SMOD555
         const targetModel = customModels[modelName] ? modelName : 'TL071_MDL';
         netlist += `X_${comp.id} ${inM} ${inP} ${vcc} ${vee} ${out} ${targetModel}\n`;
         if (targetModel === 'TL071_MDL') {
-          models.add(`.subckt TL071_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1T\nB1 OUT 0 V=max(0,(V(VCC)-V(VEE))/2-2.5)*tanh((V(IN+)-V(IN-))*50000)+(V(VCC)+V(VEE))/2\nRout OUT 0 100Meg\n.ends TL071_MDL`);
+          models.add(`.subckt TL071_MDL IN- IN+ VCC VEE OUT\nRin IN+ IN- 1T\nB_ibp VCC IN+ I=(V(VCC)>V(VEE)+1.0)?65p:0\nB_ibm VCC IN- I=(V(VCC)>V(VEE)+1.0)?65p:0\nB_mid vmid 0 V=(max(V(VEE),V(VCC)-1.5)+min(max(V(VEE),V(VCC)-1.5),V(VEE)+1.5))/2\nB_gm 0 vc I=(V(VCC)>V(VEE)+1.0)?(0.065*tanh((0.094248*(V(IN+)-V(IN-)))/0.065)):0\nR_p vc vmid 2122065.9\nC_c vc 0 5n\nB_clamp vc 0 I=0.2*(max(0,V(vc)-max(V(VEE),V(VCC)-1.5))-max(0,min(max(V(VEE),V(VCC)-1.5),V(VEE)+1.5)-V(vc)))\nB_buf out_int 0 V=V(vc)\nR_out out_int OUT 50\nRvcc VCC 0 100Meg\nRvee VEE 0 100Meg\n.ends TL071_MDL`);
         }
       }
     }
@@ -690,18 +690,28 @@ S_dis DIS GND dis_gate GND SMOD555
         '1N4743A': 13,  '1N4744A': 15,  '1N4745A': 16,
         '1N4746A': 18,  '1N4747A': 20,  '1N4748A': 22,
         '1N4749A': 24,  '1N4750A': 27,  '1N4751A': 30,
-        'BZX55C3V3': 3.3, 'BZX55C5V1': 5.1, 'BZX55C9V1': 9.1,
+        'BZX55C3V3': 3.3, 'BZX55C4V7': 4.7, 'BZX55C5V1': 5.1, 'BZX55C6V8': 6.8, 'BZX55C9V1': 9.1, 'BZX55C12': 12,
+        'BZX84C3V3': 3.3, 'BZX84C4V7': 4.7, 'BZX84C5V1': 5.1, 'BZX84C6V8': 6.8, 'BZX84C9V1': 9.1, 'BZX84C12': 12, 'BZX84C15': 15,
       };
       const partVal = (comp.value || '').toUpperCase();
       const bv = (partMap[partVal] ?? parseSpiceToFloat(partVal)) || 5.1;
+      const isBzx = partVal.includes('BZX');
+      const rs = bv <= 4.7 ? 5.0 : 2.0;
+      const cjo = Math.round(Math.max(45, 700 / Math.max(bv, 2)));
       const modelName = `DZENER_${bv.toString().replace('.', 'p')}`;
       netlist += `D_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} ${modelName}\n`;
-      models.add(`.model ${modelName} D (BV=${bv} IBV=5m RS=10)`);
+      models.add(`.model ${modelName} D (${isBzx ? 'IS=10f N=1.2 ' : ''}CJO=${cjo}p BV=${bv} IBV=5m RS=${rs})`);
     }
     else if (comp.type === 'DiodeSchottky') {
-      netlist += `D_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} DSCHOTTKY
-`;
-      models.add('.model DSCHOTTKY D (IS=10n N=1.5 RS=1 EG=0.69)');
+      const rawVal = (comp.value || '1N5819').toUpperCase();
+      const schottkyModels: Record<string, string> = {
+        '1N5819': '.model D1N5819 D (IS=11.5u RS=0.08 N=1.02 BV=40 IBV=1m CJO=110p VJ=0.45 M=0.40 EG=0.69)',
+        '1N5822': '.model D1N5822 D (IS=50u RS=0.02 N=1.05 BV=40 IBV=2m CJO=250p VJ=0.45 M=0.40 EG=0.69)',
+        'BAT54':  '.model DBAT54 D (IS=100n RS=1.1 N=1.05 BV=30 IBV=100u CJO=10p EG=0.69)',
+      };
+      const modelKey = Object.keys(schottkyModels).find(k => rawVal.includes(k)) || '1N5819';
+      netlist += `D_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} D${modelKey}\n`;
+      models.add(schottkyModels[modelKey]);
     }
     else if (comp.type === 'LED') {
       netlist += `D_${comp.id} ${nodes[0] || '0'} ${nodes[1] || '0'} DLED
@@ -730,7 +740,7 @@ S_dis DIS GND dis_gate GND SMOD555
       const rawVal = (comp.value || '2N3906').toUpperCase();
 
       const pnpModels: Record<string, string> = {
-        '2N3906': '.model 2N3906 PNP (IS=1.41E-15 VAF=18.7 BF=180 IKF=80m XTB=1.5 BR=4 CJC=9.728p MJC=0.3763 VJC=0.5 CJE=8.063p MJE=0.3677 VJE=0.5 TF=304.2p TR=100n)',
+        '2N3906': '.model 2N3906 PNP (IS=1.41f XTI=3 EG=1.11 VAF=18.7 BF=180.7 NE=1.5 IKF=80m XTB=1.5 BR=4.977 NC=2 RC=2.5 CJC=9.728p MJC=0.5776 VJC=0.75 FC=0.5 CJE=8.063p MJE=0.3677 VJE=0.75 TR=33.42n TF=179.3p ITF=0.4 VTF=4 XTF=6 RB=10)',
         'BC557':  '.model BC557 PNP (IS=5E-15 VAF=100 BF=300 IKF=0.2 XTB=1.5 BR=4 CJC=10p CJE=12p TR=250E-9 TF=350E-12)',
         'BC558':  '.model BC558 PNP (IS=5E-15 VAF=100 BF=300 IKF=0.2 XTB=1.5 BR=4 CJC=10p CJE=12p TR=250E-9 TF=350E-12)',
         'BC327':  '.model BC327 PNP (IS=2E-14 VAF=100 BF=250 IKF=0.5 XTB=1.5 BR=4 CJC=15p CJE=20p TR=100E-9 TF=200E-12)',
@@ -748,30 +758,36 @@ S_dis DIS GND dis_gate GND SMOD555
       // NOTE: Using LEVEL=1 for all MOSFETs — ngspice-wasm does not reliably support
       // LEVEL=3 (VMAX, ETA, KAPPA, DELTA params cause convergence failures in WASM builds).
       // LEVEL=1 with correct VTO/KP accurately models switching behavior for student circuits.
-      const nmosParts: Record<string, string> = {
-        '2N7000':  '.model 2N7000 NMOS (LEVEL=1 VTO=2.1 KP=80m RD=0.2 RS=0.2)',
-        'IRF540':  '.model IRF540 NMOS (LEVEL=1 VTO=4.0 KP=9.0 RD=0.04 RS=0.01)',
-        'IRF540N': '.model IRF540N NMOS (LEVEL=1 VTO=4.0 KP=9.0 RD=0.04 RS=0.01)',
-        'BS170':   '.model BS170 NMOS (LEVEL=1 VTO=2.1 KP=20m RD=0.5 RS=0.5)',
-        'IRF630':  '.model IRF630 NMOS (LEVEL=1 VTO=4.0 KP=5.5 RD=0.18 RS=0.01)',
-        'IRF3205': '.model IRF3205 NMOS (LEVEL=1 VTO=4.0 KP=14.0 RD=0.008 RS=0.001)',
+      const nmosParts: Record<string, { mos: string; body: string }> = {
+        '2N7000':  { mos: '.model 2N7000 NMOS (LEVEL=1 VTO=2.1 KP=80m RD=0.4 RS=0.4 LAMBDA=0.01 CGSO=450n CGDO=120n CBD=30p)', body: '.model DBODY_2N7000 D (IS=10f BV=60 IBV=10u CJO=30p RS=0.5)' },
+        'IRF540':  { mos: '.model IRF540 NMOS (LEVEL=1 VTO=3.6 KP=9.0 RD=0.015 RS=0.010 LAMBDA=0.01 CGSO=16u CGDO=1.2u CBD=450p)', body: '.model DBODY_IRF540 D (IS=1e-10 BV=100 IBV=25u CJO=450p RS=0.01 N=1.2)' },
+        'IRF540N': { mos: '.model IRF540N NMOS (LEVEL=1 VTO=3.6 KP=9.0 RD=0.015 RS=0.010 LAMBDA=0.01 CGSO=16u CGDO=1.2u CBD=450p)', body: '.model DBODY_IRF540N D (IS=1e-10 BV=100 IBV=25u CJO=450p RS=0.01 N=1.2)' },
+        'BS170':   { mos: '.model BS170 NMOS (LEVEL=1 VTO=2.1 KP=20m RD=0.5 RS=0.5 LAMBDA=0.01 CGSO=400n CGDO=100n)', body: '.model DBODY_BS170 D (IS=10f BV=60 IBV=10u CJO=25p RS=0.5)' },
+        'IRF630':  { mos: '.model IRF630 NMOS (LEVEL=1 VTO=3.8 KP=5.5 RD=0.18 RS=0.01 LAMBDA=0.01 CGSO=8u CGDO=600n)', body: '.model DBODY_IRF630 D (IS=1e-10 BV=200 IBV=25u CJO=250p RS=0.02)' },
+        'IRF3205': { mos: '.model IRF3205 NMOS (LEVEL=1 VTO=3.6 KP=14.0 RD=0.005 RS=0.003 LAMBDA=0.01 CGSO=30u CGDO=2.5u)', body: '.model DBODY_IRF3205 D (IS=1e-10 BV=55 IBV=25u CJO=800p RS=0.005)' },
       };
       const modelKey = Object.keys(nmosParts).find(k => rawVal.includes(k)) || '2N7000';
-      netlist += `M_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${nodes[2] || '0'} ${modelKey}\n`;
-      models.add(nmosParts[modelKey]);
+      const d = nodes[1] || '0', g = nodes[0] || '0', s = nodes[2] || '0';
+      netlist += `M_${comp.id} ${d} ${g} ${s} ${s} ${modelKey}\n`;
+      netlist += `D_body_${comp.id} ${s} ${d} DBODY_${modelKey}\n`;
+      models.add(nmosParts[modelKey].mos);
+      models.add(nmosParts[modelKey].body);
     }
     else if (comp.type === 'MosfetP') {
       const rawVal = (comp.value || 'BSS84').toUpperCase();
-      const pmosParts: Record<string, string> = {
-        'BSS84':   '.model BSS84 PMOS (LEVEL=1 VTO=-1.8 KP=20m RD=0.5 RS=0.5)',
-        'IRF9540': '.model IRF9540 PMOS (LEVEL=1 VTO=-4.0 KP=4.0 RD=0.12 RS=0.01)',
-        'IRF9540N':'.model IRF9540N PMOS (LEVEL=1 VTO=-4.0 KP=4.0 RD=0.12 RS=0.01)',
-        'IRF9630': '.model IRF9630 PMOS (LEVEL=1 VTO=-4.0 KP=3.0 RD=0.4 RS=0.01)',
-        'AO3401':  '.model AO3401 PMOS (LEVEL=1 VTO=-1.4 KP=15m RD=0.1 RS=0.05)',
+      const pmosParts: Record<string, { mos: string; body: string }> = {
+        'BSS84':   { mos: '.model BSS84 PMOS (LEVEL=1 VTO=-1.8 KP=20m RD=0.5 RS=0.5 LAMBDA=0.01 CGSO=350n CGDO=90n)', body: '.model DBODY_BSS84 D (IS=10f BV=50 IBV=10u CJO=25p RS=0.5)' },
+        'IRF9540': { mos: '.model IRF9540 PMOS (LEVEL=1 VTO=-3.8 KP=4.0 RD=0.05 RS=0.04 LAMBDA=0.01 CGSO=12u CGDO=1.5u)', body: '.model DBODY_IRF9540 D (IS=1e-10 BV=100 IBV=25u CJO=400p RS=0.02 N=1.2)' },
+        'IRF9540N':{ mos: '.model IRF9540N PMOS (LEVEL=1 VTO=-3.8 KP=4.0 RD=0.05 RS=0.04 LAMBDA=0.01 CGSO=12u CGDO=1.5u)', body: '.model DBODY_IRF9540N D (IS=1e-10 BV=100 IBV=25u CJO=400p RS=0.02 N=1.2)' },
+        'IRF9630': { mos: '.model IRF9630 PMOS (LEVEL=1 VTO=-3.8 KP=3.0 RD=0.4 RS=0.01 LAMBDA=0.01 CGSO=7u CGDO=600n)', body: '.model DBODY_IRF9630 D (IS=1e-10 BV=200 IBV=25u CJO=220p RS=0.03)' },
+        'AO3401':  { mos: '.model AO3401 PMOS (LEVEL=1 VTO=-1.4 KP=15m RD=0.1 RS=0.05 LAMBDA=0.01 CGSO=6u CGDO=800n)', body: '.model DBODY_AO3401 D (IS=1e-10 BV=30 IBV=10u CJO=150p RS=0.02)' },
       };
       const modelKey = Object.keys(pmosParts).find(k => rawVal.includes(k)) || 'BSS84';
-      netlist += `M_${comp.id} ${nodes[1] || '0'} ${nodes[0] || '0'} ${nodes[2] || '0'} ${nodes[2] || '0'} ${modelKey}\n`;
-      models.add(pmosParts[modelKey]);
+      const d = nodes[1] || '0', g = nodes[0] || '0', s = nodes[2] || '0';
+      netlist += `M_${comp.id} ${d} ${g} ${s} ${s} ${modelKey}\n`;
+      netlist += `D_body_${comp.id} ${d} ${s} DBODY_${modelKey}\n`;
+      models.add(pmosParts[modelKey].mos);
+      models.add(pmosParts[modelKey].body);
     }
     else if (comp.type === 'JFET') {
       const rawVal = (comp.value || 'J201').toUpperCase();

@@ -89,8 +89,10 @@ const ALL_COMPONENTS = [
 
   { tab: 'Analog', category: 'Transistors', type: 'TransistorNPN', value: '2N3904', label: 'NPN Transistor' },
   { tab: 'Analog', category: 'Transistors', type: 'TransistorPNP', value: '2N3906', label: 'PNP Transistor' },
-  { tab: 'Analog', category: 'Transistors', type: 'MosfetN', value: '2N7000', label: 'NMOS' },
-  { tab: 'Analog', category: 'Transistors', type: 'MosfetP', value: 'BSS84', label: 'PMOS' },
+  { tab: 'Analog', category: 'Transistors', type: 'MosfetN', value: '2N7000', label: 'NMOS (2N7000)' },
+  { tab: 'Analog', category: 'Transistors', type: 'MosfetN', value: 'IRF540', label: 'NMOS (IRF540)' },
+  { tab: 'Analog', category: 'Transistors', type: 'MosfetP', value: 'BSS84', label: 'PMOS (BSS84)' },
+  { tab: 'Analog', category: 'Transistors', type: 'MosfetP', value: 'IRF9540', label: 'PMOS (IRF9540)' },
   { tab: 'Analog', category: 'Transistors', type: 'JFET', value: 'J201', label: 'JFET N' },
   { tab: 'Analog', category: 'Transistors', type: 'IGBT', value: 'FGA25N120', label: 'IGBT' },
   { tab: 'Analog', category: 'Transistors', type: 'Phototransistor', value: '', label: 'Phototransistor' },
@@ -123,6 +125,7 @@ const ALL_COMPONENTS = [
   { tab: 'Analog', category: 'Power', type: 'CurrentMirror', value: '', label: 'Current Mirror' },
 
   { tab: 'Analog', category: 'Integrated Circuits', type: 'ic_lm358', value: 'LM358', label: 'LM358 Dual Op-Amp' },
+  { tab: 'Analog', category: 'Integrated Circuits', type: 'ic_tl072', value: 'TL072', label: 'TL072 Dual JFET Op-Amp' },
   { tab: 'Analog', category: 'Integrated Circuits', type: 'ic_lm555', value: 'NE555', label: 'LM555 Timer IC' },
   { tab: 'Analog', category: 'Integrated Circuits', type: 'ic_lm317', value: 'LM317', label: 'LM317 Adj. Regulator' },
   { tab: 'Analog', category: 'Integrated Circuits', type: 'ic_zener_ref', value: 'TL431', label: 'TL431 Shunt Ref' },

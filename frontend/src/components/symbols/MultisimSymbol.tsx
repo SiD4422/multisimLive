@@ -228,6 +228,15 @@ function formatRefDes(id: string, type: string): string {
     diode_zener_1n4733a: 'D',
     diode_zener_1n4742a: 'D',
     diode_bzx55c5v1: 'D',
+    diode_bzx55c3v3: 'D',
+    diode_bzx55c4v7: 'D',
+    diode_bzx55c6v8: 'D',
+    diode_bzx55c9v1: 'D',
+    diode_bzx55c12: 'D',
+    mosfet_2n7000: 'Q',
+    mosfet_irf540: 'Q',
+    mosfet_irf9540: 'Q',
+    ic_tl072: 'U',
     transistor_2n2222a: 'Q',
     transistor_2n2907a: 'Q',
     transistor_2n3904: 'Q',
@@ -1388,7 +1397,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     valueOffset = { x: 40, y: 20 };
   }
   // --- N-CHANNEL MOSFET ---
-  else if (type === 'mosfet_n') {
+  else if (type === 'mosfet_n' || type === 'mosfet_2n7000' || type === 'mosfet_irf540') {
     // Gate, insulating gap, three-segment channel, bulk arrow inward
     paths.push({ data: "M 0 0 L 12 0 M 12 -12 L 12 12", fill: "transparent" }); // Gate line + body contact
     paths.push({ data: "M 16 -12 L 16 -6 M 16 -3 L 16 3 M 16 6 L 16 12", fill: "transparent" }); // Channel segments
@@ -1404,7 +1413,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     valueOffset = { x: 40, y: 20 };
   }
   // --- P-CHANNEL MOSFET ---
-  else if (type === 'mosfet_p') {
+  else if (type === 'mosfet_p' || type === 'mosfet_irf9540') {
     paths.push({ data: "M 0 0 L 12 0 M 12 -12 L 12 12", fill: "transparent" });
     paths.push({ data: "M 16 -12 L 16 -6 M 16 -3 L 16 3 M 16 6 L 16 12", fill: "transparent" });
     paths.push({ data: "M 25 -20 L 25 -9 L 16 -9", fill: "transparent" });
@@ -3780,7 +3789,7 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{x:-30,y:0},{x:30,y:0}];
     labelOffset = { x: 0, y: 28 };
     valueOffset = { x: 0, y: 40 };
-  } else if (type === 'ic_tl082' || type === 'ic_lm833' || type === 'ic_lf353') {
+  } else if (type === 'ic_tl082' || type === 'ic_tl072' || type === 'ic_lm833' || type === 'ic_lf353') {
     // Dual Op-Amp (TL082, LM833, LF353)
     paths.push({ data: 'M -30 -40 L -30 -10 L 5 -25 Z', fill: '#fff', stroke: '#333' });
     lines.push({ points: [-50,-35,-30,-35] }); texts.push({ text: '1-', x: -48, y: -40, size: 6 });
@@ -5012,7 +5021,16 @@ export default function MultisimSymbol({ component, selected, onSelect, onDragMo
     pins = [{ x: -30, y: 0 }, { x: 30, y: 0 }];
     labelOffset = { x: 0, y: -18 };
     valueOffset = { x: 0, y: 20 };
-  } else if (type === 'diode_zener_1n4733a' || type === 'diode_zener_1n4742a' || type === 'diode_bzx55c5v1') {
+  } else if (
+    type === 'diode_zener_1n4733a' ||
+    type === 'diode_zener_1n4742a' ||
+    type === 'diode_bzx55c5v1' ||
+    type === 'diode_bzx55c3v3' ||
+    type === 'diode_bzx55c4v7' ||
+    type === 'diode_bzx55c6v8' ||
+    type === 'diode_bzx55c9v1' ||
+    type === 'diode_bzx55c12'
+  ) {
     // Zener Diodes
     lines.push({ points: [-30, 0, -10, 0] });
     lines.push({ points: [-10, -10, -10, 10, 10, 0, -10, -10] });
